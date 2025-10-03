@@ -4,10 +4,8 @@
 
 [build.environment]
   NODE_VERSION = "18.20.4"
-  # Remove hardcoded secrets - these should be set in Netlify UI
   SECRETS_SCAN_SMART_DETECTION_ENABLED = "false"
 
-# Remove static redirects that might be causing issues
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/:splat"
@@ -27,6 +25,8 @@
   [headers.values]
     X-Frame-Options = "DENY"
     X-XSS-Protection = "1; mode=block"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
     Referrer-Policy = "strict-origin-when-cross-origin"
