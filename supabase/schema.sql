@@ -1,61 +1,44 @@
 -- Create leads table for CRM
-CREATE TABLE IF NOT EXISTS leads (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  name TEXT NOT NULL,
-  email TEXT NOT NULL,
-  phone TEXT,
-  message TEXT,
-  service_interest TEXT,
-  budget_range TEXT,
+IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='leads' AND xtype='U')
+CREATE TABLE leads (
+  id UNIQUEIDENTIFIER DEFAULT NEWID() PRIMARY KEY,
+  name NVARCHAR(MAX) NOT NULL,
+  email NVARCHAR(MAX) NOT NULL,
+  phone NVARCHAR(MAX),
+  message NVARCHAR(MAX),
+  service_interest NVARCHAR(MAX),
+  budget_range NVARCHAR(MAX),
   event_date DATE,
-  status TEXT DEFAULT 'new' CHECK (status IN ('new', 'contacted', 'qualified', 'converted')),
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+  status NVARCHAR(50) DEFAULT 'new' CHECK (status IN ('new', 'contacted', 'qualified', 'converted')),
+  created_at DATETIMEOFFSET DEFAULT GETDATE()
 );
 
 -- Create content_pages table for CMS
-CREATE TABLE IF NOT EXISTS content_pages (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  title TEXT NOT NULL,
-  slug TEXT UNIQUE NOT NULL,
-  content TEXT,
-  meta_description TEXT,
-  published BOOLEAN DEFAULT false,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='content_pages' AND xtype='U')
+CREATE TABLE content_pages (
+  id UNIQUEIDENTIFIER DEFAULT NEWID() PRIMARY KEY,
+  title NVARCHAR(MAX) NOT NULL,
+  slug NVARCHAR(450) UNIQUE NOT NULL,
+  content NVARCHAR(MAX),
+  meta_description NVARCHAR(MAX),
+  created_at DATETIMEOFFSET DEFAULT GETDATE(),
+  updated_at DATETIMEOFFSET DEFAULT GETDATE()
 );
 
 -- Create gallery_images table
-CREATE TABLE IF NOT EXISTS gallery_images (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  title TEXT NOT NULL,
-  description TEXT,
-  image_url TEXT NOT NULL,
-  category TEXT DEFAULT 'general',
-  featured BOOLEAN DEFAULT false,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='gallery_images' AND xtype='U')
+IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='gallery_images' AND xtype='U')
+CREATE TABLE gallery_images (
+  id UNIQUEIDENTIFIER DEFAULT NEWID() PRIMARY KEY,
+  title NVARCHAR(MAX) NOT NULL,
+  description NVARCHAR(MAX),
+  image_url NVARCHAR(MAX) NOT NULL,
+  category NVARCHAR(MAX) DEFAULT 'general',
+  featured BIT DEFAULT 0,
+  created_at DATETIMEOFFSET DEFAULT GETDATE()
 );
-
--- Enable Row Level Security
-ALTER TABLE leads ENABLE ROW LEVEL SECURITY;
-ALTER TABLE content_pages ENABLE ROW LEVEL SECURITY;
-ALTER TABLE gallery_images ENABLE ROW LEVEL SECURITY;
-
--- Create policies for public access
-CREATE POLICY "Allow public lead creation" ON leads 
-  FOR INSERT TO anon 
-  WITH CHECK (true);
-
-CREATE POLICY "Allow authenticated read on leads" ON leads 
-  FOR SELECT TO authenticated 
-  WITH CHECK (true);
-
-CREATE POLICY "Allow public read on published content" ON content_pages 
-  FOR SELECT TO anon 
-  WITH CHECK (published = true);
-
-CREATE POLICY "Allow public read on gallery" ON gallery_images 
-  FOR SELECT TO anon 
-  WITH CHECK (true);
+-- Note: Row Level Security and Policies are PostgreSQL-specific features
+-- If using a different database system, these commands should be removed or replaced with equivalent security measures
 
 -- Insert some sample data (optional)
 INSERT INTO content_pages (title, slug, content, published) VALUES

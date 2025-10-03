@@ -42,10 +42,3 @@ export async function POST(request: Request) {
     )
   }
 }
-    console.error('Chat API error:', error)
-    return NextResponse.json(
-      { message: "I'm having trouble responding right now. Please contact us directly for assistance." },
-      { status: 500 }
-    )
-  }
-}
