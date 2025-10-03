@@ -12,9 +12,6 @@ export const metadata = {
   description: 'Capturing your precious moments with artistic excellence',
 }
 
-// Add this to prevent static generation issues
-export const dynamic = 'force-dynamic'
-
 export default function RootLayout({
   children,
 }: {
@@ -30,6 +27,9 @@ export default function RootLayout({
         <ChatBot />
         <Toaster position="top-right" />
       </body>
+    </html>
+  )
+}
     </html>
   )
 }

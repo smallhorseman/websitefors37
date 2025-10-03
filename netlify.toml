@@ -4,21 +4,19 @@
 
 [build.environment]
   NODE_VERSION = "18.20.4"
-  NPM_FLAGS = "--prefix=/dev/null"
-
-[[redirects]]
-  from = "/api/*"
-  to = "/.netlify/functions/api/*"
-  status = 200
-
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
 
 [functions]
-  directory = ".netlify/functions"
-  node_bundler = "esbuild"
+  directory = ".netlify/functions-internal"
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+  to = "/index.html"
+  status = 200
 
 [[headers]]
   for = "/*"
@@ -28,5 +26,7 @@
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
     X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Referrer-Policy = "strict-origin-when-cross-origin"
     Referrer-Policy = "strict-origin-when-cross-origin"
     Referrer-Policy = "strict-origin-when-cross-origin"
