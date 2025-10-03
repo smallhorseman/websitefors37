@@ -7,9 +7,7 @@ const nextConfig = {
   output: 'export',
   trailingSlash: true,
   skipTrailingSlashRedirect: true,
-}
-
-module.exports = nextConfig
+  env: {
     GEMINI_API_KEY: process.env.GEMINI_API_KEY,
   },
 }
