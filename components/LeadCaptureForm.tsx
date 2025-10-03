@@ -4,7 +4,6 @@ import React, { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { supabase } from '@/lib/supabase'
 import toast from 'react-hot-toast'
 
 const leadSchema = z.object({
@@ -35,6 +34,8 @@ export default function LeadCaptureForm() {
     setIsSubmitting(true)
     
     try {
+      const { supabase } = await import('@/lib/supabase')
+      
       const { error } = await supabase
         .from('leads')
         .insert([{ ...data, status: 'new' }])

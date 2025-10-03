@@ -1,7 +1,6 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { supabase } from '@/lib/supabase'
 import { Users, FileText, Settings } from 'lucide-react'
 
 const Images = ({ className }: { className?: string }) => (
@@ -30,6 +29,9 @@ export default function AdminPage() {
 
   const fetchLeads = async () => {
     try {
+      // Only import supabase client-side to avoid build issues
+      const { supabase } = await import('@/lib/supabase')
+
       const { data, error } = await supabase
         .from('leads')
         .select('*')
@@ -50,6 +52,8 @@ export default function AdminPage() {
 
   const updateLeadStatus = async (id: string, status: string) => {
     try {
+      const { supabase } = await import('@/lib/supabase')
+
       const { error } = await supabase
         .from('leads')
         .update({ status })
