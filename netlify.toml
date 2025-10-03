@@ -4,11 +4,11 @@
 
 [build.environment]
   NODE_VERSION = "18.20.4"
-  SECRETS_SCAN_SMART_DETECTION_ENABLED = "false"
+  NPM_FLAGS = "--prefix=/dev/null"
 
 [[redirects]]
   from = "/api/*"
-  to = "/.netlify/functions/:splat"
+  to = "/.netlify/functions/api/*"
   status = 200
 
 [[redirects]]
@@ -17,7 +17,7 @@
   status = 200
 
 [functions]
-  directory = "netlify/functions"
+  directory = ".netlify/functions"
   node_bundler = "esbuild"
 
 [[headers]]
