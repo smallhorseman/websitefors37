@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { Users, FileText, Settings, X, Mail, Phone, Calendar, DollarSign, MessageSquare, Trash2, Edit, PhoneCall, MessageCircle, Loader2, Plus, Clock } from 'lucide-react'
+import { BlogPost } from '@/lib/supabase'
 
 const Images = ({ className }: { className?: string }) => (
   <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -77,6 +78,22 @@ export default function AdminPage() {
   const [isNewPage, setIsNewPage] = useState(false)
   const [savingPage, setSavingPage] = useState(false)
   const [pageError, setPageError] = useState<string | null>(null)
+  const [blogPosts, setBlogPosts] = useState<BlogPost[]>([])
+  const [loadingPosts, setLoadingPosts] = useState(false)
+  const [selectedPost, setSelectedPost] = useState<BlogPost | null>(null)
+  const [showPostModal, setShowPostModal] = useState(false)
+  const [postForm, setPostForm] = useState({
+    title: '',
+    slug: '',
+    excerpt: '',
+    content: '',
+    featured_image: '',
+    meta_description: '',
+    published: false
+  })
+  const [isNewPost, setIsNewPost] = useState(false)
+  const [savingPost, setSavingPost] = useState(false)
+  const [postError, setPostError] = useState<string | null>(null)
 
   const fetchLeads = async () => {
     try {
@@ -304,6 +321,7 @@ export default function AdminPage() {
   const tabs = [
     { id: 'leads', label: 'Leads', icon: Users },
     { id: 'content', label: 'Content', icon: FileText },
+    { id: 'blog', label: 'Blog', icon: FileText },
     { id: 'gallery', label: 'Gallery', icon: Images },
     { id: 'settings', label: 'Settings', icon: Settings },
   ]
@@ -490,6 +508,157 @@ export default function AdminPage() {
       console.error('Error toggling publish status:', error)
       alert('Failed to update publish status')
     }
+  }
+
+  // Fetch blog posts
+  const fetchBlogPosts = async () => {
+    if (activeTab !== 'blog') return;
+    
+    setLoadingPosts(true)
+    setPostError(null)
+    try {
+      const { supabase } = await import('@/lib/supabase')
+
+      const { data, error } = await supabase
+        .from('blog_posts')
+        .select('*')
+        .order('updated_at', { ascending: false })
+
+      if (error) throw error
+      setBlogPosts(data || [])
+    } catch (error: any) {
+      console.error('Error fetching blog posts:', error)
+      setPostError(error.message || 'Failed to load blog posts')
+    } finally {
+      setLoadingPosts(false)
+    }
+  }
+
+  // Effect for fetching blog posts when tab changes
+  useEffect(() => {
+    if (activeTab === 'blog') {
+      fetchBlogPosts()
+    }
+  }, [activeTab])
+
+  // Create or update a blog post
+  const savePost = async () => {
+    setSavingPost(true)
+    setPostError(null)
+    
+    try {
+      const { supabase } = await import('@/lib/supabase')
+      
+      if (isNewPost) {
+        // Create new post
+        const { data, error } = await supabase
+          .from('blog_posts')
+          .insert([{
+            title: postForm.title,
+            slug: postForm.slug,
+            excerpt: postForm.excerpt,
+            content: postForm.content,
+            featured_image: postForm.featured_image,
+            meta_description: postForm.meta_description,
+            published: postForm.published
+          }])
+          .select()
+
+        if (error) throw error
+        
+        // Add to local state
+        if (data) setBlogPosts([data[0], ...blogPosts])
+      } else {
+        // Update existing post
+        const { error } = await supabase
+          .from('blog_posts')
+          .update({
+            title: postForm.title,
+            slug: postForm.slug,
+            excerpt: postForm.excerpt,
+            content: postForm.content,
+            featured_image: postForm.featured_image,
+            meta_description: postForm.meta_description,
+            published: postForm.published,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', selectedPost!.id)
+
+        if (error) throw error
+        
+        // Update local state
+        setBlogPosts(blogPosts.map(post => 
+          post.id === selectedPost!.id 
+            ? { ...post, ...postForm, updated_at: new Date().toISOString() } 
+            : post
+        ))
+      }
+      
+      // Close modal and reset form
+      setShowPostModal(false)
+      setSelectedPost(null)
+    } catch (error: any) {
+      console.error('Error saving post:', error)
+      setPostError(error.message || 'Failed to save post')
+    } finally {
+      setSavingPost(false)
+    }
+  }
+
+  // Delete a blog post
+  const deletePost = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this post? This action cannot be undone.')) {
+      return
+    }
+    
+    try {
+      const { supabase } = await import('@/lib/supabase')
+
+      const { error } = await supabase
+        .from('blog_posts')
+        .delete()
+        .eq('id', id)
+
+      if (error) throw error
+      
+      // Update local state
+      setBlogPosts(blogPosts.filter(post => post.id !== id))
+    } catch (error) {
+      console.error('Error deleting post:', error)
+      alert('Failed to delete post')
+    }
+  }
+
+  // Open edit modal for a blog post
+  const editPost = (post: BlogPost) => {
+    setSelectedPost(post)
+    setPostForm({
+      title: post.title,
+      slug: post.slug,
+      excerpt: post.excerpt || '',
+      content: post.content,
+      featured_image: post.featured_image || '',
+      meta_description: post.meta_description || '',
+      published: post.published
+    })
+    setIsNewPost(false)
+    setShowPostModal(true)
+  }
+
+  // Open modal to create a new blog post
+  const createNewPost = () => {
+    setSelectedPost(null)
+    setPostForm({
+      title: '',
+      slug: '',
+      excerpt: '',
+      content: '',
+      featured_image: '',
+      meta_description: '',
+      published: false
+    })
+    setIsNewPost(true)
+    setShowPostModal(true)
   }
 
   return (
@@ -798,6 +967,163 @@ export default function AdminPage() {
                                     target="_blank"
                                     className="text-blue-600 hover:text-blue-900"
                                     title="View page"
+                                    rel="noopener noreferrer"
+                                  >
+                                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                    </svg>
+                                  </a>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeTab === 'blog' && (
+              <div>
+                <div className="flex justify-between items-center mb-6">
+                  <h2 className="text-xl font-semibold">Blog Management</h2>
+                  <button 
+                    onClick={() => {
+                      setSelectedPost(null)
+                      setPostForm({
+                        title: '',
+                        slug: '',
+                        excerpt: '',
+                        content: '',
+                        featured_image: '',
+                        meta_description: '',
+                        published: false
+                      })
+                      setIsNewPost(true)
+                      setShowPostModal(true)
+                    }}
+                    className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 flex items-center gap-2"
+                  >
+                    <Plus className="h-4 w-4" />
+                    New Post
+                  </button>
+                </div>
+
+                {postError && (
+                  <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg mb-6">
+                    <p className="font-semibold">Error:</p>
+                    <p>{postError}</p>
+                    <button onClick={fetchBlogPosts} className="text-red-600 underline mt-2">
+                      Try again
+                    </button>
+                  </div>
+                )}
+
+                {loadingPosts ? (
+                  <div className="flex items-center justify-center py-12">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary-600" />
+                    <span className="ml-2">Loading blog posts...</span>
+                  </div>
+                ) : blogPosts.length === 0 ? (
+                  <div className="text-center py-12 bg-gray-50 rounded-lg">
+                    <FileText className="h-12 w-12 text-gray-400 mx-auto mb-3" />
+                    <p className="text-gray-500 mb-4">No blog posts yet.</p>
+                    <button
+                      onClick={() => {
+                        setSelectedPost(null)
+                        setPostForm({
+                          title: '',
+                          slug: '',
+                          excerpt: '',
+                          content: '',
+                          featured_image: '',
+                          meta_description: '',
+                          published: false
+                        })
+                        setIsNewPost(true)
+                        setShowPostModal(true)
+                      }}
+                      className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
+                    >
+                      Create Your First Post
+                    </button>
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Title
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            URL Slug
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Status
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Last Updated
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Actions
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {blogPosts.map((post) => (
+                          <tr key={post.id} className="hover:bg-gray-50">
+                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                              {post.title}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-mono">
+                              /blog/{post.slug}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <span 
+                                className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${
+                                  post.published 
+                                    ? 'bg-green-100 text-green-800' 
+                                    : 'bg-yellow-100 text-yellow-800'
+                                }`}
+                              >
+                                {post.published ? 'Published' : 'Draft'}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              {new Date(post.updated_at).toLocaleString()}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                              <div className="flex space-x-2">
+                                <button
+                                  onClick={() => {
+                                    setSelectedPost(post)
+                                    setPostForm({
+                                      title: post.title,
+                                      slug: post.slug,
+                                      excerpt: post.excerpt || '',
+                                      content: post.content,
+                                      featured_image: post.featured_image || '',
+                                      meta_description: post.meta_description || '',
+                                      published: post.published
+                                    })
+                                    setIsNewPost(false)
+                                    setShowPostModal(true)
+                                  }}
+                                  className="text-primary-600 hover:text-primary-900"
+                                  title="Edit post"
+                                >
+                                  <Edit className="h-4 w-4" />
+                                </button>
+                                {post.published && (
+                                  <a
+                                    href={`/blog/${post.slug}`}
+                                    target="_blank"
+                                    className="text-blue-600 hover:text-blue-900"
+                                    title="View post"
                                     rel="noopener noreferrer"
                                   >
                                     <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1206,6 +1532,150 @@ export default function AdminPage() {
                 className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {savingPage ? 'Saving...' : isNewPage ? 'Create Page' : 'Save Changes'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Blog Post Modal */}
+      {showPostModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-semibold">
+                {isNewPost ? 'Create New Post' : 'Edit Post'}
+              </h3>
+              <button
+                onClick={() => setShowPostModal(false)}
+                className="text-gray-400 hover:text-gray-500"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            {postError && (
+              <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg mb-6">
+                {postError}
+              </div>
+            )}
+
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Post Title *
+                  </label>
+                  <input
+                    type="text"
+                    value={postForm.title}
+                    onChange={(e) => setPostForm({ ...postForm, title: e.target.value })}
+                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    placeholder="Post Title"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    URL Slug *
+                  </label>
+                  <div className="flex items-center">
+                    <span className="text-gray-500 mr-1">/blog/</span>
+                    <input
+                      type="text"
+                      value={postForm.slug}
+                      onChange={(e) => setPostForm({ ...postForm, slug: e.target.value })}
+                      className="flex-1 px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 font-mono"
+                      placeholder="post-url-slug"
+                      required
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Excerpt
+                </label>
+                <textarea
+                  value={postForm.excerpt}
+                  onChange={(e) => setPostForm({ ...postForm, excerpt: e.target.value })}
+                  className="w-full h-24 px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  placeholder="Brief excerpt for the post"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Meta Description
+                </label>
+                <input
+                  type="text"
+                  value={postForm.meta_description}
+                  onChange={(e) => setPostForm({ ...postForm, meta_description: e.target.value })}
+                  className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  placeholder="Brief description for search engines"
+                  maxLength={160}
+                />
+                <p className="mt-1 text-xs text-gray-500">
+                  {postForm.meta_description.length}/160 characters
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Featured Image URL
+                </label>
+                <input
+                  type="text"
+                  value={postForm.featured_image}
+                  onChange={(e) => setPostForm({ ...postForm, featured_image: e.target.value })}
+                  className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  placeholder="https://example.com/image.jpg"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Post Content *
+                </label>
+                <textarea
+                  value={postForm.content}
+                  onChange={(e) => setPostForm({ ...postForm, content: e.target.value })}
+                  className="w-full h-64 px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  placeholder="Post content..."
+                  required
+                />
+              </div>
+
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="published"
+                  checked={postForm.published}
+                  onChange={(e) => setPostForm({ ...postForm, published: e.target.checked })}
+                  className="h-4 w-4 text-primary-600 rounded border-gray-300 focus:ring-primary-500"
+                />
+                <label htmlFor="published" className="ml-2 text-sm text-gray-700">
+                  Publish this post (will be visible to visitors)
+                </label>
+              </div>
+            </div>
+
+            <div className="mt-6 flex justify-end space-x-3">
+              <button
+                onClick={() => setShowPostModal(false)}
+                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={savePost}
+                disabled={!postForm.title || !postForm.slug || !postForm.content || savingPost}
+                className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {savingPost ? 'Saving...' : isNewPost ? 'Create Post' : 'Save Changes'}
               </button>
             </div>
           </div>

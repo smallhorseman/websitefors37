@@ -60,3 +60,20 @@ export interface GalleryImage {
   featured: boolean
   created_at: string
 }
+
+export interface BlogPost {
+  id: string
+  title: string
+  slug: string
+  excerpt?: string
+  content: string
+  featured_image?: string
+  author: string
+  category: string
+  tags?: string[]
+  meta_description?: string
+  published: boolean
+  published_at: string
+  created_at: string
+  updated_at: string
+}

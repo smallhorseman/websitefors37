@@ -28,7 +28,8 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   }
 }
 
-export default async function ContentPage({ params }: { params: { slug: string } }) {
+// Renamed function to avoid naming conflict with the imported ContentPage type
+export default async function DynamicPage({ params }: { params: { slug: string } }) {
   const supabase = createServerComponentClient({ cookies })
   
   const { data: page } = await supabase

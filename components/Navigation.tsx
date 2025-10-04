@@ -20,6 +20,7 @@ export default function Navigation() {
             <Link href="/" className="hover:text-primary-600 transition-colors">Home</Link>
             <Link href="/gallery" className="hover:text-primary-600 transition-colors">Gallery</Link>
             <Link href="/services" className="hover:text-primary-600 transition-colors">Services</Link>
+            <Link href="/blog" className="hover:text-primary-600 transition-colors">Blog</Link>
             <Link href="/about" className="hover:text-primary-600 transition-colors">About</Link>
             <Link href="/contact" className="hover:text-primary-600 transition-colors">Contact</Link>
             <Link href="/admin" className="btn-primary">Admin</Link>
@@ -39,6 +40,7 @@ export default function Navigation() {
               <Link href="/" className="hover:text-primary-600 transition-colors">Home</Link>
               <Link href="/gallery" className="hover:text-primary-600 transition-colors">Gallery</Link>
               <Link href="/services" className="hover:text-primary-600 transition-colors">Services</Link>
+              <Link href="/blog" className="hover:text-primary-600 transition-colors">Blog</Link>
               <Link href="/about" className="hover:text-primary-600 transition-colors">About</Link>
               <Link href="/contact" className="hover:text-primary-600 transition-colors">Contact</Link>
               <Link href="/admin" className="btn-primary w-fit">Admin</Link>
