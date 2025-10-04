@@ -30,7 +30,8 @@ SELECT
 WHERE NOT EXISTS (SELECT 1 FROM settings);
 
 -- Create function to update the updated_at timestamp automatically
-CREATE OR REPLACE FUNCTION update_settings_timestamp()
+DROP FUNCTION IF EXISTS update_settings_timestamp;
+CREATE FUNCTION update_settings_timestamp()
 RETURNS TRIGGER AS $$
 BEGIN
   NEW.updated_at = CURRENT_TIMESTAMP;
@@ -40,7 +41,7 @@ $$ LANGUAGE plpgsql;
 
 -- Create trigger to call the function
 DROP TRIGGER IF EXISTS set_settings_timestamp ON settings;
-CREATE TRIGGER set_settings_timestamp
-BEFORE UPDATE ON settings
+CREATE TRIGGER set_settings_timestamp ON settings
+BEFORE UPDATE
 FOR EACH ROW
 EXECUTE PROCEDURE update_settings_timestamp();
