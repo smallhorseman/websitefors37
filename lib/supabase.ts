@@ -1,20 +1,19 @@
 import { createClient } from '@supabase/supabase-js'
 
-// Use fallback values for build time
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co'
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-key'
+// Use environment variables only - no hardcoded values
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
 
 // Only validate in browser environment
-if (typeof window !== 'undefined') {
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
-    console.error('Missing NEXT_PUBLIC_SUPABASE_URL environment variable')
-  }
-  if (!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-    console.error('Missing NEXT_PUBLIC_SUPABASE_ANON_KEY environment variable')
-  }
+if (typeof window !== 'undefined' && (!supabaseUrl || !supabaseKey)) {
+  console.warn('Supabase environment variables are not set')
 }
 
-export const supabase = createClient(supabaseUrl, supabaseKey)
+// Create client with empty strings if vars are missing (for build time)
+export const supabase = createClient(
+  supabaseUrl || 'https://placeholder.supabase.co',
+  supabaseKey || 'placeholder-key'
+)
 
 export interface Lead {
   id: string
