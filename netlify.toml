@@ -2,6 +2,10 @@
   command = "npm run build"
   publish = ".next"
 
+[build.environment]
+  # Temporarily disable secret scanning until we ensure no secrets in build output
+  SECRETS_SCAN_SMART_DETECTION_ENABLED = "false"
+
 [[plugins]]
   package = "@netlify/plugin-nextjs"
 

@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { GoogleGenerativeAI } from '@google/generative-ai'
 
 const SYSTEM_PROMPT = `You are a helpful assistant for Studio 37, a professional photography studio. 
 
@@ -22,15 +23,19 @@ export async function POST(request: Request) {
   try {
     const { message } = await request.json()
 
-    // Check if Gemini API key is available
-    if (!process.env.GEMINI_API_KEY) {
-      return NextResponse.json({
-        message: "I'm currently unavailable. Please fill out our contact form and we'll get back to you soon!"
-      })
+    // Get API key from environment variable
+    const apiKey = process.env.GEMINI_API_KEY
+    
+    if (!apiKey) {
+      console.error('Gemini API key not found in environment variables')
+      return NextResponse.json(
+        { error: 'Chat service is not configured' },
+        { status: 500 }
+      )
     }
 
-    const { GoogleGenerativeAI } = await import('@google/generative-ai')
-    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY)
+    // Initialize Gemini only with the API key from env
+    const genAI = new GoogleGenerativeAI(apiKey)
     const model = genAI.getGenerativeModel({ model: "gemini-pro" })
 
     const prompt = `${SYSTEM_PROMPT}\n\nUser: ${message}\nAssistant:`
