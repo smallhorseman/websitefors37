@@ -1,12 +1,12 @@
 # Studio 37 Photography Website
 
-A modern, professional photography studio website built with Next.js, featuring a CRM system, lead generation, and AI chatbot.
+A modern, professional photography studio website built with Next.js, featuring a CRM system, lead generation, and customer support chatbot.
 
 ## 🚀 Features
 
 - 🎨 Modern, responsive design with Tailwind CSS
 - 📊 Built-in CRM and lead management system
-- 🤖 AI-powered customer support chatbot (Google Gemini)
+- 🤖 Customer support chatbot (Noupe)
 - 📝 Content management capabilities
 - 🖼️ Portfolio gallery with filtering
 - 📧 Lead capture forms with validation
@@ -19,7 +19,7 @@ A modern, professional photography studio website built with Next.js, featuring 
 - **Frontend**: Next.js 14, React 18, TypeScript
 - **Styling**: Tailwind CSS
 - **Database**: Supabase (PostgreSQL)
-- **AI**: Google Gemini API
+- **Chatbot**: Noupe Embed
 - **Forms**: React Hook Form with Zod validation
 - **Icons**: Lucide React
 - **Animations**: Framer Motion
@@ -44,7 +44,6 @@ A modern, professional photography studio website built with Next.js, featuring 
    ```bash
    NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
    NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-   GEMINI_API_KEY=your_gemini_api_key
    ```
 
 4. **Set up Supabase database**
@@ -73,19 +72,18 @@ A modern, professional photography studio website built with Next.js, featuring 
    - Publish directory: `.next`
 
 3. **Set environment variables**
-   - Add your Supabase and Gemini API keys in Netlify dashboard
+   - Add your Supabase keys in Netlify dashboard
 
 ## 📁 Project Structure
 
 ```text
 ├── app/
-│   ├── api/chat/          # AI chatbot API (Gemini)
 │   ├── admin/             # Admin dashboard
 │   ├── globals.css        # Global styles
 │   ├── layout.tsx         # Root layout
 │   └── page.tsx           # Homepage
 ├── components/
-│   ├── ChatBot.tsx        # AI chatbot component
+│   ├── ChatBot.tsx        # Customer support chatbot
 │   ├── Gallery.tsx        # Portfolio gallery
 │   ├── Hero.tsx           # Hero section
 │   ├── LeadCaptureForm.tsx # Lead generation form
