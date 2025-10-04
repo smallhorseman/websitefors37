@@ -34,6 +34,17 @@ interface CommunicationLog {
   created_by?: string
 }
 
+interface ContentPage {
+  id: string
+  title: string
+  slug: string
+  content: string
+  meta_description?: string
+  published: boolean
+  created_at: string
+  updated_at: string
+}
+
 export default function AdminPage() {
   const [activeTab, setActiveTab] = useState('leads')
   const [leads, setLeads] = useState<Lead[]>([])
@@ -52,6 +63,20 @@ export default function AdminPage() {
     content: '',
     direction: 'outbound' as CommunicationLog['direction']
   })
+  const [pages, setPages] = useState<ContentPage[]>([])
+  const [loadingPages, setLoadingPages] = useState(false)
+  const [selectedPage, setSelectedPage] = useState<ContentPage | null>(null)
+  const [showPageModal, setShowPageModal] = useState(false)
+  const [pageForm, setPageForm] = useState({
+    title: '',
+    slug: '',
+    content: '',
+    meta_description: '',
+    published: false
+  })
+  const [isNewPage, setIsNewPage] = useState(false)
+  const [savingPage, setSavingPage] = useState(false)
+  const [pageError, setPageError] = useState<string | null>(null)
 
   const fetchLeads = async () => {
     try {
@@ -283,6 +308,190 @@ export default function AdminPage() {
     { id: 'settings', label: 'Settings', icon: Settings },
   ]
 
+  // Fetch content pages
+  const fetchPages = async () => {
+    if (activeTab !== 'content') return;
+    
+    setLoadingPages(true)
+    setPageError(null)
+    try {
+      const { supabase } = await import('@/lib/supabase')
+
+      const { data, error } = await supabase
+        .from('content_pages')
+        .select('*')
+        .order('updated_at', { ascending: false })
+
+      if (error) throw error
+      setPages(data || [])
+    } catch (error: any) {
+      console.error('Error fetching pages:', error)
+      setPageError(error.message || 'Failed to load content pages')
+    } finally {
+      setLoadingPages(false)
+    }
+  }
+
+  // Effect for fetching pages when tab changes
+  useEffect(() => {
+    if (activeTab === 'content') {
+      fetchPages()
+    }
+  }, [activeTab])
+
+  // Generate slug from title
+  const generateSlug = (title: string) => {
+    return title
+      .toLowerCase()
+      .replace(/[^\w\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .trim()
+  }
+
+  // Handle title change and auto-generate slug for new pages
+  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const title = e.target.value
+    setPageForm({
+      ...pageForm,
+      title,
+      slug: isNewPage ? generateSlug(title) : pageForm.slug
+    })
+  }
+
+  // Create or update a page
+  const savePage = async () => {
+    setSavingPage(true)
+    setPageError(null)
+    
+    try {
+      const { supabase } = await import('@/lib/supabase')
+      
+      if (isNewPage) {
+        // Create new page
+        const { data, error } = await supabase
+          .from('content_pages')
+          .insert([{
+            title: pageForm.title,
+            slug: pageForm.slug,
+            content: pageForm.content,
+            meta_description: pageForm.meta_description,
+            published: pageForm.published
+          }])
+          .select()
+
+        if (error) throw error
+        
+        // Add to local state
+        if (data) setPages([data[0], ...pages])
+      } else {
+        // Update existing page
+        const { error } = await supabase
+          .from('content_pages')
+          .update({
+            title: pageForm.title,
+            slug: pageForm.slug,
+            content: pageForm.content,
+            meta_description: pageForm.meta_description,
+            published: pageForm.published,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', selectedPage!.id)
+
+        if (error) throw error
+        
+        // Update local state
+        setPages(pages.map(page => 
+          page.id === selectedPage!.id 
+            ? { ...page, ...pageForm, updated_at: new Date().toISOString() } 
+            : page
+        ))
+      }
+      
+      // Close modal and reset form
+      setShowPageModal(false)
+      setSelectedPage(null)
+    } catch (error: any) {
+      console.error('Error saving page:', error)
+      setPageError(error.message || 'Failed to save page')
+    } finally {
+      setSavingPage(false)
+    }
+  }
+
+  // Delete a page
+  const deletePage = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this page? This action cannot be undone.')) {
+      return
+    }
+    
+    try {
+      const { supabase } = await import('@/lib/supabase')
+
+      const { error } = await supabase
+        .from('content_pages')
+        .delete()
+        .eq('id', id)
+
+      if (error) throw error
+      
+      // Update local state
+      setPages(pages.filter(page => page.id !== id))
+    } catch (error) {
+      console.error('Error deleting page:', error)
+      alert('Failed to delete page')
+    }
+  }
+
+  // Open edit modal for a page
+  const editPage = (page: ContentPage) => {
+    setSelectedPage(page)
+    setPageForm({
+      title: page.title,
+      slug: page.slug,
+      content: page.content,
+      meta_description: page.meta_description || '',
+      published: page.published
+    })
+    setIsNewPage(false)
+    setShowPageModal(true)
+  }
+
+  // Open modal to create a new page
+  const createNewPage = () => {
+    setSelectedPage(null)
+    setPageForm({
+      title: '',
+      slug: '',
+      content: '',
+      meta_description: '',
+      published: false
+    })
+    setIsNewPage(true)
+    setShowPageModal(true)
+  }
+
+  // Toggle page publish status
+  const togglePublish = async (page: ContentPage) => {
+    try {
+      const { supabase } = await import('@/lib/supabase')
+
+      const { error } = await supabase
+        .from('content_pages')
+        .update({ published: !page.published })
+        .eq('id', page.id)
+
+      if (error) throw error
+      
+      // Update local state
+      setPages(pages.map(p => 
+        p.id === page.id ? { ...p, published: !page.published } : p
+      ))
+    } catch (error) {
+      console.error('Error toggling publish status:', error)
+      alert('Failed to update publish status')
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 pt-16">
       <div className="container mx-auto px-4 py-8">
@@ -474,8 +683,137 @@ export default function AdminPage() {
 
             {activeTab === 'content' && (
               <div>
-                <h2 className="text-xl font-semibold mb-6">Content Management</h2>
-                <p className="text-gray-600">Content editor coming soon...</p>
+                <div className="flex justify-between items-center mb-6">
+                  <h2 className="text-xl font-semibold">Content Management</h2>
+                  <button 
+                    onClick={createNewPage}
+                    className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 flex items-center gap-2"
+                  >
+                    <Plus className="h-4 w-4" />
+                    New Page
+                  </button>
+                </div>
+
+                {pageError && (
+                  <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg mb-6">
+                    <p className="font-semibold">Error:</p>
+                    <p>{pageError}</p>
+                    <button onClick={fetchPages} className="text-red-600 underline mt-2">
+                      Try again
+                    </button>
+                  </div>
+                )}
+
+                {loadingPages ? (
+                  <div className="flex items-center justify-center py-12">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary-600" />
+                    <span className="ml-2">Loading content pages...</span>
+                  </div>
+                ) : pages.length === 0 ? (
+                  <div className="text-center py-12 bg-gray-50 rounded-lg">
+                    <FileText className="h-12 w-12 text-gray-400 mx-auto mb-3" />
+                    <p className="text-gray-500 mb-4">No content pages yet.</p>
+                    <button
+                      onClick={createNewPage} 
+                      className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
+                    >
+                      Create Your First Page
+                    </button>
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Title
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            URL Slug
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Status
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Last Updated
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Actions
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {pages.map((page) => (
+                          <tr key={page.id} className="hover:bg-gray-50">
+                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                              {page.title}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-mono">
+                              /{page.slug}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <span 
+                                className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${
+                                  page.published 
+                                    ? 'bg-green-100 text-green-800' 
+                                    : 'bg-yellow-100 text-yellow-800'
+                                }`}
+                              >
+                                {page.published ? 'Published' : 'Draft'}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              {new Date(page.updated_at).toLocaleString()}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                              <div className="flex space-x-2">
+                                <button
+                                  onClick={() => editPage(page)}
+                                  className="text-primary-600 hover:text-primary-900"
+                                  title="Edit page"
+                                >
+                                  <Edit className="h-4 w-4" />
+                                </button>
+                                <button
+                                  onClick={() => togglePublish(page)}
+                                  className={`${
+                                    page.published 
+                                      ? 'text-green-600 hover:text-green-900' 
+                                      : 'text-yellow-600 hover:text-yellow-900'
+                                  }`}
+                                  title={page.published ? 'Unpublish' : 'Publish'}
+                                >
+                                  <Settings className="h-4 w-4" />
+                                </button>
+                                <button
+                                  onClick={() => deletePage(page.id)}
+                                  className="text-red-600 hover:text-red-900"
+                                  title="Delete page"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </button>
+                                {page.published && (
+                                  <a
+                                    href={`/${page.slug}`}
+                                    target="_blank"
+                                    className="text-blue-600 hover:text-blue-900"
+                                    title="View page"
+                                    rel="noopener noreferrer"
+                                  >
+                                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                    </svg>
+                                  </a>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
               </div>
             )}
 
@@ -749,6 +1087,125 @@ export default function AdminPage() {
                 disabled={!newLog.content.trim()}
               >
                 Add Log
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Content Page Modal */}
+      {showPageModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-semibold">
+                {isNewPage ? 'Create New Page' : 'Edit Page'}
+              </h3>
+              <button
+                onClick={() => setShowPageModal(false)}
+                className="text-gray-400 hover:text-gray-500"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            {pageError && (
+              <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg mb-6">
+                {pageError}
+              </div>
+            )}
+
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Page Title *
+                  </label>
+                  <input
+                    type="text"
+                    value={pageForm.title}
+                    onChange={handleTitleChange}
+                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    placeholder="Page Title"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    URL Slug *
+                  </label>
+                  <div className="flex items-center">
+                    <span className="text-gray-500 mr-1">/</span>
+                    <input
+                      type="text"
+                      value={pageForm.slug}
+                      onChange={(e) => setPageForm({ ...pageForm, slug: e.target.value })}
+                      className="flex-1 px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 font-mono"
+                      placeholder="page-url-slug"
+                      required
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Meta Description
+                </label>
+                <input
+                  type="text"
+                  value={pageForm.meta_description}
+                  onChange={(e) => setPageForm({ ...pageForm, meta_description: e.target.value })}
+                  className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  placeholder="Brief description for search engines"
+                  maxLength={160}
+                />
+                <p className="mt-1 text-xs text-gray-500">
+                  {pageForm.meta_description.length}/160 characters
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Page Content *
+                </label>
+                <textarea
+                  value={pageForm.content}
+                  onChange={(e) => setPageForm({ ...pageForm, content: e.target.value })}
+                  className="w-full h-64 px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  placeholder="Page content..."
+                  required
+                />
+              </div>
+
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="published"
+                  checked={pageForm.published}
+                  onChange={(e) => setPageForm({ ...pageForm, published: e.target.checked })}
+                  className="h-4 w-4 text-primary-600 rounded border-gray-300 focus:ring-primary-500"
+                />
+                <label htmlFor="published" className="ml-2 text-sm text-gray-700">
+                  Publish this page (will be visible to visitors)
+                </label>
+              </div>
+            </div>
+
+            <div className="mt-6 flex justify-end space-x-3">
+              <button
+                onClick={() => setShowPageModal(false)}
+                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={savePage}
+                disabled={!pageForm.title || !pageForm.slug || !pageForm.content || savingPage}
+                className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {savingPage ? 'Saving...' : isNewPage ? 'Create Page' : 'Save Changes'}
               </button>
             </div>
           </div>
