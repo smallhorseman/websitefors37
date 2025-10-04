@@ -6,7 +6,7 @@ A modern, professional photography studio website built with Next.js, featuring 
 
 - 🎨 Modern, responsive design with Tailwind CSS
 - 📊 Built-in CRM and lead management system
-- 🤖 Customer support chatbot (Noupe)
+- 🤖 Custom lead generation chatbot
 - 📝 Content management capabilities
 - 🖼️ Portfolio gallery with filtering
 - 📧 Lead capture forms with validation
@@ -19,7 +19,7 @@ A modern, professional photography studio website built with Next.js, featuring 
 - **Frontend**: Next.js 14, React 18, TypeScript
 - **Styling**: Tailwind CSS
 - **Database**: Supabase (PostgreSQL)
-- **Chatbot**: Noupe Embed
+- **Chatbot**: Custom lead generation flow
 - **Forms**: React Hook Form with Zod validation
 - **Icons**: Lucide React
 - **Animations**: Framer Motion
