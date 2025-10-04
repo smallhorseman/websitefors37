@@ -22,10 +22,9 @@ Keep responses helpful, professional, and concise. If asked about specific prici
 export async function POST(request: Request) {
   console.log('Chat API called')
   
-  const { message } = await request.json()
-  console.log('Received message:', message)
-  
   try {
+    const { message } = await request.json()
+    console.log('Received message:', message)
 
     // Get API key from environment variable
     const apiKey = process.env.GEMINI_API_KEY
@@ -40,39 +39,49 @@ export async function POST(request: Request) {
 
     console.log('API key found, initializing Gemini...')
     
-    // Initialize Gemini with the correct model name
+    // Initialize Gemini with the latest model
     const genAI = new GoogleGenerativeAI(apiKey)
-    // Try the stable model name without version
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" })
-
-    const prompt = `${SYSTEM_PROMPT}\n\nUser: ${message}\nAssistant:`
-
-    console.log('Generating response...')
-    const result = await model.generateContent(prompt)
-    const response = await result.response
-    const botMessage = response.text()
     
-    console.log('Response generated successfully')
-
-    return NextResponse.json({ message: botMessage })
-  } catch (error) {
-    console.error('Chat API error:', error)
-    // If gemini-pro doesn't work, try with a fallback
-    if (error instanceof Error && error.message.includes('404')) {
+    // Try different model names based on current availability
+    const modelNames = [
+      'gemini-1.5-flash-latest',
+      'gemini-1.5-flash',
+      'gemini-1.5-pro-latest', 
+      'gemini-1.5-pro',
+      'gemini-1.0-pro-latest',
+      'gemini-1.0-pro'
+    ]
+    
+    let botMessage = null
+    let lastError = null
+    
+    for (const modelName of modelNames) {
       try {
-        console.log('Trying fallback model...')
-        const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!)
-        // Try alternate model name
-        const model = genAI.getGenerativeModel({ model: "models/gemini-pro" })
+        console.log(`Trying model: ${modelName}`)
+        const model = genAI.getGenerativeModel({ model: modelName })
+        
         const prompt = `${SYSTEM_PROMPT}\n\nUser: ${message}\nAssistant:`
+        
         const result = await model.generateContent(prompt)
         const response = await result.response
-        const botMessage = response.text()
-        return NextResponse.json({ message: botMessage })
-      } catch (fallbackError) {
-        console.error('Fallback also failed:', fallbackError)
+        botMessage = response.text()
+        
+        console.log(`Success with model: ${modelName}`)
+        break
+      } catch (error) {
+        console.error(`Failed with ${modelName}:`, error)
+        lastError = error
       }
     }
+    
+    if (botMessage) {
+      return NextResponse.json({ message: botMessage })
+    } else {
+      throw lastError || new Error('All models failed')
+    }
+    
+  } catch (error) {
+    console.error('Chat API error:', error)
     
     return NextResponse.json(
       { message: "I'm having trouble responding right now. Please contact us directly for assistance." },
