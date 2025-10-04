@@ -222,10 +222,10 @@ export default function ChatBot() {
                       message.sender === 'user'
                         ? 'bg-primary-600 text-white'
                         : 'bg-gray-100 text-gray-800'
-              {/* Options buttons */}
-              {CHAT_FLOW[currentStep].options && (
-                <div className="flex flex-wrap gap-2 mt-3">
-                  {CHAT_FLOW[currentStep].options?.map((option) => (
+                    }`}
+                  >
+                    {message.text}
+                  </div>
                 </div>
               ))}
 
