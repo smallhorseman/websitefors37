@@ -54,7 +54,7 @@ export default async function DynamicPage({ params }: { params: { slug: string }
             source={page.content}
             options={{
               mdxOptions: {
-                rehypePlugins: [rehypeHighlight]
+                rehypePlugins: [() => rehypeHighlight()] // Fixed: Wrap with a function call
               }
             }}
           />

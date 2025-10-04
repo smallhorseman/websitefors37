@@ -6,6 +6,7 @@ import { cookies } from 'next/headers'
 import { notFound } from 'next/navigation'
 import { Calendar, User, Tag, ArrowLeft } from 'lucide-react'
 import { MDXRemote } from 'next-mdx-remote/rsc'
+import rehypeHighlight from 'rehype-highlight'
 
 // Generate metadata dynamically based on blog post
 export async function generateMetadata({ params }: { params: { slug: string } }) {
@@ -114,8 +115,14 @@ export default async function BlogPostPage({ params }: { params: { slug: string 
           <article className="prose lg:prose-lg max-w-none">
             <MDXRemote 
               source={post.content}
+              options={{
+                mdxOptions: {
+                  rehypePlugins: [() => rehypeHighlight()] // Fixed: Wrap with a function call
+                }
+              }}
             />
           </article>
+          
           {relatedPosts && relatedPosts.length > 0 && (
             <div className="mt-16 pt-12 border-t">
               <h3 className="text-2xl font-bold mb-6">Related Articles</h3>
