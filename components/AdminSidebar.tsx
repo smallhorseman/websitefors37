@@ -3,13 +3,13 @@
 import React from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Users, FileText, Images, Settings, Home } from 'lucide-react'
+import { Users, FileText, Image, Settings, Home } from 'lucide-react'
 
 const navItems = [
   { path: '/admin', label: 'Dashboard', icon: Home },
   { path: '/admin/leads', label: 'Leads', icon: Users },
   { path: '/admin/content', label: 'Content', icon: FileText },
-  { path: '/admin/gallery', label: 'Gallery', icon: Images },
+  { path: '/admin/gallery', label: 'Gallery', icon: Image },
   { path: '/admin/settings', label: 'Settings', icon: Settings },
 ]
 

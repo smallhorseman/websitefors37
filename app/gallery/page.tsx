@@ -18,7 +18,7 @@ export default async function GalleryPage() {
   
   // Get unique categories
   const categories = images ? 
-    ['all', ...new Set(images.map(img => img.category))] : 
+    ['all', ...Array.from(new Set(images.map(img => img.category)))] : 
     ['all']
   
   return (
