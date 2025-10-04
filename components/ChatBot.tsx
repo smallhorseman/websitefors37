@@ -1,25 +1,24 @@
 'use client'
 
-import React, { useEffect } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
+import { MessageCircle, X, Send } from 'lucide-react'
+
+interface Message {
+  id: string
+  text: string
+  isBot: boolean
+  timestamp: Date
+}
 
 export default function ChatBot() {
-  useEffect(() => {
-    // Create script element
-    const script = document.createElement('script')
-    script.src = 'https://www.noupe.com/embed/0199ae40948d7d26b67cf92619d001bd7d9a.js'
-    script.async = true
-    
-    // Append script to body
-    document.body.appendChild(script)
-    
-    // Cleanup function to remove script when component unmounts
-    return () => {
-      document.body.removeChild(script)
+  const [isOpen, setIsOpen] = useState(false)
+  const [messages, setMessages] = useState<Message[]>([
+    {
+      id: '1',
+      text: "Hi! I'm here to help. How can I assist you today?",
+      isBot: true,
+      timestamp: new Date()
     }
-  }, [])
-
-  return null // The script will inject its own UI
-}
   ])
   const [inputValue, setInputValue] = useState('')
   const [isLoading, setIsLoading] = useState(false)
