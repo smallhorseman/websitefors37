@@ -39,45 +39,43 @@ export async function POST(request: Request) {
 
     console.log('API key found, initializing Gemini...')
     
-    // Initialize Gemini with the latest model
+    // Initialize Gemini
     const genAI = new GoogleGenerativeAI(apiKey)
     
-    // Try different model names based on current availability
-    const modelNames = [
-      'gemini-1.5-flash-latest',
-      'gemini-1.5-flash',
-      'gemini-1.5-pro-latest', 
-      'gemini-1.5-pro',
-      'gemini-1.0-pro-latest',
-      'gemini-1.0-pro'
-    ]
-    
-    let botMessage = null
-    let lastError = null
-    
-    for (const modelName of modelNames) {
+    try {
+      // Use the current working model name
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-002" })
+      
+      const prompt = `${SYSTEM_PROMPT}\n\nUser: ${message}\nAssistant:`
+      
+      console.log('Generating response with gemini-1.5-flash-002...')
+      const result = await model.generateContent(prompt)
+      const response = await result.response
+      const botMessage = response.text()
+      
+      console.log('Response generated successfully')
+      return NextResponse.json({ message: botMessage })
+      
+    } catch (modelError: any) {
+      // If the first model fails, try the older stable version
+      console.error('Primary model failed:', modelError.message)
+      
       try {
-        console.log(`Trying model: ${modelName}`)
-        const model = genAI.getGenerativeModel({ model: modelName })
-        
+        const model = genAI.getGenerativeModel({ model: "gemini-pro" })
         const prompt = `${SYSTEM_PROMPT}\n\nUser: ${message}\nAssistant:`
         
+        console.log('Trying fallback model gemini-pro...')
         const result = await model.generateContent(prompt)
         const response = await result.response
-        botMessage = response.text()
+        const botMessage = response.text()
         
-        console.log(`Success with model: ${modelName}`)
-        break
-      } catch (error) {
-        console.error(`Failed with ${modelName}:`, error)
-        lastError = error
+        console.log('Fallback model succeeded')
+        return NextResponse.json({ message: botMessage })
+        
+      } catch (fallbackError) {
+        console.error('Fallback model also failed:', fallbackError)
+        throw fallbackError
       }
-    }
-    
-    if (botMessage) {
-      return NextResponse.json({ message: botMessage })
-    } else {
-      throw lastError || new Error('All models failed')
     }
     
   } catch (error) {
@@ -87,5 +85,7 @@ export async function POST(request: Request) {
       { message: "I'm having trouble responding right now. Please contact us directly for assistance." },
       { status: 500 }
     )
+  }
+}
   }
 }
