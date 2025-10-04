@@ -117,7 +117,7 @@ export default async function BlogPostPage({ params }: { params: { slug: string 
               source={post.content}
               options={{
                 mdxOptions: {
-                  rehypePlugins: [() => rehypeHighlight()] // Fixed: Wrap with a function call
+                  rehypePlugins: [[rehypeHighlight, {}] as any]
                 }
               }}
             />

@@ -43,4 +43,4 @@ DROP TRIGGER IF EXISTS set_settings_timestamp ON settings;
 CREATE TRIGGER set_settings_timestamp
 BEFORE UPDATE ON settings
 FOR EACH ROW
-EXECUTE FUNCTION update_settings_timestamp();
+EXECUTE PROCEDURE update_settings_timestamp();
