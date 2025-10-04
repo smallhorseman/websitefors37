@@ -59,3 +59,48 @@ export async function getSettings(): Promise<SiteSettings> {
     return DEFAULT_SETTINGS
   }
 }
+
+export async function updateSettings(settings: Partial<SiteSettings>): Promise<SiteSettings | null> {
+  try {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
+    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
+    
+    if (!supabaseUrl || !supabaseKey) {
+      throw new Error('Missing Supabase credentials')
+    }
+    
+    const supabase = createClient(supabaseUrl, supabaseKey)
+    
+    // First check if settings exist
+    const { data: existing } = await supabase
+      .from('settings')
+      .select('id')
+      .single()
+      
+    let result
+    
+    if (existing) {
+      // Update existing settings
+      result = await supabase
+        .from('settings')
+        .update(settings)
+        .eq('id', existing.id)
+        .select('*')
+        .single()
+    } else {
+      // Insert new settings
+      result = await supabase
+        .from('settings')
+        .insert([settings])
+        .select('*')
+        .single()
+    }
+    
+    if (result.error) throw result.error
+    
+    return result.data
+  } catch (error) {
+    console.error('Error updating settings:', error)
+    return null
+  }
+}
