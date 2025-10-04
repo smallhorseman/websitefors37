@@ -39,9 +39,10 @@ export async function POST(request: Request) {
 
     console.log('API key found, initializing Gemini...')
     
-    // Initialize Gemini
+    // Initialize Gemini with the correct model name
     const genAI = new GoogleGenerativeAI(apiKey)
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" })
+    // Use the updated model name
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" })
 
     const prompt = `${SYSTEM_PROMPT}\n\nUser: ${message}\nAssistant:`
 
@@ -55,6 +56,13 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: botMessage })
   } catch (error) {
     console.error('Chat API error:', error)
+    // More specific error handling
+    if (error instanceof Error && error.message.includes('404')) {
+      return NextResponse.json(
+        { message: "I'm having trouble with the AI service. Please contact us directly at your convenience." },
+        { status: 500 }
+      )
+    }
     return NextResponse.json(
       { message: "I'm having trouble responding right now. Please contact us directly for assistance." },
       { status: 500 }
