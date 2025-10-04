@@ -6,7 +6,7 @@ export default function ChatBot() {
   useEffect(() => {
     // Create script element
     const script = document.createElement('script')
-    script.src = 'https://www.noupe.com/embed/019970155a497f99aa25f3b12a300497a617.js'
+    script.src = 'https://www.noupe.com/embed/0199ae40948d7d26b67cf92619d001bd7d9a.js'
     script.async = true
     
     // Append script to body
