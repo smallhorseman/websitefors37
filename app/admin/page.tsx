@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import { Users, FileText, Settings, X, Mail, Phone, Calendar, DollarSign, MessageSquare, Trash2, Edit, PhoneCall, MessageCircle, Loader2, Plus, Clock } from 'lucide-react'
 import { BlogPost } from '@/lib/supabase'
+import MarkdownEditor from '@/components/MarkdownEditor'
 
 const Images = ({ className }: { className?: string }) => (
   <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1422,7 +1423,7 @@ export default function AdminPage() {
       {/* Content Page Modal */}
       {showPageModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-lg p-6 max-w-5xl w-full mx-4 max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-xl font-semibold">
                 {isNewPage ? 'Create New Page' : 'Edit Page'}
@@ -1496,12 +1497,11 @@ export default function AdminPage() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Page Content *
                 </label>
-                <textarea
+                <MarkdownEditor 
                   value={pageForm.content}
-                  onChange={(e) => setPageForm({ ...pageForm, content: e.target.value })}
-                  className="w-full h-64 px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                  placeholder="Page content..."
-                  required
+                  onChange={(value) => setPageForm({ ...pageForm, content: value })}
+                  minHeight="400px"
+                  placeholder="Write your page content using Markdown..."
                 />
               </div>
 
@@ -1541,7 +1541,7 @@ export default function AdminPage() {
       {/* Blog Post Modal */}
       {showPostModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-lg p-6 max-w-5xl w-full mx-4 max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-xl font-semibold">
                 {isNewPost ? 'Create New Post' : 'Edit Post'}
@@ -1640,12 +1640,11 @@ export default function AdminPage() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Post Content *
                 </label>
-                <textarea
+                <MarkdownEditor 
                   value={postForm.content}
-                  onChange={(e) => setPostForm({ ...postForm, content: e.target.value })}
-                  className="w-full h-64 px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                  placeholder="Post content..."
-                  required
+                  onChange={(value) => setPostForm({ ...postForm, content: value })}
+                  minHeight="400px"
+                  placeholder="Write your post content using Markdown..."
                 />
               </div>
 

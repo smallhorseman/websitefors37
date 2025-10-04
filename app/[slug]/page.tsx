@@ -3,6 +3,8 @@ import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
 import { notFound } from 'next/navigation'
 import { ContentPage } from '@/lib/supabase'
+import { MDXRemote } from 'next-mdx-remote/rsc'
+import rehypeHighlight from 'rehype-highlight'
 
 // Generate metadata dynamically based on page content
 export async function generateMetadata({ params }: { params: { slug: string } }) {
@@ -43,17 +45,20 @@ export default async function DynamicPage({ params }: { params: { slug: string }
     notFound()
   }
   
-  // Process content to render as HTML (simple version - consider a proper HTML sanitizer in production)
-  const contentWithLineBreaks = page.content.replace(/\n/g, '<br />')
-  
   return (
     <div className="pt-16 min-h-screen">
       <div className="container mx-auto px-4 py-16">
         <h1 className="text-4xl font-bold mb-6">{page.title}</h1>
-        <div 
-          className="prose max-w-none"
-          dangerouslySetInnerHTML={{ __html: contentWithLineBreaks }}
-        />
+        <article className="prose max-w-none">
+          <MDXRemote 
+            source={page.content}
+            options={{
+              mdxOptions: {
+                rehypePlugins: [rehypeHighlight]
+              }
+            }}
+          />
+        </article>
       </div>
     </div>
   )

@@ -62,10 +62,23 @@ CREATE TABLE IF NOT EXISTS blog_posts (
   tags TEXT[],
   meta_description TEXT,
   published BOOLEAN DEFAULT false,
-  published_at TIMESTAMPTZ,
+  published_at TIMESTAMPTZ DEFAULT NOW(),
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- Create index for blog posts
+CREATE INDEX IF NOT EXISTS idx_blog_posts_slug ON blog_posts(slug);
+CREATE INDEX IF NOT EXISTS idx_blog_posts_published_at ON blog_posts(published_at DESC);
+
+-- Enable RLS for blog posts
+ALTER TABLE blog_posts ENABLE ROW LEVEL SECURITY;
+
+-- Create policies for blog posts
+CREATE POLICY "Public can read published blog posts" ON blog_posts 
+  FOR SELECT USING (published = true);
+CREATE POLICY "Admin can manage blog posts" ON blog_posts
+  FOR ALL USING (true);
 
 -- Add notes column if it doesn't exist
 ALTER TABLE leads ADD COLUMN IF NOT EXISTS notes TEXT;
@@ -75,8 +88,6 @@ CREATE INDEX IF NOT EXISTS idx_leads_created_at ON leads(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_leads_status ON leads(status);
 CREATE INDEX IF NOT EXISTS idx_comm_logs_lead_id ON communication_logs(lead_id);
 CREATE INDEX IF NOT EXISTS idx_comm_logs_created_at ON communication_logs(created_at DESC);
-CREATE INDEX IF NOT EXISTS idx_blog_posts_slug ON blog_posts(slug);
-CREATE INDEX IF NOT EXISTS idx_blog_posts_published_at ON blog_posts(published_at DESC);
 
 -- Enable Row Level Security
 ALTER TABLE leads ENABLE ROW LEVEL SECURITY;

@@ -5,6 +5,8 @@ import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
 import { notFound } from 'next/navigation'
 import { Calendar, User, Tag, ArrowLeft } from 'lucide-react'
+import { MDXRemote } from 'next-mdx-remote/rsc'
+import rehypeHighlight from 'rehype-highlight'
 
 // Generate metadata dynamically based on blog post
 export async function generateMetadata({ params }: { params: { slug: string } }) {
@@ -43,15 +45,6 @@ export default async function BlogPostPage({ params }: { params: { slug: string 
   if (!post) {
     notFound()
   }
-  
-  // Convert Markdown to HTML
-  // For a real implementation, use a markdown parser like remark/rehype
-  // This is a simplified version
-  const contentHtml = post.content
-    .replace(/^# (.*$)/gim, '<h1 class="text-3xl font-bold mt-6 mb-4">$1</h1>')
-    .replace(/^## (.*$)/gim, '<h2 class="text-2xl font-bold mt-5 mb-3">$1</h2>')
-    .replace(/^### (.*$)/gim, '<h3 class="text-xl font-semibold mt-4 mb-2">$1</h3>')
-    .replace(/\n/gim, '<br />')
   
   // Get related posts
   const { data: relatedPosts } = await supabase
@@ -119,10 +112,16 @@ export default async function BlogPostPage({ params }: { params: { slug: string 
             </div>
           )}
           
-          <div 
-            className="prose lg:prose-lg max-w-none"
-            dangerouslySetInnerHTML={{ __html: contentHtml }}
-          />
+          <article className="prose lg:prose-lg max-w-none">
+            <MDXRemote 
+              source={post.content}
+              options={{
+                mdxOptions: {
+                  rehypePlugins: [rehypeHighlight]
+                }
+              }}
+            />
+          </article>
           
           {relatedPosts && relatedPosts.length > 0 && (
             <div className="mt-16 pt-12 border-t">
