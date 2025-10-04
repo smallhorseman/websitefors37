@@ -634,11 +634,11 @@ export default function AdminPage() {
                             </div>
                           </div>
                         </div>
-                      ))
-                    )}
-                  </div>
+                  ))
+                )}
               </div>
             </div>
+          </div>
 
             <div className="mt-6 flex justify-between">
               <button
@@ -756,4 +756,3 @@ export default function AdminPage() {
       )}
     </div>
   )
-}
