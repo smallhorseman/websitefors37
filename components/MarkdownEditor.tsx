@@ -1,9 +1,7 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useCallback } from 'react'
 import ReactMarkdown from 'react-markdown'
-import remarkGfm from 'remark-gfm'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 interface MarkdownEditorProps {
   value: string
@@ -15,64 +13,66 @@ interface MarkdownEditorProps {
 export default function MarkdownEditor({
   value,
   onChange,
-  minHeight = '400px',
-  placeholder = 'Write your content here using Markdown...'
+  minHeight = '300px',
+  placeholder = 'Write your content using Markdown...'
 }: MarkdownEditorProps) {
-  const [activeTab, setActiveTab] = useState<string>('edit')
+  const [isPreview, setIsPreview] = useState(false)
+
+  const handleChange = useCallback(
+    (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+      onChange(e.target.value)
+    },
+    [onChange]
+  )
 
   return (
-    <div className="border rounded-md">
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <div className="border-b">
-          <TabsList className="bg-transparent p-0">
-            <TabsTrigger 
-              value="edit"
-              className={`rounded-none border-r px-4 py-2 ${activeTab === 'edit' ? 'border-b-2 border-b-primary-500' : ''}`}
-            >
-              Edit
-            </TabsTrigger>
-            <TabsTrigger 
-              value="preview"
-              className={`rounded-none px-4 py-2 ${activeTab === 'preview' ? 'border-b-2 border-b-primary-500' : ''}`}
-            >
-              Preview
-            </TabsTrigger>
-          </TabsList>
-        </div>
-        
-        <TabsContent value="edit" className="mt-0">
-          <textarea
-            value={value}
-            onChange={(e) => onChange(e.target.value)}
-            className="w-full p-4 font-mono text-sm focus:outline-none resize-none"
-            placeholder={placeholder}
-            style={{ minHeight }}
-          />
-        </TabsContent>
-        
-        <TabsContent value="preview" className="mt-0">
-          <div 
-            className="prose max-w-none p-4 overflow-auto"
-            style={{ minHeight }}
+    <div className="border rounded-lg overflow-hidden">
+      <div className="flex bg-gray-50 border-b px-4 py-2">
+        <div className="flex space-x-2">
+          <button
+            onClick={() => setIsPreview(false)}
+            className={`px-3 py-1 rounded ${
+              !isPreview
+                ? 'bg-white shadow-sm border border-gray-300'
+                : 'text-gray-600 hover:bg-gray-100'
+            }`}
           >
+            Edit
+          </button>
+          <button
+            onClick={() => setIsPreview(true)}
+            className={`px-3 py-1 rounded ${
+              isPreview
+                ? 'bg-white shadow-sm border border-gray-300'
+                : 'text-gray-600 hover:bg-gray-100'
+            }`}
+          >
+            Preview
+          </button>
+        </div>
+      </div>
+      
+      <div className="relative" style={{ minHeight }}>
+        {isPreview ? (
+          <div className="prose prose-sm max-w-none p-4 overflow-y-auto" style={{ minHeight }}>
             {value ? (
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                {value}
-              </ReactMarkdown>
+              <ReactMarkdown>{value}</ReactMarkdown>
             ) : (
-              <p className="text-gray-400">No content to preview</p>
+              <p className="text-gray-400 italic">{placeholder}</p>
             )}
           </div>
-        </TabsContent>
-      </Tabs>
-
-      <div className="border-t p-3 bg-gray-50">
-        <p className="text-xs text-gray-500">
-          Supports Markdown: <code>#</code> for headers, <code>*</code> for italic, <code>**</code> for bold, 
-          <code>`</code> for code, <code>```</code> for code blocks, <code>- </code> for lists, <code>1. </code> for numbered lists, 
-          <code>[text](url)</code> for links, <code>![alt](imageUrl)</code> for images.
-        </p>
+        ) : (
+          <textarea
+            value={value}
+            onChange={handleChange}
+            className="w-full h-full p-4 focus:outline-none font-mono"
+            style={{ minHeight, resize: 'vertical' }}
+            placeholder={placeholder}
+          />
+        )}
       </div>
     </div>
+  )
+}
   )
 }
