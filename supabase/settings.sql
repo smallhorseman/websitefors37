@@ -30,10 +30,7 @@ SELECT
 WHERE NOT EXISTS (SELECT 1 FROM settings);
 
 -- Create function to update the updated_at timestamp automatically
--- Drop the function if it exists first
-DROP FUNCTION IF EXISTS update_settings_timestamp();
-
-CREATE FUNCTION update_settings_timestamp()
+CREATE OR REPLACE FUNCTION update_settings_timestamp()
 RETURNS TRIGGER AS $$
 BEGIN
   NEW.updated_at = NOW();
