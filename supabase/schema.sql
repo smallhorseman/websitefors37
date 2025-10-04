@@ -37,17 +37,32 @@ CREATE TABLE IF NOT EXISTS gallery_images (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- Create communication_logs table
+CREATE TABLE IF NOT EXISTS communication_logs (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  lead_id UUID NOT NULL REFERENCES leads(id) ON DELETE CASCADE,
+  type VARCHAR(50) NOT NULL CHECK (type IN ('email', 'phone', 'sms', 'note', 'meeting', 'other')),
+  subject TEXT,
+  content TEXT NOT NULL,
+  direction VARCHAR(20) CHECK (direction IN ('inbound', 'outbound', 'internal')),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  created_by VARCHAR(255) DEFAULT 'admin'
+);
+
 -- Add notes column if it doesn't exist
 ALTER TABLE leads ADD COLUMN IF NOT EXISTS notes TEXT;
 
 -- Create an index for better query performance
 CREATE INDEX IF NOT EXISTS idx_leads_created_at ON leads(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_leads_status ON leads(status);
+CREATE INDEX IF NOT EXISTS idx_comm_logs_lead_id ON communication_logs(lead_id);
+CREATE INDEX IF NOT EXISTS idx_comm_logs_created_at ON communication_logs(created_at DESC);
 
 -- Enable Row Level Security
 ALTER TABLE leads ENABLE ROW LEVEL SECURITY;
 ALTER TABLE content_pages ENABLE ROW LEVEL SECURITY;
 ALTER TABLE gallery_images ENABLE ROW LEVEL SECURITY;
+ALTER TABLE communication_logs ENABLE ROW LEVEL SECURITY;
 
 -- Create policies for public access (adjust as needed for production)
 CREATE POLICY "Public can insert leads" ON leads FOR INSERT WITH CHECK (true);
@@ -56,6 +71,10 @@ CREATE POLICY "Public can read featured gallery images" ON gallery_images FOR SE
 
 -- Create a policy that allows all operations (for now - you can restrict this later)
 CREATE POLICY "Enable all operations for all users" ON leads
+  FOR ALL USING (true);
+
+-- Create policy for communication logs
+CREATE POLICY "Enable all operations for communication logs" ON communication_logs
   FOR ALL USING (true);
 
 -- Insert sample data

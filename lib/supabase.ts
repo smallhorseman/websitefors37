@@ -26,6 +26,18 @@ export interface Lead {
   event_date?: string
   created_at: string
   status: 'new' | 'contacted' | 'qualified' | 'converted'
+  notes?: string
+}
+
+export interface CommunicationLog {
+  id: string
+  lead_id: string
+  type: 'email' | 'phone' | 'sms' | 'note' | 'meeting' | 'other'
+  subject?: string
+  content: string
+  direction?: 'inbound' | 'outbound' | 'internal'
+  created_at: string
+  created_by?: string
 }
 
 export interface ContentPage {
