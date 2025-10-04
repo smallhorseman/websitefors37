@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { Users, FileText, Settings, X, Mail, Phone, Calendar, DollarSign, MessageSquare } from 'lucide-react'
+import { Users, FileText, Settings, X, Mail, Phone, Calendar, DollarSign, MessageSquare, Trash2, Edit, PhoneCall, MessageCircle, Loader2 } from 'lucide-react'
 
 const Images = ({ className }: { className?: string }) => (
   <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -20,18 +20,23 @@ interface Lead {
   event_date?: string
   status: 'new' | 'contacted' | 'qualified' | 'converted'
   created_at: string
+  notes?: string
 }
 
 export default function AdminPage() {
   const [activeTab, setActiveTab] = useState('leads')
   const [leads, setLeads] = useState<Lead[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null)
   const [showLeadModal, setShowLeadModal] = useState(false)
+  const [showNotesModal, setShowNotesModal] = useState(false)
+  const [notes, setNotes] = useState('')
+  const [isDeleting, setIsDeleting] = useState<string | null>(null)
 
   const fetchLeads = async () => {
     try {
-      // Only import supabase client-side to avoid build issues
+      setError(null)
       const { supabase } = await import('@/lib/supabase')
 
       const { data, error } = await supabase
@@ -39,10 +44,16 @@ export default function AdminPage() {
         .select('*')
         .order('created_at', { ascending: false })
 
-      if (error) throw error
+      if (error) {
+        console.error('Supabase error:', error)
+        throw error
+      }
+      
+      console.log('Fetched leads:', data)
       setLeads(data || [])
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching leads:', error)
+      setError(error.message || 'Failed to load leads')
     } finally {
       setLoading(false)
     }
@@ -62,9 +73,63 @@ export default function AdminPage() {
         .eq('id', id)
 
       if (error) throw error
-      fetchLeads()
+      
+      // Update local state
+      setLeads(prev => prev.map(lead => 
+        lead.id === id ? { ...lead, status: status as Lead['status'] } : lead
+      ))
     } catch (error) {
       console.error('Error updating lead:', error)
+      alert('Failed to update lead status')
+    }
+  }
+
+  const deleteLead = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this lead?')) return
+    
+    setIsDeleting(id)
+    try {
+      const { supabase } = await import('@/lib/supabase')
+
+      const { error } = await supabase
+        .from('leads')
+        .delete()
+        .eq('id', id)
+
+      if (error) throw error
+      
+      setLeads(prev => prev.filter(lead => lead.id !== id))
+      setShowLeadModal(false)
+    } catch (error) {
+      console.error('Error deleting lead:', error)
+      alert('Failed to delete lead')
+    } finally {
+      setIsDeleting(null)
+    }
+  }
+
+  const updateLeadNotes = async () => {
+    if (!selectedLead) return
+    
+    try {
+      const { supabase } = await import('@/lib/supabase')
+
+      const { error } = await supabase
+        .from('leads')
+        .update({ notes })
+        .eq('id', selectedLead.id)
+
+      if (error) throw error
+      
+      setLeads(prev => prev.map(lead => 
+        lead.id === selectedLead.id ? { ...lead, notes } : lead
+      ))
+      setSelectedLead({ ...selectedLead, notes })
+      setShowNotesModal(false)
+      setNotes('')
+    } catch (error) {
+      console.error('Error updating notes:', error)
+      alert('Failed to update notes')
     }
   }
 
@@ -83,6 +148,12 @@ export default function AdminPage() {
     setShowLeadModal(true)
   }
 
+  const openNotesModal = (lead: Lead) => {
+    setSelectedLead(lead)
+    setNotes(lead.notes || '')
+    setShowNotesModal(true)
+  }
+
   const tabs = [
     { id: 'leads', label: 'Leads', icon: Users },
     { id: 'content', label: 'Content', icon: FileText },
@@ -94,6 +165,17 @@ export default function AdminPage() {
     <div className="min-h-screen bg-gray-50 pt-16">
       <div className="container mx-auto px-4 py-8">
         <h1 className="text-3xl font-bold mb-8">Studio 37 Admin Dashboard</h1>
+
+        {/* Error Display */}
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg mb-6">
+            <p className="font-semibold">Error loading data:</p>
+            <p>{error}</p>
+            <button onClick={fetchLeads} className="text-red-600 underline mt-2">
+              Try again
+            </button>
+          </div>
+        )}
 
         {/* Stats Overview */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
@@ -151,7 +233,14 @@ export default function AdminPage() {
               <div>
                 <h2 className="text-xl font-semibold mb-6">Lead Management</h2>
                 {loading ? (
-                  <p>Loading leads...</p>
+                  <div className="flex items-center justify-center py-12">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary-600" />
+                    <span className="ml-2">Loading leads...</span>
+                  </div>
+                ) : leads.length === 0 ? (
+                  <div className="text-center py-12">
+                    <p className="text-gray-500">No leads yet. They'll appear here when customers submit forms or use the chat.</p>
+                  </div>
                 ) : (
                   <div className="overflow-x-auto">
                     <table className="min-w-full divide-y divide-gray-200">
@@ -173,7 +262,7 @@ export default function AdminPage() {
                             Date
                           </th>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Actions
+                            Quick Actions
                           </th>
                         </tr>
                       </thead>
@@ -195,31 +284,62 @@ export default function AdminPage() {
                               {lead.budget_range || '-'}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
-                              <span className={`px-2 py-1 text-xs rounded-full ${getStatusColor(lead.status)}`}>
-                                {lead.status}
-                              </span>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                              {new Date(lead.created_at).toLocaleDateString()}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                              <button 
-                                onClick={() => viewLeadDetails(lead)}
-                                className="text-primary-600 hover:text-primary-900 mr-4"
-                              >
-                                View Details
-                              </button>
                               <select
                                 value={lead.status}
                                 onChange={(e) => updateLeadStatus(lead.id, e.target.value)}
-                                className="text-sm border-gray-300 rounded-md"
-                                title="Update lead status"
+                                className={`text-xs px-2 py-1 rounded-full border-0 ${getStatusColor(lead.status)}`}
                               >
                                 <option value="new">New</option>
                                 <option value="contacted">Contacted</option>
                                 <option value="qualified">Qualified</option>
                                 <option value="converted">Converted</option>
                               </select>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              {new Date(lead.created_at).toLocaleDateString()}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                              <div className="flex space-x-2">
+                                <button 
+                                  onClick={() => viewLeadDetails(lead)}
+                                  className="text-primary-600 hover:text-primary-900"
+                                  title="View details"
+                                >
+                                  <Settings className="h-4 w-4" />
+                                </button>
+                                <a
+                                  href={`mailto:${lead.email}`}
+                                  className="text-blue-600 hover:text-blue-900"
+                                  title="Send email"
+                                >
+                                  <Mail className="h-4 w-4" />
+                                </a>
+                                {lead.phone && (
+                                  <>
+                                    <a
+                                      href={`tel:${lead.phone}`}
+                                      className="text-green-600 hover:text-green-900"
+                                      title="Call"
+                                    >
+                                      <PhoneCall className="h-4 w-4" />
+                                    </a>
+                                    <a
+                                      href={`sms:${lead.phone}`}
+                                      className="text-purple-600 hover:text-purple-900"
+                                      title="Send text"
+                                    >
+                                      <MessageCircle className="h-4 w-4" />
+                                    </a>
+                                  </>
+                                )}
+                                <button
+                                  onClick={() => openNotesModal(lead)}
+                                  className="text-gray-600 hover:text-gray-900"
+                                  title="Add/edit notes"
+                                >
+                                  <Edit className="h-4 w-4" />
+                                </button>
+                              </div>
                             </td>
                           </tr>
                         ))}
@@ -339,19 +459,65 @@ export default function AdminPage() {
                 </div>
               </div>
 
-              <div className="mt-6 flex justify-end space-x-3">
+              <div className="mt-6 flex justify-between">
                 <button
-                  onClick={() => setShowLeadModal(false)}
+                  onClick={() => deleteLead(selectedLead.id)}
+                  disabled={isDeleting === selectedLead.id}
+                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
+                >
+                  {isDeleting === selectedLead.id ? 'Deleting...' : 'Delete Lead'}
+                </button>
+                <div className="flex space-x-3">
+                  <button
+                    onClick={() => setShowLeadModal(false)}
+                    className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                  >
+                    Close
+                  </button>
+                  {selectedLead.phone && (
+                    <a
+                      href={`tel:${selectedLead.phone}`}
+                      className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                    >
+                      Call
+                    </a>
+                  )}
+                  <a
+                    href={`mailto:${selectedLead.email}`}
+                    className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
+                  >
+                    Send Email
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Notes Modal */}
+        {showNotesModal && selectedLead && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 max-w-lg w-full mx-4">
+              <h3 className="text-xl font-semibold mb-4">Edit Notes for {selectedLead.name}</h3>
+              <textarea
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                className="w-full h-32 px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                placeholder="Add notes about this lead..."
+              />
+              <div className="mt-4 flex justify-end space-x-3">
+                <button
+                  onClick={() => setShowNotesModal(false)}
                   className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
                 >
-                  Close
+                  Cancel
                 </button>
-                <a
-                  href={`mailto:${selectedLead.email}`}
+                <button
+                  onClick={updateLeadNotes}
                   className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
                 >
-                  Send Email
-                </a>
+                  Save Notes
+                </button>
               </div>
             </div>
           </div>
