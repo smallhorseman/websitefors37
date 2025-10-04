@@ -1,0 +1,61 @@
+import { createClient } from '@supabase/supabase-js'
+
+export interface SiteSettings {
+  site_name: string
+  contact_email: string
+  contact_phone: string
+  business_address: string
+  social_facebook: string
+  social_instagram: string
+  social_twitter: string
+  seo_title_template: string
+  seo_default_description: string
+  theme_primary_color: string
+  theme_secondary_color: string
+  google_analytics_id: string
+}
+
+export const DEFAULT_SETTINGS: SiteSettings = {
+  site_name: 'Studio 37 Photography',
+  contact_email: 'contact@studio37.cc',
+  contact_phone: '',
+  business_address: '',
+  social_facebook: '',
+  social_instagram: '',
+  social_twitter: '',
+  seo_title_template: '%s | Studio 37 Photography',
+  seo_default_description: 'Professional photography services for weddings, events, portraits, and commercial projects.',
+  theme_primary_color: '#0f766e', // Default primary color (teal-700)
+  theme_secondary_color: '#6366f1', // Default secondary color (indigo-500)
+  google_analytics_id: ''
+}
+
+export async function getSettings(): Promise<SiteSettings> {
+  try {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
+    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
+    
+    if (!supabaseUrl || !supabaseKey) {
+      return DEFAULT_SETTINGS
+    }
+    
+    const supabase = createClient(supabaseUrl, supabaseKey)
+    
+    const { data, error } = await supabase
+      .from('settings')
+      .select('*')
+      .single()
+    
+    if (error || !data) {
+      return DEFAULT_SETTINGS
+    }
+    
+    return {
+      ...DEFAULT_SETTINGS, // Provide defaults
+      ...data // Overwrite with actual values from DB
+    }
+  } catch (error) {
+    console.error('Error fetching site settings:', error)
+    return DEFAULT_SETTINGS
+  }
+}

@@ -111,6 +111,31 @@ CREATE POLICY "Enable all operations for all users" ON leads
 CREATE POLICY "Enable all operations for communication logs" ON communication_logs
   FOR ALL USING (true);
 
+-- Create settings table for site configuration
+CREATE TABLE IF NOT EXISTS settings (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  site_name TEXT DEFAULT 'Studio 37 Photography',
+  contact_email TEXT,
+  contact_phone TEXT,
+  business_address TEXT,
+  social_facebook TEXT,
+  social_instagram TEXT,
+  social_twitter TEXT,
+  seo_title_template TEXT DEFAULT '%s | Studio 37 Photography',
+  seo_default_description TEXT,
+  theme_primary_color TEXT DEFAULT '#0f766e',
+  theme_secondary_color TEXT DEFAULT '#6366f1',
+  google_analytics_id TEXT,
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Enable RLS for settings
+ALTER TABLE settings ENABLE ROW LEVEL SECURITY;
+
+-- Create policy for settings (admins only)
+CREATE POLICY "Enable all operations for admins only" ON settings
+  FOR ALL USING (true);
+
 -- Insert sample data
 INSERT INTO content_pages (title, slug, content, published) VALUES
 ('Home Page', 'home', 'Welcome to Studio 37 Photography', true),
