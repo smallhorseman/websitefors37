@@ -242,3 +242,45 @@ ARRAY['portrait', 'photography', 'hiring tips'],
 true,
 NOW())
 ON CONFLICT (slug) DO NOTHING;
+
+-- Add indexes to gallery_images table for better query performance
+CREATE INDEX IF NOT EXISTS idx_gallery_images_category ON gallery_images(category);
+CREATE INDEX IF NOT EXISTS idx_gallery_images_featured ON gallery_images(featured);
+
+-- Create specific admin policy for gallery management
+CREATE POLICY "Admin can manage gallery images" ON gallery_images
+  FOR ALL USING (true);
+
+-- Create a gallery_categories table for better category management
+CREATE TABLE IF NOT EXISTS gallery_categories (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  name TEXT NOT NULL UNIQUE,
+  slug TEXT NOT NULL UNIQUE,
+  description TEXT,
+  display_order INTEGER DEFAULT 0,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Enable RLS for gallery categories
+ALTER TABLE gallery_categories ENABLE ROW LEVEL SECURITY;
+
+-- Create policies for gallery_categories
+CREATE POLICY "Public can view gallery categories" ON gallery_categories 
+  FOR SELECT USING (true);
+CREATE POLICY "Admin can manage gallery categories" ON gallery_categories
+  FOR ALL USING (true);
+
+-- Add default categories
+INSERT INTO gallery_categories (name, slug, display_order) VALUES
+('Wedding', 'wedding', 10),
+('Portrait', 'portrait', 20),
+('Event', 'event', 30),
+('Commercial', 'commercial', 40),
+('General', 'general', 50)
+ON CONFLICT (slug) DO NOTHING;
+
+-- Create storage configuration for gallery images
+-- Run this in the Supabase SQL editor separately if not already configured:
+-- INSERT INTO storage.buckets (id, name, public) VALUES ('gallery', 'gallery', true);
+-- CREATE POLICY "Public can view gallery images" ON storage.objects FOR SELECT USING (bucket_id = 'gallery');
+-- CREATE POLICY "Authenticated users can upload gallery images" ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'gallery');
