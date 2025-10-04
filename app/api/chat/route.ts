@@ -22,9 +22,10 @@ Keep responses helpful, professional, and concise. If asked about specific prici
 export async function POST(request: Request) {
   console.log('Chat API called')
   
+  const { message } = await request.json()
+  console.log('Received message:', message)
+  
   try {
-    const { message } = await request.json()
-    console.log('Received message:', message)
 
     // Get API key from environment variable
     const apiKey = process.env.GEMINI_API_KEY
@@ -41,8 +42,8 @@ export async function POST(request: Request) {
     
     // Initialize Gemini with the correct model name
     const genAI = new GoogleGenerativeAI(apiKey)
-    // Use the updated model name
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" })
+    // Try the stable model name without version
+    const model = genAI.getGenerativeModel({ model: "gemini-pro" })
 
     const prompt = `${SYSTEM_PROMPT}\n\nUser: ${message}\nAssistant:`
 
@@ -56,13 +57,23 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: botMessage })
   } catch (error) {
     console.error('Chat API error:', error)
-    // More specific error handling
+    // If gemini-pro doesn't work, try with a fallback
     if (error instanceof Error && error.message.includes('404')) {
-      return NextResponse.json(
-        { message: "I'm having trouble with the AI service. Please contact us directly at your convenience." },
-        { status: 500 }
-      )
+      try {
+        console.log('Trying fallback model...')
+        const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!)
+        // Try alternate model name
+        const model = genAI.getGenerativeModel({ model: "models/gemini-pro" })
+        const prompt = `${SYSTEM_PROMPT}\n\nUser: ${message}\nAssistant:`
+        const result = await model.generateContent(prompt)
+        const response = await result.response
+        const botMessage = response.text()
+        return NextResponse.json({ message: botMessage })
+      } catch (fallbackError) {
+        console.error('Fallback also failed:', fallbackError)
+      }
     }
+    
     return NextResponse.json(
       { message: "I'm having trouble responding right now. Please contact us directly for assistance." },
       { status: 500 }
