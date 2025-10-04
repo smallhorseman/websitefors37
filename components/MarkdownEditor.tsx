@@ -30,6 +30,7 @@ export default function MarkdownEditor({
       <div className="flex bg-gray-50 border-b px-4 py-2">
         <div className="flex space-x-2">
           <button
+            type="button"
             onClick={() => setIsPreview(false)}
             className={`px-3 py-1 rounded ${
               !isPreview
@@ -40,6 +41,7 @@ export default function MarkdownEditor({
             Edit
           </button>
           <button
+            type="button"
             onClick={() => setIsPreview(true)}
             className={`px-3 py-1 rounded ${
               isPreview
