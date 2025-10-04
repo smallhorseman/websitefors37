@@ -20,29 +20,37 @@ Key information:
 Keep responses helpful, professional, and concise. If asked about specific pricing, suggest they fill out our contact form for a personalized quote. Always encourage them to book a free consultation.`
 
 export async function POST(request: Request) {
+  console.log('Chat API called')
+  
   try {
     const { message } = await request.json()
+    console.log('Received message:', message)
 
     // Get API key from environment variable
     const apiKey = process.env.GEMINI_API_KEY
     
     if (!apiKey) {
-      console.error('Gemini API key not found in environment variables')
+      console.error('GEMINI_API_KEY not found in environment variables')
       return NextResponse.json(
-        { error: 'Chat service is not configured' },
+        { error: 'Chat service is not configured properly' },
         { status: 500 }
       )
     }
 
-    // Initialize Gemini only with the API key from env
+    console.log('API key found, initializing Gemini...')
+    
+    // Initialize Gemini
     const genAI = new GoogleGenerativeAI(apiKey)
     const model = genAI.getGenerativeModel({ model: "gemini-pro" })
 
     const prompt = `${SYSTEM_PROMPT}\n\nUser: ${message}\nAssistant:`
 
+    console.log('Generating response...')
     const result = await model.generateContent(prompt)
     const response = await result.response
     const botMessage = response.text()
+    
+    console.log('Response generated successfully')
 
     return NextResponse.json({ message: botMessage })
   } catch (error) {

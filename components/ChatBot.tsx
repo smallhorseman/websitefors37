@@ -1,7 +1,8 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import { MessageCircle, X, Send } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
 
 interface Message {
   id: string
@@ -15,54 +16,69 @@ export default function ChatBot() {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      text: 'Hi! I\'m here to help you with any questions about Studio 37\'s photography services. How can I assist you today?',
+      text: "Hello! I'm here to help you with your photography needs. How can I assist you today?",
       isBot: true,
-      timestamp: new Date(),
-    },
+      timestamp: new Date()
+    }
   ])
-  const [inputText, setInputText] = useState('')
+  const [inputValue, setInputValue] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const messagesEndRef = useRef<HTMLDivElement>(null)
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+  }
+
+  useEffect(() => {
+    scrollToBottom()
+  }, [messages])
 
   const sendMessage = async () => {
-    if (!inputText.trim()) return
+    if (inputValue.trim() === '' || isLoading) return
 
     const userMessage: Message = {
       id: Date.now().toString(),
-      text: inputText,
+      text: inputValue,
       isBot: false,
-      timestamp: new Date(),
+      timestamp: new Date()
     }
 
-    setMessages((prev: Message[]) => [...prev, userMessage])
-    setInputText('')
+    setMessages(prev => [...prev, userMessage])
+    setInputValue('')
     setIsLoading(true)
 
     try {
       const response = await fetch('/api/chat', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: inputText }),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ message: inputValue }),
       })
 
       const data = await response.json()
+      
+      if (!response.ok) {
+        throw new Error(data.error || data.message || 'Failed to get response')
+      }
 
       const botMessage: Message = {
         id: (Date.now() + 1).toString(),
-        text: data.message,
+        text: data.message || "I'm sorry, I couldn't process that request.",
         isBot: true,
-        timestamp: new Date(),
+        timestamp: new Date()
       }
 
-      setMessages((prev: Message[]) => [...prev, botMessage])
+      setMessages(prev => [...prev, botMessage])
     } catch (error) {
       console.error('Chat error:', error)
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
-        text: 'Sorry, I\'m having trouble responding right now. Please try again or contact us directly.',
+        text: "I'm having trouble connecting right now. Please try again later or contact us directly.",
         isBot: true,
-        timestamp: new Date(),
+        timestamp: new Date()
       }
-      setMessages((prev: Message[]) => [...prev, errorMessage])
+      setMessages(prev => [...prev, errorMessage])
     } finally {
       setIsLoading(false)
     }
@@ -122,14 +138,15 @@ export default function ChatBot() {
                 </div>
               </div>
             )}
+            <div ref={messagesEndRef} />
           </div>
 
           <div className="p-4 border-t">
             <div className="flex space-x-2">
               <input
                 type="text"
-                value={inputText}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setInputText(e.target.value)}
+                value={inputValue}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setInputValue(e.target.value)}
                 onKeyPress={handleKeyPress}
                 placeholder="Type your message..."
                 className="flex-1 px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
@@ -137,7 +154,7 @@ export default function ChatBot() {
               />
               <button
                 onClick={sendMessage}
-                disabled={isLoading || !inputText.trim()}
+                disabled={isLoading || !inputValue.trim()}
                 className="bg-primary-600 hover:bg-primary-700 text-white p-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
                 title="Send message"
               >
