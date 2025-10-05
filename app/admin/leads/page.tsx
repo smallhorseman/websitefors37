@@ -319,7 +319,7 @@ export default function LeadsPage() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
         <div className="bg-white rounded-lg shadow p-4">
           <h3 className="text-xs font-medium text-gray-500">Total Leads</h3>
-          <p className="text-xl font-bold mt-1">{leads.length}</p>
+          <p className="text-xl font-bold mt-1">{totalCount}</p>
         </div>
         <div className="bg-white rounded-lg shadow p-4">
           <h3 className="text-xs font-medium text-gray-500">New</h3>
@@ -359,7 +359,7 @@ export default function LeadsPage() {
             <Loader2 className="h-8 w-8 animate-spin text-primary-600" />
             <span className="ml-2">Loading leads...</span>
           </div>
-        ) : filteredLeads.length === 0 ? (
+        ) : leads.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-gray-500">No leads found{filter !== 'all' ? ` with status: ${filter}` : ''}.</p>
             {filter !== 'all' && (
@@ -397,7 +397,7 @@ export default function LeadsPage() {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {filteredLeads.map((lead) => (
+                {leads.map((lead) => (
                   <tr key={lead.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div>
@@ -800,4 +800,48 @@ export default function LeadsPage() {
                   return distance === 0 || distance === 1 || page === 1 || page === pageCount
                 })
                 .map((page, index, array) => {
-                  if
+                  if (index > 0 && array[index] - array[index - 1] > 1) {
+                    return (
+                      <React.Fragment key={`ellipsis-${page}`}>
+                        <span className="px-2 py-1">...</span>
+                        <button
+                          onClick={() => setCurrentPage(page)}
+                          className={`px-3 py-1 border rounded-md ${
+                            currentPage === page
+                              ? 'bg-primary-600 text-white'
+                              : 'hover:bg-gray-50'
+                          }`}
+                        >
+                          {page}
+                        </button>
+                      </React.Fragment>
+                    )
+                  }
+                  return (
+                    <button
+                      key={page}
+                      onClick={() => setCurrentPage(page)}
+                      className={`px-3 py-1 border rounded-md ${
+                        currentPage === page
+                          ? 'bg-primary-600 text-white'
+                          : 'hover:bg-gray-50'
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  )
+                })}
+            </div>
+            <button
+              onClick={() => setCurrentPage(currentPage + 1)}
+              disabled={currentPage === pageCount}
+              className="px-3 py-1 border rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
