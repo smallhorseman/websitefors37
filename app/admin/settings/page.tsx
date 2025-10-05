@@ -29,8 +29,8 @@ export default function SettingsPage() {
     social_twitter: '',
     seo_title_template: '%s | Studio 37 Photography',
     seo_default_description: 'Professional photography services for weddings, events, portraits, and commercial projects.',
-    theme_primary_color: '#0f766e', // Default primary color (teal-700)
-    theme_secondary_color: '#6366f1', // Default secondary color (indigo-500)
+    theme_primary_color: '#b46e14', // amber-700
+    theme_secondary_color: '#a17a07', // amber-800
     google_analytics_id: ''
   })
   

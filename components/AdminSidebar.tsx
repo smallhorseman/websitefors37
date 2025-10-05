@@ -13,7 +13,8 @@ import {
   MessageSquare,
   ChevronDown,
   Menu,
-  X
+  X,
+  Camera
 } from 'lucide-react'
 
 export default function AdminSidebar() {
@@ -152,7 +153,7 @@ export default function AdminSidebar() {
         <div className="flex flex-col h-full">
           <div className="p-5 border-b">
             <Link href="/admin" className="flex items-center">
-              <Image className="h-6 w-6 text-primary-600" />
+              <Camera className="h-6 w-6 text-primary-600" />
               <span className="text-lg font-semibold ml-2">Studio 37 Admin</span>
             </Link>
           </div>

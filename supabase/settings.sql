@@ -3,6 +3,7 @@
 
 -- Insert default settings if no settings record exists
 INSERT INTO settings (
+  id,
   site_name, 
   contact_email, 
   contact_phone, 
@@ -16,6 +17,7 @@ INSERT INTO settings (
   theme_secondary_color
 )
 SELECT 
+  'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'::uuid,
   'Studio 37 Photography', 
   'contact@studio37.cc', 
   '', 
@@ -25,13 +27,11 @@ SELECT
   '', 
   '%s | Studio 37 Photography', 
   'Professional photography services for weddings, events, portraits, and commercial projects.', 
-  '#0f766e', 
-  '#6366f1'
+  '#b46e14', 
+  '#a17a07'
 WHERE NOT EXISTS (SELECT 1 FROM settings);
 
--- Create function to update the updated_at timestamp automatically
-DROP FUNCTION IF EXISTS update_settings_timestamp();
-CREATE OR REPLACE FUNCTION update_settings_timestamp()
+-- Update function is already in schema-complete.sql
 RETURNS TRIGGER AS $$
 BEGIN
   NEW.updated_at = CURRENT_TIMESTAMP;

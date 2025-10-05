@@ -2,7 +2,6 @@ import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
 import Link from 'next/link'
 import Image from 'next/image'
-import { BlogPost } from '@/lib/supabase'
 
 export const metadata = {
   title: 'Blog | Studio 37 Photography',
@@ -40,7 +39,7 @@ export default async function BlogPage() {
           </div>
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {posts.map((post) => (
+            {posts.map((post: any) => (
               <Link
                 key={post.id}
                 href={`/blog/${post.slug}`}
@@ -75,6 +74,7 @@ export default async function BlogPage() {
       </div>
     </div>
   )
+}
 }
                   )}
                 </div>
