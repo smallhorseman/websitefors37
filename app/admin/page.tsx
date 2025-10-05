@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect } from 'react'
 import { Users, FileText, Settings, X, Mail, Phone, Calendar, DollarSign, MessageSquare, Trash2, Edit, PhoneCall, MessageCircle, Loader2, Plus, Clock } from 'lucide-react'
-import { BlogPost } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase'
+import type { BlogPost, Lead, CommunicationLog, ContentPage } from '@/lib/supabase'
 import MarkdownEditor from '@/components/MarkdownEditor'
 
 const Images = ({ className }: { className?: string }) => (
@@ -99,8 +100,6 @@ export default function AdminPage() {
   const fetchLeads = async () => {
     try {
       setError(null)
-      const { supabase } = await import('@/lib/supabase')
-
       const { data, error } = await supabase
         .from('leads')
         .select('*')
@@ -127,8 +126,6 @@ export default function AdminPage() {
 
   const updateLeadStatus = async (id: string, status: string) => {
     try {
-      const { supabase } = await import('@/lib/supabase')
-
       const { error } = await supabase
         .from('leads')
         .update({ status })
@@ -151,8 +148,6 @@ export default function AdminPage() {
     
     setIsDeleting(id)
     try {
-      const { supabase } = await import('@/lib/supabase')
-
       const { error } = await supabase
         .from('leads')
         .delete()
@@ -174,8 +169,6 @@ export default function AdminPage() {
     if (!selectedLead) return
     
     try {
-      const { supabase } = await import('@/lib/supabase')
-
       const { error } = await supabase
         .from('leads')
         .update({ notes })
@@ -197,8 +190,6 @@ export default function AdminPage() {
 
   const fetchCommunicationLogs = async (leadId: string) => {
     try {
-      const { supabase } = await import('@/lib/supabase')
-
       const { data, error } = await supabase
         .from('communication_logs')
         .select('*')
@@ -216,8 +207,6 @@ export default function AdminPage() {
     if (!selectedLead || !newLog.content.trim()) return
 
     try {
-      const { supabase } = await import('@/lib/supabase')
-
       const { error } = await supabase
         .from('communication_logs')
         .insert([{
@@ -255,8 +244,6 @@ export default function AdminPage() {
 
   const logCommunication = async (lead: Lead, type: CommunicationLog['type'], content: string) => {
     try {
-      const { supabase } = await import('@/lib/supabase')
-
       await supabase
         .from('communication_logs')
         .insert([{
@@ -334,8 +321,6 @@ export default function AdminPage() {
     setLoadingPages(true)
     setPageError(null)
     try {
-      const { supabase } = await import('@/lib/supabase')
-
       const { data, error } = await supabase
         .from('content_pages')
         .select('*')
@@ -383,8 +368,6 @@ export default function AdminPage() {
     setPageError(null)
     
     try {
-      const { supabase } = await import('@/lib/supabase')
-      
       if (isNewPage) {
         // Create new page
         const { data, error } = await supabase
@@ -444,8 +427,6 @@ export default function AdminPage() {
     }
     
     try {
-      const { supabase } = await import('@/lib/supabase')
-
       const { error } = await supabase
         .from('content_pages')
         .delete()
@@ -492,8 +473,6 @@ export default function AdminPage() {
   // Toggle page publish status
   const togglePublish = async (page: ContentPage) => {
     try {
-      const { supabase } = await import('@/lib/supabase')
-
       const { error } = await supabase
         .from('content_pages')
         .update({ published: !page.published })
@@ -518,8 +497,6 @@ export default function AdminPage() {
     setLoadingPosts(true)
     setPostError(null)
     try {
-      const { supabase } = await import('@/lib/supabase')
-
       const { data, error } = await supabase
         .from('blog_posts')
         .select('*')
@@ -548,8 +525,6 @@ export default function AdminPage() {
     setPostError(null)
     
     try {
-      const { supabase } = await import('@/lib/supabase')
-      
       if (isNewPost) {
         // Create new post
         const { data, error } = await supabase
@@ -613,8 +588,6 @@ export default function AdminPage() {
     }
     
     try {
-      const { supabase } = await import('@/lib/supabase')
-
       const { error } = await supabase
         .from('blog_posts')
         .delete()
@@ -1657,6 +1630,33 @@ export default function AdminPage() {
                   className="h-4 w-4 text-primary-600 rounded border-gray-300 focus:ring-primary-500"
                 />
                 <label htmlFor="published" className="ml-2 text-sm text-gray-700">
+                  Publish this post (will be visible to visitors)
+                </label>
+              </div>
+            </div>
+
+            <div className="mt-6 flex justify-end space-x-3">
+              <button
+                onClick={() => setShowPostModal(false)}
+                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={savePost}
+                disabled={!postForm.title || !postForm.slug || !postForm.content || savingPost}
+                className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {savingPost ? 'Saving...' : isNewPost ? 'Create Post' : 'Save Changes'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      </div>
+    </div>
+    )
+  }
                   Publish this post (will be visible to visitors)
                 </label>
               </div>

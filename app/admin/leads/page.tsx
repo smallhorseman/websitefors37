@@ -2,33 +2,8 @@
 
 import React, { useState, useEffect, useCallback } from 'react'
 import { Loader2, Mail, Phone, MessageCircle, Edit, Settings, Calendar, DollarSign, MessageSquare, X, Plus, PhoneCall, Trash2, ChevronLeft, ChevronRight } from 'lucide-react'
-import { getPaginatedData, PaginatedResponse } from '@/lib/supabase'
-import debounce from 'lodash.debounce'
-
-interface Lead {
-  id: string
-  name: string
-  email: string
-  phone?: string
-  message: string
-  service_interest: string
-  budget_range?: string
-  event_date?: string
-  status: 'new' | 'contacted' | 'qualified' | 'converted'
-  created_at: string
-  notes?: string
-}
-
-interface CommunicationLog {
-  id: string
-  lead_id: string
-  type: 'email' | 'phone' | 'sms' | 'note' | 'meeting' | 'other'
-  subject?: string
-  content: string
-  direction?: 'inbound' | 'outbound' | 'internal'
-  created_at: string
-  created_by?: string
-}
+import { supabase } from '@/lib/supabase'
+import type { Lead, CommunicationLog } from '@/lib/supabase'
 
 export default function LeadsPage() {
   const [leads, setLeads] = useState<Lead[]>([])
@@ -60,18 +35,34 @@ export default function LeadsPage() {
       setError(null)
       setLoading(true)
       
-      const filters = filter !== 'all' ? [{ column: 'status', value: filter }] : undefined
+      // Build query
+      let query = supabase
+        .from('leads')
+        .select('*', { count: 'exact' })
+        .order('created_at', { ascending: false })
       
-      const response = await getPaginatedData<Lead>(
-        'leads',
-        { page: currentPage, limit: itemsPerPage },
-        filters,
-        { column: 'created_at', ascending: false }
-      )
+      // Apply status filter
+      if (filter !== 'all') {
+        query = query.eq('status', filter)
+      }
       
-      setLeads(response.data)
-      setTotalCount(response.count)
-      setPageCount(response.pageCount)
+      // Apply pagination
+      const from = (currentPage - 1) * itemsPerPage
+      const to = from + itemsPerPage - 1
+      query = query.range(from, to)
+      
+      const { data, error: fetchError, count } = await query
+      
+      if (fetchError) {
+        console.error('Supabase error:', fetchError)
+        throw fetchError
+      }
+      
+      setLeads(data || [])
+      setTotalCount(count || 0)
+      setPageCount(Math.ceil((count || 0) / itemsPerPage))
+      
+      console.log('Fetched leads:', { data, count, filter })
     } catch (error: any) {
       console.error('Error fetching leads:', error)
       setError(error.message || 'Failed to load leads')
@@ -91,8 +82,6 @@ export default function LeadsPage() {
 
   const updateLeadStatus = async (id: string, status: string) => {
     try {
-      const { supabase } = await import('@/lib/supabase')
-
       const { error } = await supabase
         .from('leads')
         .update({ status })
@@ -115,8 +104,6 @@ export default function LeadsPage() {
     
     setIsDeleting(id)
     try {
-      const { supabase } = await import('@/lib/supabase')
-
       const { error } = await supabase
         .from('leads')
         .delete()
@@ -126,6 +113,8 @@ export default function LeadsPage() {
       
       setLeads(prev => prev.filter(lead => lead.id !== id))
       setShowLeadModal(false)
+      // Refresh to update counts
+      fetchLeads()
     } catch (error) {
       console.error('Error deleting lead:', error)
       alert('Failed to delete lead')
@@ -138,8 +127,6 @@ export default function LeadsPage() {
     if (!selectedLead) return
     
     try {
-      const { supabase } = await import('@/lib/supabase')
-
       const { error } = await supabase
         .from('leads')
         .update({ notes })
@@ -161,8 +148,6 @@ export default function LeadsPage() {
 
   const fetchCommunicationLogs = async (leadId: string) => {
     try {
-      const { supabase } = await import('@/lib/supabase')
-
       const { data, error } = await supabase
         .from('communication_logs')
         .select('*')
@@ -180,8 +165,6 @@ export default function LeadsPage() {
     if (!selectedLead || !newLog.content.trim()) return
 
     try {
-      const { supabase } = await import('@/lib/supabase')
-
       const { error } = await supabase
         .from('communication_logs')
         .insert([{
@@ -219,8 +202,6 @@ export default function LeadsPage() {
 
   const logCommunication = async (lead: Lead, type: CommunicationLog['type'], content: string) => {
     try {
-      const { supabase } = await import('@/lib/supabase')
-
       await supabase
         .from('communication_logs')
         .insert([{
@@ -826,6 +807,25 @@ export default function LeadsPage() {
                           ? 'bg-primary-600 text-white'
                           : 'hover:bg-gray-50'
                       }`}
+                    >
+                      {page}
+                    </button>
+                  )
+                })}
+            </div>
+            <button
+              onClick={() => setCurrentPage(currentPage + 1)}
+              disabled={currentPage === pageCount}
+              className="px-3 py-1 border rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
                     >
                       {page}
                     </button>

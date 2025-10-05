@@ -98,27 +98,33 @@ export async function getPaginatedData<T>(
   orderBy?: { column: string; ascending?: boolean }
 ): Promise<PaginatedResponse<T>> {
   const { page, limit } = params
-  const start = (page - 1) * limit
-  const end = start + limit - 1
+  const from = (page - 1) * limit
+  const to = from + limit - 1
 
+  // Start query
   let query = supabase.from(table).select('*', { count: 'exact' })
 
   // Apply filters
-  filters?.forEach(filter => {
-    query = query.eq(filter.column, filter.value)
-  })
+  if (filters) {
+    filters.forEach(filter => {
+      query = query.eq(filter.column, filter.value)
+    })
+  }
 
   // Apply ordering
   if (orderBy) {
-    query = query.order(orderBy.column, { ascending: orderBy.ascending ?? false })
+    query = query.order(orderBy.column, { ascending: orderBy.ascending ?? true })
   }
 
   // Apply pagination
-  query = query.range(start, end)
+  query = query.range(from, to)
 
   const { data, error, count } = await query
 
-  if (error) throw error
+  if (error) {
+    console.error('Error fetching paginated data:', error)
+    throw error
+  }
 
   return {
     data: data || [],
