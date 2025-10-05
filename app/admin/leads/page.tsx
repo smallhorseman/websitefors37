@@ -826,22 +826,3 @@ export default function LeadsPage() {
     </div>
   )
 }
-                    >
-                      {page}
-                    </button>
-                  )
-                })}
-            </div>
-            <button
-              onClick={() => setCurrentPage(currentPage + 1)}
-              disabled={currentPage === pageCount}
-              className="px-3 py-1 border rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-            >
-              <ChevronRight className="h-4 w-4" />
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
-  )
-}

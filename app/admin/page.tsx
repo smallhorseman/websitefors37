@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import { Users, FileText, Settings, X, Mail, Phone, Calendar, DollarSign, MessageSquare, Trash2, Edit, PhoneCall, MessageCircle, Loader2, Plus, Clock } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
-import type { BlogPost, Lead, CommunicationLog, ContentPage } from '@/lib/supabase'
+import type { BlogPost, CommunicationLog, ContentPage } from '@/lib/supabase'
 import MarkdownEditor from '@/components/MarkdownEditor'
 
 const Images = ({ className }: { className?: string }) => (
@@ -26,27 +26,7 @@ interface Lead {
   notes?: string
 }
 
-interface CommunicationLog {
-  id: string
-  lead_id: string
-  type: 'email' | 'phone' | 'sms' | 'note' | 'meeting' | 'other'
-  subject?: string
-  content: string
-  direction?: 'inbound' | 'outbound' | 'internal'
-  created_at: string
-  created_by?: string
-}
-
-interface ContentPage {
-  id: string
-  title: string
-  slug: string
-  content: string
-  meta_description?: string
-  published: boolean
-  created_at: string
-  updated_at: string
-}
+// Using imported types from @/lib/supabase
 
 export default function AdminPage() {
   const [activeTab, setActiveTab] = useState('leads')
@@ -1657,30 +1637,3 @@ export default function AdminPage() {
     </div>
   )
 }
-                  Publish this post (will be visible to visitors)
-                </label>
-              </div>
-            </div>
-
-            <div className="mt-6 flex justify-end space-x-3">
-              <button
-                onClick={() => setShowPostModal(false)}
-                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={savePost}
-                disabled={!postForm.title || !postForm.slug || !postForm.content || savingPost}
-                className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {savingPost ? 'Saving...' : isNewPost ? 'Create Post' : 'Save Changes'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-      </div>
-    </div>
-    )
-  }
