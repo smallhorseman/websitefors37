@@ -77,3 +77,65 @@ export interface BlogPost {
   created_at: string
   updated_at: string
 }
+
+export interface PaginationParams {
+  page: number
+  limit: number
+}
+
+export interface PaginatedResponse<T> {
+  data: T[]
+  count: number
+  page: number
+  pageCount: number
+}
+
+// Pagination helper
+export async function getPaginatedData<T>(
+  table: string,
+  params: PaginationParams,
+  filters?: { column: string; value: any }[],
+  orderBy?: { column: string; ascending?: boolean }
+): Promise<PaginatedResponse<T>> {
+  const { page, limit } = params
+  const start = (page - 1) * limit
+  const end = start + limit - 1
+
+  let query = supabase.from(table).select('*', { count: 'exact' })
+
+  // Apply filters
+  filters?.forEach(filter => {
+    query = query.eq(filter.column, filter.value)
+  })
+
+  // Apply ordering
+  if (orderBy) {
+    query = query.order(orderBy.column, { ascending: orderBy.ascending ?? false })
+  }
+
+  // Apply pagination
+  query = query.range(start, end)
+
+  const { data, error, count } = await query
+
+  if (error) throw error
+
+  return {
+    data: data || [],
+    count: count || 0,
+    page,
+    pageCount: Math.ceil((count || 0) / limit)
+  }
+}
+
+// Batch operations helper
+export async function batchUpdate<T>(
+  table: string,
+  updates: { id: string; data: Partial<T> }[]
+): Promise<void> {
+  const promises = updates.map(({ id, data }) =>
+    supabase.from(table).update(data).eq('id', id)
+  )
+
+  await Promise.all(promises)
+}

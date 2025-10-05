@@ -1,7 +1,9 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
-import { Loader2, Plus, Trash2, Edit, Settings, X } from 'lucide-react'
+import React, { useState, useEffect, useCallback } from 'react'
+import { Loader2, Plus, Trash2, Edit, Settings, X, Upload, Image as ImageIcon } from 'lucide-react'
+import { getPaginatedData } from '@/lib/supabase'
+import ImageUploader from '@/components/ImageUploader'
 
 interface GalleryImage {
   id: string
@@ -22,40 +24,59 @@ export default function GalleryAdmin() {
   const [isNew, setIsNew] = useState(false)
   const [saving, setSaving] = useState(false)
   
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalCount, setTotalCount] = useState(0)
+  const [pageCount, setPageCount] = useState(0)
+  const itemsPerPage = 24
+  
+  // Filter/search state
+  const [categoryFilter, setCategoryFilter] = useState('all')
+  const [showFeaturedOnly, setShowFeaturedOnly] = useState(false)
+  
   const [formData, setFormData] = useState({
     title: '',
     description: '',
     image_url: '',
     category: 'general',
-    featured: false
+    featured: false,
+    display_order: 0
   })
 
   // Fetch images from Supabase
-  const fetchImages = async () => {
+  const fetchImages = useCallback(async () => {
     setLoading(true)
     setError(null)
     try {
-      const { supabase } = await import('@/lib/supabase')
+      const filters = []
+      if (categoryFilter !== 'all') {
+        filters.push({ column: 'category', value: categoryFilter })
+      }
+      if (showFeaturedOnly) {
+        filters.push({ column: 'featured', value: true })
+      }
       
-      const { data, error } = await supabase
-        .from('gallery_images')
-        .select('*')
-        .order('created_at', { ascending: false })
+      const response = await getPaginatedData<GalleryImage>(
+        'gallery_images',
+        { page: currentPage, limit: itemsPerPage },
+        filters,
+        { column: 'display_order', ascending: true }
+      )
       
-      if (error) throw error
-      
-      setImages(data || [])
+      setImages(response.data)
+      setTotalCount(response.count)
+      setPageCount(response.pageCount)
     } catch (error: any) {
       console.error('Error fetching images:', error)
       setError(error.message || 'Failed to load gallery images')
     } finally {
       setLoading(false)
     }
-  }
+  }, [currentPage, categoryFilter, showFeaturedOnly])
   
   useEffect(() => {
     fetchImages()
-  }, [])
+  }, [fetchImages])
   
   // Save a new image or update existing one
   const saveImage = async () => {
@@ -74,7 +95,8 @@ export default function GalleryAdmin() {
             description: formData.description,
             image_url: formData.image_url,
             category: formData.category,
-            featured: formData.featured
+            featured: formData.featured,
+            display_order: formData.display_order
           }])
           .select()
         
@@ -93,7 +115,8 @@ export default function GalleryAdmin() {
             description: formData.description,
             image_url: formData.image_url,
             category: formData.category,
-            featured: formData.featured
+            featured: formData.featured,
+            display_order: formData.display_order
           })
           .eq('id', selectedImage.id)
         
@@ -146,7 +169,8 @@ export default function GalleryAdmin() {
       description: '',
       image_url: '',
       category: 'general',
-      featured: false
+      featured: false,
+      display_order: 0
     })
     setIsNew(true)
     setShowModal(true)
@@ -160,23 +184,106 @@ export default function GalleryAdmin() {
       description: image.description || '',
       image_url: image.image_url,
       category: image.category,
-      featured: image.featured
+      featured: image.featured,
+      display_order: image.display_order
     })
     setIsNew(false)
     setShowModal(true)
+  }
+
+  // Bulk actions
+  const [selectedImages, setSelectedImages] = useState<Set<string>>(new Set())
+  
+  const handleSelectImage = (id: string) => {
+    const newSelected = new Set(selectedImages)
+    if (newSelected.has(id)) {
+      newSelected.delete(id)
+    } else {
+      newSelected.add(id)
+    }
+    setSelectedImages(newSelected)
+  }
+  
+  const bulkDelete = async () => {
+    if (selectedImages.size === 0) return
+    if (!confirm(`Delete ${selectedImages.size} images?`)) return
+    
+    try {
+      const { supabase } = await import('@/lib/supabase')
+      
+      const promises = Array.from(selectedImages).map(id =>
+        supabase.from('gallery_images').delete().eq('id', id)
+      )
+      
+      await Promise.all(promises)
+      
+      // Update state
+      setImages(images.filter(img => !selectedImages.has(img.id)))
+      setSelectedImages(new Set())
+    } catch (error: any) {
+      console.error('Error deleting images:', error)
+      alert('Failed to delete some images')
+    }
   }
 
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-xl font-semibold">Gallery Management</h1>
-        <button
-          onClick={addNewImage}
-          className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 flex items-center gap-2"
+        <div className="flex items-center gap-2">
+          {selectedImages.size > 0 && (
+            <>
+              <span className="text-sm text-gray-600">
+                {selectedImages.size} selected
+              </span>
+              <button
+                onClick={bulkDelete}
+                className="px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+              >
+                Delete Selected
+              </button>
+            </>
+          )}
+          <button
+            onClick={addNewImage}
+            className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 flex items-center gap-2"
+          >
+            <Plus className="h-4 w-4" />
+            Add Image
+          </button>
+        </div>
+      </div>
+      
+      {/* Filters */}
+      <div className="mb-6 flex flex-wrap gap-4">
+        <select
+          value={categoryFilter}
+          onChange={(e) => {
+            setCategoryFilter(e.target.value)
+            setCurrentPage(1)
+          }}
+          className="px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
         >
-          <Plus className="h-4 w-4" />
-          Add Image
-        </button>
+          <option value="all">All Categories</option>
+          <option value="wedding">Wedding</option>
+          <option value="portrait">Portrait</option>
+          <option value="event">Event</option>
+          <option value="commercial">Commercial</option>
+          <option value="general">General</option>
+        </select>
+        
+        <label className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            checked={showFeaturedOnly}
+            onChange={(e) => {
+              setShowFeaturedOnly(e.target.checked)
+              setCurrentPage(1)
+            }}
+            className="h-4 w-4 text-primary-600 rounded"
+          />
+          <span className="text-sm">Featured only</span>
+        </label>
       </div>
       
       {error && (
@@ -205,48 +312,83 @@ export default function GalleryAdmin() {
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {images.map(image => (
-            <div key={image.id} className="border rounded-lg overflow-hidden bg-white">
-              <div className="relative aspect-[4/3]">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img 
-                  src={image.image_url}
-                  alt={image.title}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              
-              <div className="p-3">
-                <h3 className="font-semibold truncate">{image.title}</h3>
-                <p className="text-xs text-gray-500 mb-2">
-                  {image.category} {image.featured && '• Featured'}
-                </p>
+        <>
+          {/* Gallery grid with checkbox selection */}
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {images.map(image => (
+              <div key={image.id} className="border rounded-lg overflow-hidden bg-white relative">
+                <div className="absolute top-2 left-2 z-10">
+                  <input
+                    type="checkbox"
+                    checked={selectedImages.has(image.id)}
+                    onChange={() => handleSelectImage(image.id)}
+                    className="h-4 w-4 text-primary-600 rounded border-gray-300 bg-white"
+                  />
+                </div>
                 
-                <div className="flex justify-between">
-                  <button
-                    onClick={() => editImage(image)}
-                    className="text-primary-600 hover:text-primary-800"
-                  >
-                    <Edit className="h-4 w-4" />
-                  </button>
-                  <button
-                    onClick={() => deleteImage(image.id)}
-                    className="text-red-600 hover:text-red-800"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
+                <div className="relative aspect-[4/3]">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img 
+                    src={image.image_url}
+                    alt={image.title}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                
+                <div className="p-3">
+                  <h3 className="font-semibold truncate">{image.title}</h3>
+                  <p className="text-xs text-gray-500 mb-2">
+                    {image.category} {image.featured && '• Featured'}
+                  </p>
+                  
+                  <div className="flex justify-between">
+                    <button
+                      onClick={() => editImage(image)}
+                      className="text-primary-600 hover:text-primary-800"
+                    >
+                      <Edit className="h-4 w-4" />
+                    </button>
+                    <button
+                      onClick={() => deleteImage(image.id)}
+                      className="text-red-600 hover:text-red-800"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
                 </div>
               </div>
+            ))}
+          </div>
+          
+          {/* Pagination controls */}
+          <div className="mt-6">
+            <span className="text-sm text-gray-600">
+              Page {currentPage} of {pageCount}
+            </span>
+            <div className="flex gap-2 mt-2">
+              <button
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                className="px-3 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50"
+              >
+                Previous
+              </button>
+              <button
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, pageCount))}
+                disabled={currentPage === pageCount}
+                className="px-3 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50"
+              >
+                Next
+              </button>
             </div>
-          ))}
-        </div>
+          </div>
+        </>
       )}
       
-      {/* Add/Edit Image Modal */}
+      {/* Add/Edit Image Modal with Image Uploader */}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 px-4">
-          <div className="bg-white rounded-lg p-6 max-w-lg w-full">
+          <div className="bg-white rounded-lg p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-semibold">
                 {isNew ? 'Add New Image' : 'Edit Image'}
@@ -276,13 +418,18 @@ export default function GalleryAdmin() {
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Image URL *
+                  Upload Image or Enter URL
                 </label>
+                {isNew && (
+                  <ImageUploader 
+                    onImageUrl={(url) => setFormData({ ...formData, image_url: url })}
+                  />
+                )}
                 <input
                   type="text"
                   value={formData.image_url}
                   onChange={e => setFormData({ ...formData, image_url: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  className="w-full mt-2 px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
                   placeholder="https://example.com/image.jpg"
                   required
                 />
@@ -316,6 +463,22 @@ export default function GalleryAdmin() {
                   <option value="commercial">Commercial</option>
                   <option value="general">General</option>
                 </select>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Display Order
+                </label>
+                <input
+                  type="number"
+                  value={formData.display_order}
+                  onChange={e => setFormData({ ...formData, display_order: parseInt(e.target.value) || 0 })}
+                  className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  placeholder="0"
+                />
+                <p className="mt-1 text-xs text-gray-500">
+                  Lower numbers appear first
+                </p>
               </div>
               
               <div className="flex items-center">

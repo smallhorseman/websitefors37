@@ -1,7 +1,9 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
-import { Loader2, Mail, Phone, MessageCircle, Edit, Settings, Calendar, DollarSign, MessageSquare, X, Plus, PhoneCall, Trash2 } from 'lucide-react'
+import React, { useState, useEffect, useCallback } from 'react'
+import { Loader2, Mail, Phone, MessageCircle, Edit, Settings, Calendar, DollarSign, MessageSquare, X, Plus, PhoneCall, Trash2, ChevronLeft, ChevronRight } from 'lucide-react'
+import { getPaginatedData, PaginatedResponse } from '@/lib/supabase'
+import debounce from 'lodash.debounce'
 
 interface Lead {
   id: string
@@ -46,35 +48,46 @@ export default function LeadsPage() {
     content: '',
     direction: 'outbound' as CommunicationLog['direction']
   })
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalCount, setTotalCount] = useState(0)
+  const [pageCount, setPageCount] = useState(0)
+  const itemsPerPage = 20
 
-  const fetchLeads = async () => {
+  const fetchLeads = useCallback(async () => {
     try {
       setError(null)
       setLoading(true)
-      const { supabase } = await import('@/lib/supabase')
-
-      const { data, error } = await supabase
-        .from('leads')
-        .select('*')
-        .order('created_at', { ascending: false })
-
-      if (error) {
-        console.error('Supabase error:', error)
-        throw error
-      }
       
-      setLeads(data || [])
+      const filters = filter !== 'all' ? [{ column: 'status', value: filter }] : undefined
+      
+      const response = await getPaginatedData<Lead>(
+        'leads',
+        { page: currentPage, limit: itemsPerPage },
+        filters,
+        { column: 'created_at', ascending: false }
+      )
+      
+      setLeads(response.data)
+      setTotalCount(response.count)
+      setPageCount(response.pageCount)
     } catch (error: any) {
       console.error('Error fetching leads:', error)
       setError(error.message || 'Failed to load leads')
     } finally {
       setLoading(false)
     }
-  }
+  }, [currentPage, filter])
 
   useEffect(() => {
     fetchLeads()
-  }, [])
+  }, [fetchLeads])
+
+  // Reset to first page when filter changes
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [filter])
 
   const updateLeadStatus = async (id: string, status: string) => {
     try {
@@ -764,6 +777,27 @@ export default function LeadsPage() {
           </div>
         </div>
       )}
-    </div>
-  )
-}
+
+      {/* Pagination controls */}
+      {pageCount > 1 && (
+        <div className="mt-6 flex items-center justify-between">
+          <div className="text-sm text-gray-700">
+            Showing {(currentPage - 1) * itemsPerPage + 1} to{' '}
+            {Math.min(currentPage * itemsPerPage, totalCount)} of {totalCount} leads
+          </div>
+          <div className="flex space-x-2">
+            <button
+              onClick={() => setCurrentPage(currentPage - 1)}
+              disabled={currentPage === 1}
+              className="px-3 py-1 border rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+            <div className="flex space-x-1">
+              {Array.from({ length: pageCount }, (_, i) => i + 1)
+                .filter(page => {
+                  const distance = Math.abs(page - currentPage)
+                  return distance === 0 || distance === 1 || page === 1 || page === pageCount
+                })
+                .map((page, index, array) => {
+                  if
