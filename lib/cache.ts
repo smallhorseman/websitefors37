@@ -35,7 +35,7 @@ class SimpleCache {
       return
     }
     
-    for (const key of this.cache.keys()) {
+    for (const key of Array.from(this.cache.keys())) {
       if (key.includes(pattern)) {
         this.cache.delete(key)
       }

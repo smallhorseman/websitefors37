@@ -13,6 +13,7 @@ interface GalleryImage {
   category: string
   featured: boolean
   created_at: string
+  display_order: number
 }
 
 export default function GalleryAdmin() {
