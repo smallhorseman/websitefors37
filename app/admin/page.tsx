@@ -1655,8 +1655,8 @@ export default function AdminPage() {
       )}
       </div>
     </div>
-    )
-  }
+  )
+}
                   Publish this post (will be visible to visitors)
                 </label>
               </div>
