@@ -231,18 +231,18 @@ export default function BookSessionPage() {
                 <h3 className="font-semibold mb-3">Select type</h3>
                 <div className="space-y-2">
                   <label className={`block border rounded p-3 cursor-pointer ${selectedType==='consultation'?'border-primary-500 bg-primary-50':'hover:bg-gray-50'}`}>
-                    <input type="radio" className="mr-2" checked={selectedType==='consultation'} onChange={()=>setSelectedType('consultation')} />
+                    <input name="package-type" type="radio" className="mr-2" checked={selectedType==='consultation'} onChange={()=>setSelectedType('consultation')} />
                     Consultation (30 min)
                   </label>
                   {Object.entries(PACKAGES).map(([key, p]) => (
                     <label key={key} className={`block border rounded p-3 cursor-pointer ${selectedType===key?'border-primary-500 bg-primary-50':'hover:bg-gray-50'}`}>
-                      <input type="radio" className="mr-2" checked={selectedType===key} onChange={()=>setSelectedType(key as PackageKey)} />
+                      <input name="package-type" type="radio" className="mr-2" checked={selectedType===key} onChange={()=>setSelectedType(key as PackageKey)} />
                       <div className="flex items-center justify-between">
                         <div>
                           <div className="font-medium">{p.name}</div>
                           <div className="text-sm text-gray-500">{p.duration} min</div>
                         </div>
-                        <div className="font-semibold">${'{'}(p.priceCents/100).toFixed(0){'}'}</div>
+                        <div className="font-semibold">${(p.priceCents/100).toFixed(0)}</div>
                       </div>
                       <p className="text-xs text-gray-500 mt-1">{p.description}</p>
                     </label>
