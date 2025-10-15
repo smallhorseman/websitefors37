@@ -57,6 +57,11 @@ export default function AdminSidebar() {
         { name: 'Blog Posts', path: '/admin/content/blog' }
       ]
     },
+    {
+      name: 'Site Editor',
+      path: '/admin/site-editor',
+      icon: <Settings className="w-5 h-5" />
+    },
     { 
       name: 'Gallery', 
       path: '/admin/gallery', 

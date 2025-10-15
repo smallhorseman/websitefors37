@@ -78,6 +78,33 @@ export interface BlogPost {
   updated_at: string
 }
 
+export interface PageConfig {
+  id: string
+  slug: string
+  data: Record<string, any>
+  created_at: string
+  updated_at: string
+}
+
+export interface Appointment {
+  id: string
+  lead_id?: string | null
+  name: string
+  email: string
+  phone?: string
+  type: 'consultation' | 'package'
+  package_key?: 'mini_reel' | 'full_episode' | 'movie_premier'
+  package_name?: string
+  price_cents?: number
+  duration_minutes: number
+  start_time: string
+  end_time: string
+  notes?: string
+  status: 'scheduled' | 'cancelled' | 'completed'
+  created_at: string
+  updated_at: string
+}
+
 export interface PaginationParams {
   page: number
   limit: number

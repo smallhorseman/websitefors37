@@ -1,19 +1,31 @@
 'use client'
 
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Camera, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
+import { getPageConfig } from '@/lib/pageConfig'
 
 export default function Hero() {
+  const [cfg, setCfg] = useState<Record<string, any> | null>(null)
+
+  useEffect(() => {
+    // Load editable hero content from page config
+    getPageConfig('home').then((c) => setCfg(c?.data || null))
+  }, [])
+
+  const heroTitle: string = cfg?.hero_title || 'Studio '
+  const heroSubtitle: string = cfg?.hero_subtitle || 'Capturing your precious moments with artistic excellence and professional craftsmanship'
+  const heroImage: string = cfg?.hero_image || 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1759639187/A4B03835-ED8B-4FBB-A27E-1F2EE6CA1A18_1_105_c_gstgil_e_gen_restore_e_improve_e_sharpen_l_image_upload_My_Brand_IMG_2115_mtuowt_c_scale_fl_relative_w_0.40_o_80_fl_layer_apply_g_south_x_0.03_y_0.04_yqgycj.jpg'
+
   return (
     <section className="relative h-screen flex items-center justify-center overflow-hidden">
       {/* Background Image */}
       <div className="absolute inset-0 z-0">
-        <Image 
-          src="https://res.cloudinary.com/dmjxho2rl/image/upload/v1759639187/A4B03835-ED8B-4FBB-A27E-1F2EE6CA1A18_1_105_c_gstgil_e_gen_restore_e_improve_e_sharpen_l_image_upload_My_Brand_IMG_2115_mtuowt_c_scale_fl_relative_w_0.40_o_80_fl_layer_apply_g_south_x_0.03_y_0.04_yqgycj.jpg" 
-          alt="Studio 37 Photography"
+        <Image
+          src={heroImage}
+          alt="Studio 37 Photography background"
           fill
           priority
           className="object-cover"
@@ -45,15 +57,15 @@ export default function Hero() {
           </div>
           
           <h1 className="font-serif text-5xl md:text-7xl font-bold mb-6 leading-tight text-white drop-shadow-lg">
-            Studio <span className="text-amber-200">37</span>
+            {heroTitle || 'Studio '}<span className="text-amber-200">37</span>
           </h1>
           
           <p className="text-xl md:text-2xl mb-8 text-amber-50 max-w-2xl mx-auto font-light">
-            Capturing your precious moments with artistic excellence and professional craftsmanship
+            {heroSubtitle}
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <Link href="#contact" className="btn-primary text-lg px-8 py-4 inline-flex items-center">
+            <Link href="/book-a-session" className="btn-primary text-lg px-8 py-4 inline-flex items-center">
               Book Your Session
               <ArrowRight className="ml-2 h-5 w-5" />
             </Link>

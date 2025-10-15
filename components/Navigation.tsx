@@ -39,6 +39,7 @@ export default function Navigation() {
             <Link href="/blog" className={`hover:text-amber-600 transition-colors font-medium ${scrolled ? 'text-amber-900' : 'text-white'}`}>Blog</Link>
             <Link href="/about" className={`hover:text-amber-600 transition-colors font-medium ${scrolled ? 'text-amber-900' : 'text-white'}`}>About</Link>
             <Link href="/contact" className={`hover:text-amber-600 transition-colors font-medium ${scrolled ? 'text-amber-900' : 'text-white'}`}>Contact</Link>
+            <Link href="/book-a-session" className={`hover:text-amber-600 transition-colors font-medium ${scrolled ? 'text-amber-900' : 'text-white'}`}>Book a Session</Link>
             <Link 
               href="/admin" 
               className={scrolled ? "btn-primary" : "bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg border border-amber-200/30"}
@@ -64,6 +65,7 @@ export default function Navigation() {
               <Link href="/blog" className="hover:text-amber-600 transition-colors font-medium text-amber-900">Blog</Link>
               <Link href="/about" className="hover:text-amber-600 transition-colors font-medium text-amber-900">About</Link>
               <Link href="/contact" className="hover:text-amber-600 transition-colors font-medium text-amber-900">Contact</Link>
+              <Link href="/book-a-session" className="hover:text-amber-600 transition-colors font-medium text-amber-900">Book a Session</Link>
               <Link href="/admin" className="btn-primary w-fit">Admin</Link>
             </div>
           </div>

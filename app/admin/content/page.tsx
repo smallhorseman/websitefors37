@@ -258,10 +258,13 @@ export default function ContentManagementPage() {
           />
         </div>
         <div className="flex-shrink-0">
+          <label htmlFor="page-filter" className="sr-only">Filter pages</label>
           <select
+            id="page-filter"
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
             className="w-full md:w-auto px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+            aria-label="Filter pages"
           >
             <option value="all">All Pages</option>
             <option value="published">Published</option>
@@ -424,8 +427,10 @@ export default function ContentManagementPage() {
               <button
                 onClick={() => setShowPageModal(false)}
                 className="text-gray-400 hover:text-gray-500"
+                aria-label="Close modal"
+                title="Close"
               >
-                <X className="h-5 w-5" />
+                <X className="h-5 w-5" aria-hidden="true" focusable="false" />
               </button>
             </div>
 

@@ -8,6 +8,8 @@ DROP TABLE IF EXISTS content_pages CASCADE;
 DROP TABLE IF EXISTS gallery_images CASCADE;
 DROP TABLE IF EXISTS leads CASCADE;
 DROP TABLE IF EXISTS settings CASCADE;
+DROP TABLE IF EXISTS page_configs CASCADE;
+DROP TABLE IF EXISTS appointments CASCADE;
 
 -- Settings table (singleton)
 CREATE TABLE settings (
@@ -191,3 +193,56 @@ CREATE POLICY "Allow all operations on settings" ON settings FOR ALL USING (true
 INSERT INTO settings (id, site_name, contact_email) 
 VALUES ('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'Studio 37 Photography', 'contact@studio37.cc')
 ON CONFLICT (id) DO NOTHING;
+
+-- Additional tables for site editor and booking functionality
+
+-- Page configuration table for per-page editable JSON (used by sitemap-style editor)
+CREATE TABLE IF NOT EXISTS page_configs (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  slug VARCHAR(255) NOT NULL UNIQUE,
+  data JSONB NOT NULL DEFAULT '{}'::jsonb,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_page_configs_slug ON page_configs(slug);
+CREATE INDEX IF NOT EXISTS idx_page_configs_updated_at ON page_configs(updated_at DESC);
+
+-- Appointments table for booking
+CREATE TABLE IF NOT EXISTS appointments (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  lead_id UUID REFERENCES leads(id) ON DELETE SET NULL,
+  name VARCHAR(255) NOT NULL,
+  email VARCHAR(255) NOT NULL,
+  phone VARCHAR(50),
+  type VARCHAR(50) NOT NULL CHECK (type IN ('consultation','package')),
+  package_key VARCHAR(50),
+  package_name VARCHAR(255),
+  price_cents INTEGER,
+  duration_minutes INTEGER NOT NULL,
+  start_time TIMESTAMP WITH TIME ZONE NOT NULL,
+  end_time TIMESTAMP WITH TIME ZONE NOT NULL,
+  notes TEXT,
+  status VARCHAR(20) NOT NULL DEFAULT 'scheduled' CHECK (status IN ('scheduled','cancelled','completed')),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Prevent double booking on the same time window
+CREATE INDEX IF NOT EXISTS idx_appointments_time ON appointments(start_time, end_time);
+CREATE INDEX IF NOT EXISTS idx_appointments_email ON appointments(email);
+
+-- Enable RLS for new tables
+ALTER TABLE page_configs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE appointments ENABLE ROW LEVEL SECURITY;
+
+-- Development policies for new tables
+CREATE POLICY IF NOT EXISTS "Allow all operations on page_configs" ON page_configs FOR ALL USING (true);
+CREATE POLICY IF NOT EXISTS "Allow all operations on appointments" ON appointments FOR ALL USING (true);
+
+-- Triggers to maintain updated_at for new tables
+CREATE TRIGGER IF NOT EXISTS update_page_configs_updated_at BEFORE UPDATE ON page_configs
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER IF NOT EXISTS update_appointments_updated_at BEFORE UPDATE ON appointments
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();

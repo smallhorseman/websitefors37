@@ -739,6 +739,7 @@ export default function AdminPage() {
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
                               <select
+                                aria-label="Lead status"
                                 value={lead.status}
                                 onChange={(e) => updateLeadStatus(lead.id, e.target.value)}
                                 className={`text-xs px-2 py-1 rounded-full border-0 ${getStatusColor(lead.status)}`}
@@ -1122,6 +1123,8 @@ export default function AdminPage() {
                 <button
                   onClick={() => setShowLeadModal(false)}
                   className="text-gray-400 hover:text-gray-500"
+                  title="Close modal"
+                  aria-label="Close modal"
                 >
                   <X className="h-5 w-5" />
                 </button>
@@ -1303,8 +1306,9 @@ export default function AdminPage() {
             
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
+                <label htmlFor="log-type" className="block text-sm font-medium text-gray-700 mb-1">Type</label>
                 <select
+                  id="log-type"
                   value={newLog.type}
                   onChange={(e) => setNewLog({ ...newLog, type: e.target.value as CommunicationLog['type'] })}
                   className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
@@ -1319,8 +1323,9 @@ export default function AdminPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Direction</label>
+                <label htmlFor="log-direction" className="block text-sm font-medium text-gray-700 mb-1">Direction</label>
                 <select
+                  id="log-direction"
                   value={newLog.direction}
                   onChange={(e) => setNewLog({ ...newLog, direction: e.target.value as CommunicationLog['direction'] })}
                   className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
@@ -1384,6 +1389,8 @@ export default function AdminPage() {
               <button
                 onClick={() => setShowPageModal(false)}
                 className="text-gray-400 hover:text-gray-500"
+                title="Close modal"
+                aria-label="Close modal"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -1502,6 +1509,8 @@ export default function AdminPage() {
               <button
                 onClick={() => setShowPostModal(false)}
                 className="text-gray-400 hover:text-gray-500"
+                title="Close modal"
+                aria-label="Close modal"
               >
                 <X className="h-5 w-5" />
               </button>
