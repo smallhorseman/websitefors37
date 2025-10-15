@@ -58,7 +58,9 @@ export interface GalleryImage {
   image_url: string
   category: string
   featured: boolean
+  display_order: number
   created_at: string
+  updated_at: string
 }
 
 export interface BlogPost {
@@ -101,6 +103,24 @@ export interface Appointment {
   end_time: string
   notes?: string
   status: 'scheduled' | 'cancelled' | 'completed'
+  created_at: string
+  updated_at: string
+}
+
+export interface Settings {
+  id: string
+  site_name: string
+  contact_email: string
+  contact_phone?: string | null
+  business_address?: string | null
+  social_facebook?: string | null
+  social_instagram?: string | null
+  social_twitter?: string | null
+  seo_title_template?: string | null
+  seo_default_description?: string | null
+  theme_primary_color?: string | null
+  theme_secondary_color?: string | null
+  google_analytics_id?: string | null
   created_at: string
   updated_at: string
 }

@@ -1,10 +1,11 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { Users, FileText, Settings, X, Mail, Phone, Calendar, DollarSign, MessageSquare, Trash2, Edit, PhoneCall, MessageCircle, Loader2, Plus, Clock } from 'lucide-react'
+import { Users, FileText, Settings as SettingsIcon, X, Mail, Phone, Calendar, DollarSign, MessageSquare, Trash2, Edit, PhoneCall, MessageCircle, Loader2, Plus, Clock, Image as ImageIcon, Eye } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
-import type { BlogPost, CommunicationLog, ContentPage } from '@/lib/supabase'
+import type { BlogPost, CommunicationLog, ContentPage, GalleryImage, Settings as SiteSettings } from '@/lib/supabase'
 import MarkdownEditor from '@/components/MarkdownEditor'
+import ImageUploader from '@/components/ImageUploader'
 
 const Images = ({ className }: { className?: string }) => (
   <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -291,7 +292,7 @@ export default function AdminPage() {
     { id: 'content', label: 'Content', icon: FileText },
     { id: 'blog', label: 'Blog', icon: FileText },
     { id: 'gallery', label: 'Gallery', icon: Images },
-    { id: 'settings', label: 'Settings', icon: Settings },
+    { id: 'settings', label: 'Settings', icon: SettingsIcon },
   ]
 
   // Fetch content pages
@@ -498,6 +499,153 @@ export default function AdminPage() {
       fetchBlogPosts()
     }
   }, [activeTab])
+
+  // -------------------- Gallery --------------------
+  const [gallery, setGallery] = useState<GalleryImage[]>([])
+  const [loadingGallery, setLoadingGallery] = useState(false)
+  const [galleryError, setGalleryError] = useState<string | null>(null)
+  const [showGalleryModal, setShowGalleryModal] = useState(false)
+  const [editingImage, setEditingImage] = useState<GalleryImage | null>(null)
+  const [galleryForm, setGalleryForm] = useState({
+    title: '',
+    description: '',
+    image_url: '',
+    category: 'general',
+    featured: false,
+    display_order: 0,
+  })
+
+  const fetchGallery = async () => {
+    if (activeTab !== 'gallery') return
+    setLoadingGallery(true)
+    setGalleryError(null)
+    try {
+      const { data, error } = await supabase
+        .from('gallery_images')
+        .select('*')
+        .order('display_order', { ascending: true })
+        .order('created_at', { ascending: false })
+      if (error) throw error
+      setGallery(data || [])
+    } catch (e: any) {
+      console.error(e)
+      setGalleryError(e.message || 'Failed to load gallery')
+    } finally {
+      setLoadingGallery(false)
+    }
+  }
+
+  useEffect(() => {
+    if (activeTab === 'gallery') fetchGallery()
+  }, [activeTab])
+
+  const openNewGalleryModal = () => {
+    setEditingImage(null)
+    setGalleryForm({ title: '', description: '', image_url: '', category: 'general', featured: false, display_order: gallery.length })
+    setShowGalleryModal(true)
+  }
+
+  const openEditGalleryModal = (img: GalleryImage) => {
+    setEditingImage(img)
+    setGalleryForm({
+      title: img.title,
+      description: img.description || '',
+      image_url: img.image_url,
+      category: img.category,
+      featured: img.featured,
+      display_order: img.display_order ?? 0,
+    })
+    setShowGalleryModal(true)
+  }
+
+  const saveGalleryItem = async () => {
+    try {
+      if (editingImage) {
+        const { error } = await supabase
+          .from('gallery_images')
+          .update({ ...galleryForm, updated_at: new Date().toISOString() })
+          .eq('id', editingImage.id)
+        if (error) throw error
+      } else {
+        const { data, error } = await supabase
+          .from('gallery_images')
+          .insert([{ ...galleryForm }])
+          .select('*')
+        if (error) throw error
+        if (data) setGallery([...(gallery || []), data[0] as GalleryImage])
+      }
+      setShowGalleryModal(false)
+      fetchGallery()
+    } catch (e) {
+      alert('Failed to save image')
+    }
+  }
+
+  const deleteGalleryItem = async (id: string) => {
+    if (!confirm('Delete this image?')) return
+    try {
+      const { error } = await supabase.from('gallery_images').delete().eq('id', id)
+      if (error) throw error
+      setGallery(gallery.filter(g => g.id !== id))
+    } catch (e) {
+      alert('Failed to delete image')
+    }
+  }
+
+  const moveGalleryItem = async (id: string, dir: -1 | 1) => {
+    const idx = gallery.findIndex(g => g.id === id)
+    if (idx === -1) return
+    const newIdx = idx + dir
+    if (newIdx < 0 || newIdx >= gallery.length) return
+    const newOrder = [...gallery]
+    const [item] = newOrder.splice(idx, 1)
+    newOrder.splice(newIdx, 0, item)
+    // Reassign display_order
+    const updates = newOrder.map((g, i) => ({ id: g.id, display_order: i }))
+    setGallery(newOrder.map((g, i) => ({ ...g, display_order: i })))
+    // Persist
+    for (const u of updates) {
+      await supabase.from('gallery_images').update({ display_order: u.display_order }).eq('id', u.id)
+    }
+  }
+
+  // -------------------- Settings --------------------
+  const [settings, setSettings] = useState<SiteSettings | null>(null)
+  const [settingsSaving, setSettingsSaving] = useState(false)
+  const [settingsError, setSettingsError] = useState<string | null>(null)
+
+  const loadSettings = async () => {
+    if (activeTab !== 'settings') return
+    setSettingsError(null)
+    try {
+      const { data, error } = await supabase.from('settings').select('*').limit(1).maybeSingle()
+      if (error) throw error
+      setSettings(data as SiteSettings)
+    } catch (e: any) {
+      console.error(e)
+      setSettingsError(e.message || 'Failed to load settings')
+    }
+  }
+
+  useEffect(() => {
+    if (activeTab === 'settings') loadSettings()
+  }, [activeTab])
+
+  const saveSettings = async () => {
+    if (!settings) return
+    setSettingsSaving(true)
+    try {
+      const { error } = await supabase
+        .from('settings')
+        .upsert({ ...settings, id: settings.id || 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11' })
+      if (error) throw error
+      alert('Settings saved')
+    } catch (e) {
+      alert('Failed to save settings')
+    } finally {
+      setSettingsSaving(false)
+    }
+  }
 
   // Create or update a blog post
   const savePost = async () => {
@@ -760,7 +908,7 @@ export default function AdminPage() {
                                   className="text-primary-600 hover:text-primary-900"
                                   title="View details"
                                 >
-                                  <Settings className="h-4 w-4" />
+                                  <SettingsIcon className="h-4 w-4" />
                                 </button>
                                 <a
                                   href={`mailto:${lead.email}`}
@@ -907,7 +1055,7 @@ export default function AdminPage() {
                                   }`}
                                   title={page.published ? 'Unpublish' : 'Publish'}
                                 >
-                                  <Settings className="h-4 w-4" />
+                                  <SettingsIcon className="h-4 w-4" />
                                 </button>
                                 <button
                                   onClick={() => deletePage(page.id)}
@@ -1100,15 +1248,156 @@ export default function AdminPage() {
 
             {activeTab === 'gallery' && (
               <div>
-                <h2 className="text-xl font-semibold mb-6">Gallery Management</h2>
-                <p className="text-gray-600">Gallery manager coming soon...</p>
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-xl font-semibold">Gallery Management</h2>
+                  <button onClick={openNewGalleryModal} className="px-3 py-2 bg-primary-600 text-white rounded hover:bg-primary-700 flex items-center gap-2">
+                    <Plus className="h-4 w-4" /> Add Image
+                  </button>
+                </div>
+
+                {galleryError && (
+                  <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg mb-6">{galleryError}</div>
+                )}
+
+                {loadingGallery ? (
+                  <div className="flex items-center justify-center py-12">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary-600" />
+                    <span className="ml-2">Loading gallery...</span>
+                  </div>
+                ) : gallery.length === 0 ? (
+                  <div className="text-center py-12 bg-gray-50 rounded-lg">
+                    <ImageIcon className="h-12 w-12 text-gray-400 mx-auto mb-3" />
+                    <p className="text-gray-500 mb-4">No images yet.</p>
+                    <button onClick={openNewGalleryModal} className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700">Upload Your First Image</button>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {gallery.map((img) => (
+                      <div key={img.id} className="border rounded-lg overflow-hidden bg-white">
+                        <div className="relative h-40 bg-gray-100">
+                          {img.image_url ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={img.image_url} alt={img.title} className="absolute inset-0 w-full h-full object-cover" />
+                          ) : (
+                            <div className="absolute inset-0 flex items-center justify-center text-gray-400"><ImageIcon className="h-8 w-8"/></div>
+                          )}
+                        </div>
+                        <div className="p-3">
+                          <div className="font-medium truncate" title={img.title}>{img.title}</div>
+                          <div className="text-xs text-gray-500 mb-2">{img.category}{img.featured ? ' • Featured' : ''}</div>
+                          <div className="flex items-center justify-between">
+                            <div className="flex gap-2">
+                              <button onClick={() => openEditGalleryModal(img)} className="text-primary-600 hover:text-primary-800" title="Edit"><Edit className="h-4 w-4"/></button>
+                              <button onClick={() => deleteGalleryItem(img.id)} className="text-red-600 hover:text-red-800" title="Delete"><Trash2 className="h-4 w-4"/></button>
+                              <a href={img.image_url} target="_blank" rel="noreferrer" className="text-blue-600 hover:text-blue-800" title="Open"><Eye className="h-4 w-4"/></a>
+                            </div>
+                            <div className="flex gap-1">
+                              <button onClick={() => moveGalleryItem(img.id, -1)} className="text-gray-500 hover:text-gray-800" title="Move up">↑</button>
+                              <button onClick={() => moveGalleryItem(img.id, 1)} className="text-gray-500 hover:text-gray-800" title="Move down">↓</button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Gallery Modal */}
+                {showGalleryModal && (
+                  <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-lg p-6 w-full max-w-lg mx-4">
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-lg font-semibold">{editingImage ? 'Edit Image' : 'Add Image'}</h3>
+                        <button onClick={() => setShowGalleryModal(false)} className="text-gray-400 hover:text-gray-600" aria-label="Close modal" title="Close modal"><X className="h-5 w-5"/></button>
+                      </div>
+                      <div className="space-y-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="g-title">Title *</label>
+                          <input id="g-title" className="w-full border rounded px-3 py-2" value={galleryForm.title} onChange={(e)=>setGalleryForm({...galleryForm, title: e.target.value})} placeholder="Image title" required />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="g-desc">Description</label>
+                          <textarea id="g-desc" className="w-full border rounded px-3 py-2" rows={3} value={galleryForm.description} onChange={(e)=>setGalleryForm({...galleryForm, description: e.target.value})} placeholder="Optional description"/>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Image</label>
+                          <ImageUploader onImageUrl={(url)=>setGalleryForm({...galleryForm, image_url: url})} />
+                          {galleryForm.image_url && (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={galleryForm.image_url} alt="Preview" className="mt-2 h-36 w-full object-cover rounded" />
+                          )}
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <label htmlFor="g-category" className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                            <input id="g-category" className="w-full border rounded px-3 py-2" value={galleryForm.category} onChange={(e)=>setGalleryForm({...galleryForm, category: e.target.value})} placeholder="general / portraits / events" />
+                          </div>
+                          <div className="flex items-center mt-1">
+                            <input id="g-featured" type="checkbox" className="h-4 w-4" checked={galleryForm.featured} onChange={(e)=>setGalleryForm({...galleryForm, featured: e.target.checked})} />
+                            <label htmlFor="g-featured" className="ml-2 text-sm">Featured</label>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="mt-6 flex justify-end gap-2">
+                        <button onClick={()=>setShowGalleryModal(false)} className="px-4 py-2 border rounded">Cancel</button>
+                        <button onClick={saveGalleryItem} disabled={!galleryForm.title || !galleryForm.image_url} className="px-4 py-2 bg-primary-600 text-white rounded disabled:opacity-50">{editingImage ? 'Save Changes' : 'Add Image'}</button>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
             {activeTab === 'settings' && (
               <div>
-                <h2 className="text-xl font-semibold mb-6">Settings</h2>
-                <p className="text-gray-600">Settings panel coming soon...</p>
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-xl font-semibold">Settings</h2>
+                  <button onClick={saveSettings} disabled={!settings || settingsSaving} className="px-4 py-2 bg-primary-600 text-white rounded disabled:opacity-50">{settingsSaving ? 'Saving…' : 'Save'}</button>
+                </div>
+                {settingsError && <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg mb-6">{settingsError}</div>}
+                {!settings ? (
+                  <div className="flex items-center text-gray-500"><Loader2 className="h-4 w-4 animate-spin mr-2"/> Loading settings…</div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="bg-gray-50 p-4 rounded">
+                      <h3 className="font-semibold mb-3">General</h3>
+                      <label className="block text-sm mb-1" htmlFor="s-name">Site Name</label>
+                      <input id="s-name" className="w-full border rounded px-3 py-2 mb-3" value={settings.site_name} onChange={(e)=>setSettings({...settings, site_name: e.target.value})} />
+                      <label className="block text-sm mb-1" htmlFor="s-email">Contact Email</label>
+                      <input id="s-email" type="email" className="w-full border rounded px-3 py-2 mb-3" value={settings.contact_email} onChange={(e)=>setSettings({...settings, contact_email: e.target.value})} />
+                      <label className="block text-sm mb-1" htmlFor="s-phone">Contact Phone</label>
+                      <input id="s-phone" className="w-full border rounded px-3 py-2" value={settings.contact_phone || ''} onChange={(e)=>setSettings({...settings, contact_phone: e.target.value})} />
+                    </div>
+
+                    <div className="bg-gray-50 p-4 rounded">
+                      <h3 className="font-semibold mb-3">Address & Social</h3>
+                      <label className="block text-sm mb-1" htmlFor="s-address">Business Address</label>
+                      <textarea id="s-address" className="w-full border rounded px-3 py-2 mb-3" rows={3} value={settings.business_address || ''} onChange={(e)=>setSettings({...settings, business_address: e.target.value})}/>
+                      <label className="block text-sm mb-1" htmlFor="s-fb">Facebook</label>
+                      <input id="s-fb" className="w-full border rounded px-3 py-2 mb-2" value={settings.social_facebook || ''} onChange={(e)=>setSettings({...settings, social_facebook: e.target.value})} />
+                      <label className="block text-sm mb-1" htmlFor="s-ig">Instagram</label>
+                      <input id="s-ig" className="w-full border rounded px-3 py-2 mb-2" value={settings.social_instagram || ''} onChange={(e)=>setSettings({...settings, social_instagram: e.target.value})} />
+                      <label className="block text-sm mb-1" htmlFor="s-tw">Twitter/X</label>
+                      <input id="s-tw" className="w-full border rounded px-3 py-2" value={settings.social_twitter || ''} onChange={(e)=>setSettings({...settings, social_twitter: e.target.value})} />
+                    </div>
+
+                    <div className="bg-gray-50 p-4 rounded">
+                      <h3 className="font-semibold mb-3">SEO</h3>
+                      <label className="block text-sm mb-1" htmlFor="s-seo-title">Title Template</label>
+                      <input id="s-seo-title" className="w-full border rounded px-3 py-2 mb-3" value={settings.seo_title_template || ''} onChange={(e)=>setSettings({...settings, seo_title_template: e.target.value})} />
+                      <label className="block text-sm mb-1" htmlFor="s-seo-desc">Default Description</label>
+                      <textarea id="s-seo-desc" className="w-full border rounded px-3 py-2" rows={3} value={settings.seo_default_description || ''} onChange={(e)=>setSettings({...settings, seo_default_description: e.target.value})}/>
+                    </div>
+
+                    <div className="bg-gray-50 p-4 rounded">
+                      <h3 className="font-semibold mb-3">Theme</h3>
+                      <label className="block text-sm mb-1" htmlFor="s-color-1">Primary Color</label>
+                      <input id="s-color-1" type="color" className="w-16 h-10 p-0 border rounded mb-3" value={settings.theme_primary_color || '#b46e14'} onChange={(e)=>setSettings({...settings, theme_primary_color: e.target.value})} />
+                      <label className="block text-sm mb-1" htmlFor="s-color-2">Secondary Color</label>
+                      <input id="s-color-2" type="color" className="w-16 h-10 p-0 border rounded" value={settings.theme_secondary_color || '#a17a07'} onChange={(e)=>setSettings({...settings, theme_secondary_color: e.target.value})} />
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
