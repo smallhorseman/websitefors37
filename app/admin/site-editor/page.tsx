@@ -48,22 +48,24 @@ export default function SiteEditorPage() {
 
   return (
     <div className="p-6">
-      <div className="flex items-center justify-between mb-4">
+      {/* Sticky header for page select and Save button */}
+      <div className="sticky top-0 z-30 bg-gray-50 pb-2 mb-4 flex items-center justify-between" style={{paddingTop: '1rem'}}>
         <h1 className="text-xl font-semibold">Site Editor</h1>
-        <div className="flex gap-2">
+        <div className="flex gap-2 items-center">
           <label htmlFor="page-slug" className="sr-only">Select page to edit</label>
           <select
             id="page-slug"
             aria-label="Select page to edit"
-            className="border rounded px-3 py-2"
+            className="border rounded px-3 py-2 bg-white shadow focus:ring-2 focus:ring-primary-500"
             value={slug}
             onChange={(e)=>setSlug(e.target.value)}
+            style={{ minWidth: 120 }}
           >
             <option value="home">Home</option>
             <option value="services">Services</option>
             <option value="contact">Contact</option>
           </select>
-          <button onClick={save} disabled={saving} className="btn-primary px-4 py-2 flex items-center gap-2">
+          <button onClick={save} disabled={saving} className="btn-primary px-4 py-2 flex items-center gap-2 shadow">
             {saving ? <Loader2 className="h-4 w-4 animate-spin"/> : <Save className="h-4 w-4"/>}
             Save
           </button>
