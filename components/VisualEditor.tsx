@@ -512,20 +512,116 @@ function SpacerRenderer({ data }: { data: SpacerComponent['data'] }) {
 function ComponentProperties({ component, onUpdate }: { component: PageComponent; onUpdate: (data: any) => void }) {
   switch (component.type) {
     case 'hero':
-      return <HeroProperties data={component.data} onUpdate={onUpdate} />
+      return <HeroProperties data={component.data as HeroComponent['data']} onUpdate={onUpdate} />
     case 'text':
-      return <TextProperties data={component.data} onUpdate={onUpdate} />
+      return <TextProperties data={component.data as TextComponent['data']} onUpdate={onUpdate} />
     case 'image':
-      return <ImageProperties data={component.data} onUpdate={onUpdate} />
+      return <ImageProperties data={component.data as ImageComponent['data']} onUpdate={onUpdate} />
     case 'button':
-      return <ButtonProperties data={component.data} onUpdate={onUpdate} />
+      return <ButtonProperties data={component.data as ButtonComponent['data']} onUpdate={onUpdate} />
     case 'columns':
-      return <ColumnsProperties data={component.data} onUpdate={onUpdate} />
+      return <ColumnsProperties data={component.data as ColumnsComponent['data']} onUpdate={onUpdate} />
     case 'spacer':
-      return <SpacerProperties data={component.data} onUpdate={onUpdate} />
+      return <SpacerProperties data={component.data as SpacerComponent['data']} onUpdate={onUpdate} />
     default:
       return null
   }
+}
+
+// Add missing HeroProperties component
+function HeroProperties({ data, onUpdate }: { data: HeroComponent['data']; onUpdate: (data: any) => void }) {
+  return (
+    <div className="space-y-4">
+      <div>
+        <label className="block text-sm font-medium mb-1">Title</label>
+        <input
+          type="text"
+          value={data.title}
+          onChange={(e) => onUpdate({ title: e.target.value })}
+          className="w-full border rounded px-3 py-2"
+          title="Hero title"
+          placeholder="Enter hero title"
+        />
+      </div>
+      <div>
+        <label className="block text-sm font-medium mb-1">Subtitle</label>
+        <input
+          type="text"
+          value={data.subtitle}
+          onChange={(e) => onUpdate({ subtitle: e.target.value })}
+          className="w-full border rounded px-3 py-2"
+          title="Hero subtitle"
+          placeholder="Enter hero subtitle"
+        />
+      </div>
+      <div>
+        <label className="block text-sm font-medium mb-1">Background Image URL</label>
+        <input
+          type="text"
+          value={data.backgroundImage}
+          onChange={(e) => onUpdate({ backgroundImage: e.target.value })}
+          className="w-full border rounded px-3 py-2 mb-2"
+          title="Background image URL"
+          placeholder="Paste image URL here"
+        />
+        <div className="mt-2 mb-2 text-xs text-gray-500">or upload:</div>
+        <ImageUploader onImageUrl={(url) => onUpdate({ backgroundImage: url })} />
+        {data.backgroundImage && (
+          <div className="mt-2 relative aspect-video">
+            <Image src={data.backgroundImage} alt="" fill className="object-cover rounded" />
+          </div>
+        )}
+      </div>
+      <div>
+        <label className="block text-sm font-medium mb-1">Button Text</label>
+        <input
+          type="text"
+          value={data.buttonText}
+          onChange={(e) => onUpdate({ buttonText: e.target.value })}
+          className="w-full border rounded px-3 py-2"
+          title="Button text"
+          placeholder="Enter button text"
+        />
+      </div>
+      <div>
+        <label className="block text-sm font-medium mb-1">Button Link</label>
+        <input
+          type="text"
+          value={data.buttonLink}
+          onChange={(e) => onUpdate({ buttonLink: e.target.value })}
+          className="w-full border rounded px-3 py-2"
+          title="Button link"
+          placeholder="Enter button link"
+        />
+      </div>
+      <div>
+        <label className="block text-sm font-medium mb-1">Alignment</label>
+        <select
+          value={data.alignment}
+          onChange={(e) => onUpdate({ alignment: e.target.value })}
+          className="w-full border rounded px-3 py-2"
+          title="Hero alignment"
+        >
+          <option value="left">Left</option>
+          <option value="center">Center</option>
+          <option value="right">Right</option>
+        </select>
+      </div>
+      <div>
+        <label className="block text-sm font-medium mb-1">Overlay Darkness (%)</label>
+        <input
+          type="range"
+          min="0"
+          max="100"
+          value={data.overlay}
+          onChange={(e) => onUpdate({ overlay: parseInt(e.target.value) })}
+          className="w-full"
+          title="Overlay darkness percentage"
+          aria-label="Overlay darkness percentage"
+        />
+      </div>
+    </div>
+  )
 }
 
 // Add missing TextProperties component
@@ -611,107 +707,8 @@ function ImageProperties({ data, onUpdate }: { data: ImageComponent['data']; onU
           title="Image caption"
           placeholder="Enter caption"
         />
-      </div>
-      <div>
-        <label className="block text-sm font-medium mb-1">Width</label>
-        <select
-          value={data.width}
-          onChange={(e) => onUpdate({ width: e.target.value })}
-          className="w-full border rounded px-3 py-2"
-          title="Image width"
-        >
-          <option value="small">Small</option>
-          <option value="medium">Medium</option>
-          <option value="large">Large</option>
-          <option value="full">Full Width</option>
-        </select>
-      </div>
-    </div>
-  )
-}
-
-function HeroProperties({ data, onUpdate }: { data: HeroComponent['data']; onUpdate: (data: any) => void }) {
-  return (
-    <div className="space-y-4">
-      <div>
-        <label className="block text-sm font-medium mb-1">Title</label>
-        <input
-          type="text"
-          value={data.title}
-          onChange={(e) => onUpdate({ title: e.target.value })}
-          className="w-full border rounded px-3 py-2"
-          title="Hero title"
-          placeholder="Enter hero title"
-        />
-      </div>
-      <div>
-        <label className="block text-sm font-medium mb-1">Subtitle</label>
-        <textarea
-          value={data.subtitle}
-          onChange={(e) => onUpdate({ subtitle: e.target.value })}
-          className="w-full border rounded px-3 py-2"
-          rows={3}
-          title="Hero subtitle"
-          placeholder="Enter hero subtitle"
-        />
-      </div>
-      <div>
-        <label className="block text-sm font-medium mb-1">Background Image</label>
-        <ImageUploader onImageUrl={(url) => onUpdate({ backgroundImage: url })} />
-        {data.backgroundImage && (
-          <div className="mt-2 relative aspect-video">
-            <Image src={data.backgroundImage} alt="" fill className="object-cover rounded" />
-          </div>
-        )}
-      </div>
-      <div>
-        <label className="block text-sm font-medium mb-1">Overlay Darkness (%)</label>
-        <input
-          type="range"
-          min="0"
-          max="100"
-          value={data.overlay}
-          onChange={(e) => onUpdate({ overlay: parseInt(e.target.value) })}
-          className="w-full"
-          title="Overlay darkness percentage"
-          aria-label="Overlay darkness percentage"
-        />
-        <span className="text-sm text-gray-600">{data.overlay}%</span>
-      </div>
-      <div>
-        <label className="block text-sm font-medium mb-1">Button Text</label>
-        <input
-          type="text"
-          value={data.buttonText}
-          onChange={(e) => onUpdate({ buttonText: e.target.value })}
-          className="w-full border rounded px-3 py-2"
-          title="Button text"
-          placeholder="Enter button text"
-        />
-      </div>
-      <div>
-        <label className="block text-sm font-medium mb-1">Button Link</label>
-        <input
-          type="text"
-          value={data.buttonLink}
-          onChange={(e) => onUpdate({ buttonLink: e.target.value })}
-          className="w-full border rounded px-3 py-2"
-          title="Button link"
-          placeholder="Enter button link"
-        />
-      </div>
-      <div>
-        <label className="block text-sm font-medium mb-1">Alignment</label>
-        <select
-          value={data.alignment}
-          onChange={(e) => onUpdate({ alignment: e.target.value })}
-          className="w-full border rounded px-3 py-2"
-          title="Hero alignment"
-        >
-          <option value="left">Left</option>
-          <option value="center">Center</option>
-          <option value="right">Right</option>
-        </select>
+        <div className="mt-2 mb-2 text-xs text-gray-500">or upload:</div>
+        <ImageUploader onImageUrl={(url) => onUpdate({ url })} />
       </div>
     </div>
   )
