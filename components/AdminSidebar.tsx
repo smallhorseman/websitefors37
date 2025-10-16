@@ -62,6 +62,11 @@ export default function AdminSidebar() {
       path: '/admin/site-editor',
       icon: <Settings className="w-5 h-5" />
     },
+    {
+      name: 'Page Builder',
+      path: '/admin/page-builder',
+      icon: <Camera className="w-5 h-5" />
+    },
     { 
       name: 'Gallery', 
       path: '/admin/gallery', 

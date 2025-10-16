@@ -1,0 +1,3 @@
+.ve-hero-overlay[data-overlay] {
+  opacity: calc(var(--overlay, 50) / 100);
+}
