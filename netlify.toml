@@ -9,4 +9,10 @@
 [[plugins]]
   package = "@netlify/plugin-nextjs"
 
+# Serve .well-known files for domain verification
+[[headers]]
+  for = "/.well-known/*"
+  [headers.values]
+    Content-Type = "text/plain"
+
 
