@@ -1,8 +1,8 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { 
   LayoutDashboard, 
   Users, 
@@ -14,22 +14,59 @@ import {
   ChevronDown,
   Menu,
   X,
-  Camera
+  Camera,
+  LogOut,
+  User,
+  Shield
 } from 'lucide-react'
+import { supabase } from '@/lib/supabase'
 
 export default function AdminSidebar() {
   const pathname = usePathname()
+  const router = useRouter()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [expandedMenus, setExpandedMenus] = useState<Record<string, boolean>>({
     content: false,
     gallery: false
   })
+  const [user, setUser] = useState<any>(null)
+  const [profile, setProfile] = useState<any>(null)
+
+  useEffect(() => {
+    // Get current user
+    const getUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session?.user) {
+        setUser(session.user)
+        
+        // Get user profile
+        const { data: profileData } = await supabase
+          .from('user_profiles')
+          .select('*')
+          .eq('id', session.user.id)
+          .single()
+        
+        setProfile(profileData)
+      }
+    }
+    
+    getUser()
+  }, [])
   
   const toggleMenu = (menu: string) => {
     setExpandedMenus(prev => ({
       ...prev,
       [menu]: !prev[menu]
     }))
+  }
+
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut()
+      router.push('/admin/login')
+    } catch (error) {
+      console.error('Error logging out:', error)
+    }
   }
   
   const isActive = (path: string) => {
@@ -39,7 +76,7 @@ export default function AdminSidebar() {
   const menuItems = [
     { 
       name: 'Dashboard', 
-      path: '/admin', 
+      path: '/admin/dashboard', 
       icon: <LayoutDashboard className="w-5 h-5" />,
       exact: true
     },
@@ -178,14 +215,47 @@ export default function AdminSidebar() {
             </nav>
           </div>
           
-          <div className="p-4 border-t">
-            <Link 
-              href="/"
-              target="_blank"
-              className="flex items-center text-sm text-gray-600 hover:text-primary-600"
-            >
-              <span>Visit Website</span>
-            </Link>
+          {/* User Section */}
+          <div className="p-4 border-t bg-gray-50">
+            {profile && (
+              <div className="mb-4">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
+                    <User className="h-4 w-4 text-white" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-900 truncate">
+                      {profile.name}
+                    </p>
+                    <div className="flex items-center gap-1">
+                      <Shield className="h-3 w-3 text-green-600" />
+                      <p className="text-xs text-gray-500 capitalize">
+                        {profile.role}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="space-y-1">
+                  <Link 
+                    href="/"
+                    target="_blank"
+                    className="flex items-center gap-2 text-sm text-gray-600 hover:text-primary-600 p-2 rounded-lg hover:bg-white transition-colors"
+                  >
+                    <Camera className="h-4 w-4" />
+                    <span>Visit Website</span>
+                  </Link>
+                  
+                  <button
+                    onClick={handleLogout}
+                    className="flex items-center gap-2 w-full text-sm text-red-600 hover:text-red-700 p-2 rounded-lg hover:bg-red-50 transition-colors"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    <span>Sign Out</span>
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </aside>

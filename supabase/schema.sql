@@ -1,3 +1,14 @@
+-- Create user_profiles table for admin authentication
+CREATE TABLE IF NOT EXISTS user_profiles (
+  id UUID REFERENCES auth.users(id) PRIMARY KEY,
+  name TEXT NOT NULL,
+  email TEXT NOT NULL,
+  role VARCHAR(20) DEFAULT 'user' CHECK (role IN ('user', 'admin', 'owner')),
+  avatar_url TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
 -- Create leads table for CRM
 CREATE TABLE IF NOT EXISTS leads (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
@@ -8,8 +19,13 @@ CREATE TABLE IF NOT EXISTS leads (
   service_interest VARCHAR(100),
   budget_range VARCHAR(100),
   event_date DATE,
-  status VARCHAR(50) DEFAULT 'new' CHECK (status IN ('new', 'contacted', 'qualified', 'converted')),
+  status VARCHAR(50) DEFAULT 'new' CHECK (status IN ('new', 'contacted', 'qualified', 'converted', 'closed-won', 'closed-lost')),
+  priority VARCHAR(20) DEFAULT 'medium' CHECK (priority IN ('low', 'medium', 'high', 'urgent')),
+  source VARCHAR(50) DEFAULT 'website',
+  assigned_to UUID REFERENCES user_profiles(id),
+  expected_value DECIMAL(10,2),
   notes TEXT,
+  tags TEXT[], -- Array of tags for better organization
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );

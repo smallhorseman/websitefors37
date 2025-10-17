@@ -7,7 +7,8 @@ import Navigation from '@/components/Navigation'
 import AdminSidebar from '@/components/AdminSidebar'
 
 export const metadata: Metadata = {
-  title: 'Admin Panel | Studio 37',
+  title: 'Admin Panel | Studio37 Photography',
+  description: 'Secure admin dashboard for Studio37 Photography business management',
 }
 
 export default async function AdminLayout({
@@ -15,10 +16,27 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode
 }) {
-  // Optional: Add authentication check
   const supabase = createServerComponentClient({ cookies })
   
-  // You can add authentication check here if needed
+  // Check authentication
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
+
+  if (!session) {
+    redirect('/admin/login')
+  }
+
+  // Check user role and permissions
+  const { data: profile } = await supabase
+    .from('user_profiles')
+    .select('role, name')
+    .eq('id', session.user.id)
+    .single()
+
+  if (!profile || (profile.role !== 'admin' && profile.role !== 'owner')) {
+    redirect('/admin/login?error=unauthorized')
+  }
   
   return (
     <div className="bg-gray-50 min-h-screen">

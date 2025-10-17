@@ -1,0 +1,46 @@
+.progressBar {
+  width: 100%;
+  background-color: #e5e7eb;
+  border-radius: 9999px;
+  height: 8px;
+}
+
+.progressFill {
+  background-color: #10b981;
+  height: 8px;
+  border-radius: 9999px;
+  transition: width 0.5s ease-in-out;
+}
+
+.dashboardCard {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e7eb;
+}
+
+.quickActionButton {
+  width: 100%;
+  text-align: left;
+  padding: 1rem;
+  border-radius: 8px;
+  border: 2px dashed #e5e7eb;
+  transition: all 0.2s ease;
+  background: transparent;
+  cursor: pointer;
+}
+
+.quickActionButton:hover {
+  border-color: #93c5fd;
+  background-color: #eff6ff;
+}
+
+.quickActionButton.green:hover {
+  border-color: #86efac;
+  background-color: #f0fdf4;
+}
+
+.quickActionButton.purple:hover {
+  border-color: #c4b5fd;
+  background-color: #faf5ff;
+}
