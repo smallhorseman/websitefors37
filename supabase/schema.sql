@@ -1,3 +1,6 @@
+-- Supabase PostgreSQL Schema for Studio37 Photography
+-- This file contains all database tables and configurations
+
 -- Create user_profiles table for admin authentication
 CREATE TABLE IF NOT EXISTS user_profiles (
   id UUID REFERENCES auth.users(id) PRIMARY KEY,
