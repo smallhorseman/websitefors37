@@ -212,8 +212,19 @@ export default function BookSessionPage() {
   }
 
   return (
-    <div className="pt-16 min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-12 max-w-5xl">
+    <div className="pt-16 min-h-screen relative">
+      {/* Background Image */}
+      <div className="absolute inset-0 -z-10">
+        <Image
+          src="https://images.unsplash.com/photo-1423666639041-f56000c27a9a"
+          alt="Book a session background"
+          fill
+          className="object-cover"
+          priority
+        />
+        <div className="absolute inset-0 bg-black bg-opacity-40" />
+      </div>
+      <div className="container mx-auto px-4 py-12 max-w-5xl relative">
         <h1 className="text-4xl font-bold mb-2">Book a Session</h1>
         <p className="text-gray-600 mb-8">Choose a consultation or one of our packages and pick a time that works for you.</p>
 

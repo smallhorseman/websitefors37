@@ -29,7 +29,18 @@ export default async function ContactPage() {
   const settings = await getSettings()
   
   return (
-    <div className="pt-16">
+    <div className="pt-16 relative min-h-screen">
+      {/* Background Image */}
+      <div className="absolute inset-0 -z-10">
+        <Image
+          src="https://images.unsplash.com/photo-1423666639041-f56000c27a9a"
+          alt="Contact background"
+          fill
+          className="object-cover"
+          priority
+        />
+        <div className="absolute inset-0 bg-black bg-opacity-40" />
+      </div>
       {/* Hero Section */}
       <div className="relative bg-gradient-to-r from-gray-900 to-gray-800 text-white">
         <div className="absolute inset-0 opacity-30">
