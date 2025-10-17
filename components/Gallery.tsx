@@ -15,7 +15,7 @@ const galleryImages = [
     id: 2,
     category: 'portrait',
     title: 'Professional Headshot',
-    src: 'https://images.unsplash.com/photo-1494790108755-2616b612b5a5?w=800&h=600&fit=crop',
+    src: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1756077326/54694193043_f9ae5338ca_k_p7pjaz.jpg',
   },
   {
     id: 3,
