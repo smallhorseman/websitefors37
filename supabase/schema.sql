@@ -68,6 +68,28 @@ CREATE TABLE IF NOT EXISTS communication_logs (
   created_by VARCHAR(255) DEFAULT 'admin'
 );
 
+-- Create bookings table for tracking photo sessions
+CREATE TABLE IF NOT EXISTS bookings (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  lead_id UUID REFERENCES leads(id) ON DELETE SET NULL,
+  client_name VARCHAR(255) NOT NULL,
+  client_email VARCHAR(255) NOT NULL,
+  client_phone VARCHAR(50),
+  session_type VARCHAR(100) NOT NULL,
+  session_date DATE NOT NULL,
+  session_time TIME,
+  location TEXT,
+  duration_hours INTEGER DEFAULT 2,
+  package_type VARCHAR(100),
+  total_amount DECIMAL(10,2),
+  deposit_amount DECIMAL(10,2),
+  deposit_paid BOOLEAN DEFAULT false,
+  status VARCHAR(50) DEFAULT 'confirmed' CHECK (status IN ('pending', 'confirmed', 'completed', 'cancelled', 'rescheduled')),
+  notes TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
 -- Create blog_posts table for SEO
 CREATE TABLE IF NOT EXISTS blog_posts (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
@@ -113,6 +135,7 @@ ALTER TABLE leads ENABLE ROW LEVEL SECURITY;
 ALTER TABLE content_pages ENABLE ROW LEVEL SECURITY;
 ALTER TABLE gallery_images ENABLE ROW LEVEL SECURITY;
 ALTER TABLE communication_logs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE bookings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE blog_posts ENABLE ROW LEVEL SECURITY;
 
 -- Create policies for public access (adjust as needed for production)
@@ -129,6 +152,11 @@ CREATE POLICY "Enable all operations for all users" ON leads
 -- Create policy for communication logs
 CREATE POLICY "Enable all operations for communication logs" ON communication_logs
   FOR ALL USING (true);
+
+-- Create policy for bookings
+CREATE POLICY "Enable all operations for bookings" ON bookings
+  FOR ALL USING (true);
+CREATE POLICY "Public can insert bookings" ON bookings FOR INSERT WITH CHECK (true);
 
 -- Create settings table for site configuration
 CREATE TABLE IF NOT EXISTS settings (
@@ -164,6 +192,22 @@ ON CONFLICT (slug) DO NOTHING;
 INSERT INTO gallery_images (title, image_url, category, featured) VALUES
 ('Wedding Portrait', 'https://images.unsplash.com/photo-1606216794074-735e91aa2c92', 'wedding', true),
 ('Professional Headshot', 'https://images.unsplash.com/photo-1494790108755-2616b612b5a5', 'portrait', true)
+ON CONFLICT DO NOTHING;
+
+-- Insert sample leads data
+INSERT INTO leads (name, email, phone, service_interest, budget_range, status, expected_value, source) VALUES
+('John Smith', 'john@example.com', '555-0101', 'Wedding Photography', '$5000-$8000', 'new', 6500.00, 'website'),
+('Sarah Johnson', 'sarah@example.com', '555-0102', 'Portrait Session', '$500-$1000', 'contacted', 750.00, 'referral'),
+('Mike Wilson', 'mike@example.com', '555-0103', 'Event Photography', '$2000-$3000', 'qualified', 2500.00, 'social_media'),
+('Emily Davis', 'emily@example.com', '555-0104', 'Commercial Photography', '$3000-$5000', 'converted', 4000.00, 'website'),
+('David Brown', 'david@example.com', '555-0105', 'Wedding Photography', '$8000-$10000', 'closed-won', 9000.00, 'referral')
+ON CONFLICT DO NOTHING;
+
+-- Insert sample bookings data
+INSERT INTO bookings (client_name, client_email, client_phone, session_type, session_date, package_type, total_amount, deposit_amount, deposit_paid, status) VALUES
+('Emily Davis', 'emily@example.com', '555-0104', 'Commercial Photography', '2024-11-15', 'Premium Package', 4000.00, 1000.00, true, 'confirmed'),
+('David Brown', 'david@example.com', '555-0105', 'Wedding Photography', '2024-12-05', 'Platinum Wedding Package', 9000.00, 2500.00, true, 'confirmed'),
+('Lisa Chen', 'lisa@example.com', '555-0106', 'Portrait Session', '2024-10-25', 'Standard Portrait', 800.00, 200.00, true, 'completed')
 ON CONFLICT DO NOTHING;
 
 INSERT INTO blog_posts (title, slug, excerpt, content, featured_image, tags, published, published_at)

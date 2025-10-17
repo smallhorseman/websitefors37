@@ -3,11 +3,13 @@
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useDashboardData } from '@/hooks/useDashboardData'
 
 export default function AdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [loading, setLoading] = useState(true)
   const router = useRouter()
+  const { stats, loading: statsLoading, error } = useDashboardData()
 
   useEffect(() => {
     // Check if user is authenticated
@@ -24,6 +26,13 @@ export default function AdminPage() {
     localStorage.removeItem('admin_authenticated')
     localStorage.removeItem('admin_user')
     router.push('/login')
+  }
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD'
+    }).format(amount)
   }
 
   if (loading) {
@@ -56,6 +65,13 @@ export default function AdminPage() {
 
       <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
+          {/* Error Message */}
+          {error && (
+            <div className="mb-6 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+              Error loading dashboard data: {error}
+            </div>
+          )}
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             
             {/* Quick Stats */}
@@ -70,7 +86,13 @@ export default function AdminPage() {
                   <div className="ml-5 w-0 flex-1">
                     <dl>
                       <dt className="text-sm font-medium text-gray-500 truncate">Total Leads</dt>
-                      <dd className="text-lg font-medium text-gray-900">24</dd>
+                      <dd className="text-lg font-medium text-gray-900">
+                        {statsLoading ? (
+                          <div className="animate-pulse bg-gray-200 h-6 w-8 rounded"></div>
+                        ) : (
+                          stats?.totalLeads || 0
+                        )}
+                      </dd>
                     </dl>
                   </div>
                 </div>
@@ -87,8 +109,14 @@ export default function AdminPage() {
                   </div>
                   <div className="ml-5 w-0 flex-1">
                     <dl>
-                      <dt className="text-sm font-medium text-gray-500 truncate">Revenue</dt>
-                      <dd className="text-lg font-medium text-gray-900">$12,500</dd>
+                      <dt className="text-sm font-medium text-gray-500 truncate">Total Revenue</dt>
+                      <dd className="text-lg font-medium text-gray-900">
+                        {statsLoading ? (
+                          <div className="animate-pulse bg-gray-200 h-6 w-20 rounded"></div>
+                        ) : (
+                          formatCurrency(stats?.totalRevenue || 0)
+                        )}
+                      </dd>
                     </dl>
                   </div>
                 </div>
@@ -105,8 +133,14 @@ export default function AdminPage() {
                   </div>
                   <div className="ml-5 w-0 flex-1">
                     <dl>
-                      <dt className="text-sm font-medium text-gray-500 truncate">Bookings</dt>
-                      <dd className="text-lg font-medium text-gray-900">8</dd>
+                      <dt className="text-sm font-medium text-gray-500 truncate">Total Bookings</dt>
+                      <dd className="text-lg font-medium text-gray-900">
+                        {statsLoading ? (
+                          <div className="animate-pulse bg-gray-200 h-6 w-8 rounded"></div>
+                        ) : (
+                          stats?.totalBookings || 0
+                        )}
+                      </dd>
                     </dl>
                   </div>
                 </div>
@@ -211,6 +245,94 @@ export default function AdminPage() {
             </Link>
 
           </div>
+
+          {/* Recent Activity Section */}
+          <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Recent Leads */}
+            <div className="bg-white shadow rounded-lg">
+              <div className="px-6 py-4 border-b border-gray-200">
+                <h3 className="text-lg font-medium text-gray-900">Recent Leads</h3>
+              </div>
+              <div className="p-6">
+                {statsLoading ? (
+                  <div className="space-y-3">
+                    {[1, 2, 3].map((i) => (
+                      <div key={i} className="animate-pulse">
+                        <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                        <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                      </div>
+                    ))}
+                  </div>
+                ) : stats?.recentLeads && stats.recentLeads.length > 0 ? (
+                  <div className="space-y-4">
+                    {stats.recentLeads.map((lead) => (
+                      <div key={lead.id} className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-gray-900">{lead.name}</p>
+                          <p className="text-sm text-gray-500">{lead.service_interest}</p>
+                        </div>
+                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                          lead.status === 'new' ? 'bg-blue-100 text-blue-800' :
+                          lead.status === 'contacted' ? 'bg-yellow-100 text-yellow-800' :
+                          lead.status === 'qualified' ? 'bg-purple-100 text-purple-800' :
+                          lead.status === 'converted' ? 'bg-green-100 text-green-800' :
+                          'bg-gray-100 text-gray-800'
+                        }`}>
+                          {lead.status}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-gray-500 text-sm">No recent leads</p>
+                )}
+              </div>
+            </div>
+
+            {/* Recent Bookings */}
+            <div className="bg-white shadow rounded-lg">
+              <div className="px-6 py-4 border-b border-gray-200">
+                <h3 className="text-lg font-medium text-gray-900">Recent Bookings</h3>
+              </div>
+              <div className="p-6">
+                {statsLoading ? (
+                  <div className="space-y-3">
+                    {[1, 2, 3].map((i) => (
+                      <div key={i} className="animate-pulse">
+                        <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                        <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                      </div>
+                    ))}
+                  </div>
+                ) : stats?.recentBookings && stats.recentBookings.length > 0 ? (
+                  <div className="space-y-4">
+                    {stats.recentBookings.map((booking) => (
+                      <div key={booking.id} className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-gray-900">{booking.client_name}</p>
+                          <p className="text-sm text-gray-500">{booking.session_type} - {booking.session_date}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm font-medium text-gray-900">{formatCurrency(booking.total_amount)}</p>
+                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                            booking.status === 'confirmed' ? 'bg-green-100 text-green-800' :
+                            booking.status === 'completed' ? 'bg-blue-100 text-blue-800' :
+                            booking.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                            'bg-gray-100 text-gray-800'
+                          }`}>
+                            {booking.status}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-gray-500 text-sm">No recent bookings</p>
+                )}
+              </div>
+            </div>
+          </div>
+
         </div>
       </div>
     </div>
