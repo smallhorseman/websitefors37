@@ -2,58 +2,71 @@ import { createClient } from '@supabase/supabase-js'
 import { MetadataRoute } from 'next'
 import { businessInfo } from '@/lib/seo-config'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co'
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-key'
 const baseUrl = businessInfo.contact.website
+
+// Priority levels for different content types
+const PRIORITIES = {
+  homepage: 1.0,
+  mainPages: 0.9,
+  servicePages: 0.8,
+  contentPages: 0.7,
+  blogPosts: 0.6,
+} as const
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const supabase = createClient(supabaseUrl, supabaseKey)
+  const currentDate = new Date()
   
-  // Static routes - Main pages for local SEO
-  const routes = [
+  // Static routes - Main pages optimized for local SEO and user journey
+  const routes: MetadataRoute.Sitemap = [
+    // Homepage - Highest priority
     {
       url: baseUrl,
-      lastModified: new Date(),
-      changeFrequency: 'weekly' as const,
-      priority: 1.0,
+      lastModified: currentDate,
+      changeFrequency: 'weekly',
+      priority: PRIORITIES.homepage,
     },
+    // Main service pages - High priority for conversions
     {
       url: `${baseUrl}/services`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly' as const,
-      priority: 0.9,
-    },
-    {
-      url: `${baseUrl}/gallery`,
-      lastModified: new Date(),
-      changeFrequency: 'weekly' as const,
-      priority: 0.9,
-    },
-    {
-      url: `${baseUrl}/about`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly' as const,
-      priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/contact`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly' as const,
-      priority: 0.9,
-    },
-    {
-      url: `${baseUrl}/blog`,
-      lastModified: new Date(),
-      changeFrequency: 'weekly' as const,
-      priority: 0.8,
+      lastModified: currentDate,
+      changeFrequency: 'monthly',
+      priority: PRIORITIES.mainPages,
     },
     {
       url: `${baseUrl}/book-a-session`,
-      lastModified: new Date(),
-      changeFrequency: 'weekly' as const,
-      priority: 0.9,
+      lastModified: currentDate,
+      changeFrequency: 'weekly',
+      priority: PRIORITIES.mainPages,
     },
-  ] as MetadataRoute.Sitemap
+    {
+      url: `${baseUrl}/contact`,
+      lastModified: currentDate,
+      changeFrequency: 'monthly',
+      priority: PRIORITIES.mainPages,
+    },
+    // Portfolio and content pages
+    {
+      url: `${baseUrl}/gallery`,
+      lastModified: currentDate,
+      changeFrequency: 'weekly',
+      priority: PRIORITIES.servicePages,
+    },
+    {
+      url: `${baseUrl}/about`,
+      lastModified: currentDate,
+      changeFrequency: 'monthly',
+      priority: PRIORITIES.servicePages,
+    },
+    {
+      url: `${baseUrl}/blog`,
+      lastModified: currentDate,
+      changeFrequency: 'weekly',
+      priority: PRIORITIES.servicePages,
+    },
+  ]
   
   // Add all published content pages
   try {
