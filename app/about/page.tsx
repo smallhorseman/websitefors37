@@ -2,6 +2,7 @@ import React from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { generateSEOMetadata } from '@/lib/seo-helpers'
+import BTSFeed from '@/components/BTSFeed'
 
 export const metadata = generateSEOMetadata({
   title: 'About Studio37 - Christian & Caitie Photography Team in Pinehurst, TX',
@@ -164,118 +165,8 @@ export default function AboutPage() {
               </div>
 
               <div className="relative">
-                {/* Behind the Scenes Social Feed */}
-                <div className="space-y-6">
-                  {/* BTS Post 1 */}
-                  <div className="bg-white rounded-lg shadow-lg p-6 border border-gray-200">
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="w-12 h-12 rounded-full overflow-hidden">
-                        <img
-                          src="https://res.cloudinary.com/dmjxho2rl/image/upload/v1758315615/_MG_9234_aerdni_e_gen_restore_e_improve_l_image_upload_My_Brand_IMG_2115_mtuowt_c_scale_fl_relative_w_0.36_o_80_fl_layer_apply_g_west_x_0.03_y_0.04_bmly4s.jpg"
-                          alt="Christian"
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                      <div>
-                        <p className="font-semibold text-gray-900">@studio37photography</p>
-                        <p className="text-sm text-gray-500">2 hours ago</p>
-                      </div>
-                    </div>
-                    <p className="text-gray-800 mb-4">
-                      🎬 Behind the scenes of today's portrait session! The magic happens when natural light meets genuine emotion. 
-                      Every shot tells a story. #BehindTheScenes #PortraitPhotography #PinehurstTX
-                    </p>
-                    <img
-                      src="https://res.cloudinary.com/dmjxho2rl/image/upload/v1760503070/F836BA20-9A10-4D23-81E3-9CB8999E1368_1_105_c_ji0ngc_e_gen_restore_e_improve_e_sharpen_l_image_upload_My_Brand_IMG_2115_mtuowt_c_scale_fl_relative_w_0.36_o_80_fl_layer_apply_g_west_x_0.03_y_0.04_gxtw8e.jpg"
-                      alt="Behind the scenes at Studio37 portrait session"
-                      className="rounded-lg w-full h-auto"
-                    />
-                    <div className="flex items-center gap-4 mt-4 text-gray-500 text-sm">
-                      <span className="flex items-center gap-1">
-                        <span>❤️</span> 47 likes
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <span>💬</span> 12 comments
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <span>🔄</span> 8 shares
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* BTS Post 2 */}
-                  <div className="bg-white rounded-lg shadow-lg p-6 border border-gray-200">
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="w-12 h-12 rounded-full overflow-hidden">
-                        <img
-                          src="https://res.cloudinary.com/dmjxho2rl/image/upload/v1758315656/IMG_6580_axayxe_e_gen_restore_e_improve_e_sharpen_l_image_upload_My_Brand_IMG_2115_mtuowt_c_scale_fl_relative_w_0.36_o_80_fl_layer_apply_g_west_x_0.03_y_0.04_nkjfev.jpg"
-                          alt="Caitie"
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                      <div>
-                        <p className="font-semibold text-gray-900">@studio37photography</p>
-                        <p className="text-sm text-gray-500">1 day ago</p>
-                      </div>
-                    </div>
-                    <p className="text-gray-800 mb-4">
-                      ✨ Editing session in progress! There's something deeply satisfying about bringing out the perfect tones and emotions in each image. 
-                      This is where the real magic happens in post-production. #PhotoEditing #StudioLife #CreativeProcess
-                    </p>
-                    <div className="grid grid-cols-2 gap-2">
-                      <img
-                        src="https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=300&h=200&fit=crop"
-                        alt="Photo editing workspace"
-                        className="rounded-lg w-full h-auto"
-                      />
-                      <img
-                        src="https://images.unsplash.com/photo-1551845128-58b5e2bf4b23?w=300&h=200&fit=crop"
-                        alt="Studio lighting setup"
-                        className="rounded-lg w-full h-auto"
-                      />
-                    </div>
-                    <div className="flex items-center gap-4 mt-4 text-gray-500 text-sm">
-                      <span className="flex items-center gap-1">
-                        <span>❤️</span> 62 likes
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <span>💬</span> 18 comments
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <span>🔄</span> 15 shares
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Studio Update Post */}
-                  <div className="bg-white rounded-lg shadow-lg p-6 border border-gray-200">
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="w-12 h-12 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 flex items-center justify-center text-white font-bold">
-                        S37
-                      </div>
-                      <div>
-                        <p className="font-semibold text-gray-900">@studio37photography</p>
-                        <p className="text-sm text-gray-500">3 days ago</p>
-                      </div>
-                    </div>
-                    <p className="text-gray-800 mb-4">
-                      📸 New equipment day! Just upgraded our lighting setup for even better portrait sessions. 
-                      Can't wait to create some stunning images with this new gear! Montgomery County clients, you're in for a treat! 
-                      #NewGear #PhotographyEquipment #UpgradeComplete #Studio37
-                    </p>
-                    <div className="flex items-center gap-4 mt-4 text-gray-500 text-sm">
-                      <span className="flex items-center gap-1">
-                        <span>❤️</span> 89 likes
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <span>💬</span> 25 comments
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <span>🔄</span> 22 shares
-                      </span>
-                    </div>
-                  </div>
-                </div>
+                {/* Dynamic BTS Feed Component */}
+                <BTSFeed />
               </div>
             </div>
           </div>
