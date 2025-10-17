@@ -4,6 +4,8 @@ import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
 import Image from 'next/image'
 import LeadCaptureForm from '@/components/LeadCaptureForm'
+import { generateSEOMetadata } from '@/lib/seo-helpers'
+import { businessInfo } from '@/lib/seo-config'
 
 // Use server component to fetch settings
 async function getSettings() {
@@ -20,10 +22,21 @@ async function getSettings() {
   }
 }
 
-export const metadata = {
-  title: 'Contact Us | Studio 37 Photography',
-  description: 'Get in touch with Studio 37 Photography for inquiries, bookings, and consultations. We look forward to capturing your special moments.',
-}
+export const metadata = generateSEOMetadata({
+  title: 'Contact Studio37 - Professional Photography in Pinehurst, TX',
+  description: `Contact Studio37 for professional photography services in Pinehurst, Texas. Located at ${businessInfo.address.fullAddress}. Call ${businessInfo.contact.phone} or email ${businessInfo.contact.email} for bookings and consultations.`,
+  keywords: [
+    'contact Studio37',
+    'photography booking Pinehurst TX',
+    'photographer contact Texas',
+    'photography consultation',
+    'Pinehurst photography studio contact',
+    'photography inquiry Texas',
+    'book photographer Montgomery County'
+  ],
+  canonicalUrl: 'https://studio37.cc/contact',
+  pageType: 'contact'
+})
 
 export default async function ContactPage() {
   const settings = await getSettings()
@@ -63,9 +76,9 @@ export default async function ContactPage() {
                     <Mail className="h-6 w-6 text-primary-600" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold mb-1">Email</h3>
-                    <a href={`mailto:${settings.contact_email}`} className="text-primary-600 hover:underline">
-                      {settings.contact_email}
+                    <h3 className="text-lg font-semibold mb-1 text-white">Email</h3>
+                    <a href={`mailto:${businessInfo.contact.email}`} className="text-primary-400 hover:text-primary-300 underline">
+                      {businessInfo.contact.email}
                     </a>
                     <p className="text-gray-200 mt-1">
                       We respond to all inquiries within 24 hours during business days.
@@ -73,39 +86,38 @@ export default async function ContactPage() {
                   </div>
                 </div>
                 {/* Phone */}
-                {settings.contact_phone ? (
-                  <div className="flex items-start gap-4">
-                    <div className="flex-shrink-0 w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center">
-                      <Phone className="h-6 w-6 text-primary-600" />
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-semibold mb-1">Phone</h3>
-                      <a href={`tel:${settings.contact_phone}`} className="text-primary-600 hover:underline">
-                        {settings.contact_phone}
-                      </a>
-                      <p className="text-gray-200 mt-1">
-                        Available Monday-Friday, 9AM-6PM
-                      </p>
-                    </div>
+                <div className="flex items-start gap-4">
+                  <div className="flex-shrink-0 w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center">
+                    <Phone className="h-6 w-6 text-primary-600" />
                   </div>
-                ) : null}
+                  <div>
+                    <h3 className="text-lg font-semibold mb-1 text-white">Phone</h3>
+                    <a href={`tel:${businessInfo.contact.phone}`} className="text-primary-400 hover:text-primary-300 underline">
+                      {businessInfo.contact.phone}
+                    </a>
+                    <p className="text-gray-200 mt-1">
+                      Available Monday-Friday, 9AM-6PM CST
+                    </p>
+                  </div>
+                </div>
                 {/* Address */}
-                {settings.business_address ? (
-                  <div className="flex items-start gap-4">
-                    <div className="flex-shrink-0 w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center">
-                      <MapPin className="h-6 w-6 text-primary-600" />
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-semibold mb-1">Studio Location</h3>
-                      <p className="text-gray-200">
-                        {settings.business_address}
-                      </p>
-                      <p className="text-gray-200 mt-1">
-                        Studio visits by appointment only
-                      </p>
-                    </div>
+                <div className="flex items-start gap-4">
+                  <div className="flex-shrink-0 w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center">
+                    <MapPin className="h-6 w-6 text-primary-600" />
                   </div>
-                ) : null}
+                  <div>
+                    <h3 className="text-lg font-semibold mb-1 text-white">Studio Location</h3>
+                    <p className="text-gray-200">
+                      {businessInfo.address.fullAddress}
+                    </p>
+                    <p className="text-gray-200 mt-1">
+                      Serving Pinehurst, Montgomery County, The Woodlands, and Greater Houston Area
+                    </p>
+                    <p className="text-gray-200 mt-1">
+                      Studio visits by appointment only
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

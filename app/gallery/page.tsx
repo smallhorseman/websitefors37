@@ -2,11 +2,22 @@ import React from 'react'
 import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
 import GalleryClient from '@/components/GalleryClient'
+import { generateSEOMetadata } from '@/lib/seo-helpers'
 
-export const metadata = {
-  title: 'Photo Gallery | Studio 37 Photography',
-  description: 'Browse our portfolio of wedding, portrait, event, and commercial photography work.',
-}
+export const metadata = generateSEOMetadata({
+  title: 'Photography Portfolio Gallery - Studio37 Pinehurst, TX',
+  description: 'Browse Studio37\'s photography portfolio featuring wedding, portrait, event, and commercial photography work in Pinehurst, Texas and surrounding Montgomery County areas.',
+  keywords: [
+    'photography portfolio Pinehurst TX',
+    'wedding photography gallery',
+    'portrait photography examples',
+    'event photography portfolio',
+    'commercial photography samples',
+    'Texas photographer portfolio',
+    'Montgomery County photography'
+  ],
+  canonicalUrl: 'https://studio37.cc/gallery'
+})
 
 export default async function GalleryPage() {
   const supabase = createServerComponentClient({ cookies })

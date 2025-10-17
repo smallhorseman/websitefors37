@@ -3,11 +3,25 @@ import Image from 'next/image'
 import Link from 'next/link'
 import Services from '@/components/Services'
 import { CheckCircle, ArrowRight } from 'lucide-react'
+import { generateSEOMetadata } from '@/lib/seo-helpers'
+import { generateServiceSchema } from '@/lib/seo-config'
 
-export const metadata = {
-  title: 'Professional Photography Services | Studio 37 Photography',
-  description: 'Explore our full range of professional photography services including weddings, portraits, commercial photography and special events.',
-}
+export const metadata = generateSEOMetadata({
+  title: 'Professional Photography Services in Pinehurst, TX',
+  description: 'Studio37 offers comprehensive photography services in Pinehurst, Texas including wedding photography, portrait sessions, event coverage, and commercial photography. Serving Montgomery County and surrounding areas.',
+  keywords: [
+    'wedding photography Pinehurst TX',
+    'portrait photography Texas',
+    'event photography Montgomery County',
+    'commercial photography services',
+    'family photography Pinehurst',
+    'corporate headshots Texas',
+    'engagement photography',
+    'bridal photography Pinehurst'
+  ],
+  canonicalUrl: 'https://studio37.cc/services',
+  pageType: 'service'
+})
 
 export default function ServicesPage() {
   return (

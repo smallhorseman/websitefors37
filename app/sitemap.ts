@@ -1,37 +1,56 @@
 import { createClient } from '@supabase/supabase-js'
 import { MetadataRoute } from 'next'
+import { businessInfo } from '@/lib/seo-config'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
-const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://www.studio37.cc'
+const baseUrl = businessInfo.contact.website
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const supabase = createClient(supabaseUrl, supabaseKey)
   
-  // Static routes
+  // Static routes - Main pages for local SEO
   const routes = [
     {
       url: baseUrl,
       lastModified: new Date(),
-      changeFrequency: 'weekly',
-      priority: 1,
+      changeFrequency: 'weekly' as const,
+      priority: 1.0,
     },
     {
-      url: `${baseUrl}/admin`,
+      url: `${baseUrl}/services`,
       lastModified: new Date(),
-      changeFrequency: 'weekly',
+      changeFrequency: 'monthly' as const,
+      priority: 0.9,
+    },
+    {
+      url: `${baseUrl}/gallery`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly' as const,
+      priority: 0.9,
+    },
+    {
+      url: `${baseUrl}/about`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly' as const,
       priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/contact`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly' as const,
+      priority: 0.9,
     },
     {
       url: `${baseUrl}/blog`,
       lastModified: new Date(),
-      changeFrequency: 'daily',
-      priority: 0.9,
+      changeFrequency: 'weekly' as const,
+      priority: 0.8,
     },
     {
       url: `${baseUrl}/book-a-session`,
       lastModified: new Date(),
-      changeFrequency: 'weekly',
+      changeFrequency: 'weekly' as const,
       priority: 0.9,
     },
   ] as MetadataRoute.Sitemap

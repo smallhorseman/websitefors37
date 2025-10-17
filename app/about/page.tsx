@@ -1,6 +1,20 @@
-"use client"
-
 import React from "react"
+import { generateSEOMetadata } from '@/lib/seo-helpers'
+
+export const metadata = generateSEOMetadata({
+  title: 'About Studio37 - Professional Photography Team in Pinehurst, TX',
+  description: 'Meet the Studio37 photography team based in Pinehurst, Texas. Award-winning photographers serving Montgomery County with personalized sessions and artistic excellence.',
+  keywords: [
+    'about Studio37',
+    'photographer Pinehurst TX',
+    'photography team Texas',
+    'professional photographer Montgomery County',
+    'award winning photographer',
+    'Pinehurst photography studio',
+    'experienced photographer Texas'
+  ],
+  canonicalUrl: 'https://studio37.cc/about'
+})
 
 export default function AboutPage() {
   return (

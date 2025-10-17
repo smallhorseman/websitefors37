@@ -2,11 +2,22 @@ import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
 import Link from 'next/link'
 import Image from 'next/image'
+import { generateSEOMetadata } from '@/lib/seo-helpers'
 
-export const metadata = {
-  title: 'Blog | Studio 37 Photography',
-  description: 'Photography tips, insights, and inspiration from our professional team at Studio 37 Photography.',
-}
+export const metadata = generateSEOMetadata({
+  title: 'Photography Blog - Tips & Insights from Studio37 Pinehurst, TX',
+  description: 'Read the latest photography tips, techniques, and insights from Studio37\'s professional photography team in Pinehurst, Texas. Learn about wedding, portrait, and event photography.',
+  keywords: [
+    'photography blog',
+    'photography tips Texas',
+    'wedding photography advice',
+    'portrait photography tips',
+    'photography techniques',
+    'Studio37 blog',
+    'photographer insights Pinehurst'
+  ],
+  canonicalUrl: 'https://studio37.cc/blog'
+})
 
 export default async function BlogPage() {
   const supabase = createServerComponentClient({ cookies })
