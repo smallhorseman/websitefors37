@@ -123,36 +123,30 @@ export default async function ContactPage() {
                     </div>
                   </div>
                 )}
-                
-                <div className="pt-4">
-                  <h3 className="text-lg font-semibold mb-4">Follow Us</h3>
-                  <div className="flex items-center gap-4">
-                    {settings.social_instagram && (
-                      <a 
-                        href={settings.social_instagram} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center hover:bg-primary-200 transition-colors"
-                      >
-                        <Instagram className="h-5 w-5 text-primary-600" />
-                      </a>
-                    )}
-                    {settings.social_facebook && (
-                      <a 
-                        href={settings.social_facebook} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center hover:bg-primary-200 transition-colors"
-                      >
-                        <Facebook className="h-5 w-5 text-primary-600" />
-                      </a>
-                    )}
-                    {settings.social_twitter && (
-                      <a 
-                        href={settings.social_twitter} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center hover:bg-primary-200 transition-colors"
+                return (
+                  <div className="relative min-h-screen flex flex-col">
+                    {/* True Full-Page Background Image, fixed and always behind content */}
+                    <div className="fixed top-0 left-0 w-screen h-screen -z-10 pointer-events-none">
+                      <Image
+                        src="https://images.unsplash.com/photo-1423666639041-f56000c27a9a"
+                        alt="Contact background"
+                        fill
+                        className="object-cover"
+                        priority
+                        sizes="100vw"
+                      />
+                      <div className="absolute inset-0 bg-black bg-opacity-40" />
+                    </div>
+                    <div className="container mx-auto px-4 py-24 max-w-3xl w-full flex-1 relative z-10">
+                      <h1 className="text-4xl md:text-5xl font-bold mb-4 text-white">Contact Us</h1>
+                      <p className="text-xl text-gray-200 mb-8">
+                        Get in touch with our team to discuss your photography needs, book a session, or ask any questions.
+                      </p>
+                      <section className="py-8">
+                        <div className="grid md:grid-cols-2 gap-16">
+                          <div>
+                            <h2 className="text-3xl font-bold mb-8 text-white">Send Us a Message</h2>
+                            <LeadCaptureForm />
                       >
                         <Twitter className="h-5 w-5 text-primary-600" />
                       </a>
