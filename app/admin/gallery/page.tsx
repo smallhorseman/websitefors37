@@ -1,9 +1,10 @@
 'use client'
 
 import React, { useState, useEffect, useCallback } from 'react'
-import { Loader2, Plus, Trash2, Edit, Settings, X, Upload, Image as ImageIcon } from 'lucide-react'
+import { Loader2, Plus, Trash2, Edit, Settings, X, Upload, Image as ImageIcon, ArrowLeft } from 'lucide-react'
 import { getPaginatedData } from '@/lib/supabase'
 import ImageUploader from '@/components/ImageUploader'
+import Link from 'next/link'
 
 interface GalleryImage {
   id: string
@@ -228,9 +229,19 @@ export default function GalleryAdmin() {
   }
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-xl font-semibold">Gallery Management</h1>
+    <div className="min-h-screen flex flex-col">
+      {/* Fixed Header */}
+      <div className="bg-white border-b px-6 py-4 flex items-center justify-between sticky top-0 z-50">
+        <div className="flex items-center gap-4">
+          <Link
+            href="/admin"
+            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
+          >
+            <ArrowLeft className="h-5 w-5" />
+            Back to Admin
+          </Link>
+          <h1 className="text-xl font-semibold">Gallery Management</h1>
+        </div>
         <div className="flex items-center gap-2">
           {selectedImages.size > 0 && (
             <>
@@ -254,9 +265,11 @@ export default function GalleryAdmin() {
           </button>
         </div>
       </div>
-      
-      {/* Filters */}
-      <div className="mb-6 flex flex-wrap gap-4">
+
+      {/* Main Content */}
+      <div className="flex-1 p-6">
+        {/* Filters */}
+        <div className="mb-6 flex flex-wrap gap-4">
         <select
           value={categoryFilter}
           onChange={(e) => {
@@ -346,12 +359,16 @@ export default function GalleryAdmin() {
                     <button
                       onClick={() => editImage(image)}
                       className="text-primary-600 hover:text-primary-800"
+                      title="Edit image"
+                      aria-label="Edit image"
                     >
                       <Edit className="h-4 w-4" />
                     </button>
                     <button
                       onClick={() => deleteImage(image.id)}
                       className="text-red-600 hover:text-red-800"
+                      title="Delete image"
+                      aria-label="Delete image"
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>
@@ -397,6 +414,8 @@ export default function GalleryAdmin() {
               <button
                 onClick={() => setShowModal(false)}
                 className="text-gray-400 hover:text-gray-500"
+                title="Close modal"
+                aria-label="Close modal"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -457,6 +476,7 @@ export default function GalleryAdmin() {
                   value={formData.category}
                   onChange={e => setFormData({ ...formData, category: e.target.value })}
                   className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  aria-label="Select category"
                 >
                   <option value="wedding">Wedding</option>
                   <option value="portrait">Portrait</option>
@@ -514,6 +534,8 @@ export default function GalleryAdmin() {
           </div>
         </div>
       )}
+      
+      </div>
     </div>
   )
 }
