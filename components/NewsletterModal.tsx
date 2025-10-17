@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Mail, Phone, Percent } from 'lucide-react'
+import { X, Mail, Phone, Percent, User } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 
 interface NewsletterModalProps {
@@ -11,6 +11,7 @@ interface NewsletterModalProps {
 }
 
 export default function NewsletterModal({ isOpen, onClose }: NewsletterModalProps) {
+  const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -20,7 +21,7 @@ export default function NewsletterModal({ isOpen, onClose }: NewsletterModalProp
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    if (!email || !phone) {
+    if (!name || !email || !phone) {
       setError('Please fill in all fields')
       return
     }
@@ -34,6 +35,7 @@ export default function NewsletterModal({ isOpen, onClose }: NewsletterModalProp
         .from('leads')
         .insert([
           {
+            name,
             email,
             phone,
             service_interest: 'newsletter_subscription',
@@ -52,6 +54,7 @@ export default function NewsletterModal({ isOpen, onClose }: NewsletterModalProp
       setTimeout(() => {
         onClose()
         setIsSuccess(false)
+        setName('')
         setEmail('')
         setPhone('')
       }, 3000)
@@ -67,6 +70,7 @@ export default function NewsletterModal({ isOpen, onClose }: NewsletterModalProp
     if (!isSubmitting) {
       onClose()
       setError('')
+      setName('')
       setEmail('')
       setPhone('')
       setIsSuccess(false)
@@ -143,6 +147,25 @@ export default function NewsletterModal({ isOpen, onClose }: NewsletterModalProp
                       <p className="text-red-600 text-sm">{error}</p>
                     </div>
                   )}
+
+                  <div>
+                    <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+                      Full Name *
+                    </label>
+                    <div className="relative">
+                      <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                      <input
+                        type="text"
+                        id="name"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        placeholder="John Doe"
+                        required
+                        disabled={isSubmitting}
+                        className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                      />
+                    </div>
+                  </div>
 
                   <div>
                     <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
