@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Book a Session</title>
+</head>
+<body>
+  <form name="book-session" method="POST" data-netlify="true" data-netlify-honeypot="bot-field">
+    <input type="hidden" name="form-name" value="book-session" />
+    <input type="hidden" name="bot-field" />
+    <label>Full Name* <input type="text" name="name" required /></label><br />
+    <label>Email* <input type="email" name="email" required /></label><br />
+    <label>Phone <input type="tel" name="phone" /></label><br />
+    <label>Notes <textarea name="notes"></textarea></label><br />
+    <label>Date* <input type="date" name="date" required /></label><br />
+    <label>Time* <input type="text" name="time" required placeholder="HH:MM" /></label><br />
+    <button type="submit">Confirm Booking</button>
+  </form>
+</body>
+</html>
