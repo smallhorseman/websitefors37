@@ -18,7 +18,7 @@ export async function middleware(req: NextRequest) {
     if (req.nextUrl.pathname === '/admin/login') {
       // If already authenticated, redirect to admin dashboard
       if (session) {
-        return NextResponse.redirect(new URL('/admin', req.url))
+        return NextResponse.redirect(new URL('/admin/dashboard', req.url))
       }
       return res
     }

@@ -15,11 +15,17 @@ export default function AdminLoginPage() {
   const searchParams = useSearchParams()
 
   useEffect(() => {
+    let isMounted = true
+    
     // Check if already authenticated
     const checkAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (session) {
-        router.push('/admin')
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+        if (session && isMounted) {
+          router.replace('/admin/dashboard')
+        }
+      } catch (error) {
+        console.error('Auth check error:', error)
       }
     }
     
@@ -27,8 +33,12 @@ export default function AdminLoginPage() {
     
     // Check for error messages
     const errorParam = searchParams?.get('error')
-    if (errorParam === 'unauthorized') {
+    if (errorParam === 'unauthorized' && isMounted) {
       setError('You are not authorized to access the admin panel.')
+    }
+
+    return () => {
+      isMounted = false
     }
   }, [router, searchParams])
 
@@ -59,8 +69,8 @@ export default function AdminLoginPage() {
           return
         }
 
-        // Successful login
-        router.push('/admin')
+        // Successful login - redirect to dashboard
+        router.replace('/admin/dashboard')
       }
     } catch (error: any) {
       setError(error.message || 'Login failed')

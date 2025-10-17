@@ -300,3 +300,38 @@ ON CONFLICT (slug) DO NOTHING;
 -- INSERT INTO storage.buckets (id, name, public) VALUES ('gallery', 'gallery', true);
 -- CREATE POLICY "Public can view gallery images" ON storage.objects FOR SELECT USING (bucket_id = 'gallery');
 -- CREATE POLICY "Authenticated users can upload gallery images" ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'gallery');
+
+-- Admin User Setup
+-- Note: The auth user must be created first through Supabase Auth signup
+-- Email: ceo@studio37.cc
+-- Password: 19!Alebest
+-- After auth user creation, this will set up the admin profile:
+
+-- Function to create admin user profile after auth signup
+CREATE OR REPLACE FUNCTION setup_admin_profile()
+RETURNS TRIGGER AS $$
+BEGIN
+  -- Only create profile for the CEO email
+  IF NEW.email = 'ceo@studio37.cc' THEN
+    INSERT INTO public.user_profiles (id, name, email, role, created_at, updated_at)
+    VALUES (
+      NEW.id,
+      'CEO - Studio37',
+      NEW.email,
+      'owner',
+      NOW(),
+      NOW()
+    ) ON CONFLICT (id) DO UPDATE SET
+      role = 'owner',
+      name = 'CEO - Studio37',
+      updated_at = NOW();
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Trigger to automatically create admin profile when CEO signs up
+DROP TRIGGER IF EXISTS on_auth_user_created_admin ON auth.users;
+CREATE TRIGGER on_auth_user_created_admin
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION setup_admin_profile();
