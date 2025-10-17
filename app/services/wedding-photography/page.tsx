@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { generateSEOMetadata } from '@/lib/seo-helpers'
 import { generateServiceSchema } from '@/lib/seo-config'
 import { Heart, Camera, Clock, Star, CheckCircle, ArrowRight } from 'lucide-react'
+import FAQSection from '@/components/FAQSection'
 
 export const metadata = generateSEOMetadata({
   title: 'Wedding Photography Pinehurst TX - Studio37 Professional Wedding Photographer',
@@ -240,6 +241,46 @@ export default function WeddingPhotographyPage() {
           </div>
         </div>
       </section>
+
+      {/* FAQ Section */}
+      <FAQSection
+        title="Wedding Photography FAQ"
+        serviceName="wedding photography"
+        faqs={[
+          {
+            question: "How far in advance should I book my wedding photographer in Pinehurst, TX?",
+            answer: "We recommend booking your wedding photographer 6-12 months in advance, especially for popular wedding dates in Montgomery County. Spring and fall wedding seasons book up quickly in the Pinehurst and The Woodlands area."
+          },
+          {
+            question: "Do you travel to wedding venues outside of Pinehurst?",
+            answer: "Yes! We regularly photograph weddings throughout Montgomery County, including The Woodlands, Spring, Magnolia, and Conroe. We also travel to Houston area venues. Travel fees may apply for venues more than 50 miles from Pinehurst."
+          },
+          {
+            question: "What's included in your wedding photography packages?",
+            answer: "All packages include professional editing, high-resolution digital gallery, and personal usage rights. Our Complete and Premium packages also include engagement sessions, and the Premium package includes a wedding album. We can customize packages to fit your specific needs."
+          },
+          {
+            question: "How many photos will we receive from our wedding?",
+            answer: "Photo counts vary by package and wedding length, but typically range from 50+ photos for our Essential package to 300+ for Premium coverage. We deliver all the best moments from your day, professionally edited and gallery-ready."
+          },
+          {
+            question: "Do you offer engagement sessions in Montgomery County?",
+            answer: "Absolutely! Engagement sessions are included in our Complete and Premium packages, or can be booked separately. We know all the best locations in Pinehurst, The Woodlands, and surrounding areas for beautiful engagement photos."
+          },
+          {
+            question: "What happens if there's bad weather on our wedding day?",
+            answer: "As experienced Texas wedding photographers, we're prepared for all weather conditions. We bring lighting equipment for indoor ceremonies and have backup plans for outdoor events. Rain often creates unique and romantic photo opportunities!"
+          },
+          {
+            question: "Can we see full wedding galleries from your previous work?",
+            answer: "Yes! We'd be happy to share complete wedding galleries during your consultation so you can see our full documentation style and editing approach. This helps ensure we're the right fit for your vision."
+          },
+          {
+            question: "Do you photograph both the ceremony and reception?",
+            answer: "Our Standard and Premium packages include full day coverage from getting ready through reception. We capture all the important moments including ceremony, family photos, couple portraits, and reception festivities including your first dance and cake cutting."
+          }
+        ]}
+      />
 
       {/* CTA Section */}
       <section className="py-16 bg-gradient-to-r from-primary-600 to-amber-600 text-white">

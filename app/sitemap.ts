@@ -72,6 +72,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'monthly',
       priority: PRIORITIES.mainPages,
     },
+    // Local SEO landing page
+    {
+      url: `${baseUrl}/local-photographer-pinehurst-tx`,
+      lastModified: currentDate,
+      changeFrequency: 'monthly',
+      priority: PRIORITIES.servicePages,
+    },
     // Portfolio and content pages
     {
       url: `${baseUrl}/gallery`,
