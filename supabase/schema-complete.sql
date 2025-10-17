@@ -26,6 +26,7 @@ CREATE TABLE settings (
   theme_primary_color VARCHAR(7) DEFAULT '#b46e14',
   theme_secondary_color VARCHAR(7) DEFAULT '#a17a07',
   google_analytics_id VARCHAR(50),
+  book_session_bg_url TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT single_row CHECK (id = 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'::uuid)

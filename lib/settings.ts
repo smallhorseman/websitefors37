@@ -13,6 +13,7 @@ export interface SiteSettings {
   theme_primary_color: string
   theme_secondary_color: string
   google_analytics_id: string
+  book_session_bg_url?: string
 }
 
 export const DEFAULT_SETTINGS: SiteSettings = {
@@ -27,7 +28,8 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   seo_default_description: 'Professional photography services for weddings, events, portraits, and commercial projects.',
   theme_primary_color: '#b46e14', // Amber-700 
   theme_secondary_color: '#a17a07', // Amber-800
-  google_analytics_id: ''
+  google_analytics_id: '',
+  book_session_bg_url: 'https://images.unsplash.com/photo-1423666639041-f56000c27a9a'
 }
 
 export async function getSettings(): Promise<SiteSettings> {

@@ -212,12 +212,26 @@ export default function BookSessionPage() {
     }
   }
 
+  // Fetch booking background image URL from settings
+  const [bgUrl, setBgUrl] = useState<string>('https://images.unsplash.com/photo-1423666639041-f56000c27a9a')
+  useEffect(() => {
+    const fetchBg = async () => {
+      try {
+        const { data, error } = await supabase.from('settings').select('book_session_bg_url').single()
+        if (!error && data?.book_session_bg_url) {
+          setBgUrl(data.book_session_bg_url)
+        }
+      } catch {}
+    }
+    fetchBg()
+  }, [])
+
   return (
     <div className="relative min-h-screen flex flex-col">
       {/* True Full-Page Background Image, fixed and always behind content */}
       <div className="fixed top-0 left-0 w-screen h-screen -z-10 pointer-events-none">
         <Image
-          src="https://images.unsplash.com/photo-1423666639041-f56000c27a9a"
+          src={bgUrl}
           alt="Book a session background"
           fill
           className="object-cover"

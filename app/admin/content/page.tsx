@@ -33,6 +33,43 @@ export default function ContentManagementPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [filter, setFilter] = useState('all')
 
+  // Booking background image URL setting
+  const [bookingBgUrl, setBookingBgUrl] = useState('')
+  const [savingBgUrl, setSavingBgUrl] = useState(false)
+  const [settingsError, setSettingsError] = useState<string | null>(null)
+
+  // Fetch booking background image URL from settings
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const { supabase } = await import('@/lib/supabase')
+        const { data, error } = await supabase.from('settings').select('book_session_bg_url').single()
+        if (error) throw error
+        setBookingBgUrl(data?.book_session_bg_url || '')
+      } catch (err: any) {
+        setSettingsError(err.message || 'Failed to load settings')
+      }
+    }
+    fetchSettings()
+  }, [])
+
+  const saveBookingBgUrl = async () => {
+    setSavingBgUrl(true)
+    setSettingsError(null)
+    try {
+      const { supabase } = await import('@/lib/supabase')
+      const { error } = await supabase
+        .from('settings')
+        .update({ book_session_bg_url: bookingBgUrl })
+        .eq('id', 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11')
+      if (error) throw error
+    } catch (err: any) {
+      setSettingsError(err.message || 'Failed to save background image URL')
+    } finally {
+      setSavingBgUrl(false)
+    }
+  }
+
   // Fetch content pages
   const fetchPages = async () => {
     setLoading(true)
@@ -236,6 +273,34 @@ export default function ContentManagementPage() {
 
   return (
     <div className="p-6">
+      {/* Booking Page Background Image Section */}
+      <div className="mb-8 bg-white rounded-lg shadow p-6">
+        <h2 className="text-lg font-semibold mb-2">Book a Session Background Image</h2>
+        <label className="block text-sm font-medium text-gray-700 mb-1">Image URL</label>
+        <input
+          type="text"
+          value={bookingBgUrl}
+          onChange={e => setBookingBgUrl(e.target.value)}
+          className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 mb-2"
+          placeholder="Paste image URL here"
+        />
+        <button
+          onClick={saveBookingBgUrl}
+          disabled={savingBgUrl}
+          className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50"
+        >
+          {savingBgUrl ? 'Saving...' : 'Save Image URL'}
+        </button>
+        {settingsError && (
+          <div className="mt-2 text-red-600 text-sm">{settingsError}</div>
+        )}
+        {bookingBgUrl && (
+          <div className="mt-4">
+            <span className="block text-xs text-gray-500 mb-1">Preview:</span>
+            <img src={bookingBgUrl} alt="Booking background preview" className="rounded-lg max-h-48 border" />
+          </div>
+        )}
+      </div>
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-xl font-semibold">Content Management</h1>
         <button 
