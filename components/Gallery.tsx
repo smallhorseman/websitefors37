@@ -3,6 +3,7 @@
 import React, { useState } from 'react'
 import { motion } from 'framer-motion'
 import Image from 'next/image'
+import NewsletterModal from './NewsletterModal'
 
 const galleryImages = [
   {
@@ -53,6 +54,7 @@ const categories = [
 
 export default function Gallery() {
   const [activeCategory, setActiveCategory] = useState('all')
+  const [isNewsletterModalOpen, setIsNewsletterModalOpen] = useState(false)
 
   const filteredImages = activeCategory === 'all' 
     ? galleryImages 
@@ -109,10 +111,18 @@ export default function Gallery() {
         </div>
 
         <div className="text-center mt-12">
-          <button className="btn-primary">
+          <button 
+            onClick={() => setIsNewsletterModalOpen(true)}
+            className="btn-primary"
+          >
             View Full Portfolio
           </button>
         </div>
+
+        <NewsletterModal 
+          isOpen={isNewsletterModalOpen}
+          onClose={() => setIsNewsletterModalOpen(false)}
+        />
       </div>
     </section>
   )
