@@ -5,6 +5,7 @@ import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
 import Navigation from '@/components/Navigation'
 import AdminSidebar from '@/components/AdminSidebar'
+import NavigationErrorSuppress from '@/components/NavigationErrorSuppress'
 
 export const metadata: Metadata = {
   title: 'Admin Panel | Studio37 Photography',
@@ -40,6 +41,7 @@ export default async function AdminLayout({
   
   return (
     <div className="bg-gray-50 min-h-screen">
+      <NavigationErrorSuppress />
       <Navigation />
       <AdminSidebar />
       <div className="lg:ml-64 pt-0 lg:pt-0">

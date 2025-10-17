@@ -33,24 +33,44 @@ export default function AdminSidebar() {
   const [profile, setProfile] = useState<any>(null)
 
   useEffect(() => {
+    let isMounted = true
+    
     // Get current user
     const getUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (session?.user) {
-        setUser(session.user)
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession()
         
-        // Get user profile
-        const { data: profileData } = await supabase
-          .from('user_profiles')
-          .select('*')
-          .eq('id', session.user.id)
-          .single()
+        if (error) {
+          console.error('Session error:', error)
+          return
+        }
         
-        setProfile(profileData)
+        if (session?.user && isMounted) {
+          setUser(session.user)
+          
+          // Get user profile
+          const { data: profileData, error: profileError } = await supabase
+            .from('user_profiles')
+            .select('*')
+            .eq('id', session.user.id)
+            .single()
+          
+          if (profileError) {
+            console.error('Profile error:', profileError)
+          } else if (isMounted) {
+            setProfile(profileData)
+          }
+        }
+      } catch (error) {
+        console.error('Error getting user:', error)
       }
     }
     
     getUser()
+    
+    return () => {
+      isMounted = false
+    }
   }, [])
   
   const toggleMenu = (menu: string) => {
@@ -62,10 +82,19 @@ export default function AdminSidebar() {
 
   const handleLogout = async () => {
     try {
+      setUser(null)
+      setProfile(null)
       await supabase.auth.signOut()
-      router.push('/admin/login')
+      
+      // Use window.location for clean logout redirect
+      // Add a small delay to ensure signOut completes
+      setTimeout(() => {
+        window.location.href = '/admin/login'
+      }, 100)
     } catch (error) {
       console.error('Error logging out:', error)
+      // Fallback redirect even if signOut fails
+      window.location.href = '/admin/login'
     }
   }
   
