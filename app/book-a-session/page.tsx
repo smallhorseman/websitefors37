@@ -238,7 +238,11 @@ export default function BookSessionPage() {
           priority
           sizes="100vw"
         />
-        <div className="absolute inset-0 bg-black bg-opacity-40" />
+          <div
+            className="absolute inset-0 bg-black bg-opacity-40 backdrop-blur-sm"
+            aria-hidden="true"
+            role="presentation"
+          />
       </div>
       <div className="container mx-auto px-4 py-12 max-w-5xl w-full flex-1 relative z-10">
         <h1 className="text-4xl font-bold mb-2">Book a Session</h1>
@@ -252,20 +256,8 @@ export default function BookSessionPage() {
           </div>
         ) : (
           <form
-            name="book-session"
-            method="POST"
-            data-netlify="true"
-            data-netlify-honeypot="bot-field"
-            onSubmit={async (e) => {
-              await onSubmit(e)
-              // Let browser submit to Netlify after Supabase
-              setTimeout(() => {
-                (e.target as HTMLFormElement).submit()
-              }, 100)
-            }}
+            onSubmit={onSubmit}
           >
-            <input type="hidden" name="form-name" value="book-session" />
-            <input type="hidden" name="bot-field" />
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Package selector */}
             <div className="lg:col-span-1 space-y-4">

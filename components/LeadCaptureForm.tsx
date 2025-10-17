@@ -57,8 +57,7 @@ export default function LeadCaptureForm() {
       <form
         name="contact"
         method="POST"
-        data-netlify="true"
-        data-netlify-honeypot="bot-field"
+          // ...no Netlify attributes...
         onSubmit={handleSubmit(async (data, event) => {
           await onSubmit(data)
           // Let browser submit to Netlify after Supabase
@@ -71,7 +70,7 @@ export default function LeadCaptureForm() {
         className="space-y-6"
       >
         {/* Netlify hidden fields */}
-        <input type="hidden" name="form-name" value="contact" />
+          {/* ...no Netlify hidden fields... */}
         <input type="hidden" name="bot-field" />
   <div className="grid md:grid-cols-2 gap-6">
           <div>
