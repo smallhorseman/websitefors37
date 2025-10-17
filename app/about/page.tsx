@@ -164,11 +164,25 @@ export default function AboutPage() {
               </div>
 
               <div className="relative">
-                <img
-                  src="https://images.unsplash.com/photo-1542038784456-1ea8e913b8e5?w=600&h=400&fit=crop"
-                  alt="Behind the scenes at Studio37 Photography"
-                  className="rounded-lg shadow-lg w-full h-auto"
-                />
+                <div className="grid grid-cols-2 gap-4">
+                  <img
+                    src="https://images.unsplash.com/photo-1606721977440-6e80f6c5cb40?w=300&h=200&fit=crop"
+                    alt="Professional camera equipment at Studio37"
+                    className="rounded-lg shadow-lg w-full h-auto"
+                  />
+                  <img
+                    src="https://images.unsplash.com/photo-1551845128-58b5e2bf4b23?w=300&h=200&fit=crop"
+                    alt="Photography lighting setup behind the scenes"
+                    className="rounded-lg shadow-lg w-full h-auto"
+                  />
+                </div>
+                <div className="mt-4">
+                  <img
+                    src="https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=600&h=300&fit=crop"
+                    alt="Behind the scenes at Studio37 Photography workspace"
+                    className="rounded-lg shadow-lg w-full h-auto"
+                  />
+                </div>
               </div>
             </div>
           </div>
