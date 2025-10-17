@@ -3,6 +3,7 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { Loader2, Calendar, Clock, CheckCircle2 } from 'lucide-react'
+import Image from 'next/image'
 
 type PackageKey = 'consultation' | 'mini_reel' | 'full_episode' | 'movie_premier'
 
