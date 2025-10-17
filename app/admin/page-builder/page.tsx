@@ -72,11 +72,12 @@ export default function PageBuilderPage() {
   }
 
   return (
-    <div className="h-screen flex flex-col">
-      <div className="bg-white border-b px-4 py-3 flex items-center justify-between">
+    <div className="min-h-screen flex flex-col">
+      {/* Fixed Header */}
+      <div className="bg-white border-b px-4 py-3 flex items-center justify-between sticky top-0 z-50">
         <Link
           href="/admin"
-          className="flex items-center gap-2 text-gray-600 hover:text-gray-900"
+          className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
         >
           <ArrowLeft className="h-5 w-5" />
           Back to Admin
@@ -85,7 +86,8 @@ export default function PageBuilderPage() {
         <div className="w-32" /> {/* Spacer for centering */}
       </div>
 
-      <div className="flex-1">
+      {/* Editor Container */}
+      <div className="flex-1 relative">
         <VisualEditor
           initialComponents={components}
           onSave={handleSave}

@@ -176,7 +176,7 @@ export default function VisualEditor({ initialComponents = [], onSave }: VisualE
   }
 
   return (
-    <div className="flex h-screen bg-gray-100">
+    <div className="flex h-full bg-gray-100">
       {/* Sidebar - Component Library */}
       {!previewMode && (
         <div className="w-64 bg-white border-r overflow-y-auto">
