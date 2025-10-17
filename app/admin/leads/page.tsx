@@ -277,6 +277,7 @@ export default function LeadsPage() {
             value={filter} 
             onChange={(e) => setFilter(e.target.value)}
             className="px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+            title="Filter leads by status"
           >
             <option value="all">All Leads</option>
             <option value="new">New</option>
@@ -399,6 +400,8 @@ export default function LeadsPage() {
                         value={lead.status}
                         onChange={(e) => updateLeadStatus(lead.id, e.target.value)}
                         className={`text-xs px-2 py-1 rounded-full border-0 ${getStatusColor(lead.status)}`}
+                        title={`Change status for ${lead.name}`}
+                        aria-label={`Lead status for ${lead.name}`}
                       >
                         <option value="new">New</option>
                         <option value="contacted">Contacted</option>
@@ -479,6 +482,8 @@ export default function LeadsPage() {
               <button
                 onClick={() => setShowLeadModal(false)}
                 className="text-gray-400 hover:text-gray-500"
+                aria-label="Close lead details modal"
+                title="Close modal"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -694,6 +699,8 @@ export default function LeadsPage() {
                   value={newLog.type}
                   onChange={(e) => setNewLog({ ...newLog, type: e.target.value as CommunicationLog['type'] })}
                   className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  aria-label="Select communication type"
+                  title="Choose the type of communication log"
                 >
                   <option value="note">Note</option>
                   <option value="email">Email</option>
@@ -710,6 +717,8 @@ export default function LeadsPage() {
                   value={newLog.direction}
                   onChange={(e) => setNewLog({ ...newLog, direction: e.target.value as CommunicationLog['direction'] })}
                   className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  aria-label="Select communication direction"
+                  title="Choose the direction of communication"
                 >
                   <option value="outbound">Outbound</option>
                   <option value="inbound">Inbound</option>
@@ -771,6 +780,8 @@ export default function LeadsPage() {
               onClick={() => setCurrentPage(currentPage - 1)}
               disabled={currentPage === 1}
               className="px-3 py-1 border rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+              aria-label="Previous page"
+              title="Go to previous page"
             >
               <ChevronLeft className="h-4 w-4" />
             </button>
@@ -817,6 +828,8 @@ export default function LeadsPage() {
               onClick={() => setCurrentPage(currentPage + 1)}
               disabled={currentPage === pageCount}
               className="px-3 py-1 border rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+              aria-label="Next page"
+              title="Go to next page"
             >
               <ChevronRight className="h-4 w-4" />
             </button>
