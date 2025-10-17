@@ -1,7 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import React, { useState } from 'react'
 import { Lock, Mail, Eye, EyeOff, Shield, Camera } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 
@@ -11,67 +10,6 @@ export default function AdminLoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const router = useRouter()
-  const searchParams = useSearchParams()
-
-  useEffect(() => {
-    let isMounted = true
-    let timeoutId: NodeJS.Timeout
-    
-    // Check if already authenticated with a delay to prevent loops
-    const checkAuth = async () => {
-      try {
-        // Add a small delay to prevent immediate redirects
-        timeoutId = setTimeout(async () => {
-          if (!isMounted) return
-          
-          const { data: { session }, error } = await supabase.auth.getSession()
-          
-          if (session && !error && isMounted) {
-            // Check user role before redirecting
-            const { data: profile } = await supabase
-              .from('user_profiles')
-              .select('role')
-              .eq('id', session.user.id)
-              .single()
-            
-            if (profile && (profile.role === 'admin' || profile.role === 'owner')) {
-              router.replace('/admin/dashboard')
-            }
-          }
-        }, 1000) // 1 second delay
-      } catch (error) {
-        console.error('Auth check error:', error)
-      }
-    }
-    
-    checkAuth()
-    
-    // Check for error messages
-    const errorParam = searchParams?.get('error')
-    if (errorParam && isMounted) {
-      switch (errorParam) {
-        case 'unauthorized':
-          setError('You are not authorized to access the admin panel.')
-          break
-        case 'middleware':
-          setError('Authentication error. Please try logging in again.')
-          break
-        case 'profile':
-          setError('User profile error. Please contact support.')
-          break
-        default:
-          setError('Authentication error occurred.')
-      }
-    }
-
-    return () => {
-      isMounted = false
-      if (timeoutId) {
-        clearTimeout(timeoutId)
-      }
-    }
-  }, [router, searchParams])
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -100,8 +38,8 @@ export default function AdminLoginPage() {
           return
         }
 
-        // Successful login - redirect to dashboard
-        router.replace('/admin/dashboard')
+        // Successful login - use window.location for clean redirect
+        window.location.href = '/admin/dashboard'
       }
     } catch (error: any) {
       setError(error.message || 'Login failed')
@@ -110,111 +48,117 @@ export default function AdminLoginPage() {
     }
   }
 
+  // Check for URL errors on component mount
+  React.useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const errorParam = params.get('error')
+    
+    if (errorParam) {
+      switch (errorParam) {
+        case 'unauthorized':
+          setError('You are not authorized to access the admin panel.')
+          break
+        case 'middleware':
+          setError('Authentication error. Please try logging in again.')
+          break
+        case 'profile':
+          setError('User profile error. Please contact support.')
+          break
+        default:
+          setError('Authentication error occurred.')
+      }
+    }
+  }, [])
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 flex items-center justify-center px-4">
-      <div className="absolute inset-0 opacity-10">
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-purple-500/10"></div>
-      </div>
-
-      <div className="relative w-full max-w-md">
-        <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 shadow-2xl p-8">
-          {/* Header */}
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full mb-4">
-              <Camera className="h-8 w-8 text-white" />
-            </div>
-            <h1 className="text-2xl font-bold text-white mb-2">Studio37 Admin</h1>
-            <p className="text-gray-300">Secure access to your dashboard</p>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full border border-gray-100 backdrop-blur-sm">
+        <div className="text-center mb-8">
+          <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-4 rounded-full inline-block mb-4">
+            <Shield className="h-8 w-8 text-white" />
           </div>
-
-          {/* Error Message */}
-          {error && (
-            <div className="bg-red-500/20 border border-red-500/30 rounded-lg p-4 mb-6">
-              <p className="text-red-200 text-sm">{error}</p>
-            </div>
-          )}
-
-          {/* Login Form */}
-          <form onSubmit={handleLogin} className="space-y-6">
-            <div>
-              <label className="block text-gray-200 text-sm font-medium mb-2">
-                Email Address
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Mail className="h-5 w-5 text-gray-400" />
-                </div>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="admin@studio37.cc"
-                  required
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-gray-200 text-sm font-medium mb-2">
-                Password
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Lock className="h-5 w-5 text-gray-400" />
-                </div>
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-10 pr-12 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Enter your password"
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                >
-                  {showPassword ? (
-                    <EyeOff className="h-5 w-5 text-gray-400 hover:text-gray-300" />
-                  ) : (
-                    <Eye className="h-5 w-5 text-gray-400 hover:text-gray-300" />
-                  )}
-                </button>
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-gradient-to-r from-blue-500 to-purple-500 text-white py-3 px-4 rounded-lg font-semibold hover:from-blue-600 hover:to-purple-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-transparent transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-            >
-              {loading ? (
-                <>
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                  Signing In...
-                </>
-              ) : (
-                <>
-                  <Shield className="h-5 w-5" />
-                  Sign In to Admin Panel
-                </>
-              )}
-            </button>
-          </form>
-
-          {/* Security Notice */}
-          <div className="mt-6 pt-6 border-t border-white/20">
-            <p className="text-xs text-gray-400 text-center">
-              Protected by enterprise-grade security. All access attempts are logged.
-            </p>
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <Camera className="h-6 w-6 text-gray-600" />
+            <h1 className="text-2xl font-bold text-gray-900">Studio37</h1>
           </div>
+          <p className="text-gray-600">Admin Dashboard Login</p>
         </div>
 
-        {/* Background Elements */}
-        <div className="absolute -top-4 -right-4 w-24 h-24 bg-blue-500/20 rounded-full blur-xl"></div>
-        <div className="absolute -bottom-4 -left-4 w-32 h-32 bg-purple-500/20 rounded-full blur-xl"></div>
+        {error && (
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <p className="text-sm text-red-800">{error}</p>
+          </div>
+        )}
+
+        <form onSubmit={handleLogin} className="space-y-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Email Address
+            </label>
+            <div className="relative">
+              <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                placeholder="Enter your email"
+                required
+                disabled={loading}
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Password
+            </label>
+            <div className="relative">
+              <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <input
+                type={showPassword ? 'text' : 'password'}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                placeholder="Enter your password"
+                required
+                disabled={loading}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                disabled={loading}
+              >
+                {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+              </button>
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 px-4 rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center gap-2"
+          >
+            {loading ? (
+              <>
+                <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
+                Signing In...
+              </>
+            ) : (
+              <>
+                <Shield className="h-5 w-5" />
+                Sign In to Admin
+              </>
+            )}
+          </button>
+        </form>
+
+        <div className="mt-8 pt-6 border-t border-gray-200">
+          <p className="text-xs text-gray-500 text-center">
+            Secure access to Studio37 Photography business management
+          </p>
+        </div>
       </div>
     </div>
   )

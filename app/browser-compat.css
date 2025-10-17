@@ -1,0 +1,35 @@
+/* Suppress browser CSS warnings for vendor prefixes */
+
+/* Suppress text-size-adjust warnings */
+@supports (-webkit-text-size-adjust: none) {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+}
+
+@supports (-moz-text-size-adjust: none) {
+  html {
+    -moz-text-size-adjust: 100%;
+  }
+}
+
+@supports (text-size-adjust: none) {
+  html {
+    text-size-adjust: 100%;
+  }
+}
+
+/* Suppress column warnings for older browsers */
+@supports (-moz-columns: auto) {
+  .grid-columns {
+    -moz-columns: auto;
+    columns: auto; /* Standard property for compatibility */
+  }
+}
+
+@supports (-moz-column-break-inside: auto) {
+  .grid-columns {
+    -moz-column-break-inside: auto;
+    break-inside: auto; /* Standard property for compatibility */
+  }
+}
