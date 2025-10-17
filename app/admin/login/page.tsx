@@ -16,14 +16,30 @@ export default function AdminLoginPage() {
 
   useEffect(() => {
     let isMounted = true
+    let timeoutId: NodeJS.Timeout
     
-    // Check if already authenticated
+    // Check if already authenticated with a delay to prevent loops
     const checkAuth = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession()
-        if (session && isMounted) {
-          router.replace('/admin/dashboard')
-        }
+        // Add a small delay to prevent immediate redirects
+        timeoutId = setTimeout(async () => {
+          if (!isMounted) return
+          
+          const { data: { session }, error } = await supabase.auth.getSession()
+          
+          if (session && !error && isMounted) {
+            // Check user role before redirecting
+            const { data: profile } = await supabase
+              .from('user_profiles')
+              .select('role')
+              .eq('id', session.user.id)
+              .single()
+            
+            if (profile && (profile.role === 'admin' || profile.role === 'owner')) {
+              router.replace('/admin/dashboard')
+            }
+          }
+        }, 1000) // 1 second delay
       } catch (error) {
         console.error('Auth check error:', error)
       }
@@ -33,12 +49,27 @@ export default function AdminLoginPage() {
     
     // Check for error messages
     const errorParam = searchParams?.get('error')
-    if (errorParam === 'unauthorized' && isMounted) {
-      setError('You are not authorized to access the admin panel.')
+    if (errorParam && isMounted) {
+      switch (errorParam) {
+        case 'unauthorized':
+          setError('You are not authorized to access the admin panel.')
+          break
+        case 'middleware':
+          setError('Authentication error. Please try logging in again.')
+          break
+        case 'profile':
+          setError('User profile error. Please contact support.')
+          break
+        default:
+          setError('Authentication error occurred.')
+      }
     }
 
     return () => {
       isMounted = false
+      if (timeoutId) {
+        clearTimeout(timeoutId)
+      }
     }
   }, [router, searchParams])
 

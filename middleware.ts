@@ -3,46 +3,55 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 export async function middleware(req: NextRequest) {
-  const res = NextResponse.next()
+  // Skip middleware entirely for login and setup pages
+  if (req.nextUrl.pathname === '/admin/login' || req.nextUrl.pathname === '/setup-admin') {
+    return NextResponse.next()
+  }
   
-  // Handle admin routes authentication
+  // Only apply middleware to admin routes (excluding login)
   if (req.nextUrl.pathname.startsWith('/admin')) {
-    const supabase = createMiddlewareClient({ req, res })
-    
-    // Get the session
-    const {
-      data: { session },
-    } = await supabase.auth.getSession()
-    
-    // Allow access to login page
-    if (req.nextUrl.pathname === '/admin/login') {
-      // If already authenticated, redirect to admin dashboard
-      if (session) {
-        return NextResponse.redirect(new URL('/admin/dashboard', req.url))
+    try {
+      const res = NextResponse.next()
+      const supabase = createMiddlewareClient({ req, res })
+      
+      const {
+        data: { session },
+        error: sessionError
+      } = await supabase.auth.getSession()
+      
+      if (!session || sessionError) {
+        const loginUrl = new URL('/admin/login', req.url)
+        return NextResponse.redirect(loginUrl)
       }
+      
+      // Optional: Check user role
+      const { data: profile } = await supabase
+        .from('user_profiles')
+        .select('role')
+        .eq('id', session.user.id)
+        .single()
+      
+      if (!profile || (profile.role !== 'admin' && profile.role !== 'owner')) {
+        const loginUrl = new URL('/admin/login', req.url)
+        loginUrl.searchParams.set('error', 'unauthorized')
+        return NextResponse.redirect(loginUrl)
+      }
+      
       return res
-    }
-    
-    // Protect all other admin routes
-    if (!session) {
-      return NextResponse.redirect(new URL('/admin/login', req.url))
-    }
-    
-    // Check if user has admin role (you can customize this logic)
-    const { data: profile } = await supabase
-      .from('user_profiles')
-      .select('role')
-      .eq('id', session.user.id)
-      .single()
-    
-    if (profile?.role !== 'admin' && profile?.role !== 'owner') {
-      return NextResponse.redirect(new URL('/admin/login?error=unauthorized', req.url))
+    } catch (error) {
+      console.error('Middleware error:', error)
+      const loginUrl = new URL('/admin/login', req.url)
+      loginUrl.searchParams.set('error', 'middleware')
+      return NextResponse.redirect(loginUrl)
     }
   }
   
-  return res
+  return NextResponse.next()
 }
 
 export const config = {
-  matcher: ['/admin/:path*']
+  matcher: [
+    '/admin/((?!login$|_next|api|favicon.ico).*)',
+    '/admin$'
+  ]
 }
