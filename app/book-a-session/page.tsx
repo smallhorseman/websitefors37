@@ -214,7 +214,7 @@ export default function BookSessionPage() {
   return (
     <div className="pt-16 min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-12 max-w-5xl">
-  <h1 className="text-4xl font-bold mb-2">Book a Session</h1>
+        <h1 className="text-4xl font-bold mb-2">Book a Session</h1>
         <p className="text-gray-600 mb-8">Choose a consultation or one of our packages and pick a time that works for you.</p>
 
         {success ? (
@@ -224,7 +224,22 @@ export default function BookSessionPage() {
             <p className="text-gray-600">We just saved your appointment. You’ll receive a confirmation email shortly.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <form
+            name="book-session"
+            method="POST"
+            data-netlify="true"
+            data-netlify-honeypot="bot-field"
+            onSubmit={async (e) => {
+              await onSubmit(e)
+              // Let browser submit to Netlify after Supabase
+              setTimeout(() => {
+                (e.target as HTMLFormElement).submit()
+              }, 100)
+            }}
+          >
+            <input type="hidden" name="form-name" value="book-session" />
+            <input type="hidden" name="bot-field" />
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Package selector */}
             <div className="lg:col-span-1 space-y-4">
               <div className="bg-white rounded-lg shadow p-4">
@@ -253,10 +268,10 @@ export default function BookSessionPage() {
               <div className="bg-white rounded-lg shadow p-4">
                 <h3 className="font-semibold mb-3">Your info</h3>
                 <div className="space-y-3">
-                  <input className="w-full border rounded px-3 py-2" placeholder="Full name" value={name} onChange={e=>setName(e.target.value)} />
-                  <input className="w-full border rounded px-3 py-2" placeholder="Email" type="email" value={email} onChange={e=>setEmail(e.target.value)} />
-                  <input className="w-full border rounded px-3 py-2" placeholder="Phone (optional)" value={phone} onChange={e=>setPhone(e.target.value)} />
-                  <textarea className="w-full border rounded px-3 py-2" placeholder="Notes (optional)" value={notes} onChange={e=>setNotes(e.target.value)} />
+                  <input name="name" className="w-full border rounded px-3 py-2" placeholder="Full name" value={name} onChange={e=>setName(e.target.value)} />
+                  <input name="email" className="w-full border rounded px-3 py-2" placeholder="Email" type="email" value={email} onChange={e=>setEmail(e.target.value)} />
+                  <input name="phone" className="w-full border rounded px-3 py-2" placeholder="Phone (optional)" value={phone} onChange={e=>setPhone(e.target.value)} />
+                  <textarea name="notes" className="w-full border rounded px-3 py-2" placeholder="Notes (optional)" value={notes} onChange={e=>setNotes(e.target.value)} />
                 </div>
               </div>
             </div>
@@ -282,7 +297,7 @@ export default function BookSessionPage() {
                         {slots.length === 0 ? (
                           <div className="text-gray-500 text-sm p-2">No slots available for this date.</div>
                         ) : slots.map((t) => (
-                          <button key={t} onClick={()=>setSelectedTime(t)} className={`px-3 py-1 rounded border text-sm ${selectedTime===t?'bg-primary-600 text-white border-primary-600':'hover:bg-gray-50'}`}>
+                          <button type="button" key={t} onClick={()=>setSelectedTime(t)} className={`px-3 py-1 rounded border text-sm ${selectedTime===t?'bg-primary-600 text-white border-primary-600':'hover:bg-gray-50'}`}>
                             <Clock className="inline h-3 w-3 mr-1" /> {t}
                           </button>
                         ))}
@@ -293,7 +308,7 @@ export default function BookSessionPage() {
 
                 <div className="mt-6">
                   <button
-                    onClick={onSubmit}
+                    type="submit"
                     disabled={!name || !email || !selectedDate || !selectedTime || submitting}
                     className="btn-primary px-6 py-3 disabled:opacity-50"
                   >
@@ -302,7 +317,8 @@ export default function BookSessionPage() {
                 </div>
               </div>
             </div>
-          </div>
+            </div>
+          </form>
         )}
       </div>
     </div>

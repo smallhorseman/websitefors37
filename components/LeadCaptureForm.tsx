@@ -54,8 +54,26 @@ export default function LeadCaptureForm() {
 
   return (
     <div className="max-w-2xl mx-auto bg-white p-8 rounded-lg shadow-lg">
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        <div className="grid md:grid-cols-2 gap-6">
+      <form
+        name="contact"
+        method="POST"
+        data-netlify="true"
+        data-netlify-honeypot="bot-field"
+        onSubmit={handleSubmit(async (data, event) => {
+          await onSubmit(data)
+          // Let browser submit to Netlify after Supabase
+          if (event?.target) {
+            setTimeout(() => {
+              (event.target as HTMLFormElement).submit()
+            }, 100)
+          }
+        })}
+        className="space-y-6"
+      >
+        {/* Netlify hidden fields */}
+        <input type="hidden" name="form-name" value="contact" />
+        <input type="hidden" name="bot-field" />
+  <div className="grid md:grid-cols-2 gap-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Full Name *
