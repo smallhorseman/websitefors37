@@ -35,6 +35,31 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'monthly',
       priority: PRIORITIES.mainPages,
     },
+    // Individual service pages - High priority for local SEO
+    {
+      url: `${baseUrl}/services/wedding-photography`,
+      lastModified: currentDate,
+      changeFrequency: 'monthly',
+      priority: PRIORITIES.servicePages,
+    },
+    {
+      url: `${baseUrl}/services/portrait-photography`,
+      lastModified: currentDate,
+      changeFrequency: 'monthly',
+      priority: PRIORITIES.servicePages,
+    },
+    {
+      url: `${baseUrl}/services/event-photography`,
+      lastModified: currentDate,
+      changeFrequency: 'monthly',
+      priority: PRIORITIES.servicePages,
+    },
+    {
+      url: `${baseUrl}/services/commercial-photography`,
+      lastModified: currentDate,
+      changeFrequency: 'monthly',
+      priority: PRIORITIES.servicePages,
+    },
     {
       url: `${baseUrl}/book-a-session`,
       lastModified: currentDate,

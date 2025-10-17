@@ -24,8 +24,19 @@ export const metadata = generateSEOMetadata({
 })
 
 export default function ServicesPage() {
+  const serviceSchema = generateServiceSchema(
+    'Photography Services',
+    'Professional photography services in Pinehurst, Texas including wedding photography, portrait sessions, event coverage, and commercial photography.'
+  )
+
   return (
     <div className="pt-16">
+      {/* Structured Data */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceSchema) }}
+      />
+
       {/* Hero Section */}
       <div className="relative bg-gradient-to-r from-gray-900 to-gray-800 text-white">
         <div className="absolute inset-0 opacity-30">
@@ -39,9 +50,9 @@ export default function ServicesPage() {
         </div>
         <div className="container mx-auto px-4 py-24 relative z-10">
           <div className="max-w-3xl">
-            <h1 className="text-4xl md:text-5xl font-bold mb-4">Photography Services</h1>
+            <h1 className="text-4xl md:text-5xl font-bold mb-4">Photography Services in Pinehurst, TX</h1>
             <p className="text-xl text-gray-200 mb-8">
-              Capturing life's most precious moments with artistic excellence and professional craftsmanship.
+              Capturing life's most precious moments with artistic excellence and professional craftsmanship throughout Montgomery County.
             </p>
             <Link 
               href="#services" 
@@ -55,9 +66,92 @@ export default function ServicesPage() {
       </div>
 
       {/* Main Services Component */}
-      <div id="services">
+            {/* Main Services Component */}
+      <div id="services" className="py-16">
         <Services />
       </div>
+
+      {/* Individual Service Pages Links */}
+      <section className="py-16 bg-white">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold mb-4">Explore Our Specialized Services</h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Learn more about each of our photography specialties with detailed information, packages, and pricing
+            </p>
+          </div>
+          
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <Link 
+              href="/services/wedding-photography" 
+              className="group p-6 bg-gradient-to-br from-rose-50 to-amber-50 rounded-lg border border-rose-200 hover:border-rose-300 transition-all duration-300 hover:shadow-lg"
+            >
+              <div className="text-center">
+                <div className="bg-rose-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-rose-200 transition-colors">
+                  <span className="text-3xl">💍</span>
+                </div>
+                <h3 className="text-xl font-semibold mb-2 text-gray-800">Wedding Photography</h3>
+                <p className="text-gray-600 mb-4">Romantic, timeless wedding photography in Pinehurst, TX</p>
+                <div className="flex items-center justify-center text-rose-600 group-hover:text-rose-700">
+                  <span className="font-medium">Learn More</span>
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </div>
+              </div>
+            </Link>
+
+            <Link 
+              href="/services/portrait-photography" 
+              className="group p-6 bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg border border-blue-200 hover:border-blue-300 transition-all duration-300 hover:shadow-lg"
+            >
+              <div className="text-center">
+                <div className="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-blue-200 transition-colors">
+                  <span className="text-3xl">👨‍👩‍👧‍👦</span>
+                </div>
+                <h3 className="text-xl font-semibold mb-2 text-gray-800">Portrait Photography</h3>
+                <p className="text-gray-600 mb-4">Family portraits, senior photos, and professional headshots</p>
+                <div className="flex items-center justify-center text-blue-600 group-hover:text-blue-700">
+                  <span className="font-medium">Learn More</span>
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </div>
+              </div>
+            </Link>
+
+            <Link 
+              href="/services/event-photography" 
+              className="group p-6 bg-gradient-to-br from-green-50 to-teal-50 rounded-lg border border-green-200 hover:border-green-300 transition-all duration-300 hover:shadow-lg"
+            >
+              <div className="text-center">
+                <div className="bg-green-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-green-200 transition-colors">
+                  <span className="text-3xl">🎉</span>
+                </div>
+                <h3 className="text-xl font-semibold mb-2 text-gray-800">Event Photography</h3>
+                <p className="text-gray-600 mb-4">Corporate events, parties, and special celebrations</p>
+                <div className="flex items-center justify-center text-green-600 group-hover:text-green-700">
+                  <span className="font-medium">Learn More</span>
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </div>
+              </div>
+            </Link>
+
+            <Link 
+              href="/services/commercial-photography" 
+              className="group p-6 bg-gradient-to-br from-gray-50 to-blue-50 rounded-lg border border-gray-200 hover:border-gray-300 transition-all duration-300 hover:shadow-lg"
+            >
+              <div className="text-center">
+                <div className="bg-gray-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-gray-200 transition-colors">
+                  <span className="text-3xl">🏢</span>
+                </div>
+                <h3 className="text-xl font-semibold mb-2 text-gray-800">Commercial Photography</h3>
+                <p className="text-gray-600 mb-4">Business branding, product shots, and corporate imagery</p>
+                <div className="flex items-center justify-center text-gray-600 group-hover:text-gray-700">
+                  <span className="font-medium">Learn More</span>
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </div>
+              </div>
+            </Link>
+          </div>
+        </div>
+      </section>
 
       {/* Additional Services Information */}
       <section className="py-16 bg-gray-50">
