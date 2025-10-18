@@ -98,7 +98,7 @@ export default function Navigation() {
             type="button"
             className={`md:hidden p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600 focus:ring-offset-2 ${scrolled ? 'text-amber-900' : 'text-white'}`}
             onClick={() => setIsOpen(!isOpen)}
-            aria-expanded={isOpen}
+            aria-expanded={isOpen ? 'true' : 'false'}
             aria-controls="mobile-menu"
             aria-label={isOpen ? 'Close menu' : 'Open menu'}
           >
