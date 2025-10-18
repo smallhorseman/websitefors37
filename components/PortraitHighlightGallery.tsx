@@ -9,6 +9,13 @@ import { ArrowRight, Users, Camera, Star } from 'lucide-react'
 const portraitHighlights = [
   {
     id: 1,
+    title: 'Featured Portrait Session',
+    description: 'Professional artistic portrait with natural lighting and composition',
+    src: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1760748636/54828488590_bb7f9c9b05_o_ha5the_e_gen_restore_e_improve_e_sharpen_l_image_upload_My_Brand_IMG_2115_mtuowt_c_scale_fl_relative_w_0.40_o_80_fl_layer_apply_g_south_west_x_0.03_y_0.04_shn3ar.jpg',
+    category: 'featured'
+  },
+  {
+    id: 2,
     title: 'Executive Headshot',
     description: 'Professional corporate portrait with studio lighting',
     src: 'https://images.unsplash.com/photo-1494790108755-2616b612b5a5?w=500&h=600&fit=crop',

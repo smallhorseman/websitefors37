@@ -3,41 +3,49 @@
 import React, { useState } from 'react'
 import { motion } from 'framer-motion'
 import Image from 'next/image'
+import Link from 'next/link'
+import { ArrowRight } from 'lucide-react'
 import NewsletterModal from './NewsletterModal'
 
 const galleryImages = [
   {
     id: 1,
+    category: 'portrait',
+    title: 'Featured Portrait Session',
+    src: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1760748636/54828488590_bb7f9c9b05_o_ha5the_e_gen_restore_e_improve_e_sharpen_l_image_upload_My_Brand_IMG_2115_mtuowt_c_scale_fl_relative_w_0.40_o_80_fl_layer_apply_g_south_west_x_0.03_y_0.04_shn3ar.jpg',
+  },
+  {
+    id: 2,
     category: 'wedding',
     title: 'Romantic Wedding Ceremony',
     src: 'https://images.unsplash.com/photo-1606216794074-735e91aa2c92?w=800&h=600&fit=crop',
   },
   {
-    id: 2,
+    id: 3,
     category: 'portrait',
     title: 'Professional Headshot',
     src: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1756077326/54694193043_f9ae5338ca_k_p7pjaz.jpg',
   },
   {
-    id: 3,
+    id: 4,
     category: 'event',
     title: 'Corporate Event',
     src: 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=800&h=600&fit=crop',
   },
   {
-    id: 4,
+    id: 5,
     category: 'commercial',
     title: 'Product Photography',
     src: 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=800&h=600&fit=crop',
   },
   {
-    id: 5,
+    id: 6,
     category: 'wedding',
     title: 'Wedding Reception',
     src: 'https://images.unsplash.com/photo-1519741497674-611481863552?w=800&h=600&fit=crop',
   },
   {
-    id: 6,
+    id: 7,
     category: 'portrait',
     title: 'Family Portrait',
     src: 'https://images.unsplash.com/photo-1511895426328-dc8714191300?w=800&h=600&fit=crop',
@@ -64,9 +72,10 @@ export default function Gallery() {
     <section className="py-20 bg-gray-50">
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
-          <h2 className="text-4xl font-bold mb-4">Our Portfolio</h2>
+          <h2 className="text-4xl font-bold mb-4">Portfolio Highlights</h2>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto mb-8">
-            Explore our diverse collection of photography work across different styles and occasions.
+            A curated selection from our extensive portfolio showcasing the diversity and quality 
+            of our photography across weddings, portraits, events, and commercial work.
           </p>
 
           {/* Category Filter */}
@@ -116,12 +125,24 @@ export default function Gallery() {
         </div>
 
         <div className="text-center mt-12">
-          <button 
-            onClick={() => setIsNewsletterModalOpen(true)}
-            className="btn-primary"
-          >
-            View Full Portfolio
-          </button>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+            <Link 
+              href="/gallery" 
+              className="btn-primary inline-flex items-center"
+            >
+              View Complete Gallery
+              <ArrowRight className="ml-2 h-5 w-5" />
+            </Link>
+            <button 
+              onClick={() => setIsNewsletterModalOpen(true)}
+              className="btn-secondary"
+            >
+              Get Portfolio Updates
+            </button>
+          </div>
+          <p className="text-gray-600 mt-4 text-sm">
+            Explore our full collection of wedding, portrait, event, and commercial photography
+          </p>
         </div>
 
         <NewsletterModal 

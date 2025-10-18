@@ -1,5 +1,6 @@
 import React from 'react'
 import Hero from '@/components/Hero'
+import FeaturedImageHighlight from '@/components/FeaturedImageHighlight'
 import Gallery from '@/components/Gallery'
 import Services from '@/components/Services'
 import PortraitHighlightGallery from '@/components/PortraitHighlightGallery'
@@ -31,6 +32,7 @@ export default function HomePage() {
     <>
       <LocalBusinessSchema />
       <Hero />
+      <FeaturedImageHighlight />
       <Services />
       <Gallery />
       <PortraitHighlightGallery />
