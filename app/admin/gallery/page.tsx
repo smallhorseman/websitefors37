@@ -277,6 +277,7 @@ export default function GalleryAdmin() {
             setCurrentPage(1)
           }}
           className="px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+          aria-label="Filter by category"
         >
           <option value="all">All Categories</option>
           <option value="wedding">Wedding</option>
@@ -337,6 +338,7 @@ export default function GalleryAdmin() {
                     checked={selectedImages.has(image.id)}
                     onChange={() => handleSelectImage(image.id)}
                     className="h-4 w-4 text-primary-600 rounded border-gray-300 bg-white"
+                    aria-label={`Select image ${image.title}`}
                   />
                 </div>
                 
