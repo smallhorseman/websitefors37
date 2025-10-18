@@ -3,6 +3,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { generateSEOMetadata } from '@/lib/seo-helpers'
 import { generateServiceSchema } from '@/lib/seo-config'
+import CommercialHighlightGallery from '@/components/CommercialHighlightGallery'
 import { Building2, Camera, Users, Briefcase, CheckCircle, ArrowRight } from 'lucide-react'
 
 export const metadata = generateSEOMetadata({
@@ -202,6 +203,9 @@ export default function CommercialPhotographyPage() {
           </div>
         </div>
       </section>
+
+      {/* Commercial Highlight Gallery */}
+      <CommercialHighlightGallery />
 
       {/* Service Areas */}
       <section className="py-16 bg-gray-50">

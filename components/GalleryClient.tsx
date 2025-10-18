@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, ChevronLeft, ChevronRight, Star } from 'lucide-react'
+import { useSearchParams } from 'next/navigation'
 
 interface GalleryImage {
   id: string
@@ -20,9 +21,19 @@ interface GalleryProps {
 }
 
 export default function GalleryClient({ initialImages, categories }: GalleryProps) {
+  const searchParams = useSearchParams()
+  const categoryParam = searchParams.get('category')
+  
   const [activeCategory, setActiveCategory] = useState('all')
   const [selectedImage, setSelectedImage] = useState<GalleryImage | null>(null)
   const [selectedIndex, setSelectedIndex] = useState(0)
+
+  // Set initial category from URL parameter
+  useEffect(() => {
+    if (categoryParam && categories.includes(categoryParam)) {
+      setActiveCategory(categoryParam)
+    }
+  }, [categoryParam, categories])
   
   const filteredImages = activeCategory === 'all'
     ? initialImages

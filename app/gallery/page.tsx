@@ -1,7 +1,7 @@
 import React from 'react'
 import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
-import GalleryClient from '@/components/GalleryClient'
+import GalleryWithSuspense from '@/components/GalleryWithSuspense'
 import { generateSEOMetadata } from '@/lib/seo-helpers'
 
 export const metadata = generateSEOMetadata({
@@ -61,7 +61,7 @@ export default async function GalleryPage() {
       </div>
       
       <div className="container mx-auto px-4 py-16">
-        <GalleryClient initialImages={images || []} categories={categories} />
+        <GalleryWithSuspense initialImages={images || []} categories={categories} />
       </div>
     </div>
   )

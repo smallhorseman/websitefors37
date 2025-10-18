@@ -3,6 +3,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { generateSEOMetadata } from '@/lib/seo-helpers'
 import { generateServiceSchema } from '@/lib/seo-config'
+import PortraitHighlightGallery from '@/components/PortraitHighlightGallery'
 import { Users, Camera, Clock, Star, CheckCircle, ArrowRight } from 'lucide-react'
 
 export const metadata = generateSEOMetadata({
@@ -172,6 +173,9 @@ export default function PortraitPhotographyPage() {
           </div>
         </div>
       </section>
+
+      {/* Portrait Highlight Gallery */}
+      <PortraitHighlightGallery />
 
       {/* Service Areas */}
       <section className="py-16 bg-white">
