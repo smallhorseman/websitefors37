@@ -11,7 +11,7 @@ const portraitHighlights = [
     id: 1,
     title: 'Executive Headshot',
     description: 'Professional corporate portrait with studio lighting',
-    src: 'https://images.unsplash.com/photo-1494790108755-2616b612b5a5?w=500&h=600&fit=crop',
+    src: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1760503070/F836BA20-9A10-4D23-81E3-9CB8999E1368_1_105_c_ji0ngc_e_gen_restore_e_improve_e_sharpen_l_image_upload_My_Brand_IMG_2115_mtuowt_c_scale_fl_relative_w_0.36_o_80_fl_layer_apply_g_west_x_0.03_y_0.04_gxtw8e.jpg',
     category: 'headshots'
   },
   {
