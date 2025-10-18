@@ -75,7 +75,12 @@ export default async function BlogPage() {
                   )}
                   <div className="flex justify-between items-center text-sm text-gray-500">
                     <span>{post.author || 'Admin'}</span>
-                    <span>{new Date(post.published_at).toLocaleDateString()}</span>
+                    <span>
+                      {post.published_at 
+                        ? new Date(post.published_at).toLocaleDateString() 
+                        : new Date(post.created_at || Date.now()).toLocaleDateString()
+                      }
+                    </span>
                   </div>
                 </div>
               </Link>

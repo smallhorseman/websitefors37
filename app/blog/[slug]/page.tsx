@@ -68,7 +68,12 @@ export default async function BlogPostPage({ params }: { params: { slug: string 
           <div className="flex flex-wrap items-center text-sm text-gray-600 mb-6">
             <div className="flex items-center mr-6 mb-2">
               <Calendar className="h-4 w-4 mr-1" />
-              <span>{new Date(post.published_at).toLocaleDateString()}</span>
+              <span>
+                {post.published_at 
+                  ? new Date(post.published_at).toLocaleDateString() 
+                  : new Date(post.created_at || Date.now()).toLocaleDateString()
+                }
+              </span>
             </div>
             <div className="flex items-center mr-6 mb-2">
               <User className="h-4 w-4 mr-1" />
