@@ -1,6 +1,6 @@
 'use client'
 
-import React from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -58,6 +58,20 @@ const portraitStats = [
 ]
 
 export default function PortraitHighlightGallery() {
+  const [currentImageIndex, setCurrentImageIndex] = useState(0)
+  const intervalRef = useRef<NodeJS.Timeout | null>(null)
+
+  // Slideshow functionality
+  useEffect(() => {
+    intervalRef.current = setInterval(() => {
+      setCurrentImageIndex(prev => (prev + 1) % portraitHighlights.length)
+    }, 4000) // Change image every 4 seconds
+
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current)
+    }
+  }, [])
+
   return (
     <section className="py-20 bg-white">
       <div className="container mx-auto px-4">
@@ -98,6 +112,64 @@ export default function PortraitHighlightGallery() {
             ))}
           </motion.div>
         </div>
+
+        {/* Main Slideshow */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.3 }}
+          viewport={{ once: true }}
+          className="mb-16"
+        >
+          <div className="relative max-w-4xl mx-auto">
+            <div className="aspect-[16/9] rounded-2xl overflow-hidden shadow-2xl">
+              <div className="relative w-full h-full">
+                {portraitHighlights.map((image, index) => (
+                  <div
+                    key={image.id}
+                    className={`absolute inset-0 transition-opacity duration-1000 ${
+                      index === currentImageIndex ? 'opacity-100' : 'opacity-0'
+                    }`}
+                  >
+                    <Image
+                      src={image.src}
+                      alt={image.title}
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 1200px) 100vw, 1200px"
+                      priority={index === 0}
+                      quality={90}
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                    <div className="absolute bottom-8 left-8 right-8 text-white">
+                      <h3 className="text-2xl md:text-3xl font-bold mb-2">{image.title}</h3>
+                      <p className="text-lg text-gray-200 mb-4">{image.description}</p>
+                      <span className="inline-block px-4 py-2 bg-amber-600 rounded-full text-sm font-medium capitalize">
+                        {image.category}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Slideshow Indicators */}
+            <div className="flex justify-center mt-6 space-x-2">
+              {portraitHighlights.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => setCurrentImageIndex(index)}
+                  className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                    index === currentImageIndex 
+                      ? 'bg-amber-600 scale-125' 
+                      : 'bg-gray-300 hover:bg-gray-400'
+                  }`}
+                  aria-label={`Go to slide ${index + 1}`}
+                />
+              ))}
+            </div>
+          </div>
+        </motion.div>
 
         {/* Gallery Grid */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
