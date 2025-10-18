@@ -63,22 +63,22 @@ export default function Hero() {
           alt={galleryImages.length > 0 ? galleryImages[currentIndex]?.title || 'Homepage slideshow' : 'Studio 37 Photography background'}
           fill
           priority
+          quality={90}
+          sizes="100vw"
           className="object-cover transition-opacity duration-1000"
+          placeholder="blur"
+          blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWEREiMxUf/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q=="
         />
       </div>
 
       {/* Overlay with vintage gradient */}
       <div className="absolute inset-0 bg-gradient-to-t from-amber-900/80 via-amber-800/50 to-transparent z-10"></div>
 
-      {/* Film grain texture overlay */}
-      <div className="absolute inset-0 opacity-20 mix-blend-overlay z-10">
-        <Image 
-          src="https://res.cloudinary.com/dmjxho2rl/image/upload/v1759639916/Pngtree_film_grain_overlay_8671079_amgbm1.png"
-          alt=""
-          fill
-          className="object-cover"
-        />
-      </div>
+      {/* Film grain texture overlay - optimized */}
+      <div 
+        className="absolute inset-0 opacity-20 mix-blend-overlay z-10 film-grain-bg"
+        aria-hidden="true"
+      />
 
       <div className="relative z-20 container mx-auto px-4 text-center">
         <motion.div

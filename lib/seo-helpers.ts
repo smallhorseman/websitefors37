@@ -16,7 +16,7 @@ export function generateSEOMetadata({
   description,
   keywords = [],
   canonicalUrl,
-  ogImage = '/og-image.jpg',
+  ogImage = '/api/og',
   structuredData,
   pageType = 'website'
 }: SEOProps): Metadata {
@@ -39,6 +39,11 @@ export function generateSEOMetadata({
 
   const allKeywords = [...keywords, ...defaultKeywords]
 
+  // Generate dynamic OG image URL
+  const ogImageUrl = ogImage === '/api/og' 
+    ? `/api/og?title=${encodeURIComponent(title)}&subtitle=${encodeURIComponent(description)}`
+    : ogImage
+
   const metadata: Metadata = {
     title: fullTitle,
     description,
@@ -60,7 +65,7 @@ export function generateSEOMetadata({
       type: pageType === 'article' ? 'article' : 'website',
       images: [
         {
-          url: ogImage,
+          url: ogImageUrl,
           width: 1200,
           height: 630,
           alt: `${businessInfo.name} - Professional Photography in Pinehurst, TX`
@@ -71,7 +76,7 @@ export function generateSEOMetadata({
       card: 'summary_large_image',
       title: fullTitle,
       description,
-      images: [ogImage],
+      images: [ogImageUrl],
       creator: '@studio37photo'
     },
     robots: {

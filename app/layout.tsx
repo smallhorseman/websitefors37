@@ -1,12 +1,23 @@
 import React from 'react'
 import './globals.css'
-import { Inter } from 'next/font/google'
+import { Inter, Playfair_Display } from 'next/font/google'
 import Navigation from '@/components/Navigation'
 import ChatBot from '@/components/ChatBot'
+import WebVitals from '@/components/WebVitals'
 import { Toaster } from 'react-hot-toast'
 import { businessInfo, generateLocalBusinessSchema } from '@/lib/seo-config'
 
-const inter = Inter({ subsets: ['latin'] })
+const inter = Inter({ 
+  subsets: ['latin'],
+  variable: '--font-inter',
+  display: 'swap',
+})
+
+const playfair = Playfair_Display({ 
+  subsets: ['latin'],
+  variable: '--font-playfair',
+  display: 'swap',
+})
 
 export const metadata = {
   title: {
@@ -54,8 +65,17 @@ export default function RootLayout({
           }}
         />
         <meta name="google-site-verification" content={process.env.GOOGLE_SITE_VERIFICATION || ''} />
+        {/* Preload critical resources */}
+        <link rel="preload" href="https://res.cloudinary.com/dmjxho2rl/image/upload/v1759639187/A4B03835-ED8B-4FBB-A27E-1F2EE6CA1A18_1_105_c_gstgil_e_gen_restore_e_improve_e_sharpen_l_image_upload_My_Brand_IMG_2115_mtuowt_c_scale_fl_relative_w_0.40_o_80_fl_layer_apply_g_south_x_0.03_y_0.04_yqgycj.jpg" as="image" />
+        <link rel="preload" href="https://res.cloudinary.com/dmjxho2rl/image/upload/v1759639916/Pngtree_film_grain_overlay_8671079_amgbm1.png" as="image" />
+        {/* DNS prefetch for external domains */}
+        <link rel="dns-prefetch" href="//images.unsplash.com" />
+        <link rel="dns-prefetch" href="//res.cloudinary.com" />
+        <link rel="dns-prefetch" href="//fonts.googleapis.com" />
+        <link rel="dns-prefetch" href="//fonts.gstatic.com" />
       </head>
-      <body className={inter.className}>
+      <body className={`${inter.variable} ${playfair.variable} font-sans`}>
+        <WebVitals />
         <Navigation />
         <main className="min-h-screen">
           {children}

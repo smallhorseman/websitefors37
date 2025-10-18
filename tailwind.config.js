@@ -8,8 +8,8 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Poppins', 'ui-sans-serif', 'system-ui'],
-        serif: ['Playfair Display', 'ui-serif', 'Georgia'],
+        sans: ['var(--font-inter)', 'Poppins', 'ui-sans-serif', 'system-ui'],
+        serif: ['var(--font-playfair)', 'Playfair Display', 'ui-serif', 'Georgia'],
       },
       colors: {
         primary: {
