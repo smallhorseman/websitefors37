@@ -120,7 +120,7 @@ export default function AdminSidebar() {
       icon: <FileText className="w-5 h-5" />,
       submenu: [
         { name: 'Pages', path: '/admin/content' },
-        { name: 'Blog Posts', path: '/admin/content/blog' }
+        { name: 'Blog Posts', path: '/admin/blog' }
       ]
     },
     {
