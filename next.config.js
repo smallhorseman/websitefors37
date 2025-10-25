@@ -7,8 +7,12 @@ const nextConfig = {
     deviceSizes: [640, 750, 828, 1080, 1200, 1920],  // Reduced larger sizes
     imageSizes: [16, 32, 48, 64, 96, 128, 256],  // Optimized sizes
     minimumCacheTTL: 31536000, // 1 year cache
-    contentSecurityPolicy: "default-src 'self'; img-src 'self' blob: data: https://*.cloudinary.com https://*.unsplash.com;",
+    domains: ['res.cloudinary.com', 'images.unsplash.com'],
     remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'res.cloudinary.com',
+      },
       {
         protocol: 'https',
         hostname: 'images.unsplash.com',
@@ -87,7 +91,15 @@ const nextConfig = {
           },
           {
             key: 'Referrer-Policy',
-            value: 'origin-when-cross-origin'
+            value: 'strict-origin-when-cross-origin'
+          },
+          {
+            key: 'Access-Control-Allow-Origin',
+            value: 'https://res.cloudinary.com'
+          },
+          {
+            key: 'Cross-Origin-Resource-Policy',
+            value: 'cross-origin'
           }
         ]
       },
