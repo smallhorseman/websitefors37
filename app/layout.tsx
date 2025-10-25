@@ -22,10 +22,10 @@ const playfair = Playfair_Display({
 export const metadata = {
   title: {
     template: `%s | ${businessInfo.name} - Professional Photography Pinehurst, TX`,
-    default: `${businessInfo.name} - Professional Photography Services in Pinehurst, Texas`
+    default: `Studio37 - Houston-based Photography | Blending Vintage Film Warmth with Modern Digital Precision`
   },
-  description: businessInfo.description,
-  keywords: 'photography, photographer, Pinehurst TX, wedding photography, portrait photography, event photography, commercial photography, Texas photographer',
+  description: "Studio37 Photography blends vintage film warmth with modern digital precision. We specialize in weddings, portraits, and commercial photography in Houston, TX and surrounding areas.",
+  keywords: 'photography, photographer, Houston TX, Pinehurst TX, wedding photography, portrait photography, vintage style photography, film photography, digital photography, commercial photography',
   authors: [{ name: businessInfo.name }],
   creator: businessInfo.name,
   publisher: businessInfo.name,
