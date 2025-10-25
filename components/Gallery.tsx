@@ -8,39 +8,39 @@ import NewsletterModal from './NewsletterModal'
 const galleryImages = [
   {
     id: 1,
-    category: 'wedding',
-    title: 'Romantic Wedding Ceremony',
-    src: 'https://images.unsplash.com/photo-1606216794074-735e91aa2c92?w=800&h=600&fit=crop',
+    category: 'portrait',
+    title: 'Professional Portrait',
+    src: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1692077326/54694193043_f9ae5338ca_k_p7pjaz.jpg',
   },
   {
     id: 2,
     category: 'portrait',
-    title: 'Professional Headshot',
-    src: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1692077326/54694193043_f9ae5338ca_k_p7pjaz.jpg',
+    title: 'Family Portrait',
+    src: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1691358417/PANA3494_afj4t9.jpg',
   },
   {
     id: 3,
-    category: 'event',
-    title: 'Corporate Event',
-    src: 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=800&h=600&fit=crop',
+    category: 'commercial',
+    title: 'Product Photography',
+    src: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1692503070/commercial/product-1.jpg',
   },
   {
     id: 4,
-    category: 'commercial',
-    title: 'Product Photography',
-    src: 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=800&h=600&fit=crop',
+    category: 'event',
+    title: 'Corporate Event',
+    src: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1691358417/events/corporate-1.jpg',
   },
   {
     id: 5,
     category: 'wedding',
-    title: 'Wedding Reception',
-    src: 'https://images.unsplash.com/photo-1519741497674-611481863552?w=800&h=600&fit=crop',
+    title: 'Wedding Ceremony',
+    src: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1691358417/weddings/ceremony-1.jpg',
   },
   {
     id: 6,
     category: 'portrait',
-    title: 'Family Portrait',
-    src: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1691358417/PANA3494_afj4t9.jpg',
+    title: 'Studio Portrait',
+    src: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1691358417/portraits/studio-1.jpg',
   }
 ]
 

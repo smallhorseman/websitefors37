@@ -9,9 +9,9 @@ import { ArrowRight, Users, Camera, Star } from 'lucide-react'
 const portraitHighlights = [
   {
     id: 1,
-    title: 'Executive Headshot',
-    description: 'Professional corporate portrait with studio lighting',
-    src: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1692503070/headshots/executive-portrait.jpg',
+    title: 'Professional Portrait',
+    description: 'Clean, modern business portrait with studio lighting',
+    src: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1692077326/54694193043_f9ae5338ca_k_p7pjaz.jpg',
     category: 'headshots'
   },
   {
@@ -23,31 +23,31 @@ const portraitHighlights = [
   },
   {
     id: 3,
-    title: 'Senior Portrait',
-    description: 'Creative graduation portraits with personality',
-    src: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500&h=600&fit=crop',
-    category: 'senior'
+    title: 'Studio Portrait',
+    description: 'Professional portraits in a controlled environment',
+    src: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1691358417/portraits/studio-1.jpg',
+    category: 'studio'
   },
   {
     id: 4,
-    title: 'Maternity Session',
-    description: 'Beautiful expecting mother portraits',
-    src: 'https://images.unsplash.com/photo-1555252333-9f8e92e65df9?w=500&h=600&fit=crop',
-    category: 'maternity'
+    title: 'Corporate Portrait',
+    description: 'Professional business and corporate portraits',
+    src: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1691358417/portraits/corporate-1.jpg',
+    category: 'business'
   },
   {
     id: 5,
     title: 'Creative Portrait',
     description: 'Artistic portrait with dramatic lighting',
-    src: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=500&h=600&fit=crop',
+    src: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1691358417/portraits/creative-1.jpg',
     category: 'creative'
   },
   {
     id: 6,
-    title: 'Professional Headshot',
-    description: 'Clean, modern business portrait',
-    src: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1692077326/54694193043_f9ae5338ca_k_p7pjaz.jpg',
-    category: 'headshots'
+    title: 'Personal Branding',
+    description: 'Modern portraits for your professional brand',
+    src: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1691358417/portraits/branding-1.jpg',
+    category: 'branding'
   }
 ]
 
