@@ -6,247 +6,108 @@ import OptimizedImage from './OptimizedImage'
 import Link from 'next/link'
 import { ArrowRight, Users, Camera, Star } from 'lucide-react'
 
-const portraitHighlights = [
-  {
-    id: 1,
-    title: 'Professional Portrait',
-    description: 'Clean, modern business portrait with studio lighting',
-      src: '/v1761358417/PANA3494_afj4t9_e_gen_restore',
-    category: 'headshots'
-  },
-  {
-    id: 2,
-    title: 'Family Portrait Session',
-    description: 'Warm, natural family portraits in outdoor setting',
-      src: '/v1760503070/F836BA20-9A10-4D23-81E3-9CB8999E1368_1_105_c_ji0ngc',
-    category: 'family'
-  },
-  {
-    id: 3,
-    title: 'Studio Portrait',
-    description: 'Professional portraits in a controlled environment',
-      src: '/v1756082735/54740994305_b99379cf95_h_ky7is7',
-    category: 'studio'
-  },
-  {
-    id: 4,
-    title: 'Corporate Portrait',
-    description: 'Professional business and corporate portraits',
-      src: '/v1756081262/Untitled_convert.io_jnf0gn_aclplu',
-    category: 'business'
-  },
-  {
-    id: 5,
-    title: 'Creative Portrait',
-    description: 'Artistic portrait with dramatic lighting',
-      src: '/v1756078209/54681762715_a8ed7d4dbc_o_budwjo',
-    category: 'creative'
-  },
-  {
-    id: 6,
-    title: 'Personal Branding',
-    description: 'Modern portraits for your professional brand',
-      src: '/v1756077326/54694193043_f9ae5338ca_k_p7pjaz',
-    category: 'branding'
-  }
-]
+ 'use client'
 
-const portraitStats = [
-  { icon: Users, label: 'Happy Clients', value: '500+' },
-  { icon: Camera, label: 'Portrait Sessions', value: '1,200+' },
-  { icon: Star, label: 'Average Rating', value: '4.9/5' }
-]
+ import React from 'react'
+ import { motion } from 'framer-motion'
+ import OptimizedImage from './OptimizedImage'
+ import Link from 'next/link'
 
-export default function PortraitHighlightGallery() {
-  const [currentImageIndex, setCurrentImageIndex] = useState(0)
-  const intervalRef = useRef<NodeJS.Timeout | null>(null)
+ const images = [
+   {
+     id: 'p1',
+     title: 'Professional Portrait',
+     description: 'Clean, modern business portrait with studio lighting',
+     src: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1761358417/PANA3494_afj4t9_e_gen_restore_e_improve_e_sharpen_l_image_upload_My_Brand_IMG_2115_mtuowt_c_scale_fl_relative_w_0.20_o_80_fl_layer_apply_g_north_x_0.03_y_0.04_iatwyt.jpg',
+     category: 'headshots'
+   },
+   {
+     id: 'p2',
+     title: 'Family Portrait',
+     description: 'Warm, natural family portraits in outdoor settings',
+     src: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1760503070/F836BA20-9A10-4D23-81E3-9CB8999E1368_1_105_c_ji0ngc_e_gen_restore_e_improve_e_sharpen_l_image_upload_My_Brand_IMG_2115_mtuowt_c_scale_fl_relative_w_0.36_o_80_fl_layer_apply_g_west_x_0.03_y_0.04_gxtw8e.jpg',
+     category: 'family'
+   },
+   {
+     id: 'p3',
+     title: 'Studio Portrait',
+     description: 'Professional studio portrait session',
+     src: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1756082735/54740994305_b99379cf95_h_ky7is7.jpg',
+     category: 'studio'
+   },
+   {
+     id: 'p4',
+     title: 'Corporate Portrait',
+     description: 'Business and corporate portrait',
+     src: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1756081262/Untitled_convert.io_jnf0gn_aclplu.jpg',
+     category: 'business'
+   },
+   {
+     id: 'p5',
+     title: 'Creative Portrait',
+     description: 'Artistic creative portrait',
+     src: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1756078209/54681762715_a8ed7d4dbc_o_budwjo.jpg',
+     category: 'creative'
+   },
+   {
+     id: 'p6',
+     title: 'Personal Branding',
+     description: 'Portraits for personal branding',
+     src: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1756077326/54694193043_f9ae5338ca_k_p7pjaz.jpg',
+     category: 'branding'
+   }
+ ]
 
-  // Slideshow functionality
-  useEffect(() => {
-    intervalRef.current = setInterval(() => {
-      setCurrentImageIndex(prev => (prev + 1) % portraitHighlights.length)
-    }, 4000) // Change image every 4 seconds
+ export default function PortraitHighlightGallery() {
+   return (
+     <section className="py-20 bg-white">
+       <div className="container mx-auto px-4">
+         <div className="text-center mb-12">
+           <motion.h2
+             initial={{ opacity: 0, y: 20 }}
+             whileInView={{ opacity: 1, y: 0 }}
+             transition={{ duration: 0.5 }}
+             className="text-3xl md:text-4xl font-bold mb-3"
+           >
+             Portrait Highlights
+           </motion.h2>
+           <p className="text-gray-600 max-w-2xl mx-auto">
+             A curated selection of our portrait work — headshots, family sessions, studio
+             portraits, and creative branding images.
+           </p>
+         </div>
 
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current)
-    }
-  }, [])
+         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+           {images.map((img, i) => (
+             <motion.div
+               key={img.id}
+               initial={{ opacity: 0, y: 10 }}
+               whileInView={{ opacity: 1, y: 0 }}
+               transition={{ duration: 0.45, delay: i * 0.06 }}
+               className="relative rounded-lg overflow-hidden bg-gray-100 aspect-[4/5] shadow-lg"
+             >
+               <OptimizedImage
+                 src={img.src}
+                 alt={img.title}
+                 fill
+                 imgClassName="object-cover"
+                 priority={i < 3}
+                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+               />
 
-  return (
-    <section className="py-20 bg-white">
-      <div className="container mx-auto px-4">
-        {/* Header */}
-        <div className="text-center mb-16">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
-          >
-            <h2 className="text-4xl md:text-5xl font-bold mb-6">
-              Portrait Photography
-              <span className="block text-amber-600">Highlights</span>
-            </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
-              From professional headshots to intimate family moments, we capture the essence 
-              of who you are with artistic excellence and personal attention.
-            </p>
-          </motion.div>
-
-          {/* Stats */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            viewport={{ once: true }}
-            className="grid grid-cols-3 gap-8 max-w-2xl mx-auto mb-12"
-          >
-            {portraitStats.map((stat, index) => (
-              <div key={index} className="text-center">
-                <div className="inline-flex items-center justify-center w-12 h-12 bg-amber-100 rounded-full mb-3">
-                  <stat.icon className="w-6 h-6 text-amber-600" />
-                </div>
-                <div className="text-2xl font-bold text-amber-900 mb-1">{stat.value}</div>
-                <div className="text-sm text-gray-600">{stat.label}</div>
-              </div>
-            ))}
-          </motion.div>
-        </div>
-
-        {/* Main Slideshow */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.3 }}
-          viewport={{ once: true }}
-          className="mb-16"
-        >
-          <div className="relative max-w-4xl mx-auto">
-            <div className="aspect-[16/9] rounded-2xl overflow-hidden shadow-2xl">
-              <div className="relative w-full h-full">
-                {portraitHighlights.map((image, index) => (
-                  <div
-                    key={image.id}
-                    className={`absolute inset-0 transition-opacity duration-1000 ${
-                      index === currentImageIndex ? 'opacity-100' : 'opacity-0'
-                    }`}
-                  >
-                      <OptimizedImage
-                        src={`https://res.cloudinary.com/dmjxho2rl/image/upload${image.src}.jpg`}
-                        alt={image.title}
-                        fill
-                        imgClassName="object-cover"
-                        sizes="(max-width: 1200px) 100vw, 1200px"
-                        priority={index === 0}
-                      />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-                    <div className="absolute bottom-8 left-8 right-8 text-white">
-                      <h3 className="text-2xl md:text-3xl font-bold mb-2">{image.title}</h3>
-                      <p className="text-lg text-gray-200 mb-4">{image.description}</p>
-                      <span className="inline-block px-4 py-2 bg-amber-600 rounded-full text-sm font-medium capitalize">
-                        {image.category}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Slideshow Indicators */}
-            <div className="flex justify-center mt-6 space-x-2">
-              {portraitHighlights.map((_, index) => (
-                <button
-                  key={index}
-                  onClick={() => setCurrentImageIndex(index)}
-                  className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                    index === currentImageIndex 
-                      ? 'bg-amber-600 scale-125' 
-                      : 'bg-gray-300 hover:bg-gray-400'
-                  }`}
-                  aria-label={`Go to slide ${index + 1}`}
-                />
-              ))}
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Gallery Grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-          {portraitHighlights.map((image, index) => (
-            <motion.div
-              key={image.id}
-              initial={{ opacity: 0, scale: 0.9 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
-              viewport={{ once: true }}
-              className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-slate-800 via-slate-900 to-slate-800 aspect-[4/5] shadow-lg hover:shadow-xl transition-all duration-300"
-            >
-              <OptimizedImage
-                src={image.src}
-                alt={image.title}
-                fill
-                imgClassName="object-cover transition-transform duration-700 group-hover:scale-110"
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                // Only prioritize the first grid item to avoid multiple eager loads
-                priority={index === 0}
-              />
-              
-              {/* Overlay */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-              
-              {/* Content */}
-              <div className="absolute bottom-0 left-0 right-0 p-6 text-white transform translate-y-full group-hover:translate-y-0 transition-transform duration-300">
-                <h3 className="text-lg font-semibold mb-2">{image.title}</h3>
-                <p className="text-sm text-gray-200 mb-3">{image.description}</p>
-                <span className="inline-block px-3 py-1 bg-amber-600 rounded-full text-xs font-medium capitalize">
-                  {image.category}
-                </span>
-              </div>
-
-              {/* Category Badge */}
-              <div className="absolute top-4 left-4">
-                <span className="inline-block px-3 py-1 bg-white/90 backdrop-blur-sm rounded-full text-xs font-medium text-gray-800 capitalize">
-                  {image.category}
-                </span>
-              </div>
-            </motion.div>
-          ))}
-        </div>
-
-        {/* Call to Action */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          viewport={{ once: true }}
-          className="text-center"
-        >
-          <div className="bg-amber-50 rounded-2xl p-8 max-w-4xl mx-auto">
-            <h3 className="text-2xl font-bold text-amber-900 mb-4">
-              Ready for Your Portrait Session?
-            </h3>
-            <p className="text-amber-700 mb-6 max-w-2xl mx-auto">
-              Whether you need professional headshots, family portraits, or creative sessions, 
-              we'll work together to create images that truly represent you.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <Link 
-                href="/services/portrait-photography" 
-                className="btn-primary inline-flex items-center"
-              >
-                View Portrait Packages
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Link>
-              <Link 
-                href="/gallery?category=portrait" 
-                className="btn-secondary inline-flex items-center"
-              >
-                See Full Portrait Gallery
-              </Link>
-            </div>
-          </div>
-        </motion.div>
-      </div>
-    </section>
-  )
-}
+               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300 flex items-end">
+                 <div className="p-4 text-white w-full">
+                   <h3 className="font-semibold text-lg">{img.title}</h3>
+                   <p className="text-sm text-gray-200 mt-1 line-clamp-2">{img.description}</p>
+                   <div className="mt-3">
+                     <Link href={`/gallery?category=portrait`} className="inline-block text-xs bg-amber-600 px-3 py-1 rounded-full">View more</Link>
+                   </div>
+                 </div>
+               </div>
+             </motion.div>
+           ))}
+         </div>
+       </div>
+     </section>
+   )
+ }
