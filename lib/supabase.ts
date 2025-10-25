@@ -65,7 +65,7 @@ export interface BlogPost {
   published: boolean
   published_at?: string
   meta_description?: string
-  meta_keywords?: string
+  meta_keywords?: string[]
   author_id: string
   category?: string
   tags?: string[]

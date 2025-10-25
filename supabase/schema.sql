@@ -102,6 +102,7 @@ CREATE TABLE IF NOT EXISTS blog_posts (
   category TEXT DEFAULT 'photography',
   tags TEXT[],
   meta_description TEXT,
+  meta_keywords TEXT[],
   published BOOLEAN DEFAULT false,
   published_at TIMESTAMPTZ DEFAULT NOW(),
   created_at TIMESTAMPTZ DEFAULT NOW(),
