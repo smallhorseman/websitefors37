@@ -18,7 +18,7 @@ export default function BlogManagementPage() {
     content: '',
     featured_image: '',
     meta_description: '',
-    meta_keywords: '',
+    meta_keywords: '',  // Will be split into array on submit
     author: 'Admin',
     category: '',
     tags: [] as string[],
@@ -206,7 +206,7 @@ export default function BlogManagementPage() {
       content: post.content,
       featured_image: post.featured_image || '',
       meta_description: post.meta_description || '',
-      meta_keywords: post.meta_keywords || '',
+      meta_keywords: Array.isArray(post.meta_keywords) ? post.meta_keywords.join(', ') : post.meta_keywords || '',
       author: post.author_id || 'Admin',
       category: post.category || '',
       tags: post.tags || [],
