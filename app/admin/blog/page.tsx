@@ -105,7 +105,7 @@ export default function BlogManagementPage() {
         content: postForm.content,
         featured_image: postForm.featured_image,
         meta_description: postForm.meta_description,
-        meta_keywords: postForm.meta_keywords,
+        meta_keywords: postForm.meta_keywords.split(',').map(k => k.trim()),
         author: postForm.author,
         category: postForm.category,
         tags: postForm.tags,
