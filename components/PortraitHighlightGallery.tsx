@@ -9,44 +9,44 @@ import { ArrowRight, Users, Camera, Star } from 'lucide-react'
 const portraitHighlights = [
   {
     id: 1,
-    title: 'Executive Headshot',
-    description: 'Professional corporate portrait with studio lighting',
-    src: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1760503070/F836BA20-9A10-4D23-81E3-9CB8999E1368_1_105_c_ji0ngc_e_gen_restore_e_improve_e_sharpen_l_image_upload_My_Brand_IMG_2115_mtuowt_c_scale_fl_relative_w_0.36_o_80_fl_layer_apply_g_west_x_0.03_y_0.04_gxtw8e.jpg',
+    title: 'Professional Headshot',
+    description: 'Clean, modern business portrait with natural lighting',
+    src: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1/portraits/professional-headshot',
     category: 'headshots'
   },
   {
     id: 2,
-    title: 'Family Portrait Session',
+    title: 'Family Portrait',
     description: 'Warm, natural family portraits in outdoor setting',
-    src: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1761358417/PANA3494_afj4t9_e_gen_restore_e_improve_e_sharpen_l_image_upload_My_Brand_IMG_2115_mtuowt_c_scale_fl_relative_w_0.20_o_80_fl_layer_apply_g_north_x_0.03_y_0.04_iatwyt.jpg',
+    src: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1/portraits/family-portrait',
     category: 'family'
   },
   {
     id: 3,
-    title: 'Senior Portrait',
-    description: 'Creative graduation portraits with personality',
-    src: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500&h=600&fit=crop',
-    category: 'senior'
+    title: 'Executive Portrait',
+    description: 'Professional corporate portraits with studio lighting',
+    src: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1/portraits/executive-portrait',
+    category: 'headshots'
   },
   {
     id: 4,
-    title: 'Maternity Session',
-    description: 'Beautiful expecting mother portraits',
-    src: 'https://images.unsplash.com/photo-1555252333-9f8e92e65df9?w=500&h=600&fit=crop',
-    category: 'maternity'
+    title: 'Lifestyle Portrait',
+    description: 'Natural, candid portraits in everyday settings',
+    src: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1/portraits/lifestyle-portrait',
+    category: 'lifestyle'
   },
   {
     id: 5,
     title: 'Creative Portrait',
     description: 'Artistic portrait with dramatic lighting',
-    src: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=500&h=600&fit=crop',
+    src: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1/portraits/creative-portrait',
     category: 'creative'
   },
   {
     id: 6,
-    title: 'Professional Headshot',
-    description: 'Clean, modern business portrait',
-    src: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=500&h=600&fit=crop',
+    title: 'Personal Branding',
+    description: 'Modern portraits for your professional brand',
+    src: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1/portraits/personal-branding',
     category: 'headshots'
   }
 ]
