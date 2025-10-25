@@ -103,7 +103,8 @@ export default function Gallery() {
                 fill
                 imgClassName="object-cover transition-transform duration-500 group-hover:scale-110"
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                priority={index < 6}
+                // Only prioritize the first image to avoid eager-loading many images
+                priority={index === 0}
               />
               <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
                 <h3 className="text-white text-lg font-semibold">{image.title}</h3>
