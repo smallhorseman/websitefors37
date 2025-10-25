@@ -8,39 +8,39 @@ import NewsletterModal from './NewsletterModal'
 const galleryImages = [
   {
     id: 1,
-    category: 'portrait',
-    title: 'Professional Portrait',
-    src: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1698238472/portraits/PortraitsPortfolio_1_yjzzsw.jpg',
+    category: 'wedding',
+    title: 'Romantic Wedding Ceremony',
+    src: 'https://images.unsplash.com/photo-1606216794074-735e91aa2c92?w=800&h=600&fit=crop',
   },
   {
     id: 2,
     category: 'portrait',
-    title: 'Studio Portrait',
-    src: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1698238472/portraits/PortraitsPortfolio_2_dxvtw7.jpg',
+    title: 'Professional Headshot',
+    src: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1692077326/54694193043_f9ae5338ca_k_p7pjaz.jpg',
   },
   {
     id: 3,
-    category: 'portrait',
-    title: 'Classic Portrait',
-    src: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1698238472/portraits/PortraitsPortfolio_3_kfdxk4.jpg',
+    category: 'event',
+    title: 'Corporate Event',
+    src: 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=800&h=600&fit=crop',
   },
   {
     id: 4,
-    category: 'portrait',
-    title: 'Corporate Headshot',
-    src: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1698238472/portraits/PortraitsPortfolio_4_rq2yhj.jpg',
+    category: 'commercial',
+    title: 'Product Photography',
+    src: 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=800&h=600&fit=crop',
   },
   {
     id: 5,
-    category: 'portrait',
-    title: 'Modern Portrait',
-    src: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1698238472/portraits/PortraitsPortfolio_5_brqkvm.jpg',
+    category: 'wedding',
+    title: 'Wedding Reception',
+    src: 'https://images.unsplash.com/photo-1519741497674-611481863552?w=800&h=600&fit=crop',
   },
   {
     id: 6,
     category: 'portrait',
-    title: 'Natural Light Portrait',
-    src: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1698238472/portraits/PortraitsPortfolio_6_wztdk7.jpg',
+    title: 'Family Portrait',
+    src: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1691358417/PANA3494_afj4t9.jpg',
   }
 ]
 

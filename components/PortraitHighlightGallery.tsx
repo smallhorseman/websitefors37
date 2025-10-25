@@ -9,45 +9,45 @@ import { ArrowRight, Users, Camera, Star } from 'lucide-react'
 const portraitHighlights = [
   {
     id: 1,
-    title: 'Professional Portrait',
-    description: 'Clean, modern business portrait with natural lighting',
-    src: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1698238472/portraits/PortraitsPortfolio_1_yjzzsw.jpg',
+    title: 'Executive Headshot',
+    description: 'Professional corporate portrait with studio lighting',
+    src: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1692503070/headshots/executive-portrait.jpg',
     category: 'headshots'
   },
   {
     id: 2,
-    title: 'Studio Portrait',
-    description: 'Professional portraits with controlled studio lighting',
-    src: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1698238472/portraits/PortraitsPortfolio_2_dxvtw7.jpg',
-    category: 'studio'
+    title: 'Family Portrait Session',
+    description: 'Warm, natural family portraits in outdoor setting',
+    src: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1691358417/PANA3494_afj4t9.jpg',
+    category: 'family'
   },
   {
     id: 3,
-    title: 'Classic Portrait',
-    description: 'Timeless portraits with elegant styling',
-    src: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1698238472/portraits/PortraitsPortfolio_3_kfdxk4.jpg',
-    category: 'classic'
+    title: 'Senior Portrait',
+    description: 'Creative graduation portraits with personality',
+    src: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500&h=600&fit=crop',
+    category: 'senior'
   },
   {
     id: 4,
-    title: 'Corporate Headshot',
-    description: 'Professional corporate portraits with studio lighting',
-    src: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1698238472/portraits/PortraitsPortfolio_4_rq2yhj.jpg',
-    category: 'headshots'
+    title: 'Maternity Session',
+    description: 'Beautiful expecting mother portraits',
+    src: 'https://images.unsplash.com/photo-1555252333-9f8e92e65df9?w=500&h=600&fit=crop',
+    category: 'maternity'
   },
   {
     id: 5,
-    title: 'Modern Portrait',
-    description: 'Contemporary portraits with artistic flair',
-    src: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1698238472/portraits/PortraitsPortfolio_5_brqkvm.jpg',
+    title: 'Creative Portrait',
+    description: 'Artistic portrait with dramatic lighting',
+    src: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=500&h=600&fit=crop',
     category: 'creative'
   },
   {
     id: 6,
-    title: 'Natural Light Portrait',
-    description: 'Beautiful portraits using natural lighting',
-    src: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1698238472/portraits/PortraitsPortfolio_6_wztdk7.jpg',
-    category: 'natural'
+    title: 'Professional Headshot',
+    description: 'Clean, modern business portrait',
+    src: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1692077326/54694193043_f9ae5338ca_k_p7pjaz.jpg',
+    category: 'headshots'
   }
 ]
 
