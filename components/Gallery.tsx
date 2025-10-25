@@ -95,7 +95,7 @@ export default function Gallery() {
               whileInView={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.3, delay: index * 0.1 }}
               viewport={{ once: true }}
-              className="group relative overflow-hidden rounded-lg bg-gray-800 aspect-[4/3]"
+              className="group relative overflow-hidden rounded-lg bg-gradient-to-br from-slate-800 via-slate-900 to-slate-800 aspect-[4/3]"
             >
               <OptimizedImage
                 src={image.src}

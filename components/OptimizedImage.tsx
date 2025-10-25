@@ -65,7 +65,7 @@ export default function OptimizedImage({
         loader={src.includes('res.cloudinary.com') ? cloudinaryLoader : undefined}
       />
       {isLoading && (
-        <div className="absolute inset-0 bg-gray-200 animate-pulse" />
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-700 via-slate-900 to-slate-700 animate-pulse" />
       )}
     </div>
   )

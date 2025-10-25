@@ -179,7 +179,7 @@ export default function PortraitHighlightGallery() {
               whileInView={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.5, delay: index * 0.1 }}
               viewport={{ once: true }}
-              className="group relative overflow-hidden rounded-xl bg-gray-800 aspect-[4/5] shadow-lg hover:shadow-xl transition-all duration-300"
+              className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-slate-800 via-slate-900 to-slate-800 aspect-[4/5] shadow-lg hover:shadow-xl transition-all duration-300"
             >
               <OptimizedImage
                 src={image.src}
