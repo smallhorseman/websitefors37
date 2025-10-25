@@ -5,29 +5,10 @@ export function middleware(request: NextRequest) {
   // Create response
   const response = NextResponse.next()
 
-  // Add Content Security Policy
-  const cspValue = [
-    "default-src 'self'",
-    "script-src 'self' 'unsafe-eval' 'unsafe-inline' *.google.com *.googleapis.com *.cloudflare.com",
-    "style-src 'self' 'unsafe-inline' *.googleapis.com *.cloudflare.com",
-    "img-src 'self' data: blob: https://*.unsplash.com https://*.supabase.co https://*.cloudinary.com https://*.google.com https://*.googleapis.com",
-    "font-src 'self' *.googleapis.com *.gstatic.com",
-    "connect-src 'self' *.supabase.co *.google.com *.googleapis.com vitals.vercel-insights.com https://*.cloudinary.com",
-    "media-src 'self' *.supabase.co https://*.cloudinary.com",
-    "object-src 'none'",
-    "base-uri 'self'",
-    "form-action 'self'",
-    "frame-ancestors 'none'",
-    "upgrade-insecure-requests"
-  ].join('; ')
-
-  response.headers.set('Content-Security-Policy', cspValue)
-
-  // Add additional security headers
+  // Only add essential headers
   response.headers.set('X-DNS-Prefetch-Control', 'on')
-  response.headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains')
-  response.headers.set('X-XSS-Protection', '1; mode=block')
-  response.headers.set('X-Frame-Options', 'SAMEORIGIN')
+  response.headers.set('Access-Control-Allow-Origin', '*')
+  response.headers.set('Access-Control-Allow-Methods', 'GET, OPTIONS')
   response.headers.set('X-Content-Type-Options', 'nosniff')
   response.headers.set('Referrer-Policy', 'origin-when-cross-origin')
   response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()')

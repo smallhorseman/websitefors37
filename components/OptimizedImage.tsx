@@ -30,19 +30,6 @@ export default function OptimizedImage({
 }: OptimizedImageProps) {
   const [isLoading, setIsLoading] = useState(true)
 
-  // Use our optimizeCloudinaryUrl utility for consistent transformations
-  const cloudinaryLoader = ({ src, width }: ImageLoaderProps) => {
-    try {
-      return optimizeCloudinaryUrl(src, {
-        width: Math.min(1920, Math.max(200, Math.round(width || 800))),
-        format: 'auto',
-        quality: 60
-      })
-    } catch (e) {
-      return src
-    }
-  }
-  
   return (
     <div className={`relative overflow-hidden ${className}`}>
       <Image
@@ -54,10 +41,9 @@ export default function OptimizedImage({
         }`}
         onLoadingComplete={() => setIsLoading(false)}
         priority={priority}
-        quality={60} // Lower default quality for better performance
+        quality={75}
         sizes={sizes}
         loading={priority ? 'eager' : 'lazy'}
-        loader={src.includes('res.cloudinary.com') ? cloudinaryLoader : undefined}
         placeholder={src.includes('res.cloudinary.com') ? 'blur' : undefined}
         blurDataURL={src.includes('res.cloudinary.com') ? 
           optimizeCloudinaryUrl(src, { 
