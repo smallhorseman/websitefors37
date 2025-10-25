@@ -1,7 +1,8 @@
 'use client'
 
 import Image, { ImageLoaderProps } from 'next/image'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
+import { optimizeCloudinaryUrl } from '@/lib/cloudinary'
 
 interface OptimizedImageProps {
   src: string
@@ -13,6 +14,7 @@ interface OptimizedImageProps {
   imgClassName?: string
   priority?: boolean
   sizes?: string
+  quality?: number
 }
 
 export default function OptimizedImage({
@@ -28,20 +30,14 @@ export default function OptimizedImage({
 }: OptimizedImageProps) {
   const [isLoading, setIsLoading] = useState(true)
 
-  // Cloudinary loader: inject responsive transformation into the URL when possible
+  // Use our optimizeCloudinaryUrl utility for consistent transformations
   const cloudinaryLoader = ({ src, width }: ImageLoaderProps) => {
     try {
-      if (!src) return src
-      // Only handle res.cloudinary.com URLs
-      if (!src.includes('res.cloudinary.com')) return src
-      // Insert width/format/quality transform after '/upload/'
-      const parts = src.split('/upload/')
-      if (parts.length !== 2) return src
-      const prefix = parts[0]
-      const rest = parts[1]
-      // Add transformation: w_{width},f_auto,q_auto
-      const transform = `w_${Math.min(1920, Math.max(200, Math.round(width || 800)))},f_auto,q_auto`
-      return `${prefix}/upload/${transform}/${rest}`
+      return optimizeCloudinaryUrl(src, {
+        width: Math.min(1920, Math.max(200, Math.round(width || 800))),
+        format: 'auto',
+        quality: 60
+      })
     } catch (e) {
       return src
     }
@@ -58,11 +54,18 @@ export default function OptimizedImage({
         }`}
         onLoadingComplete={() => setIsLoading(false)}
         priority={priority}
-        // Use lower default quality for better performance; Cloudinary transforms will set format automatically
-        quality={70}
+        quality={60} // Lower default quality for better performance
         sizes={sizes}
         loading={priority ? 'eager' : 'lazy'}
         loader={src.includes('res.cloudinary.com') ? cloudinaryLoader : undefined}
+        placeholder={src.includes('res.cloudinary.com') ? 'blur' : undefined}
+        blurDataURL={src.includes('res.cloudinary.com') ? 
+          optimizeCloudinaryUrl(src, { 
+            width: 40, 
+            quality: 20,
+            effect: 'blur:400,pixelate:15'
+          }) : 
+          undefined}
       />
       {isLoading && (
         <div className="absolute inset-0 bg-gradient-to-br from-slate-700 via-slate-900 to-slate-700 animate-pulse" />
