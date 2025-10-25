@@ -131,14 +131,14 @@ export default function PortraitHighlightGallery() {
                       index === currentImageIndex ? 'opacity-100' : 'opacity-0'
                     }`}
                   >
-                      <Image
+                      <OptimizedImage
                         src={`https://res.cloudinary.com/dmjxho2rl/image/upload${image.src}.jpg`}
-                      alt={image.title}
-                      fill
-                      imgClassName="object-cover"
-                      sizes="(max-width: 1200px) 100vw, 1200px"
-                      priority={index === 0}
-                    />
+                        alt={image.title}
+                        fill
+                        imgClassName="object-cover"
+                        sizes="(max-width: 1200px) 100vw, 1200px"
+                        priority={index === 0}
+                      />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
                     <div className="absolute bottom-8 left-8 right-8 text-white">
                       <h3 className="text-2xl md:text-3xl font-bold mb-2">{image.title}</h3>
