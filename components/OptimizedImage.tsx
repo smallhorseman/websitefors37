@@ -8,7 +8,9 @@ interface OptimizedImageProps {
   alt: string
   width?: number
   height?: number
+  fill?: boolean
   className?: string
+  imgClassName?: string
   priority?: boolean
   sizes?: string
 }
@@ -18,7 +20,9 @@ export default function OptimizedImage({
   alt,
   width,
   height,
+  fill = false,
   className = '',
+  imgClassName = '',
   priority = false,
   sizes = '100vw'
 }: OptimizedImageProps) {
@@ -29,9 +33,8 @@ export default function OptimizedImage({
       <Image
         src={src}
         alt={alt}
-        width={width}
-        height={height}
-        className={`duration-700 ease-in-out ${
+        {...(fill ? { fill: true } : { width, height })}
+        className={`duration-700 ease-in-out ${imgClassName} ${
           isLoading ? 'scale-110 blur-lg' : 'scale-100 blur-0'
         }`}
         onLoadingComplete={() => setIsLoading(false)}

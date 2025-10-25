@@ -1,10 +1,8 @@
 import React from 'react'
 import './globals.css'
 import { Inter, Playfair_Display } from 'next/font/google'
+import dynamic from 'next/dynamic'
 import Navigation from '@/components/Navigation'
-import ChatBot from '@/components/ChatBot'
-import WebVitals from '@/components/WebVitals'
-import { Toaster } from 'react-hot-toast'
 import { businessInfo, generateLocalBusinessSchema } from '@/lib/seo-config'
 
 const inter = Inter({ 
@@ -64,6 +62,9 @@ export default function RootLayout({
 }: {
   children: React.ReactNode
 }) {
+  const ChatBot = dynamic(() => import('@/components/ChatBot'), { ssr: false, loading: () => null })
+  const WebVitals = dynamic(() => import('@/components/WebVitals'), { ssr: false, loading: () => null })
+  const Toaster = dynamic(() => import('react-hot-toast').then(mod => mod.Toaster), { ssr: false, loading: () => null })
   const localBusinessSchema = generateLocalBusinessSchema()
   
   return (

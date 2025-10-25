@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect } from 'react'
 import { Loader2, Plus, Trash2, Edit, Settings, X, ExternalLink, FileText, Eye, Calendar, User, Tag, Save } from 'lucide-react'
-import MarkdownEditor from '@/components/MarkdownEditor'
+import dynamic from 'next/dynamic'
+const MarkdownEditor = dynamic(() => import('@/components/MarkdownEditor'), { ssr: false, loading: () => null })
 import { supabase } from '@/lib/supabase'
 import type { BlogPost } from '@/lib/supabase'
 

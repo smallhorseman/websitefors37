@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
-import Image from 'next/image'
+import OptimizedImage from './OptimizedImage'
 import Link from 'next/link'
 import { ArrowRight, Users, Camera, Star } from 'lucide-react'
 
@@ -131,14 +131,13 @@ export default function PortraitHighlightGallery() {
                       index === currentImageIndex ? 'opacity-100' : 'opacity-0'
                     }`}
                   >
-                    <Image
+                    <OptimizedImage
                       src={image.src}
                       alt={image.title}
                       fill
-                      className="object-cover"
+                      imgClassName="object-cover"
                       sizes="(max-width: 1200px) 100vw, 1200px"
                       priority={index === 0}
-                      quality={90}
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
                     <div className="absolute bottom-8 left-8 right-8 text-white">
@@ -182,16 +181,13 @@ export default function PortraitHighlightGallery() {
               viewport={{ once: true }}
               className="group relative overflow-hidden rounded-xl bg-gray-800 aspect-[4/5] shadow-lg hover:shadow-xl transition-all duration-300"
             >
-              <Image
+              <OptimizedImage
                 src={image.src}
                 alt={image.title}
                 fill
+                imgClassName="object-cover transition-transform duration-700 group-hover:scale-110"
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                className="object-cover transition-transform duration-700 group-hover:scale-110"
-                loading={index < 3 ? "eager" : "lazy"}
-                quality={85}
-                placeholder="blur"
-                blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWEREiMxUf/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q=="
+                priority={index < 3}
               />
               
               {/* Overlay */}
