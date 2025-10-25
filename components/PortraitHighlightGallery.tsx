@@ -18,7 +18,7 @@ const portraitHighlights = [
     id: 2,
     title: 'Family Portrait Session',
     description: 'Warm, natural family portraits in outdoor setting',
-    src: 'https://images.unsplash.com/photo-1511895426328-dc8714191300?w=500&h=600&fit=crop',
+    src: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1761358417/PANA3494_afj4t9_e_gen_restore_e_improve_e_sharpen_l_image_upload_My_Brand_IMG_2115_mtuowt_c_scale_fl_relative_w_0.20_o_80_fl_layer_apply_g_north_x_0.03_y_0.04_iatwyt.jpg',
     category: 'family'
   },
   {
