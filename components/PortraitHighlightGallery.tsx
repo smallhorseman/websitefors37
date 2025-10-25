@@ -9,45 +9,45 @@ import { ArrowRight, Users, Camera, Star } from 'lucide-react'
 const portraitHighlights = [
   {
     id: 1,
-    title: 'Professional Headshot',
+    title: 'Professional Portrait',
     description: 'Clean, modern business portrait with natural lighting',
-    src: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1/portraits/professional-headshot',
+    src: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1698238472/portraits/PortraitsPortfolio_1_yjzzsw.jpg',
     category: 'headshots'
   },
   {
     id: 2,
-    title: 'Family Portrait',
-    description: 'Warm, natural family portraits in outdoor setting',
-    src: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1/portraits/family-portrait',
-    category: 'family'
+    title: 'Studio Portrait',
+    description: 'Professional portraits with controlled studio lighting',
+    src: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1698238472/portraits/PortraitsPortfolio_2_dxvtw7.jpg',
+    category: 'studio'
   },
   {
     id: 3,
-    title: 'Executive Portrait',
-    description: 'Professional corporate portraits with studio lighting',
-    src: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1/portraits/executive-portrait',
-    category: 'headshots'
+    title: 'Classic Portrait',
+    description: 'Timeless portraits with elegant styling',
+    src: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1698238472/portraits/PortraitsPortfolio_3_kfdxk4.jpg',
+    category: 'classic'
   },
   {
     id: 4,
-    title: 'Lifestyle Portrait',
-    description: 'Natural, candid portraits in everyday settings',
-    src: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1/portraits/lifestyle-portrait',
-    category: 'lifestyle'
+    title: 'Corporate Headshot',
+    description: 'Professional corporate portraits with studio lighting',
+    src: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1698238472/portraits/PortraitsPortfolio_4_rq2yhj.jpg',
+    category: 'headshots'
   },
   {
     id: 5,
-    title: 'Creative Portrait',
-    description: 'Artistic portrait with dramatic lighting',
-    src: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1/portraits/creative-portrait',
+    title: 'Modern Portrait',
+    description: 'Contemporary portraits with artistic flair',
+    src: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1698238472/portraits/PortraitsPortfolio_5_brqkvm.jpg',
     category: 'creative'
   },
   {
     id: 6,
-    title: 'Personal Branding',
-    description: 'Modern portraits for your professional brand',
-    src: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1/portraits/personal-branding',
-    category: 'headshots'
+    title: 'Natural Light Portrait',
+    description: 'Beautiful portraits using natural lighting',
+    src: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1698238472/portraits/PortraitsPortfolio_6_wztdk7.jpg',
+    category: 'natural'
   }
 ]
 

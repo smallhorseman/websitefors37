@@ -8,39 +8,39 @@ import NewsletterModal from './NewsletterModal'
 const galleryImages = [
   {
     id: 1,
-    category: 'wedding',
-    title: 'Romantic Wedding Ceremony',
-    src: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1/weddings/wedding-ceremony',
+    category: 'portrait',
+    title: 'Professional Portrait',
+    src: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1698238472/portraits/PortraitsPortfolio_1_yjzzsw.jpg',
   },
   {
     id: 2,
     category: 'portrait',
-    title: 'Professional Headshot',
-    src: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1/portraits/professional-headshot',
+    title: 'Studio Portrait',
+    src: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1698238472/portraits/PortraitsPortfolio_2_dxvtw7.jpg',
   },
   {
     id: 3,
-    category: 'event',
-    title: 'Corporate Event',
-    src: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1/events/corporate-event',
+    category: 'portrait',
+    title: 'Classic Portrait',
+    src: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1698238472/portraits/PortraitsPortfolio_3_kfdxk4.jpg',
   },
   {
     id: 4,
-    category: 'commercial',
-    title: 'Product Photography',
-    src: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1/commercial/product-photography',
+    category: 'portrait',
+    title: 'Corporate Headshot',
+    src: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1698238472/portraits/PortraitsPortfolio_4_rq2yhj.jpg',
   },
   {
     id: 5,
-    category: 'wedding',
-    title: 'Wedding Reception',
-    src: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1/weddings/wedding-reception',
+    category: 'portrait',
+    title: 'Modern Portrait',
+    src: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1698238472/portraits/PortraitsPortfolio_5_brqkvm.jpg',
   },
   {
     id: 6,
     category: 'portrait',
-    title: 'Family Portrait',
-    src: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1/portraits/family-portrait',
+    title: 'Natural Light Portrait',
+    src: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1698238472/portraits/PortraitsPortfolio_6_wztdk7.jpg',
   }
 ]
 
