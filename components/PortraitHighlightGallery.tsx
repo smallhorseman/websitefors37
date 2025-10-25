@@ -11,42 +11,42 @@ const portraitHighlights = [
     id: 1,
     title: 'Professional Portrait',
     description: 'Clean, modern business portrait with studio lighting',
-    src: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1761358417/PANA3494_afj4t9_e_gen_restore_e_improve_e_sharpen_l_image_upload_My_Brand_IMG_2115_mtuowt_c_scale_fl_relative_w_0.20_o_80_fl_layer_apply_g_north_x_0.03_y_0.04_iatwyt.jpg',
+      src: '/v1761358417/PANA3494_afj4t9_e_gen_restore',
     category: 'headshots'
   },
   {
     id: 2,
     title: 'Family Portrait Session',
     description: 'Warm, natural family portraits in outdoor setting',
-    src: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1760503070/F836BA20-9A10-4D23-81E3-9CB8999E1368_1_105_c_ji0ngc_e_gen_restore_e_improve_e_sharpen_l_image_upload_My_Brand_IMG_2115_mtuowt_c_scale_fl_relative_w_0.36_o_80_fl_layer_apply_g_west_x_0.03_y_0.04_gxtw8e.jpg',
+      src: '/v1760503070/F836BA20-9A10-4D23-81E3-9CB8999E1368_1_105_c_ji0ngc',
     category: 'family'
   },
   {
     id: 3,
     title: 'Studio Portrait',
     description: 'Professional portraits in a controlled environment',
-    src: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1756082735/54740994305_b99379cf95_h_ky7is7.jpg',
+      src: '/v1756082735/54740994305_b99379cf95_h_ky7is7',
     category: 'studio'
   },
   {
     id: 4,
     title: 'Corporate Portrait',
     description: 'Professional business and corporate portraits',
-    src: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1756081262/Untitled_convert.io_jnf0gn_aclplu.jpg',
+      src: '/v1756081262/Untitled_convert.io_jnf0gn_aclplu',
     category: 'business'
   },
   {
     id: 5,
     title: 'Creative Portrait',
     description: 'Artistic portrait with dramatic lighting',
-    src: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1756078209/54681762715_a8ed7d4dbc_o_budwjo.jpg',
+      src: '/v1756078209/54681762715_a8ed7d4dbc_o_budwjo',
     category: 'creative'
   },
   {
     id: 6,
     title: 'Personal Branding',
     description: 'Modern portraits for your professional brand',
-    src: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1756077326/54694193043_f9ae5338ca_k_p7pjaz.jpg',
+      src: '/v1756077326/54694193043_f9ae5338ca_k_p7pjaz',
     category: 'branding'
   }
 ]
@@ -131,8 +131,8 @@ export default function PortraitHighlightGallery() {
                       index === currentImageIndex ? 'opacity-100' : 'opacity-0'
                     }`}
                   >
-                    <OptimizedImage
-                      src={image.src}
+                      <Image
+                        src={`https://res.cloudinary.com/dmjxho2rl/image/upload${image.src}.jpg`}
                       alt={image.title}
                       fill
                       imgClassName="object-cover"
