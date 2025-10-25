@@ -29,10 +29,24 @@ const nextConfig = {
   // Performance optimizations
   compress: true,
   poweredByHeader: false,
-  trailingSlash: true,
-  skipTrailingSlashRedirect: true,
+  trailingSlash: false,
+  skipTrailingSlashRedirect: false,
   reactStrictMode: true,
   swcMinify: true,
+  async redirects() {
+    return [
+      {
+        source: '/portfolio',
+        destination: '/gallery',
+        permanent: true,
+      },
+      {
+        source: '/portfolio/:path*',
+        destination: '/gallery/:path*',
+        permanent: true,
+      }
+    ]
+  },
   // Bundle analyzer for production builds
   ...(process.env.ANALYZE === 'true' && {
     webpack: (config) => {

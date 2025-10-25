@@ -1,8 +1,5 @@
-/contact  /contact  200!
-/book-a-session  /book-a-session  200!
+# SPA fallback
+/*    /index.html   200
 
-# Redirect old portfolio URL to gallery
-/portfolio    /gallery    301
-
-# Redirect www to non-www
-https://www.studio37.cc/*    https://studio37.cc/:splat    301!
+# Base redirects
+/portfolio    /gallery    301!

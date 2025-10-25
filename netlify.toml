@@ -3,11 +3,23 @@
   publish = ".next"
 
 [build.environment]
-  # Temporarily disable secret scanning until we ensure no secrets in build output
+  NEXT_PUBLIC_SITE_URL = "https://studio37.cc"
   SECRETS_SCAN_SMART_DETECTION_ENABLED = "false"
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
+
+[[redirects]]
+  from = "/portfolio"
+  to = "/gallery"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "https://www.studio37.cc/*"
+  to = "https://studio37.cc/:splat"
+  status = 301
+  force = true
 
 # Serve .well-known files for domain verification
 [[headers]]
