@@ -19,6 +19,17 @@ const playfair = Playfair_Display({
   display: 'swap',
 })
 
+// Add module preload hints for critical resources
+export const viewport = {
+  themeColor: '#ffffff',
+}
+
+// Add HTTP headers for performance
+export const headers = {
+  'Cache-Control': 'public, max-age=31536000, immutable',
+  'Content-Security-Policy': "default-src 'self'; img-src 'self' blob: data: https://*.cloudinary.com https://*.unsplash.com;",
+}
+
 export const metadata = {
   title: {
     template: `%s | ${businessInfo.name} - Professional Photography Pinehurst, TX`,
