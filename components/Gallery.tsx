@@ -10,37 +10,37 @@ const galleryImages = [
     id: 1,
     category: 'wedding',
     title: 'Romantic Wedding Ceremony',
-    src: 'https://images.unsplash.com/photo-1606216794074-735e91aa2c92?w=800&h=600&fit=crop',
+    src: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1/weddings/wedding-ceremony',
   },
   {
     id: 2,
     category: 'portrait',
     title: 'Professional Headshot',
-    src: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1756077326/54694193043_f9ae5338ca_k_p7pjaz.jpg',
+    src: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1/portraits/professional-headshot',
   },
   {
     id: 3,
     category: 'event',
     title: 'Corporate Event',
-    src: 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=800&h=600&fit=crop',
+    src: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1/events/corporate-event',
   },
   {
     id: 4,
     category: 'commercial',
     title: 'Product Photography',
-    src: 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=800&h=600&fit=crop',
+    src: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1/commercial/product-photography',
   },
   {
     id: 5,
     category: 'wedding',
     title: 'Wedding Reception',
-    src: 'https://images.unsplash.com/photo-1519741497674-611481863552?w=800&h=600&fit=crop',
+    src: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1/weddings/wedding-reception',
   },
   {
     id: 6,
     category: 'portrait',
     title: 'Family Portrait',
-    src: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1761358417/PANA3494_afj4t9_e_gen_restore_e_improve_e_sharpen_l_image_upload_My_Brand_IMG_2115_mtuowt_c_scale_fl_relative_w_0.20_o_80_fl_layer_apply_g_north_x_0.03_y_0.04_iatwyt.jpg',
+    src: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1/portraits/family-portrait',
   }
 ]
 
