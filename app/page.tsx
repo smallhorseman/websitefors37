@@ -8,6 +8,7 @@ import Testimonials from '@/components/Testimonials'
 import LocalBusinessSchema from '@/components/LocalBusinessSchema'
 import { generateSEOMetadata } from '@/lib/seo-helpers'
 import { generateLocalBusinessSchema } from '@/lib/seo-config'
+import DiscountNewsletterModal from '@/components/DiscountNewsletterModal'
 
 export const metadata = generateSEOMetadata({
   title: 'Professional Photography Services in Pinehurst, TX',
@@ -45,6 +46,7 @@ export default function HomePage() {
         </div>
       </section>
       <Testimonials />
+      <DiscountNewsletterModal />
     </>
   )
 }
