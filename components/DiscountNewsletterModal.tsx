@@ -1,16 +1,29 @@
 
+
 'use client';
 import React, { useState } from 'react';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+
 
 export default function DiscountNewsletterModal() {
   const [open, setOpen] = useState(true);
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const supabase = createClientComponentClient();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Integrate with backend/newsletter API
+    setError(null);
+    // Insert lead into Supabase CRM
+    const { error } = await supabase
+      .from('leads')
+      .insert({ email, phone });
+    if (error) {
+      setError('Sorry, there was a problem saving your info. Please try again.');
+      return;
+    }
     setSubmitted(true);
   };
 
@@ -61,6 +74,7 @@ export default function DiscountNewsletterModal() {
                 Claim Discount & Enter Giveaway
               </button>
             </form>
+            {error && <p className="text-xs text-red-500 mt-2 text-center">{error}</p>}
             <p className="text-xs text-gray-400 mt-2 text-center">
               No spam. Unsubscribe anytime.
             </p>
