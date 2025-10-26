@@ -2,6 +2,7 @@ import React from 'react'
 import Hero from '@/components/Hero'
 import Services from '@/components/Services'
 import CommercialHighlightGallery from '@/components/CommercialHighlightGallery'
+import PortraitHighlightGallery from '@/components/PortraitHighlightGallery'
 import LeadCaptureForm from '@/components/LeadCaptureForm'
 import Testimonials from '@/components/Testimonials'
 import LocalBusinessSchema from '@/components/LocalBusinessSchema'
@@ -29,6 +30,7 @@ export default function HomePage() {
     <>
       <LocalBusinessSchema />
       <Hero />
+      <PortraitHighlightGallery />
       <Services />
       <CommercialHighlightGallery />
       <section className="py-16 bg-gray-50">

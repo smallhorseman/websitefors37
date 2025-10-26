@@ -1,25 +1,74 @@
 'use client'
 
 import React from 'react'
-import { motion } from 'framer-motion'
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import OptimizedImage from './OptimizedImage'
 import Link from 'next/link'
 
-const images = [
-  {
-    id: 'p1',
-    title: 'Professional Portrait',
-    description: 'Clean, modern business portrait with studio lighting',
-    src: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1761358417/PANA3494_afj4t9_e_gen_restore_e_improve_e_sharpen_l_image_upload_My_Brand_IMG_2115_mtuowt_c_scale_fl_relative_w_0.20_o_80_fl_layer_apply_g_north_x_0.03_y_0.04_iatwyt.jpg',
-    category: 'headshots'
-  },
-  {
-    id: 'p2',
-    title: 'Family Portrait',
-    description: 'Warm, natural family portraits in outdoor settings',
-    src: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1760503070/F836BA20-9A10-4D23-81E3-9CB8999E1368_1_105_c_ji0ngc_e_gen_restore_e_improve_e_sharpen_l_image_upload_My_Brand_IMG_2115_mtuowt_c_scale_fl_relative_w_0.36_o_80_fl_layer_apply_g_west_x_0.03_y_0.04_gxtw8e.jpg',
-    category: 'family'
-  },
+interface GalleryImage {
+  id: string
+  title: string
+  description?: string
+  image_url: string
+  category: string
+  featured: boolean
+}
+
+export default function PortraitHighlightGallery() {
+  const [images, setImages] = React.useState<GalleryImage[]>([])
+  const supabase = createClientComponentClient()
+
+  React.useEffect(() => {
+    async function loadFeaturedImages() {
+      const { data } = await supabase
+        .from('gallery_images')
+        .select('*')
+        .eq('featured', true)
+        .limit(6)
+        .order('created_at', { ascending: false })
+      
+      if (data) {
+        setImages(data)
+      }
+    }
+
+    loadFeaturedImages()
+  }, [])
+  if (images.length === 0) return null
+
+  return (
+    <section className="py-16 bg-white">
+      <div className="container mx-auto px-4">
+        <div className="max-w-4xl mx-auto text-center mb-12">
+          <h2 className="text-3xl font-bold mb-4">Featured Portfolio</h2>
+          <p className="text-lg text-gray-600">
+            A showcase of our best work and cherished moments
+          </p>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {images.map((image) => (
+            <Link href="/gallery" key={image.id} className="relative group overflow-hidden rounded-lg shadow-lg">
+              <OptimizedImage
+                src={image.image_url}
+                alt={image.title}
+                width={600}
+                height={400}
+                className="object-cover w-full h-[300px] transition-transform duration-300 group-hover:scale-105"
+              />
+              <div className="absolute inset-0 bg-black bg-opacity-40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end">
+                <div className="p-4 w-full text-white">
+                  <h3 className="text-lg font-semibold mb-1">{image.title}</h3>
+                  {image.description && (
+                    <p className="text-sm opacity-90">{image.description}</p>
+                  )}
+                </div>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </div>
+    </section>
+  ),
   {
     id: 'p3',
     title: 'Studio Portrait',
