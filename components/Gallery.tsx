@@ -10,37 +10,37 @@ const galleryImages = [
     id: 1,
     category: 'portrait',
     title: 'Professional Portrait',
-    src: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1692077326/54694193043_f9ae5338ca_k_p7pjaz.jpg',
+    src: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1761358417/PANA3494_afj4t9_e_gen_restore_e_improve_e_sharpen_l_image_upload_My_Brand_IMG_2115_mtuowt_c_scale_fl_relative_w_0.20_o_80_fl_layer_apply_g_north_x_0.03_y_0.04_iatwyt.jpg',
   },
   {
     id: 2,
     category: 'portrait',
     title: 'Family Portrait',
-    src: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1691358417/PANA3494_afj4t9.jpg',
+    src: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1761358417/PANA3494_afj4t9_e_gen_restore_e_improve_e_sharpen_l_image_upload_My_Brand_IMG_2115_mtuowt_c_scale_fl_relative_w_0.20_o_80_fl_layer_apply_g_north_x_0.03_y_0.04_iatwyt.jpg',
   },
   {
     id: 3,
     category: 'commercial',
     title: 'Product Photography',
-    src: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1692503070/commercial/product-1.jpg',
+    src: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1756082735/54740994305_b99379cf95_h_ky7is7.jpg',
   },
   {
     id: 4,
     category: 'event',
     title: 'Corporate Event',
-    src: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1691358417/events/corporate-1.jpg',
+    src: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1756082735/54740994305_b99379cf95_h_ky7is7.jpg',
   },
   {
     id: 5,
     category: 'wedding',
     title: 'Wedding Ceremony',
-    src: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1691358417/weddings/ceremony-1.jpg',
+    src: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1756077326/54694193043_f9ae5338ca_k_p7pjaz.jpg',
   },
   {
     id: 6,
     category: 'portrait',
     title: 'Studio Portrait',
-    src: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1691358417/portraits/studio-1.jpg',
+    src: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1756081262/Untitled_convert.io_jnf0gn_aclplu.jpg',
   }
 ]
 
