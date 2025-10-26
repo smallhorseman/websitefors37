@@ -5,8 +5,10 @@ import React, { useState } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 
 
+
 export default function DiscountNewsletterModal() {
   const [open, setOpen] = useState(true);
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [submitted, setSubmitted] = useState(false);
@@ -19,7 +21,7 @@ export default function DiscountNewsletterModal() {
     // Insert lead into Supabase CRM
     const { error } = await supabase
       .from('leads')
-      .insert({ email, phone });
+      .insert({ name, email, phone });
     if (error) {
       setError('Sorry, there was a problem saving your info. Please try again.');
       return;
@@ -51,6 +53,14 @@ export default function DiscountNewsletterModal() {
               Join our weekly newsletter for a chance to win discounts, giveaways, and free shoots.
             </p>
             <form className="space-y-4" onSubmit={handleSubmit}>
+              <input
+                type="text"
+                required
+                placeholder="Full name"
+                className="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-amber-500"
+                value={name}
+                onChange={e => setName(e.target.value)}
+              />
               <input
                 type="email"
                 required
