@@ -2,15 +2,7 @@
 
 import React, { Suspense } from 'react'
 import GalleryClient from './GalleryClient'
-
-interface GalleryImage {
-  id: string
-  title: string
-  description?: string
-  image_url: string
-  category: string
-  featured: boolean
-}
+import type { GalleryImage } from '@/lib/supabase'
 
 interface GalleryWithSuspenseProps {
   initialImages: GalleryImage[]

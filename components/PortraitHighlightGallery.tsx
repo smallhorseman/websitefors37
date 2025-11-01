@@ -2,17 +2,9 @@
 
 import React from 'react'
 import { useGalleryImages } from '@/hooks/useGalleryImages'
+import type { GalleryImage } from '@/lib/supabase'
 import OptimizedImage from './OptimizedImage'
 import Link from 'next/link'
-
-interface GalleryImage {
-  id: string
-  title: string
-  description?: string
-  image_url: string
-  category: string
-  featured: boolean
-}
 
 export default function PortraitHighlightGallery() {
   const { data: images } = useGalleryImages({

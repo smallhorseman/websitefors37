@@ -6,15 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { X, ChevronLeft, ChevronRight, Star } from 'lucide-react'
 import { useSearchParams } from 'next/navigation'
 import { useGalleryImages } from '@/hooks/useGalleryImages'
-
-interface GalleryImage {
-  id: string
-  title: string
-  description?: string
-  image_url: string
-  category: string
-  featured: boolean
-}
+import type { GalleryImage } from '@/lib/supabase'
 
 interface GalleryProps {
   initialImages: GalleryImage[]
