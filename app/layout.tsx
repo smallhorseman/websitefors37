@@ -72,6 +72,8 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="//res.cloudinary.com" />
         <link rel="dns-prefetch" href="//fonts.googleapis.com" />
         <link rel="dns-prefetch" href="//fonts.gstatic.com" />
+        {/* Explicit favicon for modern browsers; Next will also use app/icon.svg */}
+        <link rel="icon" href="/icon.svg" type="image/svg+xml" />
       </head>
       <body className={`${inter.variable} ${playfair.variable} font-sans`}>
         <WebVitals />

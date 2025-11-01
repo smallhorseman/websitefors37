@@ -1,4 +1,4 @@
-@import "./browser-compat.css";
+/* Removed browser-compat.css import to reduce console warnings from vendor-prefixed properties */
 
 @tailwind base;
 @tailwind components;
@@ -19,8 +19,6 @@
 
   html {
     scroll-behavior: smooth;
-    -webkit-text-size-adjust: 100%;
-    text-size-adjust: 100%;
     font-family: var(--font-inter), system-ui, sans-serif;
   }
 
