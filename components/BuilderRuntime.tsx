@@ -1,5 +1,6 @@
 import Image from 'next/image'
 import React from 'react'
+import Link from 'next/link'
 import LocalBusinessSchema from './LocalBusinessSchema'
 import SlideshowHeroClient from './blocks/SlideshowHeroClient'
 import TestimonialsClient from './blocks/TestimonialsClient'
@@ -519,9 +520,9 @@ export async function GalleryHighlightsBlock({ categoriesB64, collectionsB64, ta
     <div className={`p-6 md:p-10 ${animation === 'fade-in' ? 'animate-fadeIn' : animation === 'slide-up' ? 'animate-slideUp' : animation === 'zoom' ? 'animate-zoom' : ''}`}>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {(data || []).map((img) => (
-          <div key={img.id} className="relative aspect-video">
-            <Image src={img.image_url} alt={img.title || ''} fill className="object-cover rounded-lg" />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent rounded-lg"></div>
+          <div key={img.id} className="relative aspect-video overflow-hidden rounded-lg">
+            <Image src={img.image_url} alt={img.title || ''} fill className="object-cover" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
             <div className="absolute bottom-2 left-2 text-white drop-shadow">
               <div className="text-sm capitalize opacity-90">{img.category}</div>
               <div className="text-base font-medium">{img.title}</div>
@@ -561,7 +562,7 @@ export function ServicesGridBlock({ servicesB64, heading, subheading, columns = 
   animation?: string
 }) {
   const json = servicesB64 ? Buffer.from(servicesB64, 'base64').toString('utf-8') : '[]'
-  let services: Array<{ image: string; title: string; description: string; features: string[] }> = []
+  let services: Array<{ image: string; title: string; description: string; features: string[]; link?: string }> = []
   try { services = JSON.parse(json || '[]') } catch { services = [] }
 
   const gridCols: Record<string, string> = {
@@ -581,31 +582,47 @@ export function ServicesGridBlock({ servicesB64, heading, subheading, columns = 
           </div>
         )}
         <div className={`grid grid-cols-1 ${gridCols[String(columns)] || 'md:grid-cols-3'} gap-6`}>
-          {services.map((service, i) => (
-            <div key={i} className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow">
-              {service.image && (
-                <div className="aspect-video relative overflow-hidden">
-                  <Image src={service.image} alt={service.title} fill className="object-cover" />
-                </div>
-              )}
-              <div className="p-6">
-                <h3 className="text-xl font-bold text-gray-900 mb-2">{service.title}</h3>
-                {service.description && <p className="text-gray-600 mb-4">{service.description}</p>}
-                {service.features && service.features.length > 0 && (
-                  <ul className="space-y-2">
-                    {service.features.map((feature, fi) => (
-                      <li key={fi} className="flex items-start gap-2 text-sm text-gray-700">
-                        <svg className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                        </svg>
-                        <span>{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
+          {services.map((service, i) => {
+            const CardContent = (
+              <>
+                {service.image && (
+                  <div className="aspect-video relative overflow-hidden">
+                    <Image src={service.image} alt={service.title} fill className="object-cover" />
+                  </div>
                 )}
+                <div className="p-6">
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">{service.title}</h3>
+                  {service.description && <p className="text-gray-600 mb-4">{service.description}</p>}
+                  {service.features && service.features.length > 0 && (
+                    <ul className="space-y-2">
+                      {service.features.map((feature, fi) => (
+                        <li key={fi} className="flex items-start gap-2 text-sm text-gray-700">
+                          <svg className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          </svg>
+                          <span>{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              </>
+            )
+            
+            if (service.link) {
+              return (
+                <Link key={i} href={service.link} className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-all group block">
+                  {CardContent}
+                </Link>
+              )
+            }
+            
+            return (
+              <div key={i} className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow">
+                {CardContent}
               </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
       </div>
     </div>

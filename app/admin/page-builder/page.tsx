@@ -308,7 +308,7 @@ export default function PageBuilderPage() {
         comps.push({ id: `component-${Date.now()}-${comps.length}`, type: 'servicesGrid', data: {
           heading: a.heading || '',
           subheading: a.subheading || '',
-          services: services.map((s:any)=>({ image: s.image || '', title: s.title || '', description: s.description || '', features: s.features || [] })),
+          services: services.map((s:any)=>({ image: s.image || '', title: s.title || '', description: s.description || '', features: s.features || [], link: s.link || '' })),
           columns: Number(a.columns) || 3,
           animation: a.animation || 'fade-in'
         }})

@@ -17,22 +17,12 @@ export interface SiteSettings {
   logo_url?: string
 }
 
-export const DEFAULT_SETTINGS: SiteSettings = {
-  site_name: 'Studio 37 Photography',
-  contact_email: 'contact@studio37.cc',
-  contact_phone: '',
-  business_address: '',
-  social_facebook: '',
-  social_instagram: '',
-  social_twitter: '',
-  seo_title_template: '%s | Studio 37 Photography',
-  seo_default_description: 'Professional photography services for weddings, events, portraits, and commercial projects.',
-  theme_primary_color: '#b46e14', // Amber-700 
-  theme_secondary_color: '#a17a07', // Amber-800
-  google_analytics_id: '',
-  book_session_bg_url: 'https://images.unsplash.com/photo-1423666639041-f56000c27a9a',
-  logo_url: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1762019202/studio37-logo-dark_ikyrze.svg'
-}
+export const DEFAULT_SETTINGS = {
+  site_name: 'Studio37 Photography',
+  tagline: 'Capturing Moments, Creating Memories',
+  contact_email: 'sales@studio37.cc',
+  contact_phone: '832-713-9944',
+  business_address: '1701 Goodson Loop, TRLR 80, Pinehurst, TX 77362',
 
 export async function getSettings(): Promise<SiteSettings> {
   try {
