@@ -4,7 +4,10 @@ import React, { useState } from 'react'
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd'
 import { 
   GripVertical, Plus, Trash2, Eye, Code, Monitor, Tablet, Smartphone,
-  Type, Image as ImageIcon, Square, Columns, Layout, Save
+  Type, Image as ImageIcon, Square, Columns, Layout, Save, Copy,
+  Sparkles, Mail, DollarSign, HelpCircle, Award, Grid3x3, BarChart3,
+  Megaphone, Star, BringToFront, Play, MessageSquare, Camera, CodeXml,
+  ChevronDown, ChevronRight
 } from 'lucide-react'
 import Image from 'next/image'
 import ImageUploader from './ImageUploader'
@@ -322,6 +325,9 @@ export default function VisualEditor({ initialComponents = [], onSave, onChange,
   const [selectedComponent, setSelectedComponent] = useState<string | null>(null)
   const [viewMode, setViewMode] = useState<'desktop' | 'tablet' | 'mobile'>('desktop')
   const [previewMode, setPreviewMode] = useState(false)
+  const [history, setHistory] = useState<PageComponent[][]>([initialComponents])
+  const [historyIndex, setHistoryIndex] = useState(0)
+  const [expandedCategories, setExpandedCategories] = useState<string[]>(['basic', 'layout', 'content', 'forms', 'marketing'])
 
   const applyHomepageTemplate = () => {
     const tpl = buildHomepageTemplate()
@@ -332,7 +338,88 @@ export default function VisualEditor({ initialComponents = [], onSave, onChange,
   const notify = (next: PageComponent[]) => {
     setComponents(next)
     if (onChange) onChange(next)
+    
+    // Update history for undo/redo
+    const newHistory = history.slice(0, historyIndex + 1)
+    newHistory.push(next)
+    setHistory(newHistory)
+    setHistoryIndex(newHistory.length - 1)
   }
+
+  const handleUndo = () => {
+    if (historyIndex > 0) {
+      const newIndex = historyIndex - 1
+      setHistoryIndex(newIndex)
+      setComponents(history[newIndex])
+      if (onChange) onChange(history[newIndex])
+    }
+  }
+
+  const handleRedo = () => {
+    if (historyIndex < history.length - 1) {
+      const newIndex = historyIndex + 1
+      setHistoryIndex(newIndex)
+      setComponents(history[newIndex])
+      if (onChange) onChange(history[newIndex])
+    }
+  }
+
+  const duplicateComponent = (id: string) => {
+    const component = components.find(c => c.id === id)
+    if (!component) return
+    
+    const duplicated: PageComponent = {
+      ...component,
+      id: `component-${Date.now()}`,
+      data: { ...component.data }
+    } as PageComponent
+    
+    const index = components.findIndex(c => c.id === id)
+    const updated = [...components]
+    updated.splice(index + 1, 0, duplicated)
+    notify(updated)
+    setSelectedComponent(duplicated.id)
+  }
+
+  const toggleCategory = (category: string) => {
+    setExpandedCategories(prev => 
+      prev.includes(category) 
+        ? prev.filter(c => c !== category)
+        : [...prev, category]
+    )
+  }
+
+  // Keyboard shortcuts
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Only handle shortcuts when not typing in an input
+      if ((e.target as HTMLElement).tagName === 'INPUT' || (e.target as HTMLElement).tagName === 'TEXTAREA') {
+        return
+      }
+
+      if (e.metaKey || e.ctrlKey) {
+        if (e.key === 'z' && !e.shiftKey) {
+          e.preventDefault()
+          handleUndo()
+        } else if (e.key === 'z' && e.shiftKey || e.key === 'y') {
+          e.preventDefault()
+          handleRedo()
+        } else if (e.key === 'd' && selectedComponent) {
+          e.preventDefault()
+          duplicateComponent(selectedComponent)
+        } else if (e.key === 's') {
+          e.preventDefault()
+          onSave(components)
+        }
+      } else if (e.key === 'Delete' && selectedComponent) {
+        e.preventDefault()
+        deleteComponent(selectedComponent)
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [components, selectedComponent, history, historyIndex])
 
   const handleDragEnd = (result: DropResult) => {
     if (!result.destination) return
@@ -697,168 +784,243 @@ export default function VisualEditor({ initialComponents = [], onSave, onChange,
             </div>
           </div>
           
-          <div className="p-4 space-y-2">
-            <button
-              onClick={() => addComponent('logo')}
-              className="w-full flex items-center gap-2 p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition"
-            >
-              <Layout className="h-5 w-5" />
-              <span>Logo</span>
-            </button>
-            <button
-              onClick={() => addComponent('faq')}
-              className="w-full flex items-center gap-2 p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition"
-            >
-              <Layout className="h-5 w-5" />
-              <span>FAQ</span>
-            </button>
-            <button
-              onClick={() => addComponent('pricingTable')}
-              className="w-full flex items-center gap-2 p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition"
-            >
-              <Layout className="h-5 w-5" />
-              <span>Pricing Table</span>
-            </button>
-            <button
-              onClick={() => addComponent('contactForm')}
-              className="w-full flex items-center gap-2 p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition"
-            >
-              <Layout className="h-5 w-5" />
-              <span>Contact Form</span>
-            </button>
-            <button
-              onClick={() => addComponent('newsletterSignup')}
-              className="w-full flex items-center gap-2 p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition"
-            >
-              <Layout className="h-5 w-5" />
-              <span>Newsletter Signup</span>
-            </button>
-            <button
-              onClick={() => addComponent('hero')}
-              className="w-full flex items-center gap-2 p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition"
-            >
-              <Layout className="h-5 w-5" />
-              <span>Hero Section</span>
-            </button>
-            
-            <button
-              onClick={() => addComponent('text')}
-              className="w-full flex items-center gap-2 p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition"
-            >
-              <Type className="h-5 w-5" />
-              <span>Text Block</span>
-            </button>
-            
-            <button
-              onClick={() => addComponent('image')}
-              className="w-full flex items-center gap-2 p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition"
-            >
-              <ImageIcon className="h-5 w-5" />
-              <span>Image</span>
-            </button>
-            
-            <button
-              onClick={() => addComponent('button')}
-              className="w-full flex items-center gap-2 p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition"
-            >
-              <Square className="h-5 w-5" />
-              <span>Button</span>
-            </button>
-            
-            <button
-              onClick={() => addComponent('columns')}
-              className="w-full flex items-center gap-2 p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition"
-            >
-              <Columns className="h-5 w-5" />
-              <span>Columns</span>
-            </button>
+          <div className="overflow-y-auto">
+            {/* Basic Components */}
+            <div className="border-b">
+              <button
+                onClick={() => toggleCategory('basic')}
+                className="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-50 font-medium text-sm"
+              >
+                <span>Basic</span>
+                {expandedCategories.includes('basic') ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+              </button>
+              {expandedCategories.includes('basic') && (
+                <div className="p-2 space-y-1 bg-gray-50">
+                  <button
+                    onClick={() => addComponent('text')}
+                    className="w-full flex items-center gap-2 p-2 bg-white hover:bg-gray-100 rounded transition text-sm"
+                  >
+                    <Type className="h-4 w-4" />
+                    <span>Text Block</span>
+                  </button>
+                  <button
+                    onClick={() => addComponent('image')}
+                    className="w-full flex items-center gap-2 p-2 bg-white hover:bg-gray-100 rounded transition text-sm"
+                  >
+                    <ImageIcon className="h-4 w-4" />
+                    <span>Image</span>
+                  </button>
+                  <button
+                    onClick={() => addComponent('button')}
+                    className="w-full flex items-center gap-2 p-2 bg-white hover:bg-gray-100 rounded transition text-sm"
+                  >
+                    <Square className="h-4 w-4" />
+                    <span>Button</span>
+                  </button>
+                  <button
+                    onClick={() => addComponent('spacer')}
+                    className="w-full flex items-center gap-2 p-2 bg-white hover:bg-gray-100 rounded transition text-sm"
+                  >
+                    <span className="h-4 w-4 flex items-center justify-center text-xs">⬍</span>
+                    <span>Spacer</span>
+                  </button>
+                </div>
+              )}
+            </div>
 
-            <button
-              onClick={() => addComponent('slideshowHero')}
-              className="w-full flex items-center gap-2 p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition"
-            >
-              <Layout className="h-5 w-5" />
-              <span>Slideshow Hero</span>
-            </button>
+            {/* Layout Components */}
+            <div className="border-b">
+              <button
+                onClick={() => toggleCategory('layout')}
+                className="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-50 font-medium text-sm"
+              >
+                <span>Layout</span>
+                {expandedCategories.includes('layout') ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+              </button>
+              {expandedCategories.includes('layout') && (
+                <div className="p-2 space-y-1 bg-gray-50">
+                  <button
+                    onClick={() => addComponent('hero')}
+                    className="w-full flex items-center gap-2 p-2 bg-white hover:bg-gray-100 rounded transition text-sm"
+                  >
+                    <Sparkles className="h-4 w-4" />
+                    <span>Hero Section</span>
+                  </button>
+                  <button
+                    onClick={() => addComponent('slideshowHero')}
+                    className="w-full flex items-center gap-2 p-2 bg-white hover:bg-gray-100 rounded transition text-sm"
+                  >
+                    <Play className="h-4 w-4" />
+                    <span>Slideshow Hero</span>
+                  </button>
+                  <button
+                    onClick={() => addComponent('columns')}
+                    className="w-full flex items-center gap-2 p-2 bg-white hover:bg-gray-100 rounded transition text-sm"
+                  >
+                    <Columns className="h-4 w-4" />
+                    <span>Columns</span>
+                  </button>
+                  <button
+                    onClick={() => addComponent('ctaBanner')}
+                    className="w-full flex items-center gap-2 p-2 bg-white hover:bg-gray-100 rounded transition text-sm"
+                  >
+                    <Megaphone className="h-4 w-4" />
+                    <span>CTA Banner</span>
+                  </button>
+                </div>
+              )}
+            </div>
 
-            <button
-              onClick={() => addComponent('testimonials')}
-              className="w-full flex items-center gap-2 p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition"
-            >
-              <Layout className="h-5 w-5" />
-              <span>Testimonials</span>
-            </button>
+            {/* Content Components */}
+            <div className="border-b">
+              <button
+                onClick={() => toggleCategory('content')}
+                className="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-50 font-medium text-sm"
+              >
+                <span>Content</span>
+                {expandedCategories.includes('content') ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+              </button>
+              {expandedCategories.includes('content') && (
+                <div className="p-2 space-y-1 bg-gray-50">
+                  <button
+                    onClick={() => addComponent('galleryHighlights')}
+                    className="w-full flex items-center gap-2 p-2 bg-white hover:bg-gray-100 rounded transition text-sm"
+                  >
+                    <Camera className="h-4 w-4" />
+                    <span>Gallery Highlights</span>
+                  </button>
+                  <button
+                    onClick={() => addComponent('testimonials')}
+                    className="w-full flex items-center gap-2 p-2 bg-white hover:bg-gray-100 rounded transition text-sm"
+                  >
+                    <MessageSquare className="h-4 w-4" />
+                    <span>Testimonials</span>
+                  </button>
+                  <button
+                    onClick={() => addComponent('faq')}
+                    className="w-full flex items-center gap-2 p-2 bg-white hover:bg-gray-100 rounded transition text-sm"
+                  >
+                    <HelpCircle className="h-4 w-4" />
+                    <span>FAQ</span>
+                  </button>
+                  <button
+                    onClick={() => addComponent('iconFeatures')}
+                    className="w-full flex items-center gap-2 p-2 bg-white hover:bg-gray-100 rounded transition text-sm"
+                  >
+                    <Grid3x3 className="h-4 w-4" />
+                    <span>Icon Features</span>
+                  </button>
+                  <button
+                    onClick={() => addComponent('logo')}
+                    className="w-full flex items-center gap-2 p-2 bg-white hover:bg-gray-100 rounded transition text-sm"
+                  >
+                    <BringToFront className="h-4 w-4" />
+                    <span>Logo</span>
+                  </button>
+                </div>
+              )}
+            </div>
 
-            <button
-              onClick={() => addComponent('galleryHighlights')}
-              className="w-full flex items-center gap-2 p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition"
-            >
-              <Layout className="h-5 w-5" />
-              <span>Gallery Highlights</span>
-            </button>
-            
-            <button
-              onClick={() => addComponent('widgetEmbed')}
-              className="w-full flex items-center gap-2 p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition"
-            >
-              <Layout className="h-5 w-5" />
-              <span>Embed Widget</span>
-            </button>
-            
-            <button
-              onClick={() => addComponent('badges')}
-              className="w-full flex items-center gap-2 p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition"
-            >
-              <Layout className="h-5 w-5" />
-              <span>Badges</span>
-            </button>
+            {/* Forms */}
+            <div className="border-b">
+              <button
+                onClick={() => toggleCategory('forms')}
+                className="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-50 font-medium text-sm"
+              >
+                <span>Forms</span>
+                {expandedCategories.includes('forms') ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+              </button>
+              {expandedCategories.includes('forms') && (
+                <div className="p-2 space-y-1 bg-gray-50">
+                  <button
+                    onClick={() => addComponent('contactForm')}
+                    className="w-full flex items-center gap-2 p-2 bg-white hover:bg-gray-100 rounded transition text-sm"
+                  >
+                    <Mail className="h-4 w-4" />
+                    <span>Contact Form</span>
+                  </button>
+                  <button
+                    onClick={() => addComponent('newsletterSignup')}
+                    className="w-full flex items-center gap-2 p-2 bg-white hover:bg-gray-100 rounded transition text-sm"
+                  >
+                    <Mail className="h-4 w-4" />
+                    <span>Newsletter Signup</span>
+                  </button>
+                </div>
+              )}
+            </div>
 
-            <button
-              onClick={() => addComponent('servicesGrid')}
-              className="w-full flex items-center gap-2 p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition"
-            >
-              <Layout className="h-5 w-5" />
-              <span>Services Grid</span>
-            </button>
+            {/* Marketing */}
+            <div className="border-b">
+              <button
+                onClick={() => toggleCategory('marketing')}
+                className="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-50 font-medium text-sm"
+              >
+                <span>Marketing</span>
+                {expandedCategories.includes('marketing') ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+              </button>
+              {expandedCategories.includes('marketing') && (
+                <div className="p-2 space-y-1 bg-gray-50">
+                  <button
+                    onClick={() => addComponent('badges')}
+                    className="w-full flex items-center gap-2 p-2 bg-white hover:bg-gray-100 rounded transition text-sm"
+                  >
+                    <Award className="h-4 w-4" />
+                    <span>Badges</span>
+                  </button>
+                  <button
+                    onClick={() => addComponent('servicesGrid')}
+                    className="w-full flex items-center gap-2 p-2 bg-white hover:bg-gray-100 rounded transition text-sm"
+                  >
+                    <Grid3x3 className="h-4 w-4" />
+                    <span>Services Grid</span>
+                  </button>
+                  <button
+                    onClick={() => addComponent('stats')}
+                    className="w-full flex items-center gap-2 p-2 bg-white hover:bg-gray-100 rounded transition text-sm"
+                  >
+                    <BarChart3 className="h-4 w-4" />
+                    <span>Stats/Numbers</span>
+                  </button>
+                  <button
+                    onClick={() => addComponent('pricingTable')}
+                    className="w-full flex items-center gap-2 p-2 bg-white hover:bg-gray-100 rounded transition text-sm"
+                  >
+                    <DollarSign className="h-4 w-4" />
+                    <span>Pricing Table</span>
+                  </button>
+                </div>
+              )}
+            </div>
 
-            <button
-              onClick={() => addComponent('stats')}
-              className="w-full flex items-center gap-2 p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition"
-            >
-              <Layout className="h-5 w-5" />
-              <span>Stats/Numbers</span>
-            </button>
-
-            <button
-              onClick={() => addComponent('ctaBanner')}
-              className="w-full flex items-center gap-2 p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition"
-            >
-              <Layout className="h-5 w-5" />
-              <span>CTA Banner</span>
-            </button>
-
-            <button
-              onClick={() => addComponent('iconFeatures')}
-              className="w-full flex items-center gap-2 p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition"
-            >
-              <Layout className="h-5 w-5" />
-              <span>Icon Features</span>
-            </button>
-
-            <button
-              onClick={() => addComponent('spacer')}
-              className="w-full flex items-center gap-2 p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition"
-            >
-              <span className="h-5 w-5 flex items-center justify-center">⬍</span>
-              <span>Spacer</span>
-            </button>
-            <button
-              onClick={() => addComponent('seoFooter')}
-              className="w-full flex items-center gap-2 p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition"
-            >
-              <Square className="h-5 w-5" />
-              <span>SEO Footer</span>
-            </button>
+            {/* Advanced */}
+            <div className="border-b">
+              <button
+                onClick={() => toggleCategory('advanced')}
+                className="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-50 font-medium text-sm"
+              >
+                <span>Advanced</span>
+                {expandedCategories.includes('advanced') ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+              </button>
+              {expandedCategories.includes('advanced') && (
+                <div className="p-2 space-y-1 bg-gray-50">
+                  <button
+                    onClick={() => addComponent('widgetEmbed')}
+                    className="w-full flex items-center gap-2 p-2 bg-white hover:bg-gray-100 rounded transition text-sm"
+                  >
+                    <CodeXml className="h-4 w-4" />
+                    <span>Embed Widget</span>
+                  </button>
+                  <button
+                    onClick={() => addComponent('seoFooter')}
+                    className="w-full flex items-center gap-2 p-2 bg-white hover:bg-gray-100 rounded transition text-sm"
+                  >
+                    <Layout className="h-4 w-4" />
+                    <span>SEO Footer</span>
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}
@@ -868,6 +1030,23 @@ export default function VisualEditor({ initialComponents = [], onSave, onChange,
         {/* Top Toolbar */}
         <div className="bg-white border-b p-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
+            <button
+              onClick={handleUndo}
+              disabled={historyIndex === 0}
+              className={`p-2 rounded ${historyIndex === 0 ? 'opacity-30 cursor-not-allowed' : 'hover:bg-gray-100'}`}
+              title="Undo (⌘+Z)"
+            >
+              ↶
+            </button>
+            <button
+              onClick={handleRedo}
+              disabled={historyIndex === history.length - 1}
+              className={`p-2 rounded ${historyIndex === history.length - 1 ? 'opacity-30 cursor-not-allowed' : 'hover:bg-gray-100'}`}
+              title="Redo (⌘+⇧+Z)"
+            >
+              ↷
+            </button>
+            <div className="w-px h-6 bg-gray-300 mx-1"></div>
             <button
               onClick={() => setViewMode('desktop')}
               className={`p-2 rounded ${viewMode === 'desktop' ? 'bg-primary-100 text-primary-600' : 'hover:bg-gray-100'}`}
@@ -903,10 +1082,15 @@ export default function VisualEditor({ initialComponents = [], onSave, onChange,
             <button
               onClick={() => onSave(components)}
               className="px-4 py-2 bg-primary-600 text-white rounded hover:bg-primary-700 flex items-center gap-2"
+              title="Save (⌘+S)"
             >
               <Save className="h-4 w-4" />
               Save Page
             </button>
+
+            <div className="ml-2 px-3 py-2 bg-gray-100 rounded text-sm text-gray-600">
+              {components.length} component{components.length !== 1 ? 's' : ''}
+            </div>
           </div>
         </div>
 
@@ -959,10 +1143,21 @@ export default function VisualEditor({ initialComponents = [], onSave, onChange,
                                 <button
                                   onClick={(e) => {
                                     e.stopPropagation()
+                                    duplicateComponent(component.id)
+                                  }}
+                                  className="p-1 bg-white rounded shadow hover:bg-blue-50 text-blue-600"
+                                  title="Duplicate (⌘+D)"
+                                  aria-label="Duplicate component"
+                                >
+                                  <Copy className="h-4 w-4" />
+                                </button>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation()
                                     deleteComponent(component.id)
                                   }}
                                   className="p-1 bg-white rounded shadow hover:bg-red-50 text-red-600"
-                                  title="Delete component"
+                                  title="Delete (Del)"
                                   aria-label="Delete component"
                                 >
                                   <Trash2 className="h-4 w-4" />
