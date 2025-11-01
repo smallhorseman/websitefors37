@@ -14,6 +14,7 @@ export interface SiteSettings {
   theme_secondary_color: string
   google_analytics_id: string
   book_session_bg_url?: string
+  logo_url?: string
 }
 
 export const DEFAULT_SETTINGS: SiteSettings = {
@@ -29,7 +30,8 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   theme_primary_color: '#b46e14', // Amber-700 
   theme_secondary_color: '#a17a07', // Amber-800
   google_analytics_id: '',
-  book_session_bg_url: 'https://images.unsplash.com/photo-1423666639041-f56000c27a9a'
+  book_session_bg_url: 'https://images.unsplash.com/photo-1423666639041-f56000c27a9a',
+  logo_url: ''
 }
 
 export async function getSettings(): Promise<SiteSettings> {

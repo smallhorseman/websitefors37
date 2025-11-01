@@ -3,10 +3,13 @@
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Menu, X, Camera } from 'lucide-react'
+import Image from 'next/image'
+import { supabase } from '@/lib/supabase'
 
 export default function Navigation() {
   const [isOpen, setIsOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
+  const [logoUrl, setLogoUrl] = useState<string | null>(null)
   
   useEffect(() => {
     const handleScroll = () => {
@@ -15,6 +18,24 @@ export default function Navigation() {
     
     window.addEventListener('scroll', handleScroll)
     return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
+  // Fetch logo URL from settings (client-side via Supabase)
+  useEffect(() => {
+    let mounted = true
+    const fetchLogo = async () => {
+      try {
+        const { data, error } = await supabase.from('settings').select('logo_url').single()
+        if (!mounted) return
+        if (!error && data && data.logo_url) {
+          setLogoUrl(data.logo_url as string)
+        }
+      } catch {
+        // ignore
+      }
+    }
+    fetchLogo()
+    return () => { mounted = false }
   }, [])
 
   return (
@@ -32,15 +53,27 @@ export default function Navigation() {
             className="flex items-center space-x-2"
             aria-label="Studio 37 Photography - Home"
           >
-            <div className={`rounded-full p-1 ${scrolled ? 'bg-amber-100' : 'bg-white/20'}`}>
-              <Camera 
-                className={`h-8 w-8 ${scrolled ? 'text-amber-700' : 'text-amber-200'}`} 
-                aria-hidden="true"
-              />
-            </div>
-            <span className={`text-xl font-serif font-bold ${scrolled ? 'text-amber-900' : 'text-white'}`}>
-              Studio 37
-            </span>
+            {logoUrl ? (
+              <div className="flex items-center gap-2">
+                {/* Use next/image for optimization when possible */}
+                <div className="relative h-8 w-auto" style={{ minWidth: 96 }}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={logoUrl} alt="Studio 37 logo" className="h-8 w-auto object-contain" />
+                </div>
+              </div>
+            ) : (
+              <>
+                <div className={`rounded-full p-1 ${scrolled ? 'bg-amber-100' : 'bg-white/20'}`}>
+                  <Camera 
+                    className={`h-8 w-8 ${scrolled ? 'text-amber-700' : 'text-amber-200'}`} 
+                    aria-hidden="true"
+                  />
+                </div>
+                <span className={`text-xl font-serif font-bold ${scrolled ? 'text-amber-900' : 'text-white'}`}>
+                  Studio 37
+                </span>
+              </>
+            )}
           </Link>
 
           <div className="hidden md:flex items-center space-x-8">

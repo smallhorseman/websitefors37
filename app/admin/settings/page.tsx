@@ -16,6 +16,7 @@ interface SiteSettings {
   theme_primary_color: string
   theme_secondary_color: string
   google_analytics_id: string
+  logo_url?: string
 }
 
 export default function SettingsPage() {
@@ -31,7 +32,8 @@ export default function SettingsPage() {
     seo_default_description: 'Professional photography services for weddings, events, portraits, and commercial projects.',
     theme_primary_color: '#b46e14', // amber-700
     theme_secondary_color: '#a17a07', // amber-800
-    google_analytics_id: ''
+    google_analytics_id: '',
+    logo_url: ''
   })
   
   const [loading, setLoading] = useState(true)
@@ -476,6 +478,37 @@ export default function SettingsPage() {
                   </div>
                 </div>
                 
+                <div className="pt-6">
+                  <h2 className="text-lg font-medium border-b pb-2">Branding</h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Logo URL
+                      </label>
+                      <input
+                        type="url"
+                        name="logo_url"
+                        value={settings.logo_url || ''}
+                        onChange={handleChange}
+                        placeholder="https://.../your-logo.png"
+                        className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                      />
+                      <p className="mt-1 text-xs text-gray-500">Paste the logo URL (PNG/SVG). Transparent background recommended.</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Preview</label>
+                      <div className="border rounded-lg p-4 bg-gray-50 flex items-center justify-center h-24">
+                        {settings.logo_url ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={settings.logo_url} alt="Logo preview" className="max-h-12 w-auto object-contain" />
+                        ) : (
+                          <div className="text-gray-400 text-sm">No logo URL set</div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
                 <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200 mt-4">
                   <p className="text-yellow-800 text-sm">
                     <strong>Note:</strong> Theme color changes will require deploying an updated version of your site to take effect.
