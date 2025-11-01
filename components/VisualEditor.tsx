@@ -35,6 +35,7 @@ interface HeroComponent extends BaseComponent {
     animation: 'none' | 'fade-in' | 'slide-up' | 'zoom'
     buttonAnimation?: 'none' | 'hover-zoom'
     fullBleed?: boolean
+    overlapHeader?: boolean
   }
 }
 
@@ -372,7 +373,8 @@ export default function VisualEditor({ initialComponents = [], onSave, onChange,
           buttonStyle: 'primary',
           animation: 'fade-in',
           buttonAnimation: 'hover-zoom',
-          fullBleed: true
+          fullBleed: true,
+          overlapHeader: true
         }
       case 'text':
         return {
@@ -1751,9 +1753,12 @@ function HeroRenderer({ data }: { data: HeroComponent['data'] }) {
   const animClass = anim === 'fade-in' ? 'animate-fadeIn' : anim === 'slide-up' ? 'animate-slideUp' : anim === 'zoom' ? 'animate-zoom' : ''
   const buttonHoverZoom = (data.buttonAnimation || 'none') === 'hover-zoom' ? 'transition-transform duration-300 hover:scale-105' : ''
   const heightClasses = 'min-h-[50vh] md:min-h-[60vh] lg:min-h-[70vh]'
+  const overlap = data.overlapHeader ?? true
+  const overlapClasses = overlap ? '-mt-16 md:-mt-20 pt-16 md:pt-20' : ''
   
   return (
-    <div className={`relative ${heightClasses} flex items-center justify-center text-white overflow-hidden ${animClass}`}>
+    <div className={`${overlapClasses}`}>
+      <div className={`relative ${heightClasses} flex items-center justify-center text-white overflow-hidden ${animClass}`}>
       {data.backgroundImage && (
         <Image src={data.backgroundImage} alt="" fill className="object-cover" />
       )}
@@ -1776,6 +1781,7 @@ function HeroRenderer({ data }: { data: HeroComponent['data'] }) {
             </a>
           )}
         </div>
+      </div>
       </div>
     </div>
   )
@@ -2670,6 +2676,16 @@ function HeroProperties({ data, onUpdate }: { data: HeroComponent['data']; onUpd
             className="h-4 w-4 text-primary-600 rounded border-gray-300 focus:ring-primary-500"
           />
           <label htmlFor="hero-fullbleed" className="text-sm text-gray-700">Full width (edge-to-edge)</label>
+        </div>
+        <div className="flex items-center gap-2 mt-2">
+          <input
+            id="hero-overlap"
+            type="checkbox"
+            checked={data.overlapHeader ?? true}
+            onChange={(e) => onUpdate({ overlapHeader: e.target.checked })}
+            className="h-4 w-4 text-primary-600 rounded border-gray-300 focus:ring-primary-500"
+          />
+          <label htmlFor="hero-overlap" className="text-sm text-gray-700">Overlap header (pull under navbar)</label>
         </div>
       </div>
       <div>

@@ -30,15 +30,15 @@ export default function ServicesPage() {
   )
 
   return (
-    <div className="pt-16">
+    <div>
       {/* Structured Data */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceSchema) }}
       />
 
-      {/* Hero Section */}
-      <div className="relative bg-gradient-to-r from-gray-900 to-gray-800 text-white">
+  {/* Hero Section */}
+  <div className="relative bg-gradient-to-r from-gray-900 to-gray-800 text-white">
         <div className="absolute inset-0 opacity-30">
           <Image 
             src="https://res.cloudinary.com/dmjxho2rl/image/upload/v1758315587/_MG_9234_aerdni_e_gen_restore_e_improve_l_image_upload_My_Brand_IMG_2115_mtuowt_c_scale_fl_relative_w_0.36_o_80_fl_layer_apply_g_west_x_0.03_y_0.04_vunmkp.jpg" 
