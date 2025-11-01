@@ -10,8 +10,9 @@ export default function Navigation() {
   const [isOpen, setIsOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const [logoUrl, setLogoUrl] = useState<string | null>(null)
-  const DEFAULT_LOGO_LIGHT = '/brand/studio37-logo-watermark-light.svg'
-  const DEFAULT_LOGO_DARK = '/brand/studio37-logo-watermark-dark.svg'
+  // Badge concept (light/dark) as default fallbacks
+  const DEFAULT_LOGO_LIGHT = '/brand/studio37-badge-light.svg'
+  const DEFAULT_LOGO_DARK = '/brand/studio37-badge-dark.svg'
   
   useEffect(() => {
     const handleScroll = () => {
@@ -32,11 +33,11 @@ export default function Navigation() {
         if (!error && data && data.logo_url) {
           setLogoUrl(data.logo_url as string)
         } else {
-          // Use watermarked logo based on scroll state (light for scrolled, dark for transparent)
+          // Use badge logo based on scroll state (light for scrolled backgrounds)
           setLogoUrl(scrolled ? DEFAULT_LOGO_LIGHT : DEFAULT_LOGO_DARK)
         }
       } catch {
-        // Fallback on error - use watermarked logo
+        // Fallback on error - use badge logo
         if (mounted) setLogoUrl(scrolled ? DEFAULT_LOGO_LIGHT : DEFAULT_LOGO_DARK)
       }
     }

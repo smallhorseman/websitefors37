@@ -31,7 +31,8 @@ export const DEFAULT_SETTINGS = {
   theme_primary_color: '#b46e14',
   theme_secondary_color: '#111827',
   google_analytics_id: '',
-  logo_url: '/brand/studio37-logo-watermark-light.svg',
+  // Default to the refined badge logo (light variant)
+  logo_url: '/brand/studio37-badge-light.svg',
 }
 
 export async function getSettings(): Promise<SiteSettings> {
