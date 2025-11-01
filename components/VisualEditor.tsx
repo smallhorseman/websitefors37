@@ -747,18 +747,108 @@ function HeroProperties({ data, onUpdate }: { data: HeroComponent['data']; onUpd
 
 // Add missing TextProperties component
 function TextProperties({ data, onUpdate }: { data: TextComponent['data']; onUpdate: (data: any) => void }) {
+  const [cursorPos, setCursorPos] = React.useState<number>(0)
+  const textareaRef = React.useRef<HTMLTextAreaElement>(null)
+
+  const insertFormatting = (before: string, after: string) => {
+    const textarea = textareaRef.current
+    if (!textarea) return
+    
+    const start = textarea.selectionStart
+    const end = textarea.selectionEnd
+    const text = data.content
+    const selectedText = text.substring(start, end)
+    
+    const newText = text.substring(0, start) + before + selectedText + after + text.substring(end)
+    onUpdate({ content: newText })
+    
+    // Set cursor position after the inserted text
+    setTimeout(() => {
+      textarea.focus()
+      const newPos = start + before.length + selectedText.length + after.length
+      textarea.setSelectionRange(newPos, newPos)
+    }, 0)
+  }
+
   return (
     <div className="space-y-4">
       <div>
         <label className="block text-sm font-medium mb-1">Content</label>
+        
+        {/* Formatting Toolbar */}
+        <div className="flex flex-wrap gap-1 mb-2 p-2 bg-gray-50 border rounded">
+          <button
+            type="button"
+            onClick={() => insertFormatting('<strong>', '</strong>')}
+            className="px-2 py-1 text-xs border rounded hover:bg-white font-bold"
+            title="Bold"
+          >
+            <strong>B</strong>
+          </button>
+          <button
+            type="button"
+            onClick={() => insertFormatting('<em>', '</em>')}
+            className="px-2 py-1 text-xs border rounded hover:bg-white italic"
+            title="Italic"
+          >
+            <em>I</em>
+          </button>
+          <button
+            type="button"
+            onClick={() => insertFormatting('<u>', '</u>')}
+            className="px-2 py-1 text-xs border rounded hover:bg-white underline"
+            title="Underline"
+          >
+            U
+          </button>
+          <span className="border-l mx-1"></span>
+          <button
+            type="button"
+            onClick={() => insertFormatting('<h2 class="text-2xl font-bold mb-2">', '</h2>')}
+            className="px-2 py-1 text-xs border rounded hover:bg-white"
+            title="Heading 2"
+          >
+            H2
+          </button>
+          <button
+            type="button"
+            onClick={() => insertFormatting('<h3 class="text-xl font-bold mb-2">', '</h3>')}
+            className="px-2 py-1 text-xs border rounded hover:bg-white"
+            title="Heading 3"
+          >
+            H3
+          </button>
+          <span className="border-l mx-1"></span>
+          <button
+            type="button"
+            onClick={() => insertFormatting('<p class="text-lg">', '</p>')}
+            className="px-2 py-1 text-xs border rounded hover:bg-white"
+            title="Large text"
+          >
+            Large
+          </button>
+          <button
+            type="button"
+            onClick={() => insertFormatting('<p class="text-sm">', '</p>')}
+            className="px-2 py-1 text-xs border rounded hover:bg-white"
+            title="Small text"
+          >
+            Small
+          </button>
+        </div>
+        
         <textarea
+          ref={textareaRef}
           value={data.content}
           onChange={(e) => onUpdate({ content: e.target.value })}
-          className="w-full border rounded px-3 py-2"
-          rows={5}
+          className="w-full border rounded px-3 py-2 font-mono text-sm"
+          rows={8}
           title="Text content"
-          placeholder="Enter text content"
+          placeholder="Enter text content (HTML allowed)"
         />
+        <p className="text-xs text-gray-500 mt-1">
+          Tip: Select text and click formatting buttons, or use HTML tags directly
+        </p>
       </div>
       <div>
         <label className="block text-sm font-medium mb-1">Alignment</label>
@@ -964,6 +1054,30 @@ function ButtonProperties({ data, onUpdate }: { data: ButtonComponent['data']; o
 }
 
 function ColumnsProperties({ data, onUpdate }: { data: ColumnsComponent['data']; onUpdate: (data: any) => void }) {
+  const columnRefs = React.useRef<(HTMLTextAreaElement | null)[]>([])
+
+  const insertColumnFormatting = (colIndex: number, before: string, after: string) => {
+    const textarea = columnRefs.current[colIndex]
+    if (!textarea) return
+    
+    const start = textarea.selectionStart
+    const end = textarea.selectionEnd
+    const text = data.columns[colIndex].content
+    const selectedText = text.substring(start, end)
+    
+    const newText = text.substring(0, start) + before + selectedText + after + text.substring(end)
+    const newColumns = [...data.columns]
+    newColumns[colIndex].content = newText
+    onUpdate({ columns: newColumns })
+    
+    // Set cursor position after the inserted text
+    setTimeout(() => {
+      textarea.focus()
+      const newPos = start + before.length + selectedText.length + after.length
+      textarea.setSelectionRange(newPos, newPos)
+    }, 0)
+  }
+
   return (
     <div className="space-y-4">
       <div>
@@ -983,20 +1097,78 @@ function ColumnsProperties({ data, onUpdate }: { data: ColumnsComponent['data'];
       {data.columns.map((col, i) => (
         <div key={i} className="border rounded p-3 space-y-2">
           <h4 className="font-medium">Column {i + 1}</h4>
+          
+          {/* Formatting Toolbar for each column */}
+          <div className="flex flex-wrap gap-1 p-2 bg-gray-50 border rounded">
+            <button
+              type="button"
+              onClick={() => insertColumnFormatting(i, '<strong>', '</strong>')}
+              className="px-2 py-1 text-xs border rounded hover:bg-white font-bold"
+              title="Bold"
+            >
+              <strong>B</strong>
+            </button>
+            <button
+              type="button"
+              onClick={() => insertColumnFormatting(i, '<em>', '</em>')}
+              className="px-2 py-1 text-xs border rounded hover:bg-white italic"
+              title="Italic"
+            >
+              <em>I</em>
+            </button>
+            <button
+              type="button"
+              onClick={() => insertColumnFormatting(i, '<u>', '</u>')}
+              className="px-2 py-1 text-xs border rounded hover:bg-white underline"
+              title="Underline"
+            >
+              U
+            </button>
+            <span className="border-l mx-1"></span>
+            <button
+              type="button"
+              onClick={() => insertColumnFormatting(i, '<h3 class="text-xl font-bold mb-2">', '</h3>')}
+              className="px-2 py-1 text-xs border rounded hover:bg-white"
+              title="Heading"
+            >
+              H3
+            </button>
+            <button
+              type="button"
+              onClick={() => insertColumnFormatting(i, '<p class="text-lg">', '</p>')}
+              className="px-2 py-1 text-xs border rounded hover:bg-white"
+              title="Large text"
+            >
+              Large
+            </button>
+            <button
+              type="button"
+              onClick={() => insertColumnFormatting(i, '<p class="text-sm">', '</p>')}
+              className="px-2 py-1 text-xs border rounded hover:bg-white"
+              title="Small text"
+            >
+              Small
+            </button>
+          </div>
+          
           <textarea
+            ref={(el) => columnRefs.current[i] = el}
             value={col.content}
             onChange={(e) => {
               const newColumns = [...data.columns]
               newColumns[i].content = e.target.value
               onUpdate({ columns: newColumns })
             }}
-            className="w-full border rounded px-2 py-1 text-sm"
-            rows={3}
+            className="w-full border rounded px-2 py-1 text-sm font-mono"
+            rows={4}
             title={`Column ${i + 1} content`}
-            placeholder={`Enter content for column ${i + 1}`}
+            placeholder={`Enter content for column ${i + 1} (HTML allowed)`}
           />
         </div>
       ))}
+      <p className="text-xs text-gray-500">
+        Tip: Select text and click formatting buttons to add title/body styles
+      </p>
     </div>
   )
 }
