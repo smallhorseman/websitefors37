@@ -29,6 +29,7 @@ export default function SiteEditorPage() {
   const [data, setData] = useState<Record<string, any>>({})
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
   const fields = useMemo(() => FIELDS[slug] || [], [slug])
 
   const load = async () => {
@@ -41,9 +42,21 @@ export default function SiteEditorPage() {
   useEffect(() => { load() }, [slug])
 
   const save = async () => {
+    setMessage(null)
     setSaving(true)
-    await upsertPageConfig(slug, data)
-    setSaving(false)
+    try {
+      const res = await upsertPageConfig(slug, data)
+      if (!res) {
+        setMessage({ type: 'error', text: 'Failed to save. Please try again or check database table "page_configs" and environment keys.' })
+      } else {
+        setMessage({ type: 'success', text: 'Page settings saved successfully.' })
+      }
+    } catch (e: any) {
+      console.error('Site editor save error', e)
+      setMessage({ type: 'error', text: e?.message || 'Unexpected error while saving.' })
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
@@ -71,6 +84,12 @@ export default function SiteEditorPage() {
           </button>
         </div>
       </div>
+
+      {message && (
+        <div className={`mb-3 rounded border px-3 py-2 text-sm ${message.type === 'success' ? 'bg-green-50 border-green-200 text-green-800' : 'bg-red-50 border-red-200 text-red-800'}`}>
+          {message.text}
+        </div>
+      )}
 
       {loading ? (
         <div className="text-gray-600 flex items-center"><Loader2 className="h-4 w-4 animate-spin mr-2"/> Loading…</div>

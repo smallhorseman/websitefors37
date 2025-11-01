@@ -174,7 +174,12 @@ export default function ContentManagementPage() {
       setSelectedPage(null)
     } catch (error: any) {
       console.error('Error saving page:', error)
-      setError(error.message || 'Failed to save page')
+      const code = error?.code || error?.details || ''
+      if (typeof code === 'string' && code.includes('23505') || (error?.message && /duplicate key|unique constraint/i.test(error.message))) {
+        setError('That URL slug is already in use. Please choose a different slug.')
+      } else {
+        setError(error?.message || 'Failed to save page')
+      }
     } finally {
       setSavingPage(false)
     }
