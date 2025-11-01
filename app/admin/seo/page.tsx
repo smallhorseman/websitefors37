@@ -1,5 +1,4 @@
 import React from 'react'
-import AdminSidebar from '@/components/AdminSidebar'
 
 export const dynamic = 'force-dynamic'
 
@@ -39,8 +38,7 @@ export default function AdminSEOPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <AdminSidebar />
-      <main className="lg:ml-64 p-6">
+      <main className="p-6">
         <div className="max-w-6xl mx-auto">
           <header className="mb-6">
             <h1 className="text-2xl font-semibold">SEO & AI Assistant</h1>
