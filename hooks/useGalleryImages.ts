@@ -31,7 +31,6 @@ async function fetchGalleryImages(params: GalleryQueryParams = {}): Promise<Gall
     query = query.eq('featured', featured)
   }
   if (orderBy) {
-    // @ts-expect-error supabase typings allow string; runtime validated in DB
     query = query.order(orderBy as string, { ascending })
   }
   if (typeof limit === 'number') {
