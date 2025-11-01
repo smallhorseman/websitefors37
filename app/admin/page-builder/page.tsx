@@ -12,6 +12,7 @@ export default function PageBuilderPage() {
   const [saving, setSaving] = useState(false)
   const [slug, setSlug] = useState('new-landing-page')
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
+  const [lastPublishedSlug, setLastPublishedSlug] = useState<string | null>(null)
 
   useEffect(() => {
     loadPageData()
@@ -172,7 +173,8 @@ export default function PageBuilderPage() {
 
       if (error) throw error
 
-      setMessage({ type: 'success', text: `Published to /${cleanSlug}.` })
+  setMessage({ type: 'success', text: `Published to /${cleanSlug}.` })
+  setLastPublishedSlug(cleanSlug)
     } catch (e) {
       console.error('Failed to publish:', e)
       setMessage({ type: 'error', text: 'Failed to publish page. Please check the slug and try again.' })
@@ -226,7 +228,23 @@ export default function PageBuilderPage() {
       <div className="flex-1 relative">
         {message && (
           <div className={`m-4 rounded border px-3 py-2 text-sm ${message.type === 'success' ? 'bg-green-50 border-green-200 text-green-800' : 'bg-red-50 border-red-200 text-red-800'}`}>
-            {message.text}
+            <div className="flex items-center justify-between gap-2 flex-wrap">
+              <span>{message.text}</span>
+              {message.type === 'success' && lastPublishedSlug && (
+                <div className="flex items-center gap-2">
+                  <Link href={`/${lastPublishedSlug}`} target="_blank" className="underline text-green-800 hover:text-green-900">
+                    View Page
+                  </Link>
+                  <button
+                    onClick={() => navigator.clipboard.writeText(`${window.location.origin}/${lastPublishedSlug}`)}
+                    className="px-2 py-1 border rounded text-green-800 hover:bg-green-100"
+                    title="Copy public URL"
+                  >
+                    Copy Link
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         )}
         <VisualEditor
@@ -234,6 +252,14 @@ export default function PageBuilderPage() {
           onSave={handleSave}
         />
         <div className="p-4 flex justify-end gap-2">
+          <Link
+            href={`/${slug.replace(/[^a-z0-9-\s]/gi, '').toLowerCase().replace(/\s+/g, '-').trim() || ''}`}
+            target="_blank"
+            className="px-4 py-2 border rounded hover:bg-gray-50 disabled:opacity-50"
+            aria-disabled={!slug}
+          >
+            View /{slug || '…'}
+          </Link>
           <button
             onClick={() => handleSave(components)}
             disabled={saving}
