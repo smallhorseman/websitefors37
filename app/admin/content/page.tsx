@@ -466,15 +466,24 @@ export default function ContentManagementPage() {
                           <Trash2 className="h-4 w-4" />
                         </button>
                         {page.published && (
-                          <a
-                            href={`/${page.slug}`}
-                            target="_blank"
-                            className="text-blue-600 hover:text-blue-900"
-                            title="View page"
-                            rel="noopener noreferrer"
-                          >
-                            <ExternalLink className="h-4 w-4" />
-                          </a>
+                          <>
+                            <a
+                              href={`/${page.slug}`}
+                              target="_blank"
+                              className="text-blue-600 hover:text-blue-900"
+                              title="View page"
+                              rel="noopener noreferrer"
+                            >
+                              <ExternalLink className="h-4 w-4" />
+                            </a>
+                            <a
+                              href={`/admin/page-builder?slug=${encodeURIComponent(page.slug)}`}
+                              className="text-primary-600 hover:text-primary-900"
+                              title="Edit in Visual Builder"
+                            >
+                              <Edit className="h-4 w-4" />
+                            </a>
+                          </>
                         )}
                       </div>
                     </td>

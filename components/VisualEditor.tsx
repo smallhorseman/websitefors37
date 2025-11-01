@@ -32,6 +32,7 @@ interface HeroComponent extends BaseComponent {
     buttonStyle: 'primary' | 'secondary' | 'outline'
     animation: 'none' | 'fade-in' | 'slide-up' | 'zoom'
     buttonAnimation?: 'none' | 'hover-zoom'
+    fullBleed?: boolean
   }
 }
 
@@ -141,7 +142,8 @@ export default function VisualEditor({ initialComponents = [], onSave, onChange 
           subtitleColor: 'text-amber-50',
           buttonStyle: 'primary',
           animation: 'none',
-          buttonAnimation: 'none'
+          buttonAnimation: 'none',
+          fullBleed: true
         }
       case 'text':
         return {
@@ -433,9 +435,10 @@ function HeroRenderer({ data }: { data: HeroComponent['data'] }) {
   const anim = data.animation || 'none'
   const animClass = anim === 'fade-in' ? 'animate-fadeIn' : anim === 'slide-up' ? 'animate-slideUp' : anim === 'zoom' ? 'animate-zoom' : ''
   const buttonHoverZoom = (data.buttonAnimation || 'none') === 'hover-zoom' ? 'transition-transform duration-300 hover:scale-105' : ''
+  const heightClasses = 'min-h-[50vh] md:min-h-[60vh] lg:min-h-[70vh]'
   
   return (
-    <div className={`relative h-96 flex items-center justify-center text-white overflow-hidden ${animClass}`}>
+    <div className={`relative ${heightClasses} flex items-center justify-center text-white overflow-hidden ${animClass}`}>
       {data.backgroundImage && (
         <Image src={data.backgroundImage} alt="" fill className="object-cover" />
       )}
@@ -444,8 +447,8 @@ function HeroRenderer({ data }: { data: HeroComponent['data'] }) {
         style={{ backgroundColor: `rgba(0,0,0,${Math.min(Math.max(Number(data.overlay ?? 50), 0), 100) / 100})` }}
       />
       <div className={`relative z-10 text-${data.alignment} max-w-4xl px-8`}>
-        <h1 className={`text-5xl font-bold mb-4 ${data.titleColor || 'text-white'}`}>{data.title}</h1>
-        <p className={`text-xl mb-6 ${data.subtitleColor || 'text-amber-50'}`}>{data.subtitle}</p>
+        <h1 className={`text-4xl md:text-5xl lg:text-6xl font-bold mb-4 ${data.titleColor || 'text-white'}`}>{data.title}</h1>
+        <p className={`text-lg md:text-xl mb-6 ${data.subtitleColor || 'text-amber-50'}`}>{data.subtitle}</p>
         {data.buttonText && (
           <a href={data.buttonLink} className={`inline-block px-6 py-3 rounded-lg transition no-underline ${buttonStyleClasses[data.buttonStyle || 'primary']} ${buttonHoverZoom}`}>
             {data.buttonText}
@@ -609,6 +612,19 @@ function HeroProperties({ data, onUpdate }: { data: HeroComponent['data']; onUpd
           title="Hero title"
           placeholder="Enter hero title"
         />
+      </div>
+      <div>
+        <label className="block text-sm font-medium mb-1">Layout</label>
+        <div className="flex items-center gap-2">
+          <input
+            id="hero-fullbleed"
+            type="checkbox"
+            checked={!!data.fullBleed}
+            onChange={(e) => onUpdate({ fullBleed: e.target.checked })}
+            className="h-4 w-4 text-primary-600 rounded border-gray-300 focus:ring-primary-500"
+          />
+          <label htmlFor="hero-fullbleed" className="text-sm text-gray-700">Full width (edge-to-edge)</label>
+        </div>
       </div>
       <div>
         <label className="block text-sm font-medium mb-1">Animation</label>

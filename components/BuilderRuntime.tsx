@@ -16,6 +16,7 @@ export function HeroBlock({
   buttonStyle = 'primary',
   animation = 'none',
   buttonAnimation = 'none',
+  fullBleed = false,
 }: {
   title?: string
   subtitle?: string
@@ -29,6 +30,7 @@ export function HeroBlock({
   buttonStyle?: string
   animation?: string
   buttonAnimation?: string
+  fullBleed?: boolean | string
 }) {
   const buttonStyleClasses: Record<string, string> = {
     primary: 'btn-primary',
@@ -36,9 +38,11 @@ export function HeroBlock({
     outline: 'border-2 border-white text-white hover:bg-white/10'
   }
   const hoverZoom = buttonAnimation === 'hover-zoom' ? 'transition-transform duration-300 hover:scale-105' : ''
+  const isFullBleed = String(fullBleed) === 'true'
+  const sectionBase = `relative min-h-[50vh] md:min-h-[60vh] lg:min-h-[70vh] flex items-center justify-center text-white overflow-hidden ${animation === 'fade-in' ? 'animate-fadeIn' : animation === 'slide-up' ? 'animate-slideUp' : animation === 'zoom' ? 'animate-zoom' : ''}`
   
-  return (
-    <section className={`relative h-96 md:h-[28rem] flex items-center justify-center text-white overflow-hidden rounded-lg ${animation === 'fade-in' ? 'animate-fadeIn' : animation === 'slide-up' ? 'animate-slideUp' : animation === 'zoom' ? 'animate-zoom' : ''}`}>
+  const section = (
+    <section className={`${sectionBase} ${isFullBleed ? '' : 'rounded-lg'}`}>
       {backgroundImage && (
         <Image src={backgroundImage} alt="" fill className="object-cover" />
       )}
@@ -47,7 +51,7 @@ export function HeroBlock({
         style={{ backgroundColor: `rgba(0,0,0,${Math.min(Math.max(Number(overlay ?? 50), 0), 100) / 100})` }}
       />
       <div className={`relative z-10 max-w-4xl w-full px-6 text-${alignment}`}>
-        {title && <h1 className={`text-4xl md:text-5xl font-bold mb-3 ${titleColor}`}>{title}</h1>}
+        {title && <h1 className={`text-4xl md:text-5xl lg:text-6xl font-bold mb-3 ${titleColor}`}>{title}</h1>}
         {subtitle && <p className={`text-lg md:text-xl mb-6 opacity-90 ${subtitleColor}`}>{subtitle}</p>}
         {buttonText && (
           <a
@@ -60,6 +64,16 @@ export function HeroBlock({
       </div>
     </section>
   )
+
+  if (isFullBleed) {
+    return (
+      <div className="relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen overflow-x-clip">
+        {section}
+      </div>
+    )
+  }
+
+  return section
 }
 
 export function TextBlock({ contentB64, alignment = 'left', size = 'md', animation = 'none' }: {

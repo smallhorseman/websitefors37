@@ -5,14 +5,25 @@ import VisualEditor from '@/components/VisualEditor'
 import { supabase } from '@/lib/supabase'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 
 export default function PageBuilderPage() {
   const [components, setComponents] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const searchParams = useSearchParams()
   const [slug, setSlug] = useState('new-landing-page')
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
   const [lastPublishedSlug, setLastPublishedSlug] = useState<string | null>(null)
+
+  useEffect(() => {
+    // Initialize slug from query string if provided
+    const initialSlug = searchParams?.get('slug')
+    if (initialSlug) {
+      setSlug(initialSlug)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   useEffect(() => {
     loadPageData()
@@ -109,7 +120,7 @@ export default function PageBuilderPage() {
               d.titleColor || 'text-white'
             )}" subtitleColor="${escapeAttr(d.subtitleColor || 'text-amber-50')}" buttonStyle="${escapeAttr(
               d.buttonStyle || 'primary'
-            )}" animation="${escapeAttr(d.animation || 'none')}" buttonAnimation="${escapeAttr(d.buttonAnimation || 'none')}" />`
+            )}" animation="${escapeAttr(d.animation || 'none')}" buttonAnimation="${escapeAttr(d.buttonAnimation || 'none')}" fullBleed="${(d.fullBleed ?? true) ? 'true' : 'false'}" />`
           )
           break
         }
