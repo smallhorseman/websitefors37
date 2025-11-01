@@ -10,11 +10,12 @@ export default function PageBuilderPage() {
   const [components, setComponents] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
-  const [slug] = useState('visual-page') // You can make this dynamic
+  const [slug, setSlug] = useState('new-landing-page')
+  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
 
   useEffect(() => {
     loadPageData()
-  }, [])
+  }, [slug])
 
   const loadPageData = async () => {
     try {
@@ -30,6 +31,8 @@ export default function PageBuilderPage() {
 
       if (data?.data?.components) {
         setComponents(data.data.components)
+      } else {
+        setComponents([])
       }
     } catch (e) {
       console.error('Failed to load page:', e)
@@ -39,22 +42,31 @@ export default function PageBuilderPage() {
   }
 
   const handleSave = async (newComponents: any[]) => {
+    setMessage(null)
     setSaving(true)
     try {
+      const cleanSlug = slug
+        .toLowerCase()
+        .replace(/[^a-z0-9-\s]/g, '')
+        .replace(/\s+/g, '-')
+        .trim()
+      if (!cleanSlug) {
+        alert('Please enter a valid URL slug before saving.')
+        return
+      }
       const { error } = await supabase
         .from('page_configs')
         .upsert({
-          slug,
+          slug: cleanSlug,
           data: { components: newComponents }
         })
 
       if (error) throw error
-
-      alert('Page saved successfully!')
+      setMessage({ type: 'success', text: 'Page saved successfully.' })
       setComponents(newComponents)
     } catch (e) {
       console.error('Failed to save:', e)
-      alert('Failed to save page')
+      setMessage({ type: 'error', text: 'Failed to save page. Please try again.' })
     } finally {
       setSaving(false)
     }
@@ -82,12 +94,32 @@ export default function PageBuilderPage() {
           <ArrowLeft className="h-5 w-5" />
           Back to Admin
         </Link>
-        <h1 className="text-xl font-bold">Visual Page Builder</h1>
+        <div className="flex flex-col items-center gap-2">
+          <h1 className="text-xl font-bold">Visual Page Builder</h1>
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-gray-600">URL Slug:</span>
+            <div className="flex items-center gap-1">
+              <span className="text-gray-500">/</span>
+              <input
+                value={slug}
+                onChange={(e) => setSlug(e.target.value)}
+                className="border rounded px-2 py-1 text-sm w-56"
+                placeholder="new-landing-page"
+                aria-label="Page URL slug"
+              />
+            </div>
+          </div>
+        </div>
         <div className="w-32" /> {/* Spacer for centering */}
       </div>
 
       {/* Editor Container */}
       <div className="flex-1 relative">
+        {message && (
+          <div className={`m-4 rounded border px-3 py-2 text-sm ${message.type === 'success' ? 'bg-green-50 border-green-200 text-green-800' : 'bg-red-50 border-red-200 text-red-800'}`}>
+            {message.text}
+          </div>
+        )}
         <VisualEditor
           initialComponents={components}
           onSave={handleSave}

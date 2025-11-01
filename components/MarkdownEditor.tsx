@@ -16,7 +16,7 @@ export default function MarkdownEditor({
   minHeight = '300px',
   placeholder = 'Write your content using Markdown...'
 }: MarkdownEditorProps) {
-  const [isPreview, setIsPreview] = useState(false)
+  const [mode, setMode] = useState<'edit' | 'preview' | 'split'>('edit')
 
   const handleChange = useCallback(
     (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -31,32 +31,67 @@ export default function MarkdownEditor({
         <div className="flex space-x-2">
           <button
             type="button"
-            onClick={() => setIsPreview(false)}
+            onClick={() => setMode('edit')}
             className={`px-3 py-1 rounded ${
-              !isPreview
+              mode === 'edit'
                 ? 'bg-white shadow-sm border border-gray-300'
                 : 'text-gray-600 hover:bg-gray-100'
             }`}
+            aria-pressed={mode === 'edit'}
           >
             Edit
           </button>
           <button
             type="button"
-            onClick={() => setIsPreview(true)}
+            onClick={() => setMode('preview')}
             className={`px-3 py-1 rounded ${
-              isPreview
+              mode === 'preview'
                 ? 'bg-white shadow-sm border border-gray-300'
                 : 'text-gray-600 hover:bg-gray-100'
             }`}
+            aria-pressed={mode === 'preview'}
           >
             Preview
+          </button>
+          <button
+            type="button"
+            onClick={() => setMode('split')}
+            className={`px-3 py-1 rounded ${
+              mode === 'split'
+                ? 'bg-white shadow-sm border border-gray-300'
+                : 'text-gray-600 hover:bg-gray-100'
+            }`}
+            aria-pressed={mode === 'split'}
+            title="Edit and preview side-by-side"
+          >
+            Split
           </button>
         </div>
       </div>
       
       <div className="relative" style={{ minHeight }}>
-        {isPreview ? (
-          <div className="prose prose-sm max-w-none p-4 overflow-y-auto" style={{ minHeight }}>
+        {mode === 'split' ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-0">
+            <div className="border-r">
+              <textarea
+                value={value}
+                onChange={handleChange}
+                className="w-full h-full p-4 focus:outline-none font-mono"
+                style={{ minHeight, resize: 'vertical' }}
+                placeholder={placeholder}
+                aria-label="Markdown editor"
+              />
+            </div>
+            <div className="prose prose-sm max-w-none p-4 overflow-y-auto" style={{ minHeight }} aria-live="polite">
+              {value ? (
+                <ReactMarkdown>{value}</ReactMarkdown>
+              ) : (
+                <p className="text-gray-400 italic">{placeholder}</p>
+              )}
+            </div>
+          </div>
+        ) : mode === 'preview' ? (
+          <div className="prose prose-sm max-w-none p-4 overflow-y-auto" style={{ minHeight }} aria-live="polite">
             {value ? (
               <ReactMarkdown>{value}</ReactMarkdown>
             ) : (
@@ -70,6 +105,7 @@ export default function MarkdownEditor({
             className="w-full h-full p-4 focus:outline-none font-mono"
             style={{ minHeight, resize: 'vertical' }}
             placeholder={placeholder}
+            aria-label="Markdown editor"
           />
         )}
       </div>
