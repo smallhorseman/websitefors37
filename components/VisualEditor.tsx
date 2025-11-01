@@ -1152,7 +1152,9 @@ function ColumnsProperties({ data, onUpdate }: { data: ColumnsComponent['data'];
           </div>
           
           <textarea
-            ref={(el) => columnRefs.current[i] = el}
+            ref={(el) => {
+              columnRefs.current[i] = el
+            }}
             value={col.content}
             onChange={(e) => {
               const newColumns = [...data.columns]
