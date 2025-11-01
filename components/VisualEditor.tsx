@@ -339,7 +339,7 @@ export default function VisualEditor({ initialComponents = [], onSave, onChange,
                   if (newComponents.length > 0) {
                     setComponents(newComponents)
                     setSelectedComponent(null)
-                    onChange(newComponents)
+                    onChange?.(newComponents)
                     // Reset dropdown
                     e.target.value = ''
                   }
