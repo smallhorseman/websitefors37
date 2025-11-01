@@ -290,6 +290,10 @@ interface PricingTableComponent extends BaseComponent {
     }>
     columns: 2 | 3 | 4
     animation?: 'none' | 'fade-in' | 'slide-up' | 'zoom'
+    // New optional styling controls
+    style?: 'light' | 'dark'
+    variant?: 'card' | 'flat'
+    showFeatureChecks?: boolean
   }
 }
 
@@ -574,7 +578,10 @@ export default function VisualEditor({ initialComponents = [], onSave, onChange,
             { title: 'Premium', price: '$599', period: 'per session', features: ['120 min session', '50 edited photos', 'Online gallery', 'Print rights', 'Priority turnaround'], ctaText: 'Book Premium', ctaLink: '/book-a-session', highlight: false }
           ],
           columns: 3,
-          animation: 'fade-in'
+          animation: 'fade-in',
+          style: 'light',
+          variant: 'card',
+          showFeatureChecks: true
         }
       default:
         return {}
@@ -642,6 +649,12 @@ export default function VisualEditor({ initialComponents = [], onSave, onChange,
                     case 'leadgen':
                       newComponents = buildLeadGenTemplate()
                       break
+                    case 'servicesPricing':
+                      newComponents = buildServicesPricingTemplate()
+                      break
+                    case 'faq':
+                      newComponents = buildFAQPageTemplate()
+                      break
                   }
                   
                   if (newComponents.length > 0) {
@@ -661,6 +674,8 @@ export default function VisualEditor({ initialComponents = [], onSave, onChange,
                 <option value="services">📸 Services Page Template</option>
                 <option value="contact">📧 Contact Page Template</option>
                 <option value="leadgen">🚀 Lead Gen Landing</option>
+                <option value="servicesPricing">💼 Services + Pricing</option>
+                <option value="faq">❓ FAQ Page Template</option>
               </select>
             </div>
           </div>
@@ -1405,6 +1420,163 @@ function buildContactTemplate(): PageComponent[] {
   return components
 }
 
+// Helper: Build a Services + Pricing template
+function buildServicesPricingTemplate(): PageComponent[] {
+  const id = () => `component-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+  const components: PageComponent[] = []
+
+  // Hero
+  components.push({
+    id: id(),
+    type: 'hero',
+    data: {
+      title: 'Services & Pricing',
+      subtitle: 'Clear packages and pro results for portraits, events, and brands',
+      backgroundImage: 'https://images.unsplash.com/photo-1452587925148-ce544e77e70d?q=80&w=2000&auto=format&fit=crop',
+      buttonText: 'Book a Session',
+      buttonLink: '/book-a-session',
+      alignment: 'center',
+      overlay: 55,
+      titleColor: 'text-white',
+      subtitleColor: 'text-amber-50',
+      buttonStyle: 'primary',
+      animation: 'fade-in',
+      buttonAnimation: 'hover-zoom',
+      fullBleed: true
+    }
+  } as HeroComponent)
+
+  // Services Grid
+  components.push({
+    id: id(),
+    type: 'servicesGrid',
+    data: {
+      heading: 'Our Photography Services',
+      subheading: 'From intimate portraits to brand visuals, tailored to your needs',
+      services: [
+        {
+          image: 'https://images.unsplash.com/photo-1511895426328-dc8714191300?w=600&h=400&fit=crop',
+          title: 'Portrait Sessions',
+          description: 'Headshots, family portraits, senior photos—studio or on-location.',
+          features: ['Studio or outdoor', 'Multiple outfits', 'Retouched images']
+        },
+        {
+          image: 'https://images.unsplash.com/photo-1519741497674-611481863552?w=600&h=400&fit=crop',
+          title: 'Weddings',
+          description: 'Timeless coverage of your day, from details to dance floor.',
+          features: ['Engagement session', 'Full-day options', 'Online gallery']
+        },
+        {
+          image: 'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=600&h=400&fit=crop',
+          title: 'Commercial',
+          description: 'Product and brand imagery that elevates your business.',
+          features: ['Product shots', 'Brand imagery', 'Usage rights']
+        }
+      ],
+      columns: 3,
+      animation: 'fade-in'
+    }
+  } as ServicesGridComponent)
+
+  // Pricing Table
+  components.push({
+    id: id(),
+    type: 'pricingTable',
+    data: {
+      heading: 'Packages & Pricing',
+      subheading: 'Simple packages for every need',
+      plans: [
+        { title: 'Basic', price: '$199', period: 'per session', features: ['30 min session', '10 edited photos', 'Online gallery'], ctaText: 'Book Basic', ctaLink: '/book-a-session', highlight: false },
+        { title: 'Standard', price: '$349', period: 'per session', features: ['60 min session', '25 edited photos', 'Online gallery', 'Print rights'], ctaText: 'Book Standard', ctaLink: '/book-a-session', highlight: true },
+        { title: 'Premium', price: '$599', period: 'per session', features: ['120 min session', '50 edited photos', 'Online gallery', 'Print rights', 'Priority turnaround'], ctaText: 'Book Premium', ctaLink: '/book-a-session', highlight: false }
+      ],
+      columns: 3,
+      animation: 'fade-in',
+      style: 'light',
+      variant: 'card',
+      showFeatureChecks: true
+    }
+  } as PricingTableComponent)
+
+  // CTA Banner
+  components.push({
+    id: id(),
+    type: 'ctaBanner',
+    data: {
+      heading: 'Ready to Book Your Session?',
+      subheading: "Let's create something beautiful together.",
+      primaryButtonText: 'Book Now',
+      primaryButtonLink: '/book-a-session',
+      secondaryButtonText: 'Contact Us',
+      secondaryButtonLink: '/contact',
+      backgroundColor: '#0f172a',
+      overlay: 60,
+      textColor: 'text-white',
+      fullBleed: true,
+      animation: 'fade-in'
+    }
+  } as CTABannerComponent)
+
+  return components
+}
+
+// Helper: Build a dedicated FAQ page template
+function buildFAQPageTemplate(): PageComponent[] {
+  const id = () => `component-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+  const components: PageComponent[] = []
+
+  // Hero
+  components.push({
+    id: id(),
+    type: 'hero',
+    data: {
+      title: 'Frequently Asked Questions',
+      subtitle: 'Answers about booking, turnaround, travel, and more',
+      backgroundImage: 'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=2000&auto=format&fit=crop',
+      buttonText: 'Book a Session',
+      buttonLink: '/book-a-session',
+      alignment: 'center',
+      overlay: 50,
+      titleColor: 'text-white',
+      subtitleColor: 'text-amber-50',
+      buttonStyle: 'primary',
+      animation: 'fade-in',
+      buttonAnimation: 'hover-zoom',
+      fullBleed: true
+    }
+  } as HeroComponent)
+
+  // FAQ
+  components.push({
+    id: id(),
+    type: 'faq',
+    data: {
+      heading: 'Your Questions, Answered',
+      items: [
+        { question: 'How do I book?', answer: 'Use the Book a Session page or contact us. We confirm within 24 hours.' },
+        { question: 'What is the turnaround?', answer: 'Most sessions are delivered within 48 hours.' },
+        { question: 'Do you travel?', answer: 'Yes, we serve Tomball, Magnolia, Pinehurst and surrounding areas.' }
+      ],
+      columns: 1,
+      animation: 'fade-in'
+    }
+  } as FAQComponent)
+
+  // CTA Button
+  components.push({
+    id: id(),
+    type: 'button',
+    data: {
+      text: 'Still have questions? Contact us →',
+      link: '/contact',
+      style: 'primary',
+      alignment: 'center',
+      animation: 'hover-zoom'
+    }
+  } as ButtonComponent)
+
+  return components
+}
 // Helper: Build a Lead Gen Landing template
 function buildLeadGenTemplate(): PageComponent[] {
   const id = () => `component-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
@@ -2861,6 +3033,26 @@ function PricingTableProperties({ data, onUpdate }: { data: PricingTableComponen
             <option value="slide-up">Slide Up</option>
             <option value="zoom">Zoom</option>
           </select>
+        </div>
+      </div>
+      <div className="grid grid-cols-3 gap-3">
+        <div>
+          <label className="block text-sm font-medium mb-1">Style</label>
+          <select value={data.style || 'light'} onChange={(e)=>onUpdate({ style: e.target.value })} className="w-full border rounded px-3 py-2">
+            <option value="light">Light</option>
+            <option value="dark">Dark</option>
+          </select>
+        </div>
+        <div>
+          <label className="block text-sm font-medium mb-1">Variant</label>
+          <select value={data.variant || 'card'} onChange={(e)=>onUpdate({ variant: e.target.value })} className="w-full border rounded px-3 py-2">
+            <option value="card">Cards</option>
+            <option value="flat">Flat</option>
+          </select>
+        </div>
+        <div className="flex items-center gap-2 pt-6">
+          <input id="pricing-checkmarks" type="checkbox" checked={data.showFeatureChecks ?? true} onChange={(e)=>onUpdate({ showFeatureChecks: e.target.checked })} className="h-4 w-4" />
+          <label htmlFor="pricing-checkmarks" className="text-sm">Show checkmarks</label>
         </div>
       </div>
       <div className="border-t pt-4">
