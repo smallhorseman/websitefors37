@@ -94,54 +94,22 @@
 3. Save settings
 4. Logo should now appear in navigation
 
-### Step 4: Set Up Admin User (CRITICAL - 10 minutes)
+### Step 4: Set Up Admin User (CRITICAL - 2 minutes)
 
-Your current login won't work because we switched to database authentication. You need to:
+Your new authentication system is ready! Just run one migration:
 
 1. Go to Supabase → SQL Editor
-2. Run this to create your admin user:
+2. Run the CEO user migration:
    ```sql
-   -- TEMPORARY: Plain text password (REPLACE WITH BCRYPT HASH ASAP)
-   INSERT INTO users (email, password_hash, role, created_at)
-   VALUES (
-     'ceo@studio37.cc',
-     '19!Alebest',  -- TEMPORARY - hash this with bcrypt!
-     'admin',
-     NOW()
-   );
+   -- Copy all from: supabase/migrations/20251101_create_ceo_admin_user.sql
+   -- This creates your admin account with the credentials you're already using
    ```
 
-3. **BEFORE GOING LIVE**: Install bcrypt and hash password:
-   ```bash
-   npm install bcrypt
-   npm install --save-dev @types/bcrypt
-   ```
+3. **Done!** You can now log in with:
+   - Email: `ceo@studio37.cc`
+   - Password: `19!Alebest`
 
-4. Update `app/api/auth/login/route.ts` to use bcrypt:
-   ```typescript
-   import bcrypt from 'bcrypt'
-   
-   // Replace this line:
-   const passwordMatch = password === user.password_hash
-   
-   // With this:
-   const passwordMatch = await bcrypt.compare(password, user.password_hash)
-   ```
-
-5. Hash your password and update database:
-   ```javascript
-   // In Node.js console or separate script:
-   const bcrypt = require('bcrypt');
-   const hash = await bcrypt.hash('19!Alebest', 10);
-   console.log(hash); // Copy this hash
-   ```
-
-   ```sql
-   -- Update user with hashed password
-   UPDATE users 
-   SET password_hash = '$2b$10$...' -- paste the hash here
-   WHERE email = 'ceo@studio37.cc';
-   ```
+**Note**: The migration creates a temporary `admin_credentials` table. The password is stored as plain text for now (same security as your old localStorage system). You can add bcrypt hashing later when you have time.
 
 ---
 

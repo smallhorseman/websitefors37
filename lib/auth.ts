@@ -21,9 +21,9 @@ export async function getAdminUser(): Promise<AdminUser | null> {
       return null
     }
 
-    // Verify session token against users table
+    // Verify session token against user_profiles table
     const { data: user, error } = await supabase
-      .from('users')
+      .from('user_profiles')
       .select('id, email, role, created_at')
       .eq('id', sessionToken)
       .eq('role', 'admin')
@@ -33,7 +33,12 @@ export async function getAdminUser(): Promise<AdminUser | null> {
       return null
     }
 
-    return user as AdminUser
+    return {
+      id: user.id,
+      email: user.email,
+      role: user.role,
+      created_at: user.created_at
+    }
   } catch (error) {
     console.error('Auth check failed:', error)
     return null
