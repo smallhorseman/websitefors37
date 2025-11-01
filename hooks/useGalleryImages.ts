@@ -22,7 +22,10 @@ async function fetchGalleryImages(params: GalleryQueryParams = {}): Promise<Gall
     select = '*',
   } = params
 
-  let query = supabase.from('gallery_images').select(select)
+  let query = supabase
+    .from('gallery_images')
+    .select(select)
+    .returns<GalleryImage[]>()
 
   if (categories && categories.length > 0) {
     query = query.in('category', categories)
@@ -39,7 +42,7 @@ async function fetchGalleryImages(params: GalleryQueryParams = {}): Promise<Gall
 
   const { data, error } = await query
   if (error) throw error
-  return (data || []) as GalleryImage[]
+  return data ?? []
 }
 
 export function useGalleryImages(
