@@ -286,6 +286,36 @@ export default function PageBuilderPage() {
           style: a.style || 'default',
           animation: a.animation || 'fade-in'
         }})
+      } else if (line.startsWith('<CTABannerBlock')) {
+        const a = parseAttrs(line)
+        comps.push({ id: `component-${Date.now()}-${comps.length}`, type: 'ctaBanner', data: {
+          heading: a.heading || '',
+          subheading: a.subheading || '',
+          primaryButtonText: a.primaryButtonText || '',
+          primaryButtonLink: a.primaryButtonLink || '',
+          secondaryButtonText: a.secondaryButtonText || '',
+          secondaryButtonLink: a.secondaryButtonLink || '',
+          backgroundImage: a.backgroundImage || '',
+          backgroundColor: a.backgroundColor || '#0f172a',
+          overlay: Number(a.overlay) || 60,
+          textColor: a.textColor || 'text-white',
+          fullBleed: String(a.fullBleed) !== 'false',
+          animation: a.animation || 'fade-in'
+        }})
+      } else if (line.startsWith('<IconFeaturesBlock')) {
+        const a = parseAttrs(line)
+        let features: any[] = []
+        try {
+          const json = a.featuresB64 ? decodeURIComponent(escape(atob(a.featuresB64))) : '[]'
+          features = JSON.parse(json || '[]')
+        } catch { features = [] }
+        comps.push({ id: `component-${Date.now()}-${comps.length}`, type: 'iconFeatures', data: {
+          heading: a.heading || '',
+          subheading: a.subheading || '',
+          features: features.map((f:any)=>({ icon: f.icon || '', title: f.title || '', description: f.description || '' })),
+          columns: Number(a.columns) || 4,
+          animation: a.animation || 'fade-in'
+        }})
       }
     }
     return comps
@@ -440,6 +470,15 @@ export default function PageBuilderPage() {
         case 'stats': {
           const statsB64 = toB64(JSON.stringify(d.stats || []))
           md.push(`<StatsBlock statsB64="${statsB64}" heading="${escapeAttr(d.heading || '')}" columns="${Number(d.columns || 3)}" style="${escapeAttr(d.style || 'default')}" animation="${escapeAttr(d.animation || 'fade-in')}" />`)
+          break
+        }
+        case 'ctaBanner': {
+          md.push(`<CTABannerBlock heading="${escapeAttr(d.heading || '')}" subheading="${escapeAttr(d.subheading || '')}" primaryButtonText="${escapeAttr(d.primaryButtonText || '')}" primaryButtonLink="${escapeAttr(d.primaryButtonLink || '')}" secondaryButtonText="${escapeAttr(d.secondaryButtonText || '')}" secondaryButtonLink="${escapeAttr(d.secondaryButtonLink || '')}" backgroundImage="${escapeAttr(d.backgroundImage || '')}" backgroundColor="${escapeAttr(d.backgroundColor || '#0f172a')}" overlay="${Number(d.overlay || 60)}" textColor="${escapeAttr(d.textColor || 'text-white')}" fullBleed="${(d.fullBleed ?? true) ? 'true' : 'false'}" animation="${escapeAttr(d.animation || 'fade-in')}" />`)
+          break
+        }
+        case 'iconFeatures': {
+          const featuresB64 = toB64(JSON.stringify(d.features || []))
+          md.push(`<IconFeaturesBlock featuresB64="${featuresB64}" heading="${escapeAttr(d.heading || '')}" subheading="${escapeAttr(d.subheading || '')}" columns="${Number(d.columns || 4)}" animation="${escapeAttr(d.animation || 'fade-in')}" />`)
           break
         }
       }

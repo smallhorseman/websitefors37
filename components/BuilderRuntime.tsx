@@ -558,6 +558,117 @@ export function StatsBlock({ statsB64, heading, columns = '3', style = 'default'
   )
 }
 
+// CTA Banner - full-width call-to-action with background and dual buttons
+export function CTABannerBlock({ heading, subheading, primaryButtonText, primaryButtonLink, secondaryButtonText, secondaryButtonLink, backgroundImage, backgroundColor = '#0f172a', overlay = '60', textColor = 'text-white', fullBleed = 'true', animation = 'fade-in' }: {
+  heading?: string
+  subheading?: string
+  primaryButtonText?: string
+  primaryButtonLink?: string
+  secondaryButtonText?: string
+  secondaryButtonLink?: string
+  backgroundImage?: string
+  backgroundColor?: string
+  overlay?: string | number
+  textColor?: string
+  fullBleed?: string | boolean
+  animation?: string
+}) {
+  const overlayAlpha = Math.min(Math.max(Number(overlay || 60), 0), 100) / 100
+  const animClass = animation === 'fade-in' ? 'animate-fadeIn' : animation === 'slide-up' ? 'animate-slideUp' : animation === 'zoom' ? 'animate-zoom' : ''
+  const isFullBleed = String(fullBleed) === 'true'
+
+  const content = (
+    <div className={`relative min-h-[300px] flex items-center justify-center overflow-hidden rounded-lg ${animClass}`}>
+      {backgroundImage && (
+        <Image src={backgroundImage} alt="CTA Background" fill className="object-cover" />
+      )}
+      {!backgroundImage && backgroundColor && (
+        <div className="absolute inset-0" style={{ backgroundColor }} />
+      )}
+      <div className="absolute inset-0" style={{ backgroundColor: `rgba(0,0,0,${overlayAlpha})` }} />
+      <div className={`relative z-10 max-w-4xl w-full px-6 text-center py-12`}>
+        {heading && (
+          <h2 className={`text-3xl md:text-4xl font-bold mb-3 ${textColor}`}>
+            {heading}
+          </h2>
+        )}
+        {subheading && (
+          <p className={`text-lg md:text-xl mb-6 opacity-90 ${textColor}`}>
+            {subheading}
+          </p>
+        )}
+        {(primaryButtonText || secondaryButtonText) && (
+          <div className="flex flex-wrap gap-3 justify-center">
+            {primaryButtonText && (
+              <a href={primaryButtonLink || '#'} className="inline-block px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition no-underline">
+                {primaryButtonText}
+              </a>
+            )}
+            {secondaryButtonText && (
+              <a href={secondaryButtonLink || '#'} className="inline-block px-6 py-3 bg-white/10 text-white border border-white/30 rounded-lg hover:bg-white/20 transition no-underline">
+                {secondaryButtonText}
+              </a>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+
+  if (isFullBleed) {
+    return (
+      <div className="relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen overflow-x-clip">
+        {content}
+      </div>
+    )
+  }
+  return content
+}
+
+// Icon Features - small feature cards with icon, title, and description
+export function IconFeaturesBlock({ featuresB64, heading, subheading, columns = '4', animation = 'fade-in' }: {
+  featuresB64?: string
+  heading?: string
+  subheading?: string
+  columns?: string | number
+  animation?: string
+}) {
+  const json = featuresB64 ? Buffer.from(featuresB64, 'base64').toString('utf-8') : '[]'
+  let features: Array<{ icon: string; title: string; description: string }> = []
+  try { features = JSON.parse(json || '[]') } catch { features = [] }
+
+  const gridCols: Record<string, string> = {
+    '2': 'md:grid-cols-2',
+    '3': 'md:grid-cols-3',
+    '4': 'md:grid-cols-2 lg:grid-cols-4'
+  }
+  const animClass = animation === 'fade-in' ? 'animate-fadeIn' : animation === 'slide-up' ? 'animate-slideUp' : animation === 'zoom' ? 'animate-zoom' : ''
+
+  return (
+    <div className={`p-6 md:p-8 ${animClass}`}>
+      <div className="max-w-7xl mx-auto">
+        {heading && (
+          <div className="text-center mb-8">
+            <h2 className="text-3xl font-bold text-gray-900 mb-2">{heading}</h2>
+            {subheading && <p className="text-lg text-gray-600">{subheading}</p>}
+          </div>
+        )}
+        <div className={`grid grid-cols-1 ${gridCols[String(columns)] || 'md:grid-cols-4'} gap-6`}>
+          {features.map((feature, i) => (
+            <div key={i} className="text-center p-6">
+              {feature.icon && (
+                <div className="text-5xl mb-4">{feature.icon}</div>
+              )}
+              <h3 className="text-xl font-bold text-gray-900 mb-2">{feature.title}</h3>
+              <p className="text-gray-600">{feature.description}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export const MDXBuilderComponents = {
   HeroBlock,
   TextBlock,
@@ -573,4 +684,6 @@ export const MDXBuilderComponents = {
   WidgetEmbedBlock,
   ServicesGridBlock,
   StatsBlock,
+  CTABannerBlock,
+  IconFeaturesBlock,
 }

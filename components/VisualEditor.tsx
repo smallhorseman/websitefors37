@@ -10,7 +10,7 @@ import Image from 'next/image'
 import ImageUploader from './ImageUploader'
 
 // Component types
-type ComponentType = 'hero' | 'text' | 'image' | 'button' | 'columns' | 'spacer' | 'seoFooter' | 'slideshowHero' | 'testimonials' | 'galleryHighlights' | 'widgetEmbed' | 'badges' | 'servicesGrid' | 'stats'
+type ComponentType = 'hero' | 'text' | 'image' | 'button' | 'columns' | 'spacer' | 'seoFooter' | 'slideshowHero' | 'testimonials' | 'galleryHighlights' | 'widgetEmbed' | 'badges' | 'servicesGrid' | 'stats' | 'ctaBanner' | 'iconFeatures'
 
 interface BaseComponent {
   id: string
@@ -194,7 +194,40 @@ interface StatsComponent extends BaseComponent {
   }
 }
 
-type PageComponent = HeroComponent | TextComponent | ImageComponent | ButtonComponent | ColumnsComponent | SpacerComponent | SEOFooterComponent | SlideshowHeroComponent | TestimonialsComponent | GalleryHighlightsComponent | WidgetEmbedComponent | BadgesComponent | ServicesGridComponent | StatsComponent
+interface CTABannerComponent extends BaseComponent {
+  type: 'ctaBanner'
+  data: {
+    heading: string
+    subheading?: string
+    primaryButtonText?: string
+    primaryButtonLink?: string
+    secondaryButtonText?: string
+    secondaryButtonLink?: string
+    backgroundImage?: string
+    backgroundColor?: string
+    overlay?: number
+    textColor?: string
+    fullBleed?: boolean
+    animation?: 'none' | 'fade-in' | 'slide-up' | 'zoom'
+  }
+}
+
+interface IconFeaturesComponent extends BaseComponent {
+  type: 'iconFeatures'
+  data: {
+    heading?: string
+    subheading?: string
+    features: Array<{
+      icon: string
+      title: string
+      description: string
+    }>
+    columns: 2 | 3 | 4
+    animation?: 'none' | 'fade-in' | 'slide-up' | 'zoom'
+  }
+}
+
+type PageComponent = HeroComponent | TextComponent | ImageComponent | ButtonComponent | ColumnsComponent | SpacerComponent | SEOFooterComponent | SlideshowHeroComponent | TestimonialsComponent | GalleryHighlightsComponent | WidgetEmbedComponent | BadgesComponent | ServicesGridComponent | StatsComponent | CTABannerComponent | IconFeaturesComponent
 
 interface VisualEditorProps {
   initialComponents?: PageComponent[]
@@ -399,6 +432,34 @@ export default function VisualEditor({ initialComponents = [], onSave, onChange,
           style: 'cards',
           animation: 'fade-in'
         }
+      case 'ctaBanner':
+        return {
+          heading: 'Ready to Capture Your Moments?',
+          subheading: 'Book your session today and let\'s create something amazing together',
+          primaryButtonText: 'Book Now',
+          primaryButtonLink: '/book-a-session',
+          secondaryButtonText: 'View Gallery',
+          secondaryButtonLink: '/gallery',
+          backgroundImage: '',
+          backgroundColor: '#0f172a',
+          overlay: 60,
+          textColor: 'text-white',
+          fullBleed: true,
+          animation: 'fade-in'
+        }
+      case 'iconFeatures':
+        return {
+          heading: 'Why Choose Studio 37',
+          subheading: 'Professional photography services you can trust',
+          features: [
+            { icon: '📸', title: 'Professional Equipment', description: 'State-of-the-art cameras and lighting for stunning results' },
+            { icon: '⚡', title: 'Quick Turnaround', description: 'Get your edited photos within 48 hours' },
+            { icon: '💎', title: 'Premium Quality', description: 'High-resolution images with expert editing' },
+            { icon: '🎨', title: 'Creative Direction', description: 'Unique concepts tailored to your vision' }
+          ],
+          columns: 4,
+          animation: 'fade-in'
+        }
       default:
         return {}
     }
@@ -580,7 +641,24 @@ export default function VisualEditor({ initialComponents = [], onSave, onChange,
               <Layout className="h-5 w-5" />
               <span>Stats/Numbers</span>
             </button>
-                        <button
+
+            <button
+              onClick={() => addComponent('ctaBanner')}
+              className="w-full flex items-center gap-2 p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition"
+            >
+              <Layout className="h-5 w-5" />
+              <span>CTA Banner</span>
+            </button>
+
+            <button
+              onClick={() => addComponent('iconFeatures')}
+              className="w-full flex items-center gap-2 p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition"
+            >
+              <Layout className="h-5 w-5" />
+              <span>Icon Features</span>
+            </button>
+
+            <button
               onClick={() => addComponent('spacer')}
               className="w-full flex items-center gap-2 p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition"
             >
@@ -765,6 +843,10 @@ function ComponentRenderer({ component }: { component: PageComponent }) {
       return <ServicesGridRenderer data={(component as any).data} />
     case 'stats':
       return <StatsRenderer data={(component as any).data} />
+    case 'ctaBanner':
+      return <CTABannerRenderer data={(component as any).data} />
+    case 'iconFeatures':
+      return <IconFeaturesRenderer data={(component as any).data} />
     case 'spacer':
       return <SpacerRenderer data={component.data} />
     case 'seoFooter':
@@ -1482,6 +1564,84 @@ function StatsRenderer({ data }: { data: StatsComponent['data'] }) {
   )
 }
 
+// CTA Banner Renderer (Editor Preview)
+function CTABannerRenderer({ data }: { data: CTABannerComponent['data'] }) {
+  const overlayAlpha = Math.min(Math.max(Number(data.overlay ?? 60), 0), 100) / 100
+  const animClass = data.animation === 'fade-in' ? 'animate-fadeIn' : data.animation === 'slide-up' ? 'animate-slideUp' : data.animation === 'zoom' ? 'animate-zoom' : ''
+
+  return (
+    <div className={`relative min-h-[300px] flex items-center justify-center overflow-hidden ${data.fullBleed ? '' : 'rounded-lg'} ${animClass}`}>
+      {data.backgroundImage && (
+        <Image src={data.backgroundImage} alt="CTA Background" fill className="object-cover" />
+      )}
+      {!data.backgroundImage && data.backgroundColor && (
+        <div className="absolute inset-0" style={{ backgroundColor: data.backgroundColor }} />
+      )}
+      <div className="absolute inset-0" style={{ backgroundColor: `rgba(0,0,0,${overlayAlpha})` }} />
+      <div className={`relative z-10 max-w-4xl w-full px-6 text-center py-12`}>
+        {data.heading && (
+          <h2 className={`text-3xl md:text-4xl font-bold mb-3 ${data.textColor || 'text-white'}`}>
+            {data.heading}
+          </h2>
+        )}
+        {data.subheading && (
+          <p className={`text-lg md:text-xl mb-6 opacity-90 ${data.textColor || 'text-white'}`}>
+            {data.subheading}
+          </p>
+        )}
+        {(data.primaryButtonText || data.secondaryButtonText) && (
+          <div className="flex flex-wrap gap-3 justify-center">
+            {data.primaryButtonText && (
+              <a href={data.primaryButtonLink || '#'} className="inline-block px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition no-underline">
+                {data.primaryButtonText}
+              </a>
+            )}
+            {data.secondaryButtonText && (
+              <a href={data.secondaryButtonLink || '#'} className="inline-block px-6 py-3 bg-white/10 text-white border border-white/30 rounded-lg hover:bg-white/20 transition no-underline">
+                {data.secondaryButtonText}
+              </a>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// Icon Features Renderer (Editor Preview)
+function IconFeaturesRenderer({ data }: { data: IconFeaturesComponent['data'] }) {
+  const gridCols = {
+    2: 'md:grid-cols-2',
+    3: 'md:grid-cols-3',
+    4: 'md:grid-cols-2 lg:grid-cols-4'
+  }
+  const animClass = data.animation === 'fade-in' ? 'animate-fadeIn' : data.animation === 'slide-up' ? 'animate-slideUp' : data.animation === 'zoom' ? 'animate-zoom' : ''
+
+  return (
+    <div className={`p-8 ${animClass}`}>
+      <div className="max-w-7xl mx-auto">
+        {data.heading && (
+          <div className="text-center mb-8">
+            <h2 className="text-3xl font-bold text-gray-900 mb-2">{data.heading}</h2>
+            {data.subheading && <p className="text-lg text-gray-600">{data.subheading}</p>}
+          </div>
+        )}
+        <div className={`grid grid-cols-1 ${gridCols[data.columns || 3]} gap-6`}>
+          {(data.features || []).map((feature, i) => (
+            <div key={i} className="text-center p-6">
+              {feature.icon && (
+                <div className="text-5xl mb-4">{feature.icon}</div>
+              )}
+              <h3 className="text-xl font-bold text-gray-900 mb-2">{feature.title}</h3>
+              <p className="text-gray-600">{feature.description}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // Slideshow Hero Renderer (Editor Preview)
 function SlideshowHeroRenderer({ data }: { data: SlideshowHeroComponent['data'] }) {
   const [idx, setIdx] = React.useState(0)
@@ -1610,6 +1770,10 @@ function ComponentProperties({ component, onUpdate }: { component: PageComponent
       return <ServicesGridProperties data={component.data as ServicesGridComponent['data']} onUpdate={onUpdate} />
     case 'stats':
       return <StatsProperties data={component.data as StatsComponent['data']} onUpdate={onUpdate} />
+    case 'ctaBanner':
+      return <CTABannerProperties data={component.data as CTABannerComponent['data']} onUpdate={onUpdate} />
+    case 'iconFeatures':
+      return <IconFeaturesProperties data={component.data as IconFeaturesComponent['data']} onUpdate={onUpdate} />
     default:
       return null
   }
@@ -3144,6 +3308,159 @@ function StatsProperties({ data, onUpdate }: { data: StatsComponent['data']; onU
             </div>
           ))}
           {!data.stats?.length && <p className="text-sm text-gray-500">No stats yet. Add your first statistic above.</p>}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// CTA Banner Properties
+function CTABannerProperties({ data, onUpdate }: { data: CTABannerComponent['data']; onUpdate: (data: any) => void }) {
+  return (
+    <div className="space-y-4">
+      <div>
+        <label className="block text-sm font-medium mb-1">Heading</label>
+        <input type="text" value={data.heading || ''} onChange={(e)=>onUpdate({ heading: e.target.value })} className="w-full border rounded px-3 py-2" placeholder="Ready to get started?" />
+      </div>
+      <div>
+        <label className="block text-sm font-medium mb-1">Subheading</label>
+        <textarea value={data.subheading || ''} onChange={(e)=>onUpdate({ subheading: e.target.value })} className="w-full border rounded px-3 py-2" rows={2} placeholder="Let's make something amazing together" />
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="block text-sm font-medium mb-1">Primary Button Text</label>
+          <input type="text" value={data.primaryButtonText || ''} onChange={(e)=>onUpdate({ primaryButtonText: e.target.value })} className="w-full border rounded px-3 py-2" placeholder="Book Now" />
+        </div>
+        <div>
+          <label className="block text-sm font-medium mb-1">Primary Button Link</label>
+          <input type="url" value={data.primaryButtonLink || ''} onChange={(e)=>onUpdate({ primaryButtonLink: e.target.value })} className="w-full border rounded px-3 py-2" placeholder="/book-a-session" />
+        </div>
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="block text-sm font-medium mb-1">Secondary Button Text</label>
+          <input type="text" value={data.secondaryButtonText || ''} onChange={(e)=>onUpdate({ secondaryButtonText: e.target.value })} className="w-full border rounded px-3 py-2" placeholder="Learn More" />
+        </div>
+        <div>
+          <label className="block text-sm font-medium mb-1">Secondary Button Link</label>
+          <input type="url" value={data.secondaryButtonLink || ''} onChange={(e)=>onUpdate({ secondaryButtonLink: e.target.value })} className="w-full border rounded px-3 py-2" placeholder="/about" />
+        </div>
+      </div>
+      <div>
+        <label className="block text-sm font-medium mb-1">Background Image URL (optional)</label>
+        <input type="url" value={data.backgroundImage || ''} onChange={(e)=>onUpdate({ backgroundImage: e.target.value })} className="w-full border rounded px-3 py-2" placeholder="https://..." />
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="block text-sm font-medium mb-1">Background Color</label>
+          <input type="color" value={data.backgroundColor || '#0f172a'} onChange={(e)=>onUpdate({ backgroundColor: e.target.value })} className="w-full border rounded px-3 py-2 h-10" />
+        </div>
+        <div>
+          <label className="block text-sm font-medium mb-1">Overlay Opacity (%)</label>
+          <input type="number" min="0" max="100" value={data.overlay || 60} onChange={(e)=>onUpdate({ overlay: Number(e.target.value) })} className="w-full border rounded px-3 py-2" />
+        </div>
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="block text-sm font-medium mb-1">Text Color</label>
+          <select value={data.textColor || 'text-white'} onChange={(e)=>onUpdate({ textColor: e.target.value })} className="w-full border rounded px-3 py-2">
+            <option value="text-white">White</option>
+            <option value="text-gray-900">Dark</option>
+            <option value="text-primary-600">Primary</option>
+          </select>
+        </div>
+        <div>
+          <label className="block text-sm font-medium mb-1">Animation</label>
+          <select value={data.animation || 'fade-in'} onChange={(e)=>onUpdate({ animation: e.target.value })} className="w-full border rounded px-3 py-2">
+            <option value="none">None</option>
+            <option value="fade-in">Fade In</option>
+            <option value="slide-up">Slide Up</option>
+            <option value="zoom">Zoom</option>
+          </select>
+        </div>
+      </div>
+      <div>
+        <label className="flex items-center gap-2">
+          <input type="checkbox" checked={data.fullBleed ?? true} onChange={(e)=>onUpdate({ fullBleed: e.target.checked })} />
+          <span className="text-sm font-medium">Full Bleed (edge-to-edge)</span>
+        </label>
+      </div>
+    </div>
+  )
+}
+
+// Icon Features Properties
+function IconFeaturesProperties({ data, onUpdate }: { data: IconFeaturesComponent['data']; onUpdate: (data: any) => void }) {
+  const addFeature = () => {
+    const next = { icon: '✨', title: 'New Feature', description: 'Feature description' }
+    onUpdate({ features: [...(data.features || []), next] })
+  }
+  const removeFeature = (idx: number) => {
+    onUpdate({ features: (data.features || []).filter((_, i) => i !== idx) })
+  }
+  const updateFeature = (idx: number, field: keyof IconFeaturesComponent['data']['features'][number], value: string) => {
+    const arr = [...(data.features || [])]
+    arr[idx] = { ...arr[idx], [field]: value }
+    onUpdate({ features: arr })
+  }
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <label className="block text-sm font-medium mb-1">Heading</label>
+        <input type="text" value={data.heading || ''} onChange={(e)=>onUpdate({ heading: e.target.value })} className="w-full border rounded px-3 py-2" placeholder="Why Choose Us" />
+      </div>
+      <div>
+        <label className="block text-sm font-medium mb-1">Subheading</label>
+        <input type="text" value={data.subheading || ''} onChange={(e)=>onUpdate({ subheading: e.target.value })} className="w-full border rounded px-3 py-2" placeholder="What makes us different" />
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="block text-sm font-medium mb-1">Columns</label>
+          <select value={data.columns || 4} onChange={(e)=>onUpdate({ columns: Number(e.target.value) })} className="w-full border rounded px-3 py-2">
+            <option value={2}>2 Columns</option>
+            <option value={3}>3 Columns</option>
+            <option value={4}>4 Columns</option>
+          </select>
+        </div>
+        <div>
+          <label className="block text-sm font-medium mb-1">Animation</label>
+          <select value={data.animation || 'fade-in'} onChange={(e)=>onUpdate({ animation: e.target.value })} className="w-full border rounded px-3 py-2">
+            <option value="none">None</option>
+            <option value="fade-in">Fade In</option>
+            <option value="slide-up">Slide Up</option>
+            <option value="zoom">Zoom</option>
+          </select>
+        </div>
+      </div>
+
+      <div className="border-t pt-4">
+        <div className="flex items-center justify-between mb-2">
+          <label className="text-sm font-medium">Features</label>
+          <button type="button" onClick={addFeature} className="px-3 py-1.5 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">Add Feature</button>
+        </div>
+        <div className="space-y-3">
+          {(data.features || []).map((f, idx) => (
+            <div key={idx} className="border rounded p-3 bg-gray-50 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-gray-600">Feature #{idx+1}</span>
+                <button type="button" onClick={()=>removeFeature(idx)} className="text-red-600 text-xs hover:underline">Remove</button>
+              </div>
+              <div>
+                <label className="block text-xs font-medium mb-1">Icon (emoji or text)</label>
+                <input type="text" value={f.icon || ''} onChange={(e)=>updateFeature(idx,'icon', e.target.value)} className="w-full border rounded px-2 py-1 text-sm" placeholder="📸 or icon" />
+              </div>
+              <div>
+                <label className="block text-xs font-medium mb-1">Title</label>
+                <input type="text" value={f.title || ''} onChange={(e)=>updateFeature(idx,'title', e.target.value)} className="w-full border rounded px-2 py-1 text-sm" placeholder="Feature name" />
+              </div>
+              <div>
+                <label className="block text-xs font-medium mb-1">Description</label>
+                <textarea value={f.description || ''} onChange={(e)=>updateFeature(idx,'description', e.target.value)} className="w-full border rounded px-2 py-1 text-sm" rows={2} placeholder="Feature description" />
+              </div>
+            </div>
+          ))}
+          {!data.features?.length && <p className="text-sm text-gray-500">No features yet. Add your first feature above.</p>}
         </div>
       </div>
     </div>
