@@ -133,6 +133,11 @@ export default function AdminSidebar() {
       path: '/admin/page-builder',
       icon: <Camera className="w-5 h-5" />
     },
+    {
+      name: 'SEO & AI',
+      path: '/admin/seo',
+      icon: <FileText className="w-5 h-5" />
+    },
     { 
       name: 'Gallery', 
       path: '/admin/gallery', 
