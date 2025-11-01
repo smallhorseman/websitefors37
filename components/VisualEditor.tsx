@@ -36,7 +36,6 @@ import {
   Play,
   MessageSquare,
   Camera,
-  CodeXml,
   ChevronDown,
   ChevronRight,
   Users,
@@ -1474,7 +1473,7 @@ export default function VisualEditor({
                     onClick={() => addComponent("widgetEmbed")}
                     className="w-full flex items-center gap-2 p-2 bg-white hover:bg-gray-100 rounded transition text-sm"
                   >
-                    <CodeXml className="h-4 w-4" />
+                    <Code className="h-4 w-4" />
                     <span>Embed Widget</span>
                   </button>
                   <button
