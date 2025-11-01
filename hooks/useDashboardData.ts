@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { supabase } from '@/lib/supabase'
 
 export interface DashboardStats {
   totalLeads: number
@@ -44,79 +45,92 @@ export function useDashboardData() {
       setLoading(true)
       setError(null)
 
-      // For now, we'll use mock data since we don't have Supabase connected
-      // This simulates what the real data would look like
-      const mockStats: DashboardStats = {
-        totalLeads: 5,
-        totalRevenue: 13800.00,
-        totalBookings: 3,
-        leadsByStatus: {
-          new: 1,
-          contacted: 1,
-          qualified: 1,
-          converted: 1,
-          'closed-won': 1,
-          'closed-lost': 0
-        },
-        recentLeads: [
-          {
-            id: '1',
-            name: 'John Smith',
-            email: 'john@example.com',
-            service_interest: 'Wedding Photography',
-            status: 'new',
-            created_at: new Date().toISOString()
-          },
-          {
-            id: '2',
-            name: 'Sarah Johnson',
-            email: 'sarah@example.com',
-            service_interest: 'Portrait Session',
-            status: 'contacted',
-            created_at: new Date(Date.now() - 86400000).toISOString()
-          },
-          {
-            id: '3',
-            name: 'Mike Wilson',
-            email: 'mike@example.com',
-            service_interest: 'Event Photography',
-            status: 'qualified',
-            created_at: new Date(Date.now() - 172800000).toISOString()
-          }
-        ],
-        recentBookings: [
-          {
-            id: '1',
-            client_name: 'Emily Davis',
-            session_type: 'Commercial Photography',
-            session_date: '2024-11-15',
-            total_amount: 4000.00,
-            status: 'confirmed'
-          },
-          {
-            id: '2',
-            client_name: 'David Brown',
-            session_type: 'Wedding Photography',
-            session_date: '2024-12-05',
-            total_amount: 9000.00,
-            status: 'confirmed'
-          },
-          {
-            id: '3',
-            client_name: 'Lisa Chen',
-            session_type: 'Portrait Session',
-            session_date: '2024-10-25',
-            total_amount: 800.00,
-            status: 'completed'
-          }
-        ]
+      // Fetch all data in parallel for better performance
+      const [
+        { data: allLeads, error: leadsError },
+        { data: allAppointments, error: appointmentsError },
+        { data: recentLeadsData, error: recentLeadsError },
+        { data: recentAppointmentsData, error: recentAppointmentsError }
+      ] = await Promise.all([
+        // Total leads count
+        supabase
+          .from('leads')
+          .select('id, status'),
+        
+        // Total appointments and revenue
+        supabase
+          .from('appointments')
+          .select('id, price_cents, status'),
+        
+        // Recent leads (last 5)
+        supabase
+          .from('leads')
+          .select('id, name, email, service_interest, status, created_at')
+          .order('created_at', { ascending: false })
+          .limit(5),
+        
+        // Recent appointments (last 5)
+        supabase
+          .from('appointments')
+          .select('id, name, type, package_name, start_time, price_cents, status')
+          .order('start_time', { ascending: false })
+          .limit(5)
+      ])
+
+      // Handle errors
+      if (leadsError) throw new Error(`Leads fetch failed: ${leadsError.message}`)
+      if (appointmentsError) throw new Error(`Appointments fetch failed: ${appointmentsError.message}`)
+      if (recentLeadsError) throw new Error(`Recent leads fetch failed: ${recentLeadsError.message}`)
+      if (recentAppointmentsError) throw new Error(`Recent appointments fetch failed: ${recentAppointmentsError.message}`)
+
+      // Calculate stats from real data
+      const totalLeads = allLeads?.length || 0
+      const totalBookings = allAppointments?.length || 0
+      
+      // Calculate total revenue from completed/scheduled appointments (convert cents to dollars)
+      const totalRevenue = allAppointments?.reduce((sum, appointment) => {
+        if (appointment.status === 'completed' || appointment.status === 'scheduled') {
+          return sum + ((appointment.price_cents || 0) / 100)
+        }
+        return sum
+      }, 0) || 0
+
+      // Count leads by status
+      const leadsByStatus = {
+        new: 0,
+        contacted: 0,
+        qualified: 0,
+        converted: 0,
+        'closed-won': 0,
+        'closed-lost': 0
+      }
+      
+      allLeads?.forEach(lead => {
+        if (lead.status && lead.status in leadsByStatus) {
+          leadsByStatus[lead.status as keyof typeof leadsByStatus]++
+        }
+      })
+
+      const dashboardStats: DashboardStats = {
+        totalLeads,
+        totalRevenue,
+        totalBookings,
+        leadsByStatus,
+        recentLeads: recentLeadsData || [],
+        recentBookings: recentAppointmentsData?.map(apt => ({
+          id: apt.id,
+          client_name: apt.name,
+          session_type: apt.package_name || apt.type,
+          session_date: apt.start_time,
+          total_amount: (apt.price_cents || 0) / 100,
+          status: apt.status
+        })) || []
       }
 
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 500))
-      setStats(mockStats)
+      setStats(dashboardStats)
       
     } catch (err) {
+      console.error('Dashboard data fetch error:', err)
       setError(err instanceof Error ? err.message : 'Failed to fetch dashboard data')
     } finally {
       setLoading(false)

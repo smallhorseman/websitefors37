@@ -3,8 +3,9 @@
 import React, { useEffect, useState, useRef } from 'react'
 import { motion } from 'framer-motion'
 import Image from 'next/image'
+import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
-import { Camera, Users, Building, Heart } from 'lucide-react'
+import { Camera, Users, Building, Heart, ArrowRight } from 'lucide-react'
 
 const services = [
 		{
@@ -19,6 +20,7 @@ const services = [
 				'Print options',
 			],
 			category: 'wedding',
+			slug: 'wedding-photography',
 		},
 		{
 			icon: Users,
@@ -32,6 +34,7 @@ const services = [
 				'Same day preview',
 			],
 			category: 'professional portraits',
+			slug: 'portrait-photography',
 		},
 		{
 			icon: Camera,
@@ -45,6 +48,7 @@ const services = [
 				'Quick turnaround',
 			],
 			category: 'event',
+			slug: 'event-photography',
 		},
 		{
 			icon: Building,
@@ -58,6 +62,7 @@ const services = [
 				'Commercial rights',
 			],
 			category: 'product photography',
+			slug: 'commercial-photography',
 		},
 ]
 
@@ -128,52 +133,63 @@ export default function Services() {
 						const imgIdx = slideshowIndexes[service.category] || 0
 						const currentImg = images[imgIdx]
 						return (
-							<motion.div
+							<Link
 								key={service.title}
-								initial={{ opacity: 0, y: 30 }}
-								whileInView={{ opacity: 1, y: 0 }}
-								transition={{ duration: 0.5, delay: index * 0.1 }}
-								viewport={{ once: true }}
-								className="bg-gray-50 p-8 rounded-lg hover:shadow-lg transition-shadow duration-300"
+								href={`/services/${service.slug}`}
+								className="group block"
 							>
-								<div className="flex items-center justify-center w-16 h-16 bg-primary-100 rounded-lg mb-6 mx-auto">
-									<Icon className="h-8 w-8 text-primary-600" />
-								</div>
-
-								{/* Slideshow image for this service category */}
-								{currentImg && (
-									<div className="mb-6 aspect-[4/3] relative rounded-lg overflow-hidden">
-										<Image
-											src={currentImg.image_url}
-											alt={currentImg.title || service.title}
-											fill
-											className="object-cover"
-										/>
-										<div className="absolute bottom-0 left-0 right-0 bg-black/40 text-white text-xs px-2 py-1">
-											{currentImg.title}
-										</div>
+								<motion.div
+									initial={{ opacity: 0, y: 30 }}
+									whileInView={{ opacity: 1, y: 0 }}
+									transition={{ duration: 0.5, delay: index * 0.1 }}
+									viewport={{ once: true }}
+									className="bg-gray-50 p-8 rounded-lg hover:shadow-xl hover:bg-white transition-all duration-300 h-full flex flex-col cursor-pointer border-2 border-transparent group-hover:border-primary-500"
+								>
+									<div className="flex items-center justify-center w-16 h-16 bg-primary-100 rounded-lg mb-6 mx-auto group-hover:bg-primary-600 group-hover:scale-110 transition-all duration-300">
+										<Icon className="h-8 w-8 text-primary-600 group-hover:text-white transition-colors duration-300" />
 									</div>
-								)}
 
-								<h3 className="text-xl font-semibold mb-4 text-center">
-									{service.title}
-								</h3>
-								<p className="text-gray-600 mb-6 text-center">
-									{service.description}
-								</p>
+									{/* Slideshow image for this service category */}
+									{currentImg && (
+										<div className="mb-6 aspect-[4/3] relative rounded-lg overflow-hidden">
+											<Image
+												src={currentImg.image_url}
+												alt={currentImg.title || service.title}
+												fill
+												className="object-cover group-hover:scale-105 transition-transform duration-500"
+											/>
+											<div className="absolute bottom-0 left-0 right-0 bg-black/40 text-white text-xs px-2 py-1">
+												{currentImg.title}
+											</div>
+										</div>
+									)}
 
-								<ul className="space-y-2">
-									{service.features.map((feature) => (
-										<li
-											key={feature}
-											className="flex items-center text-sm text-gray-600"
-										>
-											<div className="w-2 h-2 bg-primary-500 rounded-full mr-3"></div>
-											{feature}
-										</li>
-									))}
-								</ul>
-							</motion.div>
+									<h3 className="text-xl font-semibold mb-4 text-center group-hover:text-primary-600 transition-colors duration-300">
+										{service.title}
+									</h3>
+									<p className="text-gray-600 mb-6 text-center flex-grow">
+										{service.description}
+									</p>
+
+									<ul className="space-y-2 mb-6">
+										{service.features.map((feature) => (
+											<li
+												key={feature}
+												className="flex items-center text-sm text-gray-600"
+											>
+												<div className="w-2 h-2 bg-primary-500 rounded-full mr-3 group-hover:scale-125 transition-transform duration-300"></div>
+												{feature}
+											</li>
+										))}
+									</ul>
+
+									{/* Learn More CTA */}
+									<div className="flex items-center justify-center text-primary-600 font-semibold text-sm group-hover:text-primary-700 mt-auto">
+										Learn More
+										<ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform duration-300" />
+									</div>
+								</motion.div>
+							</Link>
 						)
 					})}
 				</div>

@@ -10,23 +10,34 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const router = useRouter()
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setError('')
 
-    // Simple hardcoded authentication
-    if (email === 'ceo@studio37.cc' && password === '19!Alebest') {
-      // Store auth state in localStorage
-      localStorage.setItem('admin_authenticated', 'true')
-      localStorage.setItem('admin_user', 'ceo@studio37.cc')
-      
-      // Redirect to admin dashboard
-      router.push('/admin')
-    } else {
-      setError('Invalid email or password')
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      })
+
+      const data = await response.json()
+
+      if (response.ok && data.success) {
+        // Redirect to admin dashboard
+        router.push('/admin')
+      } else {
+        setError(data.error || 'Invalid email or password')
+      }
+    } catch (error) {
+      console.error('Login error:', error)
+      setError('An error occurred during login. Please try again.')
+    } finally {
+      setLoading(false)
     }
-    setLoading(false)
   }
 
   return (

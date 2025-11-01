@@ -133,17 +133,20 @@ export default function SettingsPage() {
   ]
   
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-xl font-semibold">Settings</h1>
-        <button
-          onClick={saveSettings}
-          disabled={saving || loading}
-          className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 flex items-center gap-2"
-        >
-          {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-          {saving ? 'Saving...' : 'Save Changes'}
-        </button>
+    <div className="p-6 pb-20">
+      {/* Fixed header with save button */}
+      <div className="sticky top-0 z-10 bg-gray-50 pb-4 mb-2">
+        <div className="flex justify-between items-center">
+          <h1 className="text-xl font-semibold">Settings</h1>
+          <button
+            onClick={saveSettings}
+            disabled={saving || loading}
+            className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 flex items-center gap-2 shadow-lg"
+          >
+            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+            {saving ? 'Saving...' : 'Save Changes'}
+          </button>
+        </div>
       </div>
       
       {error && (
@@ -509,7 +512,7 @@ export default function SettingsPage() {
                   </div>
                 </div>
 
-                <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200 mt-4">
+                                <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200 mt-4">
                   <p className="text-yellow-800 text-sm">
                     <strong>Note:</strong> Theme color changes will require deploying an updated version of your site to take effect.
                   </p>
@@ -519,6 +522,18 @@ export default function SettingsPage() {
           </div>
         </>
       )}
+      
+      {/* Floating save button for mobile/bottom of page */}
+      <div className="fixed bottom-6 right-6 lg:hidden">
+        <button
+          onClick={saveSettings}
+          disabled={saving || loading}
+          className="px-6 py-3 bg-primary-600 text-white rounded-full hover:bg-primary-700 disabled:opacity-50 flex items-center gap-2 shadow-2xl"
+        >
+          {saving ? <Loader2 className="h-5 w-5 animate-spin" /> : <Save className="h-5 w-5" />}
+          {saving ? 'Saving...' : 'Save'}
+        </button>
+      </div>
     </div>
   )
 }

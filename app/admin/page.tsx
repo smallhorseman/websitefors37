@@ -5,27 +5,52 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useDashboardData } from '@/hooks/useDashboardData'
 
+interface User {
+  id: string
+  email: string
+  role: string
+}
+
 export default function AdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
   const router = useRouter()
   const { stats, loading: statsLoading, error } = useDashboardData()
 
   useEffect(() => {
-    // Check if user is authenticated
-    const authStatus = localStorage.getItem('admin_authenticated')
-    if (authStatus === 'true') {
-      setIsAuthenticated(true)
-    } else {
+    // Check authentication via server-side session
+    checkAuth()
+  }, [])
+
+  const checkAuth = async () => {
+    try {
+      const response = await fetch('/api/auth/session')
+      const data = await response.json()
+
+      if (data.authenticated && data.user) {
+        setIsAuthenticated(true)
+        setUser(data.user)
+      } else {
+        router.push('/login')
+      }
+    } catch (error) {
+      console.error('Auth check failed:', error)
+      router.push('/login')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' })
+      router.push('/login')
+    } catch (error) {
+      console.error('Logout failed:', error)
+      // Still redirect even if logout fails
       router.push('/login')
     }
-    setLoading(false)
-  }, [router])
-
-  const handleLogout = () => {
-    localStorage.removeItem('admin_authenticated')
-    localStorage.removeItem('admin_user')
-    router.push('/login')
   }
 
   const formatCurrency = (amount: number) => {
