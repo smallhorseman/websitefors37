@@ -31,7 +31,13 @@ export default function Navigation() {
         const { data, error } = await supabase.from('settings').select('logo_url').single()
         if (!mounted) return
         if (!error && data && data.logo_url) {
-          setLogoUrl(data.logo_url as string)
+          // If existing setting points to an old Studio37 logo asset, prefer new badge defaults
+          const url = String(data.logo_url)
+          if (/(studio37-logo)/i.test(url)) {
+            setLogoUrl(scrolled ? DEFAULT_LOGO_LIGHT : DEFAULT_LOGO_DARK)
+          } else {
+            setLogoUrl(url)
+          }
         } else {
           // Use badge logo based on scroll state (light for scrolled backgrounds)
           setLogoUrl(scrolled ? DEFAULT_LOGO_LIGHT : DEFAULT_LOGO_DARK)
