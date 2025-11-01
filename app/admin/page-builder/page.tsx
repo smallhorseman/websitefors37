@@ -57,10 +57,13 @@ export default function PageBuilderPage() {
       }
       const { error } = await supabase
         .from('page_configs')
-        .upsert({
-          slug: cleanSlug,
-          data: { components: newComponents }
-        })
+        .upsert(
+          {
+            slug: cleanSlug,
+            data: { components: newComponents },
+          },
+          { onConflict: 'slug' }
+        )
 
       if (error) throw error
       setMessage({ type: 'success', text: 'Page saved successfully.' })
