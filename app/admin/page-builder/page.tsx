@@ -116,12 +116,14 @@ export default function PageBuilderPage() {
         }
         case 'columns': {
           const d = c.data || { columns: [] }
-          md.push('\n<!-- columns start -->')
+          // Render each column sequentially; avoid HTML comments which can break MDX parsing
           ;(d.columns || []).forEach((col: any, i: number) => {
             if (col?.image) md.push(`![Column ${i + 1}](${col.image})`)
             if (col?.content) md.push(String(col.content))
+            // Add a visual separator between columns
+            md.push('\n')
           })
-          md.push('<!-- columns end -->\n')
+          md.push('\n')
           break
         }
         case 'spacer': {
