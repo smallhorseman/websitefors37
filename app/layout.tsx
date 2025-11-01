@@ -3,6 +3,7 @@ import './globals.css'
 import { Inter, Playfair_Display } from 'next/font/google'
 import dynamic from 'next/dynamic'
 import Navigation from '@/components/Navigation'
+import QueryProvider from '@/components/QueryProvider'
 import { businessInfo, generateLocalBusinessSchema } from '@/lib/seo-config'
 
 const inter = Inter({ 
@@ -76,13 +77,15 @@ export default function RootLayout({
         <link rel="icon" href="/icon.svg" type="image/svg+xml" />
       </head>
       <body className={`${inter.variable} ${playfair.variable} font-sans`}>
-        <WebVitals />
-        <Navigation />
-        <main className="min-h-screen">
-          {children}
-        </main>
-        <ChatBot />
-        <Toaster position="top-right" />
+        <QueryProvider>
+          <WebVitals />
+          <Navigation />
+          <main className="min-h-screen">
+            {children}
+          </main>
+          <ChatBot />
+          <Toaster position="top-right" />
+        </QueryProvider>
       </body>
     </html>
   )

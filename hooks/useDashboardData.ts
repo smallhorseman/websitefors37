@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 
 export interface DashboardStats {
@@ -32,18 +32,8 @@ export interface DashboardStats {
 }
 
 export function useDashboardData() {
-  const [stats, setStats] = useState<DashboardStats | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-
-  useEffect(() => {
-    fetchDashboardData()
-  }, [])
-
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = async (): Promise<DashboardStats> => {
     try {
-      setLoading(true)
-      setError(null)
 
       // Fetch all data in parallel for better performance
       const [
@@ -127,20 +117,24 @@ export function useDashboardData() {
         })) || []
       }
 
-      setStats(dashboardStats)
-      
+      return dashboardStats
     } catch (err) {
       console.error('Dashboard data fetch error:', err)
-      setError(err instanceof Error ? err.message : 'Failed to fetch dashboard data')
-    } finally {
-      setLoading(false)
+      throw err
     }
   }
 
+  const { data, isLoading, error, refetch } = useQuery({
+    queryKey: ['dashboard-stats'],
+    queryFn: fetchDashboardData,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    refetchInterval: 5 * 60 * 1000,
+  })
+
   return {
-    stats,
-    loading,
-    error,
-    refetch: fetchDashboardData
+    stats: data ?? null,
+    loading: isLoading,
+    error: error instanceof Error ? error.message : null,
+    refetch,
   }
 }
