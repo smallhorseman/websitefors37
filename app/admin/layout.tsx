@@ -15,7 +15,8 @@ export default function AdminLayout({
   return (
     <AdminProtected>
       <div className="bg-gray-50 min-h-screen">
-        <main className="min-h-screen">
+        {/* Offset for fixed public navigation bar */}
+        <main className="min-h-screen pt-16">
           {children}
         </main>
       </div>

@@ -13,13 +13,21 @@ export default function AdminProtected({ children }: AdminProtectedProps) {
   const router = useRouter()
 
   useEffect(() => {
-    const authStatus = localStorage.getItem('admin_authenticated')
-    if (authStatus === 'true') {
-      setIsAuthenticated(true)
-    } else {
-      router.push('/login')
+    const checkAuth = async () => {
+      try {
+        const res = await fetch('/api/auth/session', { cache: 'no-store' })
+        if (res.ok) {
+          setIsAuthenticated(true)
+        } else {
+          router.push('/login')
+        }
+      } catch {
+        router.push('/login')
+      } finally {
+        setLoading(false)
+      }
     }
-    setLoading(false)
+    checkAuth()
   }, [router])
 
   if (loading) {
