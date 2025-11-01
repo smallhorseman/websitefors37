@@ -1,5 +1,6 @@
 import Image from 'next/image'
 import React from 'react'
+import LocalBusinessSchema from './LocalBusinessSchema'
 
 // Server components used by MDX to render VisualEditor output faithfully
 
@@ -209,6 +210,19 @@ export function SpacerBlock({ height = 'md' }: { height?: 'sm' | 'md' | 'lg' | '
   return <div className={heights[height] || heights.md} />
 }
 
+export function SeoFooterBlock({ contentB64, includeSchema = 'true' }: { contentB64?: string, includeSchema?: string }) {
+  const html = contentB64 ? Buffer.from(contentB64, 'base64').toString('utf-8') : ''
+  const withSchema = String(includeSchema) === 'true'
+  return (
+    <footer className="bg-gray-50 border-t">
+      <div className="container mx-auto px-4 py-8">
+        {html && <div className="prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: html }} />}
+      </div>
+      {withSchema && <LocalBusinessSchema />}
+    </footer>
+  )
+}
+
 export const MDXBuilderComponents = {
   HeroBlock,
   TextBlock,
@@ -216,4 +230,5 @@ export const MDXBuilderComponents = {
   ButtonBlock,
   ColumnsBlock,
   SpacerBlock,
+  SeoFooterBlock,
 }

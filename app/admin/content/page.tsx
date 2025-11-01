@@ -43,7 +43,7 @@ export default function ContentManagementPage() {
     const fetchSettings = async () => {
       try {
         const { supabase } = await import('@/lib/supabase')
-        const { data, error } = await supabase.from('settings').select('book_session_bg_url').single()
+        const { data, error } = await supabase.from('settings').select('id, book_session_bg_url').maybeSingle()
         if (error) throw error
         setBookingBgUrl(data?.book_session_bg_url || '')
       } catch (err: any) {
@@ -58,11 +58,27 @@ export default function ContentManagementPage() {
     setSettingsError(null)
     try {
       const { supabase } = await import('@/lib/supabase')
-      const { error } = await supabase
+      // Find existing settings row (if any)
+      const { data: existing, error: fetchErr } = await supabase
         .from('settings')
-        .update({ book_session_bg_url: bookingBgUrl })
-        .eq('id', 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11')
-      if (error) throw error
+        .select('id')
+        .maybeSingle()
+      if (fetchErr) throw fetchErr
+
+      let err: any = null
+      if (existing?.id) {
+        const { error } = await supabase
+          .from('settings')
+          .update({ book_session_bg_url: bookingBgUrl, updated_at: new Date().toISOString() })
+          .eq('id', existing.id)
+        err = error
+      } else {
+        const { error } = await supabase
+          .from('settings')
+          .insert([{ book_session_bg_url: bookingBgUrl }])
+        err = error
+      }
+      if (err) throw err
     } catch (err: any) {
       setSettingsError(err.message || 'Failed to save background image URL')
     } finally {

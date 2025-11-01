@@ -160,6 +160,11 @@ export default function PageBuilderPage() {
           md.push(`<SpacerBlock height="${escapeAttr(d.height || 'md')}" />`)
           break
         }
+        case 'seoFooter': {
+          const contentB64 = toB64(String(d.content || ''))
+          md.push(`<SeoFooterBlock contentB64="${contentB64}" includeSchema="${(d.includeSchema ?? true) ? 'true' : 'false'}" />`)
+          break
+        }
       }
     })
 

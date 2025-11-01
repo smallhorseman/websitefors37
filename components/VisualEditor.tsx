@@ -10,7 +10,7 @@ import Image from 'next/image'
 import ImageUploader from './ImageUploader'
 
 // Component types
-type ComponentType = 'hero' | 'text' | 'image' | 'button' | 'columns' | 'spacer'
+type ComponentType = 'hero' | 'text' | 'image' | 'button' | 'columns' | 'spacer' | 'seoFooter'
 
 interface BaseComponent {
   id: string
@@ -87,7 +87,15 @@ interface SpacerComponent extends BaseComponent {
   }
 }
 
-type PageComponent = HeroComponent | TextComponent | ImageComponent | ButtonComponent | ColumnsComponent | SpacerComponent
+interface SEOFooterComponent extends BaseComponent {
+  type: 'seoFooter'
+  data: {
+    content: string
+    includeSchema?: boolean
+  }
+}
+
+type PageComponent = HeroComponent | TextComponent | ImageComponent | ButtonComponent | ColumnsComponent | SpacerComponent | SEOFooterComponent
 
 interface VisualEditorProps {
   initialComponents?: PageComponent[]
@@ -179,6 +187,11 @@ export default function VisualEditor({ initialComponents = [], onSave, onChange 
         }
       case 'spacer':
         return { height: 'md' }
+      case 'seoFooter':
+        return {
+          content: '<h3 class="text-lg font-bold mb-2">About Studio 37</h3><p class="text-sm">Professional portraits and photography serving Tomball, Magnolia, Pinehurst, and the 77362 area.</p><h3 class="text-lg font-bold mt-4 mb-2">Contact</h3><p class="text-sm">Studio 37 Photography • (xxx) xxx-xxxx • contact@studio37.cc</p>',
+          includeSchema: true
+        }
       default:
         return {}
     }
@@ -260,6 +273,13 @@ export default function VisualEditor({ initialComponents = [], onSave, onChange 
             >
               <span className="h-5 w-5 flex items-center justify-center">⬍</span>
               <span>Spacer</span>
+            </button>
+            <button
+              onClick={() => addComponent('seoFooter')}
+              className="w-full flex items-center gap-2 p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition"
+            >
+              <Square className="h-5 w-5" />
+              <span>SEO Footer</span>
             </button>
           </div>
         </div>
@@ -420,6 +440,8 @@ function ComponentRenderer({ component }: { component: PageComponent }) {
       return <ColumnsRenderer data={component.data} />
     case 'spacer':
       return <SpacerRenderer data={component.data} />
+    case 'seoFooter':
+      return <SEOFooterRenderer data={component.data} />
     default:
       return null
   }
@@ -578,6 +600,15 @@ function SpacerRenderer({ data }: { data: SpacerComponent['data'] }) {
   return <div className={heights[data.height]} />
 }
 
+function SEOFooterRenderer({ data }: { data: SEOFooterComponent['data'] }) {
+  return (
+    <footer className="p-8 bg-gray-50 border-t">
+      <div className="prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: data.content }} />
+      <p className="text-xs text-gray-500 mt-3">SEO footer preview</p>
+    </footer>
+  )
+}
+
 // Component Properties Editor
 function ComponentProperties({ component, onUpdate }: { component: PageComponent; onUpdate: (data: any) => void }) {
   switch (component.type) {
@@ -593,6 +624,8 @@ function ComponentProperties({ component, onUpdate }: { component: PageComponent
       return <ColumnsProperties data={component.data as ColumnsComponent['data']} onUpdate={onUpdate} />
     case 'spacer':
       return <SpacerProperties data={component.data as SpacerComponent['data']} onUpdate={onUpdate} />
+      case 'seoFooter':
+        return <SEOFooterProperties data={component.data as SEOFooterComponent['data']} onUpdate={onUpdate} />
     default:
       return null
   }
@@ -1222,6 +1255,54 @@ function SpacerProperties({ data, onUpdate }: { data: SpacerComponent['data']; o
           <option value="lg">Large (6rem)</option>
           <option value="xl">Extra Large (8rem)</option>
         </select>
+      </div>
+    </div>
+  )
+}
+
+function SEOFooterProperties({ data, onUpdate }: { data: SEOFooterComponent['data']; onUpdate: (data: any) => void }) {
+  const textareaRef = React.useRef<HTMLTextAreaElement>(null)
+  const insertFormatting = (before: string, after: string) => {
+    const textarea = textareaRef.current
+    if (!textarea) return
+    const start = textarea.selectionStart
+    const end = textarea.selectionEnd
+    const text = data.content
+    const selectedText = text.substring(start, end)
+    const newText = text.substring(0, start) + before + selectedText + after + text.substring(end)
+    onUpdate({ content: newText })
+    setTimeout(() => {
+      textarea.focus()
+      const newPos = start + before.length + selectedText.length + after.length
+      textarea.setSelectionRange(newPos, newPos)
+    }, 0)
+  }
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <label className="block text-sm font-medium mb-1">Footer HTML</label>
+        <div className="flex flex-wrap gap-1 mb-2 p-2 bg-gray-50 border rounded">
+          <button type="button" onClick={() => insertFormatting('<strong>', '</strong>')} className="px-2 py-1 text-xs border rounded hover:bg-white font-bold">B</button>
+          <button type="button" onClick={() => insertFormatting('<em>', '</em>')} className="px-2 py-1 text-xs border rounded hover:bg-white italic">I</button>
+          <button type="button" onClick={() => insertFormatting('<u>', '</u>')} className="px-2 py-1 text-xs border rounded hover:bg-white underline">U</button>
+          <span className="border-l mx-1"></span>
+          <button type="button" onClick={() => insertFormatting('<h3 class=\"text-lg font-bold mb-2\">', '</h3>')} className="px-2 py-1 text-xs border rounded hover:bg-white">H3</button>
+          <button type="button" onClick={() => insertFormatting('<p class=\"text-sm\">', '</p>')} className="px-2 py-1 text-xs border rounded hover:bg-white">P</button>
+        </div>
+        <textarea
+          ref={textareaRef}
+          value={data.content}
+          onChange={(e) => onUpdate({ content: e.target.value })}
+          className="w-full border rounded px-3 py-2 font-mono text-sm"
+          rows={8}
+          placeholder="Enter footer HTML (e.g., NAP, service areas, internal links)"
+        />
+        <p className="text-xs text-gray-500 mt-1">Tip: Include business name, address, phone, key services and service areas.</p>
+      </div>
+      <div className="flex items-center gap-2">
+        <input id="seo-footer-schema" type="checkbox" checked={!!data.includeSchema} onChange={(e)=>onUpdate({ includeSchema: e.target.checked })} className="h-4 w-4 text-primary-600 rounded border-gray-300 focus:ring-primary-500" />
+        <label htmlFor="seo-footer-schema" className="text-sm">Embed LocalBusiness JSON-LD</label>
       </div>
     </div>
   )

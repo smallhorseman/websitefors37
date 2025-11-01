@@ -217,8 +217,8 @@ export default function BookSessionPage() {
   useEffect(() => {
     const fetchBg = async () => {
       try {
-        const { data, error } = await supabase.from('settings').select('book_session_bg_url').single()
-        if (!error && data?.book_session_bg_url) {
+        const { data } = await supabase.from('settings').select('book_session_bg_url').maybeSingle()
+        if (data?.book_session_bg_url) {
           setBgUrl(data.book_session_bg_url)
         }
       } catch {}
