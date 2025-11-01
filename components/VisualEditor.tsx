@@ -124,15 +124,7 @@ interface TestimonialsComponent extends BaseComponent {
   }
 }
 
-interface GalleryHighlightsComponent extends BaseComponent {
-  type: 'galleryHighlights'
-  data: {
-    categories: string[]
-    featuredOnly?: boolean
-    limit?: number
-    animation?: 'none' | 'fade-in' | 'slide-up' | 'zoom'
-  }
-}
+// GalleryHighlightsComponent is defined once below with full organizing fields (collections, tags, group, sort, limits)
 
 interface WidgetEmbedComponent extends BaseComponent {
   type: 'widgetEmbed'
@@ -2574,8 +2566,6 @@ function ComponentProperties({ component, onUpdate }: { component: PageComponent
       return <CTABannerProperties data={component.data as CTABannerComponent['data']} onUpdate={onUpdate} />
     case 'iconFeatures':
       return <IconFeaturesProperties data={component.data as IconFeaturesComponent['data']} onUpdate={onUpdate} />
-    case 'galleryHighlights':
-      return <GalleryHighlightsProperties data={component.data as GalleryHighlightsComponent['data']} onUpdate={onUpdate} />
     default:
       return null
   }
