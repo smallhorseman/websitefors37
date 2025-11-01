@@ -5,6 +5,7 @@ import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, ChevronLeft, ChevronRight, Star } from 'lucide-react'
 import { useSearchParams } from 'next/navigation'
+import { useGalleryImages } from '@/hooks/useGalleryImages'
 
 interface GalleryImage {
   id: string
@@ -28,6 +29,9 @@ export default function GalleryClient({ initialImages, categories }: GalleryProp
   const [selectedImage, setSelectedImage] = useState<GalleryImage | null>(null)
   const [selectedIndex, setSelectedIndex] = useState(0)
 
+  // Background refresh using React Query; hydrate with server-provided data
+  const { data: allImages = initialImages } = useGalleryImages({}, { initialData: initialImages })
+
   // Set initial category from URL parameter
   useEffect(() => {
     if (categoryParam && categories.includes(categoryParam)) {
@@ -36,8 +40,8 @@ export default function GalleryClient({ initialImages, categories }: GalleryProp
   }, [categoryParam, categories])
   
   const filteredImages = activeCategory === 'all'
-    ? initialImages
-    : initialImages.filter(img => img.category === activeCategory)
+    ? allImages
+    : allImages.filter(img => img.category === activeCategory)
   
   // Keyboard navigation for lightbox
   useEffect(() => {

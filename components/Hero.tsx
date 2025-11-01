@@ -6,7 +6,7 @@ import { Camera, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { getPageConfig } from '@/lib/pageConfig'
-import { supabase } from '@/lib/supabase'
+import { useGalleryImages } from '@/hooks/useGalleryImages'
 
 export default function Hero() {
   const [cfg, setCfg] = useState<Record<string, any> | null>(null)
@@ -22,19 +22,22 @@ export default function Hero() {
     'brand photography'
   ]
 
+  // React Query: featured images for homepage categories
+  const { data: featuredImages } = useGalleryImages({
+    categories: homepageCategories,
+    featured: true,
+    orderBy: 'display_order',
+    ascending: true,
+  })
+
   useEffect(() => {
     getPageConfig('home').then((c) => setCfg(c?.data || null))
-    // Fetch featured gallery images for homepage categories
-    supabase
-      .from('gallery_images')
-      .select('*')
-      .in('category', homepageCategories)
-      .eq('featured', true)
-      .order('display_order', { ascending: true })
-      .then(({ data, error }) => {
-        if (!error && data) setGalleryImages(data)
-      })
   }, [])
+
+  // Keep local state in sync for slideshow logic
+  useEffect(() => {
+    if (featuredImages) setGalleryImages(featuredImages)
+  }, [featuredImages])
 
   // Slideshow rotation
   useEffect(() => {

@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react'
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { useGalleryImages } from '@/hooks/useGalleryImages'
 import OptimizedImage from './OptimizedImage'
 import Link from 'next/link'
 
@@ -15,27 +15,14 @@ interface GalleryImage {
 }
 
 export default function PortraitHighlightGallery() {
-  const [images, setImages] = React.useState<GalleryImage[]>([])
-  const supabase = createClientComponentClient()
+  const { data: images } = useGalleryImages({
+    featured: true,
+    limit: 6,
+    orderBy: 'created_at',
+    ascending: false,
+  })
 
-  React.useEffect(() => {
-    async function loadFeaturedImages() {
-      const { data } = await supabase
-        .from('gallery_images')
-        .select('*')
-        .eq('featured', true)
-        .limit(6)
-        .order('created_at', { ascending: false })
-      
-      if (data) {
-        setImages(data)
-      }
-    }
-
-    loadFeaturedImages()
-  }, [])
-
-  if (images.length === 0) return null
+  if (!images || images.length === 0) return null
 
   return (
     <section className="py-16 bg-white">

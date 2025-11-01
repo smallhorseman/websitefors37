@@ -4,7 +4,7 @@ import React, { useEffect, useState, useRef } from 'react'
 import { motion } from 'framer-motion'
 import Image from 'next/image'
 import Link from 'next/link'
-import { supabase } from '@/lib/supabase'
+import { useGalleryImages } from '@/hooks/useGalleryImages'
 import { Camera, Users, Building, Heart, ArrowRight } from 'lucide-react'
 
 const services = [
@@ -71,27 +71,22 @@ export default function Services() {
 	const [slideshowIndexes, setSlideshowIndexes] = useState<Record<string, number>>({})
 	const intervalRef = useRef<NodeJS.Timeout | null>(null)
 
+	const categories = services.map(s => s.category)
+	const { data: images } = useGalleryImages({
+		categories,
+		featured: true,
+		orderBy: 'display_order',
+		ascending: true,
+	})
+
 	useEffect(() => {
-		// Fetch featured images for each service category
-		async function fetchImages() {
-			const categories = services.map(s => s.category)
-			const { data, error } = await supabase
-				.from('gallery_images')
-				.select('*')
-				.in('category', categories)
-				.eq('featured', true)
-				.order('display_order', { ascending: true })
-			if (!error && data) {
-				// Group images by category
-				const grouped: Record<string, any[]> = {}
-				categories.forEach(cat => {
-					grouped[cat] = data.filter(img => img.category === cat)
-				})
-				setImagesByCategory(grouped)
-			}
-		}
-		fetchImages()
-	}, [])
+		if (!images) return
+		const grouped: Record<string, any[]> = {}
+		categories.forEach(cat => {
+			grouped[cat] = images.filter(img => img.category === cat)
+		})
+		setImagesByCategory(grouped)
+	}, [images])
 
 	// Slideshow rotation for each category
 	useEffect(() => {
