@@ -24,8 +24,9 @@ export async function POST(req: NextRequest) {
 
     let state: ConversationState = conversations.get(sessionId) || { step: 'initial', data: {} }
 
-    const msg = message.toLowerCase()
-    let response = FLOWS.initial
+  const msg = message.toLowerCase()
+  // Widen the response type to string to satisfy TS during union of different literals
+  let response: string = FLOWS.initial
 
     switch (state.step) {
       case 'initial': {
