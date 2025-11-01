@@ -86,6 +86,7 @@ export function HeroBlock({
   animation = 'none',
   buttonAnimation = 'none',
   fullBleed = false,
+  overlapHeader = true,
 }: {
   title?: string
   subtitle?: string
@@ -102,6 +103,7 @@ export function HeroBlock({
   animation?: string
   buttonAnimation?: string
   fullBleed?: boolean | string
+  overlapHeader?: boolean | string
 }) {
   const buttonStyleClasses: Record<string, string> = {
     primary: 'btn-primary',
@@ -110,6 +112,7 @@ export function HeroBlock({
   }
   const hoverZoom = buttonAnimation === 'hover-zoom' ? 'transition-transform duration-300 hover:scale-105' : ''
   const isFullBleed = String(fullBleed) === 'true'
+  const shouldOverlap = String(overlapHeader) !== 'false'
   const sectionBase = `relative min-h-[50vh] md:min-h-[60vh] lg:min-h-[70vh] flex items-center justify-center text-white overflow-hidden ${animation === 'fade-in' ? 'animate-fadeIn' : animation === 'slide-up' ? 'animate-slideUp' : animation === 'zoom' ? 'animate-zoom' : ''}`
   
   const section = (
@@ -146,15 +149,23 @@ export function HeroBlock({
     </section>
   )
 
+  const overlapClasses = shouldOverlap ? '-mt-16 md:-mt-20 pt-16 md:pt-20' : ''
+
   if (isFullBleed) {
     return (
-      <div className="relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen overflow-x-clip">
-        {section}
+      <div className={overlapClasses}>
+        <div className="relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen overflow-x-clip">
+          {section}
+        </div>
       </div>
     )
   }
 
-  return section
+  return (
+    <div className={overlapClasses}>
+      {section}
+    </div>
+  )
 }
 
 export function TextBlock({ contentB64, alignment = 'left', size = 'md', animation = 'none' }: {
