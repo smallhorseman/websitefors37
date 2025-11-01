@@ -6,6 +6,7 @@ import { ContentPage } from '@/lib/supabase'
 import { MDXRemote } from 'next-mdx-remote/rsc'
 import rehypeHighlight from 'rehype-highlight'
 import rehypeRaw from 'rehype-raw'
+import { MDXBuilderComponents } from '@/components/BuilderRuntime'
 
 const isValidSlug = (s: string) => /^[a-z0-9-]{1,64}$/.test(s)
 
@@ -74,6 +75,7 @@ export default async function DynamicPage({ params }: { params: { slug: string }
                   rehypePlugins: [rehypeRaw as any, [rehypeHighlight, {}] as any]
                 }
               }}
+              components={MDXBuilderComponents as any}
             />
           ) : (
             <div className="text-gray-600">This page has no content yet.</div>

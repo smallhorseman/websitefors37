@@ -76,66 +76,69 @@ export default function PageBuilderPage() {
     }
   }
 
-  // Convert builder components to MDX content for content_pages
+  // Convert builder components to MDX with custom JSX components for faithful rendering
   const componentsToMDX = (list: any[]): string => {
     const md: string[] = []
-    const stripHtml = (html: string) => html.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim()
+
+    const escapeAttr = (v: string) =>
+      String(v ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;')
 
     list.forEach((c) => {
+      const d = c.data || {}
       switch (c.type) {
         case 'hero': {
-          const d = c.data || {}
-          if (d.backgroundImage) md.push(`![${d.title || ''}](${d.backgroundImage})`)
-          if (d.title) md.push(`# ${d.title}`)
-          if (d.subtitle) md.push(`${d.subtitle}`)
-          if (d.buttonText && d.buttonLink) md.push(`[${d.buttonText}](${d.buttonLink})`)
-          md.push('\n---\n')
+          md.push(
+            `<HeroBlock title="${escapeAttr(d.title)}" subtitle="${escapeAttr(d.subtitle)}" backgroundImage="${escapeAttr(
+              d.backgroundImage || ''
+            )}" buttonText="${escapeAttr(d.buttonText)}" buttonLink="${escapeAttr(d.buttonLink)}" alignment="${escapeAttr(
+              d.alignment || 'center'
+            )}" overlay={${Number.isFinite(d.overlay) ? d.overlay : 50}} />`
+          )
           break
         }
         case 'text': {
-          const d = c.data || {}
-          // Allow raw HTML within MDX for rich formatting
-          if (d.content) md.push(String(d.content))
-          md.push('')
+          md.push(
+            `<TextBlock content="${escapeAttr(d.content || '')}" alignment="${escapeAttr(
+              d.alignment || 'left'
+            )}" size="${escapeAttr(d.size || 'md')}" />`
+          )
           break
         }
         case 'image': {
-          const d = c.data || {}
-          if (d.url) {
-            md.push(`![${d.alt || ''}](${d.url})`)
-            if (d.caption) md.push(`*${d.caption}*`)
-            md.push('')
-          }
+          md.push(
+            `<ImageBlock url="${escapeAttr(d.url || '')}" alt="${escapeAttr(d.alt || '')}" caption="${escapeAttr(
+              d.caption || ''
+            )}" width="${escapeAttr(d.width || 'full')}" />`
+          )
           break
         }
         case 'button': {
-          const d = c.data || {}
-          if (d.text && d.link) md.push(`[${d.text}](${d.link})`)
-          md.push('')
+          md.push(
+            `<ButtonBlock text="${escapeAttr(d.text || '')}" link="${escapeAttr(d.link || '#')}" style="${escapeAttr(
+              d.style || 'primary'
+            )}" alignment="${escapeAttr(d.alignment || 'center')}" />`
+          )
           break
         }
         case 'columns': {
-          const d = c.data || { columns: [] }
-          // Render each column sequentially; avoid HTML comments which can break MDX parsing
-          ;(d.columns || []).forEach((col: any, i: number) => {
-            if (col?.image) md.push(`![Column ${i + 1}](${col.image})`)
-            if (col?.content) md.push(String(col.content))
-            // Add a visual separator between columns
-            md.push('\n')
-          })
-          md.push('\n')
+          const columnsJson = JSON.stringify(d.columns || [])
+          // Pass as JSON string prop to avoid complex MDX expressions
+          md.push(`<ColumnsBlock columnsJson={\`${columnsJson}\`} />`)
           break
         }
         case 'spacer': {
-          md.push('\n')
+          md.push(`<SpacerBlock height="${escapeAttr(d.height || 'md')}" />`)
           break
         }
-        default:
-          break
       }
     })
 
-    return md.join('\n')
+    return md.join('\n\n')
   }
 
   const handlePublish = async () => {
