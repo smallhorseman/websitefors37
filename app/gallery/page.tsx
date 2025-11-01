@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { Suspense } from 'react'
 import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
 import GalleryWithSuspense from '@/components/GalleryWithSuspense'
@@ -61,7 +61,9 @@ export default async function GalleryPage() {
       </div>
       
       <div className="container mx-auto px-4 py-16">
-        <GalleryWithSuspense initialImages={images || []} categories={categories} />
+        <Suspense fallback={<div className="py-20 text-center text-gray-500">Loading gallery…</div>}>
+          <GalleryWithSuspense initialImages={images || []} categories={categories} />
+        </Suspense>
       </div>
     </div>
   )

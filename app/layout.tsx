@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { Suspense } from 'react'
 import './globals.css'
 import { Inter, Playfair_Display } from 'next/font/google'
 import dynamic from 'next/dynamic'
@@ -94,7 +94,9 @@ export default function RootLayout({
           `}
         </Script>
         <QueryProvider>
-          <Analytics />
+          <Suspense fallback={null}>
+            <Analytics />
+          </Suspense>
           <WebVitals />
           <Navigation />
           <main className="min-h-screen">

@@ -7,6 +7,9 @@ export const metadata: Metadata = {
   description: 'Secure admin dashboard for Studio37 Photography business management',
 }
 
+// Admin routes are dynamic (session/cookies, dashboard data), disable prerender
+export const dynamic = 'force-dynamic'
+
 export default function AdminLayout({
   children
 }: {
