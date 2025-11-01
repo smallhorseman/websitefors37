@@ -24,8 +24,7 @@ async function fetchGalleryImages(params: GalleryQueryParams = {}): Promise<Gall
 
   let query = supabase
     .from('gallery_images')
-    .select(select)
-    .returns<GalleryImage[]>()
+    .select<GalleryImage>(select)
 
   if (categories && categories.length > 0) {
     query = query.in('category', categories)
