@@ -7,17 +7,26 @@ import { notFound } from 'next/navigation'
 import { Calendar, User, Tag, ArrowLeft } from 'lucide-react'
 import { MDXRemote } from 'next-mdx-remote/rsc'
 import rehypeHighlight from 'rehype-highlight'
+import rehypeRaw from 'rehype-raw'
+
+const isValidSlug = (s: string) => /^[a-z0-9-]{1,64}$/.test(s)
 
 // Generate metadata dynamically based on blog post
 export async function generateMetadata({ params }: { params: { slug: string } }) {
   const supabase = createServerComponentClient({ cookies })
+  if (!isValidSlug(params.slug)) {
+    return {
+      title: 'Post Not Found',
+      description: 'The requested blog post could not be found'
+    }
+  }
   
   const { data: post } = await supabase
     .from('blog_posts')
     .select('title, meta_description, excerpt')
     .eq('slug', params.slug)
     .eq('published', true)
-    .single()
+    .maybeSingle()
   
   if (!post) {
     return {
@@ -34,15 +43,18 @@ export async function generateMetadata({ params }: { params: { slug: string } })
 
 export default async function BlogPostPage({ params }: { params: { slug: string } }) {
   const supabase = createServerComponentClient({ cookies })
+  if (!isValidSlug(params.slug)) {
+    notFound()
+  }
   
-  const { data: post } = await supabase
+  const { data: post, error } = await supabase
     .from('blog_posts')
     .select('*')
     .eq('slug', params.slug)
     .eq('published', true)
-    .single()
+    .maybeSingle()
   
-  if (!post) {
+  if (!post || (error && (error as any).status === 406)) {
     notFound()
   }
   
@@ -122,7 +134,7 @@ export default async function BlogPostPage({ params }: { params: { slug: string 
               source={post.content}
               options={{
                 mdxOptions: {
-                  rehypePlugins: [[rehypeHighlight, {}] as any]
+                  rehypePlugins: [rehypeRaw as any, [rehypeHighlight, {}] as any]
                 }
               }}
             />

@@ -7,9 +7,18 @@ import { MDXRemote } from 'next-mdx-remote/rsc'
 import rehypeHighlight from 'rehype-highlight'
 import rehypeRaw from 'rehype-raw'
 
+const isValidSlug = (s: string) => /^[a-z0-9-]{1,64}$/.test(s)
+
 // Generate metadata dynamically based on page content
 export async function generateMetadata({ params }: { params: { slug: string } }) {
   const supabase = createServerComponentClient({ cookies })
+  // If the slug is not valid, don't hit the DB; return a generic 404-like metadata
+  if (!isValidSlug(params.slug)) {
+    return {
+      title: 'Page Not Found',
+      description: 'The requested page could not be found'
+    }
+  }
   
   const { data: page } = await supabase
     .from('content_pages')
@@ -34,15 +43,20 @@ export async function generateMetadata({ params }: { params: { slug: string } })
 // Renamed function to avoid naming conflict with the imported ContentPage type
 export default async function DynamicPage({ params }: { params: { slug: string } }) {
   const supabase = createServerComponentClient({ cookies })
+  // Short-circuit static asset-like requests or invalid slugs
+  if (!isValidSlug(params.slug)) {
+    notFound()
+  }
   
-  const { data: page } = await supabase
+  const { data: page, error } = await supabase
     .from('content_pages')
     .select('*')
     .eq('slug', params.slug)
     .eq('published', true)
-    .single()
+    .maybeSingle()
   
-  if (!page) {
+  // Treat 406 from PostgREST as not found; avoid leaking errors
+  if (!page || (error && (error as any).status === 406)) {
     notFound()
   }
   
