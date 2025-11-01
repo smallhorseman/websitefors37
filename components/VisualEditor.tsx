@@ -4011,63 +4011,6 @@ function TestimonialsProperties({ data, onUpdate }: { data: TestimonialsComponen
   )
 }
 
-function GalleryHighlightsProperties({ data, onUpdate }: { data: GalleryHighlightsComponent['data']; onUpdate: (data: any) => void }) {
-  const [categoryInput, setCategoryInput] = React.useState('')
-  const addCategory = () => {
-    if (!categoryInput.trim()) return
-    onUpdate({ categories: [...(data.categories || []), categoryInput.trim()] })
-    setCategoryInput('')
-  }
-  const removeCategory = (idx: number) => {
-    onUpdate({ categories: data.categories?.filter((_, i) => i !== idx) || [] })
-  }
-
-  return (
-    <div className="space-y-4">
-      <div>
-        <label className="block text-sm font-medium mb-1">Featured Only</label>
-        <div className="flex items-center gap-2">
-          <input id="gallery-featured" type="checkbox" checked={data.featuredOnly ?? true} onChange={(e) => onUpdate({ featuredOnly: e.target.checked })} className="h-4 w-4" />
-          <label htmlFor="gallery-featured" className="text-sm">Show only featured images</label>
-        </div>
-      </div>
-      <div>
-        <label className="block text-sm font-medium mb-1">Limit</label>
-        <input type="number" value={data.limit || 6} onChange={(e) => onUpdate({ limit: Number(e.target.value) })} className="w-full border rounded px-3 py-2" min="1" step="1" />
-        <p className="text-xs text-gray-500 mt-1">Max number of images to show</p>
-      </div>
-      <div>
-        <label className="block text-sm font-medium mb-1">Animation</label>
-        <select value={data.animation || 'fade-in'} onChange={(e) => onUpdate({ animation: e.target.value })} className="w-full border rounded px-3 py-2">
-          <option value="none">None</option>
-          <option value="fade-in">Fade In</option>
-          <option value="slide-up">Slide Up</option>
-          <option value="zoom">Zoom</option>
-        </select>
-      </div>
-
-      <div className="border-t pt-4">
-        <div className="flex items-center justify-between mb-3">
-          <label className="block text-sm font-medium">Categories</label>
-        </div>
-        <div className="flex gap-2 mb-3">
-          <input type="text" value={categoryInput} onChange={(e) => setCategoryInput(e.target.value)} onKeyPress={(e) => { if (e.key === 'Enter') { e.preventDefault(); addCategory() } }} className="flex-1 border rounded px-3 py-2 text-sm" placeholder="Enter category name" />
-          <button type="button" onClick={addCategory} className="px-3 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">Add</button>
-        </div>
-        <div className="space-y-1">
-          {data.categories?.map((cat, idx) => (
-            <div key={idx} className="flex items-center justify-between border rounded px-3 py-2 text-sm bg-gray-50">
-              <span>{cat}</span>
-              <button type="button" onClick={() => removeCategory(idx)} className="text-red-600 text-xs hover:underline">Remove</button>
-            </div>
-          ))}
-          {!data.categories?.length && <p className="text-sm text-gray-500">No categories (will show all). Add categories to filter.</p>}
-        </div>
-      </div>
-    </div>
-  )
-}
-
 function WidgetEmbedProperties({ data, onUpdate }: { data: WidgetEmbedComponent['data']; onUpdate: (data:any)=>void }) {
   const [scriptUrl, setScriptUrl] = React.useState('')
   const addScript = () => {
