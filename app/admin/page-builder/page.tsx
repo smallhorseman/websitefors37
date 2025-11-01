@@ -187,15 +187,12 @@ export default function PageBuilderPage() {
 
   const importFromPublished = async () => {
     try {
-      const cleanSlug = slug
+      const cleanSlugRaw = slug
         .toLowerCase()
         .replace(/[^a-z0-9-\s]/g, '')
         .replace(/\s+/g, '-')
         .trim()
-      if (!cleanSlug) {
-        alert('Enter a valid slug before importing.')
-        return
-      }
+      const cleanSlug = cleanSlugRaw || 'home'
       const { data, error } = await supabase
         .from('content_pages')
         .select('content')
@@ -433,12 +430,15 @@ export default function PageBuilderPage() {
         />
         <div className="p-4 flex justify-end gap-2">
           <Link
-            href={`/${slug.replace(/[^a-z0-9-\s]/gi, '').toLowerCase().replace(/\s+/g, '-').trim() || ''}`}
+            href={(function(){
+              const s = slug.replace(/[^a-z0-9-\s]/gi, '').toLowerCase().replace(/\s+/g, '-').trim()
+              return s === 'home' ? '/' : `/${s || ''}`
+            })()}
             target="_blank"
             className="px-4 py-2 border rounded hover:bg-gray-50 disabled:opacity-50"
             aria-disabled={!slug}
           >
-            View /{slug || '…'}
+            View /{(() => { const s = slug.replace(/[^a-z0-9-\s]/gi, '').toLowerCase().replace(/\s+/g, '-').trim(); return s === 'home' ? '' : s || '…' })()}
           </Link>
           <button
             onClick={() => handleSave(components)}
@@ -452,7 +452,7 @@ export default function PageBuilderPage() {
             disabled={saving}
             className="px-4 py-2 bg-primary-600 text-white rounded hover:bg-primary-700"
           >
-            Publish to /{slug}
+            Publish to /{(() => { const s = slug.replace(/[^a-z0-9-\s]/gi, '').toLowerCase().replace(/\s+/g, '-').trim(); return s === 'home' ? '' : s || '…' })()}
           </button>
         </div>
       </div>
