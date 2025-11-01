@@ -1396,7 +1396,8 @@ function buildContactTemplate(): PageComponent[] {
     data: {
       animation: 'fade-in',
       columns: [
-        { content: '<div class="text-center"><span class="text-4xl mb-3 block">📧</span><h3 class="text-xl font-bold mb-2">Email</h3><p class="text-gray-600">contact@studio37.cc</p><p class="text-sm text-gray-500 mt-2">We respond within 24 hours</p></div>' },
+        { content: '<div class="text-center"><span class="text-4xl mb-3 block">📧</span><h3 class="text-xl font-bold mb-2">Email</h3><p class="text-gray-600">sales@studio37.cc</p><p class="text-sm text-gray-500 mt-2">We respond within 24 hours</p></div>' },
+        { content: '<div class="text-center"><span class="text-4xl mb-3 block">📞</span><h3 class="text-xl font-bold mb-2">Phone</h3><p class="text-gray-600">832-713-9944</p><p class="text-sm text-gray-500 mt-2">Available Mon-Fri 9am-6pm</p></div>' },
         { content: '<div class="text-center"><span class="text-4xl mb-3 block">📞</span><h3 class="text-xl font-bold mb-2">Phone</h3><p class="text-gray-600">(xxx) xxx-xxxx</p><p class="text-sm text-gray-500 mt-2">Mon-Fri, 9AM-6PM CST</p></div>' },
         { content: '<div class="text-center"><span class="text-4xl mb-3 block">📍</span><h3 class="text-xl font-bold mb-2">Location</h3><p class="text-gray-600">Pinehurst, TX 77362</p><p class="text-sm text-gray-500 mt-2">Serving Montgomery County</p></div>' }
       ]
