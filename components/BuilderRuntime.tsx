@@ -15,6 +15,7 @@ export function HeroBlock({
   subtitleColor = 'text-amber-50',
   buttonStyle = 'primary',
   animation = 'none',
+  buttonAnimation = 'none',
 }: {
   title?: string
   subtitle?: string
@@ -27,12 +28,14 @@ export function HeroBlock({
   subtitleColor?: string
   buttonStyle?: string
   animation?: string
+  buttonAnimation?: string
 }) {
   const buttonStyleClasses: Record<string, string> = {
     primary: 'btn-primary',
     secondary: 'btn-secondary bg-white/10 hover:bg-white/20 border border-amber-200/30',
     outline: 'border-2 border-white text-white hover:bg-white/10'
   }
+  const hoverZoom = buttonAnimation === 'hover-zoom' ? 'transition-transform duration-300 hover:scale-105' : ''
   
   return (
     <section className={`relative h-96 md:h-[28rem] flex items-center justify-center text-white overflow-hidden rounded-lg ${animation === 'fade-in' ? 'animate-fadeIn' : animation === 'slide-up' ? 'animate-slideUp' : animation === 'zoom' ? 'animate-zoom' : ''}`}>
@@ -49,7 +52,7 @@ export function HeroBlock({
         {buttonText && (
           <a
             href={buttonLink || '#'}
-            className={`inline-block px-6 py-3 rounded-lg transition no-underline ${buttonStyleClasses[buttonStyle] || buttonStyleClasses.primary}`}
+            className={`inline-block px-6 py-3 rounded-lg transition no-underline ${buttonStyleClasses[buttonStyle] || buttonStyleClasses.primary} ${hoverZoom}`}
           >
             {buttonText}
           </a>

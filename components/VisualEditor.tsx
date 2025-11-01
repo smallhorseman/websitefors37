@@ -31,6 +31,7 @@ interface HeroComponent extends BaseComponent {
     subtitleColor: string
     buttonStyle: 'primary' | 'secondary' | 'outline'
     animation: 'none' | 'fade-in' | 'slide-up' | 'zoom'
+    buttonAnimation?: 'none' | 'hover-zoom'
   }
 }
 
@@ -139,7 +140,8 @@ export default function VisualEditor({ initialComponents = [], onSave, onChange 
           titleColor: 'text-white',
           subtitleColor: 'text-amber-50',
           buttonStyle: 'primary',
-          animation: 'none'
+          animation: 'none',
+          buttonAnimation: 'none'
         }
       case 'text':
         return {
@@ -430,6 +432,7 @@ function HeroRenderer({ data }: { data: HeroComponent['data'] }) {
   }
   const anim = data.animation || 'none'
   const animClass = anim === 'fade-in' ? 'animate-fadeIn' : anim === 'slide-up' ? 'animate-slideUp' : anim === 'zoom' ? 'animate-zoom' : ''
+  const buttonHoverZoom = (data.buttonAnimation || 'none') === 'hover-zoom' ? 'transition-transform duration-300 hover:scale-105' : ''
   
   return (
     <div className={`relative h-96 flex items-center justify-center text-white overflow-hidden ${animClass}`}>
@@ -444,7 +447,7 @@ function HeroRenderer({ data }: { data: HeroComponent['data'] }) {
         <h1 className={`text-5xl font-bold mb-4 ${data.titleColor || 'text-white'}`}>{data.title}</h1>
         <p className={`text-xl mb-6 ${data.subtitleColor || 'text-amber-50'}`}>{data.subtitle}</p>
         {data.buttonText && (
-          <a href={data.buttonLink} className={`inline-block px-6 py-3 rounded-lg transition no-underline ${buttonStyleClasses[data.buttonStyle || 'primary']}`}>
+          <a href={data.buttonLink} className={`inline-block px-6 py-3 rounded-lg transition no-underline ${buttonStyleClasses[data.buttonStyle || 'primary']} ${buttonHoverZoom}`}>
             {data.buttonText}
           </a>
         )}
@@ -619,6 +622,18 @@ function HeroProperties({ data, onUpdate }: { data: HeroComponent['data']; onUpd
           <option value="fade-in">Fade In</option>
           <option value="slide-up">Slide Up</option>
           <option value="zoom">Zoom</option>
+        </select>
+      </div>
+      <div>
+        <label className="block text-sm font-medium mb-1">Button Animation</label>
+        <select
+          value={data.buttonAnimation || 'none'}
+          onChange={(e) => onUpdate({ buttonAnimation: e.target.value })}
+          className="w-full border rounded px-3 py-2"
+          title="Hero button animation"
+        >
+          <option value="none">None</option>
+          <option value="hover-zoom">Zoom on Hover</option>
         </select>
       </div>
       <div>

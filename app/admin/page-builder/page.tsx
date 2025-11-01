@@ -109,7 +109,7 @@ export default function PageBuilderPage() {
               d.titleColor || 'text-white'
             )}" subtitleColor="${escapeAttr(d.subtitleColor || 'text-amber-50')}" buttonStyle="${escapeAttr(
               d.buttonStyle || 'primary'
-            )}" animation="${escapeAttr(d.animation || 'none')}" />`
+            )}" animation="${escapeAttr(d.animation || 'none')}" buttonAnimation="${escapeAttr(d.buttonAnimation || 'none')}" />`
           )
           break
         }
