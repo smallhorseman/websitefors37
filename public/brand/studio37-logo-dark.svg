@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 300" role="img" aria-label="Studio 37 Photography logo (dark)">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 300" role="img" aria-label="Studio 37 Photography logo (dark, transparent)">
   <defs>
     <linearGradient id="amberGradD" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0%" stop-color="#fbbf24"/>
@@ -14,14 +14,11 @@
     </filter>
   </defs>
 
-  <!-- Background pad for preview on dark -->
-  <rect x="0" y="0" width="1200" height="300" fill="#0b1220"/>
-
   <!-- Mark (camera) -->
   <g transform="translate(40,60)">
     <rect x="0" y="18" rx="16" ry="16" width="180" height="120" fill="url(#amberGradD)" filter="url(#softShadowD)"/>
     <rect x="18" y="0" rx="10" ry="10" width="60" height="32" fill="#f59e0b"/>
-    <circle cx="90" cy="78" r="40" fill="#0b1220"/>
+    <circle cx="90" cy="78" r="40" fill="#111827"/>
     <circle cx="90" cy="78" r="24" fill="#f9fafb"/>
     <circle cx="90" cy="78" r="10" fill="#000000" opacity="0.2"/>
   </g>
