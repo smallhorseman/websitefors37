@@ -127,8 +127,9 @@ export default function PageBuilderPage() {
         }
         case 'columns': {
           const columnsJson = JSON.stringify(d.columns || [])
-          // Pass as JSON string prop to avoid complex MDX expressions
-          md.push(`<ColumnsBlock columnsJson={\`${columnsJson}\`} />`)
+          // Pass as a plain string attribute; escape quotes to avoid MDX parse issues
+          const escaped = escapeAttr(columnsJson)
+          md.push(`<ColumnsBlock columnsJson="${escaped}" />`)
           break
         }
         case 'spacer': {
