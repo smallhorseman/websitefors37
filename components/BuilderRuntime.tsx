@@ -136,10 +136,20 @@ export function ButtonBlock({ text, link = '#', style = 'primary', alignment = '
     secondary: 'btn-secondary bg-white/10 hover:bg-white/20 border border-amber-200/30',
     outline: 'border-2 border-primary-600 text-primary-600 hover:bg-primary-50',
   }
+  const animClass =
+    animation === 'fade-in'
+      ? 'animate-fadeIn'
+      : animation === 'slide-up'
+      ? 'animate-slideUp'
+      : animation === 'zoom'
+      ? 'animate-zoom'
+      : ''
+  const hoverZoom = animation === 'hover-zoom' ? 'transition-transform duration-300 hover:scale-105' : ''
+
   return (
-    <div className={`p-6 md:p-8 text-${alignment} ${animation === 'fade-in' ? 'animate-fadeIn' : animation === 'slide-up' ? 'animate-slideUp' : animation === 'zoom' ? 'animate-zoom' : ''}`}>
+    <div className={`p-6 md:p-8 text-${alignment} ${animClass}`}>
       {text && (
-        <a href={link} className={`inline-block px-6 py-3 rounded-lg transition no-underline ${styleClasses[style]}`}>
+        <a href={link} className={`inline-block px-6 py-3 rounded-lg transition no-underline ${styleClasses[style]} ${hoverZoom}`}>
           {text}
         </a>
       )}
