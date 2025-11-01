@@ -87,6 +87,143 @@ export default function PageBuilderPage() {
     }
   }
 
+  // Import from published MDX content and convert to builder components
+  const unescapeHtml = (s: string) =>
+    String(s)
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'")
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&amp;/g, '&')
+
+  const parseAttrs = (tag: string) => {
+    const attrs: Record<string,string> = {}
+    const attrRe = /(\w+)="([^"]*)"/g
+    let m: RegExpExecArray | null
+    while ((m = attrRe.exec(tag))) {
+      attrs[m[1]] = unescapeHtml(m[2])
+    }
+    return attrs
+  }
+
+  const mdxToComponents = (mdx: string): any[] => {
+    const comps: any[] = []
+    const lines = mdx.split(/\n+/).map(l => l.trim()).filter(Boolean)
+    for (const line of lines) {
+      if (line.startsWith('<HeroBlock')) {
+        const a = parseAttrs(line)
+        comps.push({
+          id: `component-${Date.now()}-${comps.length}`,
+          type: 'hero',
+          data: {
+            title: a.title || '',
+            subtitle: a.subtitle || '',
+            backgroundImage: a.backgroundImage || '',
+            buttonText: a.buttonText || '',
+            buttonLink: a.buttonLink || '#',
+            alignment: (a.alignment as any) || 'center',
+            overlay: Number(a.overlay ?? 50),
+            titleColor: a.titleColor || 'text-white',
+            subtitleColor: a.subtitleColor || 'text-amber-50',
+            buttonStyle: (a.buttonStyle as any) || 'primary',
+            animation: (a.animation as any) || 'none',
+            buttonAnimation: (a.buttonAnimation as any) || 'none',
+            fullBleed: String(a.fullBleed) === 'true'
+          }
+        })
+      } else if (line.startsWith('<TextBlock')) {
+        const a = parseAttrs(line)
+        const content = a.contentB64 ? decodeURIComponent(escape(atob(a.contentB64))) : ''
+        comps.push({ id: `component-${Date.now()}-${comps.length}`, type: 'text', data: {
+          content,
+          alignment: (a.alignment as any) || 'left',
+          size: (a.size as any) || 'md',
+          animation: (a.animation as any) || 'none'
+        }})
+      } else if (line.startsWith('<ImageBlock')) {
+        const a = parseAttrs(line)
+        comps.push({ id: `component-${Date.now()}-${comps.length}`, type: 'image', data: {
+          url: a.url || '',
+          alt: a.alt || '',
+          caption: a.caption || '',
+          width: (a.width as any) || 'full',
+          link: a.link || '',
+          animation: (a.animation as any) || 'none'
+        }})
+      } else if (line.startsWith('<ButtonBlock')) {
+        const a = parseAttrs(line)
+        comps.push({ id: `component-${Date.now()}-${comps.length}`, type: 'button', data: {
+          text: a.text || '',
+          link: a.link || '#',
+          style: (a.style as any) || 'primary',
+          alignment: (a.alignment as any) || 'center',
+          animation: (a.animation as any) || 'none'
+        }})
+      } else if (line.startsWith('<ColumnsBlock')) {
+        const a = parseAttrs(line)
+        let columns: any[] = []
+        try {
+          const json = a.columnsB64 ? decodeURIComponent(escape(atob(a.columnsB64))) : '[]'
+          columns = JSON.parse(json || '[]')
+        } catch { columns = [] }
+        comps.push({ id: `component-${Date.now()}-${comps.length}`, type: 'columns', data: {
+          columns: columns.map((c: any) => ({ content: c.content || '', image: c.image || '' })),
+          animation: (a.animation as any) || 'none'
+        }})
+      } else if (line.startsWith('<SpacerBlock')) {
+        const a = parseAttrs(line)
+        comps.push({ id: `component-${Date.now()}-${comps.length}`, type: 'spacer', data: { height: (a.height as any) || 'md' }})
+      } else if (line.startsWith('<SeoFooterBlock')) {
+        const a = parseAttrs(line)
+        const content = a.contentB64 ? decodeURIComponent(escape(atob(a.contentB64))) : ''
+        comps.push({ id: `component-${Date.now()}-${comps.length}`, type: 'seoFooter', data: {
+          content,
+          includeSchema: String(a.includeSchema) !== 'false'
+        }})
+      }
+    }
+    return comps
+  }
+
+  const importFromPublished = async () => {
+    try {
+      const cleanSlug = slug
+        .toLowerCase()
+        .replace(/[^a-z0-9-\s]/g, '')
+        .replace(/\s+/g, '-')
+        .trim()
+      if (!cleanSlug) {
+        alert('Enter a valid slug before importing.')
+        return
+      }
+      const { data, error } = await supabase
+        .from('content_pages')
+        .select('content')
+        .eq('slug', cleanSlug)
+        .eq('published', true)
+        .maybeSingle()
+      if (error) throw error
+      if (!data?.content) {
+        alert('No published content found for this slug.')
+        return
+      }
+      const imported = mdxToComponents(data.content)
+      if (!imported.length) {
+        alert('Could not parse any components from the published content.')
+        return
+      }
+      notify(imported)
+      // Save as draft for this slug
+      await supabase
+        .from('page_configs')
+        .upsert({ slug: cleanSlug, data: { components: imported } }, { onConflict: 'slug' })
+      setMessage({ type: 'success', text: 'Imported from published content and saved as draft.' })
+    } catch (e: any) {
+      console.error('Import failed:', e)
+      setMessage({ type: 'error', text: e?.message || 'Failed to import from published content.' })
+    }
+  }
+
   // Convert builder components to MDX with custom JSX components for faithful rendering
   const componentsToMDX = (list: any[]): string => {
     const md: string[] = []
@@ -292,6 +429,8 @@ export default function PageBuilderPage() {
           initialComponents={components}
           onSave={handleSave}
           onChange={(next) => setComponents(next)}
+          slug={slug}
+          onImportFromPublished={importFromPublished}
         />
         <div className="p-4 flex justify-end gap-2">
           <Link

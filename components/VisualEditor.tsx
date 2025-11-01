@@ -101,9 +101,11 @@ interface VisualEditorProps {
   initialComponents?: PageComponent[]
   onSave: (components: PageComponent[]) => void
   onChange?: (components: PageComponent[]) => void
+  slug?: string
+  onImportFromPublished?: () => void | Promise<void>
 }
 
-export default function VisualEditor({ initialComponents = [], onSave, onChange }: VisualEditorProps) {
+export default function VisualEditor({ initialComponents = [], onSave, onChange, slug, onImportFromPublished }: VisualEditorProps) {
   const [components, setComponents] = useState<PageComponent[]>(initialComponents)
   const [selectedComponent, setSelectedComponent] = useState<string | null>(null)
   const [viewMode, setViewMode] = useState<'desktop' | 'tablet' | 'mobile'>('desktop')
@@ -224,6 +226,15 @@ export default function VisualEditor({ initialComponents = [], onSave, onChange 
         <div className="w-64 bg-white border-r overflow-y-auto">
           <div className="p-4 border-b">
             <h2 className="font-bold text-lg">Components</h2>
+            {!!onImportFromPublished && !!slug && (
+              <button
+                onClick={() => onImportFromPublished?.()}
+                className="mt-3 w-full px-3 py-2 bg-primary-600 text-white rounded hover:bg-primary-700 text-sm"
+                title={`Import published /${slug} into builder`}
+              >
+                Import from published
+              </button>
+            )}
           </div>
           
           <div className="p-4 space-y-2">
