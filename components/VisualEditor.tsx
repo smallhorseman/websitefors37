@@ -312,16 +312,48 @@ export default function VisualEditor({ initialComponents = [], onSave, onChange,
                 Import from published
               </button>
             )}
-            {/* Quick-start template for homepage */}
-            {!!slug && slug.trim().toLowerCase() === 'home' && (
-              <button
-                onClick={() => applyHomepageTemplate()}
-                className="mt-2 w-full px-3 py-2 bg-amber-600 text-white rounded hover:bg-amber-700 text-sm"
-                title="Prefill components that mirror the current homepage layout"
+            {/* Template selector dropdown */}
+            <div className="mt-3">
+              <label className="block text-xs font-medium text-gray-600 mb-1">Quick Start Templates</label>
+              <select
+                onChange={(e) => {
+                  const template = e.target.value
+                  if (!template) return
+                  
+                  let newComponents: PageComponent[] = []
+                  switch (template) {
+                    case 'home':
+                      newComponents = buildHomepageTemplate()
+                      break
+                    case 'about':
+                      newComponents = buildAboutTemplate()
+                      break
+                    case 'services':
+                      newComponents = buildServicesTemplate()
+                      break
+                    case 'contact':
+                      newComponents = buildContactTemplate()
+                      break
+                  }
+                  
+                  if (newComponents.length > 0) {
+                    setComponents(newComponents)
+                    setSelectedComponent(null)
+                    onChange(newComponents)
+                    // Reset dropdown
+                    e.target.value = ''
+                  }
+                }}
+                className="w-full px-3 py-2 border rounded text-sm bg-white hover:bg-gray-50"
+                defaultValue=""
               >
-                Start with Homepage Template
-              </button>
-            )}
+                <option value="">Choose a template...</option>
+                <option value="home">📱 Homepage Template</option>
+                <option value="about">👥 About Page Template</option>
+                <option value="services">📸 Services Page Template</option>
+                <option value="contact">📧 Contact Page Template</option>
+              </select>
+            </div>
           </div>
           
           <div className="p-4 space-y-2">
@@ -681,6 +713,267 @@ function buildHomepageTemplate(): PageComponent[] {
       includeSchema: true
     }
   } as SEOFooterComponent)
+
+  return components
+}
+
+// Helper: Build an About page template
+function buildAboutTemplate(): PageComponent[] {
+  const id = () => `component-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+  const components: PageComponent[] = []
+
+  // Hero
+  components.push({
+    id: id(),
+    type: 'hero',
+    data: {
+      title: 'About Studio37 Photography',
+      subtitle: 'Meet the passionate photographers behind your most precious moments',
+      backgroundImage: 'https://images.unsplash.com/photo-1554048612-b6a482bc67e5?q=80&w=2000&auto=format&fit=crop',
+      buttonText: 'View Our Work',
+      buttonLink: '/gallery',
+      alignment: 'center',
+      overlay: 60,
+      titleColor: 'text-white',
+      subtitleColor: 'text-amber-50',
+      buttonStyle: 'primary',
+      animation: 'fade-in',
+      buttonAnimation: 'hover-zoom',
+      fullBleed: true
+    }
+  } as HeroComponent)
+
+  components.push({ id: id(), type: 'spacer', data: { height: 'lg' } } as SpacerComponent)
+
+  // Introduction
+  components.push({
+    id: id(),
+    type: 'text',
+    data: {
+      content: '<h2 class="text-4xl font-bold mb-4">Meet Your Photography Team</h2><p class="text-lg text-gray-600">Christian and Caitie bring together years of experience, artistic vision, and genuine passion for storytelling through photography.</p>',
+      alignment: 'center',
+      size: 'lg',
+      animation: 'fade-in'
+    }
+  } as TextComponent)
+
+  components.push({ id: id(), type: 'spacer', data: { height: 'md' } } as SpacerComponent)
+
+  // Team members
+  components.push({
+    id: id(),
+    type: 'columns',
+    data: {
+      animation: 'fade-in',
+      columns: [
+        { content: '<div class="text-center"><h3 class="text-2xl font-bold mb-2">Christian</h3><p class="text-blue-600 font-semibold mb-4">CEO, Marketing Lead & Photographer</p><p class="text-gray-700">Christian brings business acumen and artistic vision to every project, specializing in wedding and commercial photography.</p></div>' },
+        { content: '<div class="text-center"><h3 class="text-2xl font-bold mb-2">Caitie</h3><p class="text-purple-600 font-semibold mb-4">Co-Owner, Photographer & Editor</p><p class="text-gray-700">Caitie\'s creative direction and meticulous editing bring each image to life with artistic excellence.</p></div>' }
+      ]
+    }
+  } as ColumnsComponent)
+
+  components.push({ id: id(), type: 'spacer', data: { height: 'lg' } } as SpacerComponent)
+
+  // Our approach
+  components.push({
+    id: id(),
+    type: 'text',
+    data: {
+      content: '<h2 class="text-3xl font-bold mb-4">Our Approach</h2><p class="text-lg text-gray-600 mb-4">We believe every client deserves a personalized experience. From our first conversation to the final delivery, we focus on understanding your vision and bringing it to life through thoughtful, artistic photography.</p><p class="text-lg text-gray-600">Whether you\'re celebrating a wedding, building your brand, or capturing family moments, we\'re here to create images you\'ll treasure forever.</p>',
+      alignment: 'center',
+      size: 'md',
+      animation: 'slide-up'
+    }
+  } as TextComponent)
+
+  components.push({ id: id(), type: 'spacer', data: { height: 'md' } } as SpacerComponent)
+
+  // CTA
+  components.push({
+    id: id(),
+    type: 'button',
+    data: {
+      text: 'Book a Session',
+      link: '/book-a-session',
+      style: 'primary',
+      alignment: 'center',
+      animation: 'hover-zoom'
+    }
+  } as ButtonComponent)
+
+  return components
+}
+
+// Helper: Build a Services page template
+function buildServicesTemplate(): PageComponent[] {
+  const id = () => `component-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+  const components: PageComponent[] = []
+
+  // Hero
+  components.push({
+    id: id(),
+    type: 'hero',
+    data: {
+      title: 'Photography Services',
+      subtitle: 'Professional photography capturing life\'s most precious moments with artistic excellence',
+      backgroundImage: 'https://images.unsplash.com/photo-1452587925148-ce544e77e70d?q=80&w=2000&auto=format&fit=crop',
+      buttonText: 'Explore Our Services',
+      buttonLink: '#services',
+      alignment: 'center',
+      overlay: 60,
+      titleColor: 'text-white',
+      subtitleColor: 'text-amber-50',
+      buttonStyle: 'primary',
+      animation: 'fade-in',
+      buttonAnimation: 'hover-zoom',
+      fullBleed: true
+    }
+  } as HeroComponent)
+
+  components.push({ id: id(), type: 'spacer', data: { height: 'lg' } } as SpacerComponent)
+
+  // Services overview
+  components.push({
+    id: id(),
+    type: 'text',
+    data: {
+      content: '<h2 class="text-4xl font-bold mb-4">Our Photography Services</h2><p class="text-lg text-gray-600">From weddings to portraits, events to commercial projects - we bring professional craftsmanship to every session.</p>',
+      alignment: 'center',
+      size: 'lg',
+      animation: 'fade-in'
+    }
+  } as TextComponent)
+
+  components.push({ id: id(), type: 'spacer', data: { height: 'md' } } as SpacerComponent)
+
+  // Service columns
+  components.push({
+    id: id(),
+    type: 'columns',
+    data: {
+      animation: 'fade-in',
+      columns: [
+        { content: '<div class="text-center p-4"><span class="text-4xl mb-3 block">💍</span><h3 class="text-xl font-bold mb-2">Wedding Photography</h3><p class="text-gray-600">Romantic, timeless wedding photography capturing your special day.</p></div>' },
+        { content: '<div class="text-center p-4"><span class="text-4xl mb-3 block">👨‍👩‍👧‍👦</span><h3 class="text-xl font-bold mb-2">Portrait Photography</h3><p class="text-gray-600">Family portraits, senior photos, and professional headshots.</p></div>' },
+        { content: '<div class="text-center p-4"><span class="text-4xl mb-3 block">🎉</span><h3 class="text-xl font-bold mb-2">Event Photography</h3><p class="text-gray-600">Corporate events, parties, and special occasions.</p></div>' }
+      ]
+    }
+  } as ColumnsComponent)
+
+  components.push({ id: id(), type: 'spacer', data: { height: 'md' } } as SpacerComponent)
+
+  components.push({
+    id: id(),
+    type: 'columns',
+    data: {
+      animation: 'slide-up',
+      columns: [
+        { content: '<div class="text-center p-4"><span class="text-4xl mb-3 block">📸</span><h3 class="text-xl font-bold mb-2">Commercial Photography</h3><p class="text-gray-600">Product photography and brand imagery for businesses.</p></div>' },
+        { content: '<div class="text-center p-4"><span class="text-4xl mb-3 block">🎨</span><h3 class="text-xl font-bold mb-2">Creative Sessions</h3><p class="text-gray-600">Artistic portraits and unique creative concepts.</p></div>' },
+        { content: '<div class="text-center p-4"><span class="text-4xl mb-3 block">🏢</span><h3 class="text-xl font-bold mb-2">Real Estate</h3><p class="text-gray-600">Professional property photography for listings.</p></div>' }
+      ]
+    }
+  } as ColumnsComponent)
+
+  components.push({ id: id(), type: 'spacer', data: { height: 'lg' } } as SpacerComponent)
+
+  // CTA
+  components.push({
+    id: id(),
+    type: 'text',
+    data: {
+      content: '<h2 class="text-3xl font-bold mb-2">Ready to Book Your Session?</h2><p class="text-lg text-gray-600">Let\'s discuss your photography needs and create something beautiful together.</p>',
+      alignment: 'center',
+      size: 'md',
+      animation: 'fade-in'
+    }
+  } as TextComponent)
+
+  components.push({
+    id: id(),
+    type: 'button',
+    data: {
+      text: 'Book Now',
+      link: '/book-a-session',
+      style: 'primary',
+      alignment: 'center',
+      animation: 'hover-zoom'
+    }
+  } as ButtonComponent)
+
+  return components
+}
+
+// Helper: Build a Contact page template
+function buildContactTemplate(): PageComponent[] {
+  const id = () => `component-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+  const components: PageComponent[] = []
+
+  // Hero
+  components.push({
+    id: id(),
+    type: 'hero',
+    data: {
+      title: 'Contact Us',
+      subtitle: 'Get in touch to discuss your photography needs, book a session, or ask any questions',
+      backgroundImage: 'https://images.unsplash.com/photo-1423666639041-f56000c27a9a?q=80&w=2000&auto=format&fit=crop',
+      buttonText: 'Send a Message',
+      buttonLink: '#contact',
+      alignment: 'center',
+      overlay: 50,
+      titleColor: 'text-white',
+      subtitleColor: 'text-gray-200',
+      buttonStyle: 'primary',
+      animation: 'fade-in',
+      buttonAnimation: 'hover-zoom',
+      fullBleed: true
+    }
+  } as HeroComponent)
+
+  components.push({ id: id(), type: 'spacer', data: { height: 'lg' } } as SpacerComponent)
+
+  // Contact info
+  components.push({
+    id: id(),
+    type: 'columns',
+    data: {
+      animation: 'fade-in',
+      columns: [
+        { content: '<div class="text-center"><span class="text-4xl mb-3 block">📧</span><h3 class="text-xl font-bold mb-2">Email</h3><p class="text-gray-600">contact@studio37.cc</p><p class="text-sm text-gray-500 mt-2">We respond within 24 hours</p></div>' },
+        { content: '<div class="text-center"><span class="text-4xl mb-3 block">📞</span><h3 class="text-xl font-bold mb-2">Phone</h3><p class="text-gray-600">(xxx) xxx-xxxx</p><p class="text-sm text-gray-500 mt-2">Mon-Fri, 9AM-6PM CST</p></div>' },
+        { content: '<div class="text-center"><span class="text-4xl mb-3 block">📍</span><h3 class="text-xl font-bold mb-2">Location</h3><p class="text-gray-600">Pinehurst, TX 77362</p><p class="text-sm text-gray-500 mt-2">Serving Montgomery County</p></div>' }
+      ]
+    }
+  } as ColumnsComponent)
+
+  components.push({ id: id(), type: 'spacer', data: { height: 'lg' } } as SpacerComponent)
+
+  // Business hours & info
+  components.push({
+    id: id(),
+    type: 'text',
+    data: {
+      content: '<h2 class="text-3xl font-bold mb-4">Let\'s Create Together</h2><p class="text-lg text-gray-600 mb-4">Whether you\'re planning a wedding, need professional headshots, or want to capture family memories, we\'d love to hear from you.</p><p class="text-gray-600">Fill out the form on our contact page or reach out directly via email or phone. We\'ll respond promptly to discuss your vision and how we can bring it to life.</p>',
+      alignment: 'center',
+      size: 'md',
+      animation: 'slide-up'
+    }
+  } as TextComponent)
+
+  components.push({ id: id(), type: 'spacer', data: { height: 'md' } } as SpacerComponent)
+
+  // CTA
+  components.push({
+    id: id(),
+    type: 'button',
+    data: {
+      text: 'Book a Session',
+      link: '/book-a-session',
+      style: 'primary',
+      alignment: 'center',
+      animation: 'hover-zoom'
+    }
+  } as ButtonComponent)
 
   return components
 }
