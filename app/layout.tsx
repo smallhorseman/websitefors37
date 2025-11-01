@@ -5,6 +5,8 @@ import dynamic from 'next/dynamic'
 import Navigation from '@/components/Navigation'
 import QueryProvider from '@/components/QueryProvider'
 import { businessInfo, generateLocalBusinessSchema } from '@/lib/seo-config'
+import Script from 'next/script'
+import Analytics from '@/components/Analytics'
 
 const inter = Inter({ 
   subsets: ['latin'],
@@ -77,7 +79,22 @@ export default function RootLayout({
         <link rel="icon" href="/icon.svg" type="image/svg+xml" />
       </head>
       <body className={`${inter.variable} ${playfair.variable} font-sans`}>
+        {/* Google Analytics 4 */}
+        <Script
+          id="ga4-src"
+          strategy="afterInteractive"
+          src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || 'G-5NTFJK2GH8'}`}
+        />
+        <Script id="ga4-init" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);} 
+            gtag('js', new Date());
+            gtag('config', '${process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || 'G-5NTFJK2GH8'}', { anonymize_ip: true });
+          `}
+        </Script>
         <QueryProvider>
+          <Analytics />
           <WebVitals />
           <Navigation />
           <main className="min-h-screen">
