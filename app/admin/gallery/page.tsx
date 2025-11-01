@@ -206,7 +206,7 @@ export default function GalleryAdmin() {
       image_url: image.image_url,
       category: image.category,
       featured: image.featured,
-      display_order: image.display_order,
+      display_order: image.display_order || 0,
     });
     setIsNew(false);
     setShowModal(true);
