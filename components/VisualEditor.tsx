@@ -10,7 +10,7 @@ import Image from 'next/image'
 import ImageUploader from './ImageUploader'
 
 // Component types
-type ComponentType = 'hero' | 'text' | 'image' | 'button' | 'columns' | 'spacer' | 'seoFooter' | 'slideshowHero' | 'testimonials' | 'galleryHighlights' | 'widgetEmbed' | 'badges' | 'servicesGrid' | 'stats' | 'ctaBanner' | 'iconFeatures' | 'logo' | 'contactForm' | 'newsletterSignup'
+type ComponentType = 'hero' | 'text' | 'image' | 'button' | 'columns' | 'spacer' | 'seoFooter' | 'slideshowHero' | 'testimonials' | 'galleryHighlights' | 'widgetEmbed' | 'badges' | 'servicesGrid' | 'stats' | 'ctaBanner' | 'iconFeatures' | 'logo' | 'contactForm' | 'newsletterSignup' | 'faq' | 'pricingTable'
 
 interface BaseComponent {
   id: string
@@ -264,7 +264,36 @@ interface NewsletterComponent extends BaseComponent {
   }
 }
 
-type PageComponent = HeroComponent | TextComponent | ImageComponent | ButtonComponent | ColumnsComponent | SpacerComponent | SEOFooterComponent | SlideshowHeroComponent | TestimonialsComponent | GalleryHighlightsComponent | WidgetEmbedComponent | BadgesComponent | ServicesGridComponent | StatsComponent | CTABannerComponent | IconFeaturesComponent | LogoComponent | ContactFormComponent | NewsletterComponent
+interface FAQComponent extends BaseComponent {
+  type: 'faq'
+  data: {
+    heading?: string
+    items: Array<{ question: string; answer: string }>
+    columns?: 1 | 2
+    animation?: 'none' | 'fade-in' | 'slide-up' | 'zoom'
+  }
+}
+
+interface PricingTableComponent extends BaseComponent {
+  type: 'pricingTable'
+  data: {
+    heading?: string
+    subheading?: string
+    plans: Array<{
+      title: string
+      price: string
+      period?: string
+      features: string[]
+      ctaText?: string
+      ctaLink?: string
+      highlight?: boolean
+    }>
+    columns: 2 | 3 | 4
+    animation?: 'none' | 'fade-in' | 'slide-up' | 'zoom'
+  }
+}
+
+type PageComponent = HeroComponent | TextComponent | ImageComponent | ButtonComponent | ColumnsComponent | SpacerComponent | SEOFooterComponent | SlideshowHeroComponent | TestimonialsComponent | GalleryHighlightsComponent | WidgetEmbedComponent | BadgesComponent | ServicesGridComponent | StatsComponent | CTABannerComponent | IconFeaturesComponent | LogoComponent | ContactFormComponent | NewsletterComponent | FAQComponent | PricingTableComponent
 
 interface VisualEditorProps {
   initialComponents?: PageComponent[]
@@ -525,6 +554,28 @@ export default function VisualEditor({ initialComponents = [], onSave, onChange,
           style: 'card',
           animation: 'fade-in'
         }
+      case 'faq':
+        return {
+          heading: 'Frequently Asked Questions',
+          items: [
+            { question: 'How do I book a session?', answer: 'Use the Book a Session page or contact us with your date and details.' },
+            { question: 'How quickly will I receive photos?', answer: 'Typical turnaround is 48 hours for most sessions.' }
+          ],
+          columns: 1,
+          animation: 'fade-in'
+        }
+      case 'pricingTable':
+        return {
+          heading: 'Packages & Pricing',
+          subheading: 'Simple packages for every need',
+          plans: [
+            { title: 'Basic', price: '$199', period: 'per session', features: ['30 min session', '10 edited photos', 'Online gallery'], ctaText: 'Book Basic', ctaLink: '/book-a-session', highlight: false },
+            { title: 'Standard', price: '$349', period: 'per session', features: ['60 min session', '25 edited photos', 'Online gallery', 'Print rights'], ctaText: 'Book Standard', ctaLink: '/book-a-session', highlight: true },
+            { title: 'Premium', price: '$599', period: 'per session', features: ['120 min session', '50 edited photos', 'Online gallery', 'Print rights', 'Priority turnaround'], ctaText: 'Book Premium', ctaLink: '/book-a-session', highlight: false }
+          ],
+          columns: 3,
+          animation: 'fade-in'
+        }
       default:
         return {}
     }
@@ -588,6 +639,9 @@ export default function VisualEditor({ initialComponents = [], onSave, onChange,
                     case 'contact':
                       newComponents = buildContactTemplate()
                       break
+                    case 'leadgen':
+                      newComponents = buildLeadGenTemplate()
+                      break
                   }
                   
                   if (newComponents.length > 0) {
@@ -606,6 +660,7 @@ export default function VisualEditor({ initialComponents = [], onSave, onChange,
                 <option value="about">👥 About Page Template</option>
                 <option value="services">📸 Services Page Template</option>
                 <option value="contact">📧 Contact Page Template</option>
+                <option value="leadgen">🚀 Lead Gen Landing</option>
               </select>
             </div>
           </div>
@@ -617,6 +672,20 @@ export default function VisualEditor({ initialComponents = [], onSave, onChange,
             >
               <Layout className="h-5 w-5" />
               <span>Logo</span>
+            </button>
+            <button
+              onClick={() => addComponent('faq')}
+              className="w-full flex items-center gap-2 p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition"
+            >
+              <Layout className="h-5 w-5" />
+              <span>FAQ</span>
+            </button>
+            <button
+              onClick={() => addComponent('pricingTable')}
+              className="w-full flex items-center gap-2 p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition"
+            >
+              <Layout className="h-5 w-5" />
+              <span>Pricing Table</span>
             </button>
             <button
               onClick={() => addComponent('contactForm')}
@@ -905,6 +974,10 @@ export default function VisualEditor({ initialComponents = [], onSave, onChange,
 // Component Renderer
 function ComponentRenderer({ component }: { component: PageComponent }) {
   switch (component.type) {
+    case 'faq':
+      return <FAQRenderer data={(component as any).data} />
+    case 'pricingTable':
+      return <PricingTableRenderer data={(component as any).data} />
     case 'contactForm':
       return <ContactFormRenderer data={(component as any).data} />
     case 'newsletterSignup':
@@ -1034,6 +1107,19 @@ function buildHomepageTemplate(): PageComponent[] {
     }
   } as TextComponent)
 
+  // Newsletter signup
+  components.push({
+    id: id(),
+    type: 'newsletterSignup',
+    data: {
+      heading: 'Get 10% Off Your First Session',
+      subheading: 'Subscribe for tips, behind-the-scenes, and special offers.',
+      disclaimer: 'By subscribing, you agree to receive marketing emails. Unsubscribe anytime.',
+      style: 'card',
+      animation: 'fade-in'
+    }
+  } as NewsletterComponent)
+
   // Optional SEO footer starter
   components.push({
     id: id(),
@@ -1117,6 +1203,17 @@ function buildAboutTemplate(): PageComponent[] {
   } as TextComponent)
 
   components.push({ id: id(), type: 'spacer', data: { height: 'md' } } as SpacerComponent)
+
+  // Contact Form
+  components.push({
+    id: id(),
+    type: 'contactForm',
+    data: {
+      heading: 'Send Us a Message',
+      subheading: 'Tell us about your photography needs and we’ll reply within 24 hours.',
+      animation: 'fade-in'
+    }
+  } as ContactFormComponent)
 
   // CTA
   components.push({
@@ -1304,6 +1401,148 @@ function buildContactTemplate(): PageComponent[] {
       animation: 'hover-zoom'
     }
   } as ButtonComponent)
+
+  return components
+}
+
+// Helper: Build a Lead Gen Landing template
+function buildLeadGenTemplate(): PageComponent[] {
+  const id = () => `component-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+  const components: PageComponent[] = []
+
+  // Hero with strong CTA
+  components.push({
+    id: id(),
+    type: 'hero',
+    data: {
+      title: 'Tomball • Magnolia • Pinehurst',
+      subtitle: 'Artistic portraits and commercial photography with professional craftsmanship',
+      backgroundImage: 'https://images.unsplash.com/photo-1452587925148-ce544e77e70d?q=80&w=2000&auto=format&fit=crop',
+      buttonText: 'Get Your Quote',
+      buttonLink: '#contact',
+      secondaryButtonText: 'View Gallery',
+      secondaryButtonLink: '/gallery',
+      alignment: 'center',
+      overlay: 55,
+      titleColor: 'text-white',
+      subtitleColor: 'text-amber-50',
+      buttonStyle: 'primary',
+      animation: 'fade-in',
+      buttonAnimation: 'hover-zoom',
+      fullBleed: true
+    }
+  } as HeroComponent)
+
+  // Badges / social proof
+  components.push({
+    id: id(),
+    type: 'badges',
+    data: {
+      badges: [
+        { icon: 'google', label: '5.0 • Google Reviews', sublabel: '★★★★★', color: '#34a853', href: 'https://www.google.com/search' },
+        { icon: 'thumbtack', label: 'Thumbtack Top Pro', sublabel: 'Highly Rated', color: '#15a6ff', href: 'https://www.thumbtack.com' },
+        { icon: 'shield', label: 'Certified Professional Photographer', sublabel: 'Studio 37', color: '#0ea5e9' }
+      ],
+      alignment: 'center',
+      size: 'md',
+      style: 'pill',
+      animation: 'fade-in'
+    }
+  } as BadgesComponent)
+
+  // Icon features
+  components.push({
+    id: id(),
+    type: 'iconFeatures',
+    data: {
+      heading: 'Why Choose Studio 37',
+      subheading: 'Professional, fast, and premium results',
+      features: [
+        { icon: '📸', title: 'Professional Gear', description: 'Top-tier cameras and lighting' },
+        { icon: '⚡', title: 'Fast Turnaround', description: 'Edited photos within 48 hours' },
+        { icon: '💎', title: 'Premium Quality', description: 'Expert retouching and delivery' },
+        { icon: '🎨', title: 'Creative Direction', description: 'Concepts tailored to your vision' }
+      ],
+      columns: 4,
+      animation: 'fade-in'
+    }
+  } as IconFeaturesComponent)
+
+  // Stats
+  components.push({
+    id: id(),
+    type: 'stats',
+    data: {
+      heading: 'Our Track Record',
+      stats: [
+        { icon: '👥', number: '150', label: 'Business Clients', suffix: '+' },
+        { icon: '📸', number: '800', label: 'Projects Completed', suffix: '+' },
+        { icon: '⭐', number: '95', label: 'Client Retention', suffix: '%' }
+      ],
+      columns: 3,
+      style: 'cards',
+      animation: 'fade-in'
+    }
+  } as StatsComponent)
+
+  // CTA Banner
+  components.push({
+    id: id(),
+    type: 'ctaBanner',
+    data: {
+      heading: 'Ready to Get a Quote?',
+      subheading: 'Tell us about your project and we’ll respond today.',
+      primaryButtonText: 'Get Started',
+      primaryButtonLink: '#contact',
+      secondaryButtonText: 'View Packages',
+      secondaryButtonLink: '/services',
+      backgroundColor: '#0f172a',
+      overlay: 60,
+      textColor: 'text-white',
+      fullBleed: true,
+      animation: 'fade-in'
+    }
+  } as CTABannerComponent)
+
+  // Contact form
+  components.push({
+    id: id(),
+    type: 'contactForm',
+    data: {
+      heading: 'Get Your Free Quote',
+      subheading: 'Share a few details and we’ll follow up right away.',
+      animation: 'fade-in'
+    }
+  } as ContactFormComponent)
+
+  // FAQ
+  components.push({
+    id: id(),
+    type: 'faq',
+    data: {
+      heading: 'Frequently Asked Questions',
+      items: [
+        { question: 'How fast is turnaround?', answer: 'Most sessions are delivered within <strong>48 hours</strong>.' },
+        { question: 'Do you travel?', answer: 'Yes, we serve Tomball, Magnolia, Pinehurst and surrounding areas.' },
+        { question: 'How do I book?', answer: 'Use the <a href="/book-a-session">Book a Session</a> page or contact us.' }
+      ],
+      columns: 1,
+      animation: 'fade-in'
+    }
+  } as FAQComponent)
+
+  // Newsletter
+  components.push({
+    id: id(),
+    type: 'newsletterSignup',
+    data: {
+      heading: 'Get 10% Off Your First Session',
+      subheading: 'Subscribe for tips, behind-the-scenes, and special offers.',
+      disclaimer: 'By subscribing, you agree to receive marketing emails. Unsubscribe anytime.',
+      style: 'card',
+      animation: 'fade-in'
+    }
+  } as NewsletterComponent)
 
   return components
 }
@@ -1823,6 +2062,91 @@ function NewsletterRenderer({ data }: { data: NewsletterComponent['data'] }) {
   )
 }
 
+// FAQ Renderer (Editor Preview)
+function FAQRenderer({ data }: { data: FAQComponent['data'] }) {
+  const animClass = data.animation === 'fade-in' ? 'animate-fadeIn' : data.animation === 'slide-up' ? 'animate-slideUp' : data.animation === 'zoom' ? 'animate-zoom' : ''
+  const gridCols = (data.columns || 1) === 2 ? 'md:grid-cols-2' : 'md:grid-cols-1'
+  const items = data.items || []
+  const mid = Math.ceil(items.length / (data.columns || 1))
+  const col1 = items.slice(0, (data.columns || 1) === 2 ? mid : items.length)
+  const col2 = (data.columns || 1) === 2 ? items.slice(mid) : []
+  const renderCol = (arr: typeof items) => (
+    <div className="space-y-3">
+      {arr.map((qa, i) => (
+        <details key={i} className="group bg-white border rounded-lg p-4">
+          <summary className="cursor-pointer list-none font-semibold flex items-center justify-between">
+            <span>{qa.question}</span>
+            <span className="ml-4 text-gray-400 group-open:rotate-180 transition">⌄</span>
+          </summary>
+          <div className="mt-2 text-gray-600">
+            <div dangerouslySetInnerHTML={{ __html: qa.answer }} />
+          </div>
+        </details>
+      ))}
+    </div>
+  )
+  return (
+    <div className={`p-8 ${animClass}`}>
+      <div className="max-w-5xl mx-auto">
+        {data.heading && <h2 className="text-3xl font-bold text-gray-900 mb-6 text-center">{data.heading}</h2>}
+        <div className={`grid grid-cols-1 ${gridCols} gap-6`}>
+          {renderCol(col1)}
+          {col2.length > 0 && renderCol(col2)}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// Pricing Table Renderer (Editor Preview)
+function PricingTableRenderer({ data }: { data: PricingTableComponent['data'] }) {
+  const animClass = data.animation === 'fade-in' ? 'animate-fadeIn' : data.animation === 'slide-up' ? 'animate-slideUp' : data.animation === 'zoom' ? 'animate-zoom' : ''
+  const gridCols = {
+    2: 'md:grid-cols-2',
+    3: 'md:grid-cols-3',
+    4: 'md:grid-cols-4'
+  }[data.columns || 3]
+  return (
+    <div className={`p-8 ${animClass}`}>
+      <div className="max-w-7xl mx-auto">
+        {(data.heading || data.subheading) && (
+          <div className="text-center mb-8">
+            {data.heading && <h2 className="text-3xl font-bold text-gray-900 mb-2">{data.heading}</h2>}
+            {data.subheading && <p className="text-lg text-gray-600">{data.subheading}</p>}
+          </div>
+        )}
+        <div className={`grid grid-cols-1 ${gridCols} gap-6`}>
+          {(data.plans || []).map((plan, i) => (
+            <div key={i} className={`rounded-xl border ${plan.highlight ? 'border-primary-300 ring-1 ring-primary-200 bg-primary-50/30' : 'border-gray-200 bg-white'} p-6 flex flex-col`}>
+              <div className="mb-4">
+                <h3 className="text-xl font-bold text-gray-900">{plan.title}</h3>
+                <div className="mt-2 text-3xl font-extrabold text-gray-900">{plan.price} {plan.period && <span className="text-sm text-gray-500 font-medium">/ {plan.period}</span>}</div>
+              </div>
+              {plan.features && plan.features.length > 0 && (
+                <ul className="space-y-2 mb-4">
+                  {plan.features.map((f, fi) => (
+                    <li key={fi} className="flex items-start gap-2 text-sm text-gray-700">
+                      <svg className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      <span>{f}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {plan.ctaText && (
+                <a href={plan.ctaLink || '#'} className={`mt-auto inline-block px-5 py-2 rounded-lg text-center no-underline ${plan.highlight ? 'bg-primary-600 text-white hover:bg-primary-700' : 'border border-primary-600 text-primary-700 hover:bg-primary-50'}`}>
+                  {plan.ctaText}
+                </a>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // Slideshow Hero Renderer (Editor Preview)
 function SlideshowHeroRenderer({ data }: { data: SlideshowHeroComponent['data'] }) {
   const [idx, setIdx] = React.useState(0)
@@ -2004,6 +2328,10 @@ function LogoProperties({ data, onUpdate }: { data: LogoComponent['data']; onUpd
 // Component Properties Editor
 function ComponentProperties({ component, onUpdate }: { component: PageComponent; onUpdate: (data: any) => void }) {
   switch (component.type) {
+    case 'faq':
+      return <FAQProperties data={component.data as FAQComponent['data']} onUpdate={onUpdate} />
+    case 'pricingTable':
+      return <PricingTableProperties data={component.data as PricingTableComponent['data']} onUpdate={onUpdate} />
     case 'contactForm':
       return <ContactFormProperties data={component.data as ContactFormComponent['data']} onUpdate={onUpdate} />
     case 'newsletterSignup':
@@ -2405,6 +2733,188 @@ function NewsletterProperties({ data, onUpdate }: { data: NewsletterComponent['d
             <option value="slide-up">Slide Up</option>
             <option value="zoom">Zoom</option>
           </select>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// FAQ Properties
+function FAQProperties({ data, onUpdate }: { data: FAQComponent['data']; onUpdate: (data: any) => void }) {
+  const addItem = () => {
+    onUpdate({ items: [...(data.items || []), { question: 'New question', answer: 'Answer...' }] })
+  }
+  const removeItem = (idx: number) => {
+    onUpdate({ items: (data.items || []).filter((_, i) => i !== idx) })
+  }
+  const updateItem = (idx: number, field: 'question' | 'answer', value: string) => {
+    const arr = [...(data.items || [])]
+    arr[idx] = { ...arr[idx], [field]: value }
+    onUpdate({ items: arr })
+  }
+  return (
+    <div className="space-y-4">
+      <div>
+        <label className="block text-sm font-medium mb-1">Heading</label>
+        <input type="text" value={data.heading || ''} onChange={(e)=>onUpdate({ heading: e.target.value })} className="w-full border rounded px-3 py-2" placeholder="Frequently Asked Questions" />
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="block text-sm font-medium mb-1">Columns</label>
+          <select value={data.columns || 1} onChange={(e)=>onUpdate({ columns: Number(e.target.value) })} className="w-full border rounded px-3 py-2">
+            <option value={1}>1 Column</option>
+            <option value={2}>2 Columns</option>
+          </select>
+        </div>
+        <div>
+          <label className="block text-sm font-medium mb-1">Animation</label>
+          <select value={data.animation || 'fade-in'} onChange={(e)=>onUpdate({ animation: e.target.value })} className="w-full border rounded px-3 py-2">
+            <option value="none">None</option>
+            <option value="fade-in">Fade In</option>
+            <option value="slide-up">Slide Up</option>
+            <option value="zoom">Zoom</option>
+          </select>
+        </div>
+      </div>
+      <div className="border-t pt-4">
+        <div className="flex items-center justify-between mb-2">
+          <label className="text-sm font-medium">Questions</label>
+          <button type="button" onClick={addItem} className="px-3 py-1.5 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">Add</button>
+        </div>
+        <div className="space-y-3">
+          {(data.items || []).map((qa, idx) => (
+            <div key={idx} className="border rounded p-3 bg-gray-50 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-gray-600">Item #{idx+1}</span>
+                <button type="button" onClick={()=>removeItem(idx)} className="text-red-600 text-xs hover:underline">Remove</button>
+              </div>
+              <div>
+                <label className="block text-xs font-medium mb-1">Question</label>
+                <input type="text" value={qa.question || ''} onChange={(e)=>updateItem(idx,'question', e.target.value)} className="w-full border rounded px-2 py-1 text-sm" placeholder="What is included?" />
+              </div>
+              <div>
+                <label className="block text-xs font-medium mb-1">Answer (HTML allowed)</label>
+                <textarea value={qa.answer || ''} onChange={(e)=>updateItem(idx,'answer', e.target.value)} className="w-full border rounded px-2 py-1 text-sm font-mono" rows={3} placeholder="Answer details..." />
+              </div>
+            </div>
+          ))}
+          {!data.items?.length && <p className="text-sm text-gray-500">No questions yet. Add your first FAQ item.</p>}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// Pricing Table Properties
+function PricingTableProperties({ data, onUpdate }: { data: PricingTableComponent['data']; onUpdate: (data: any) => void }) {
+  const addPlan = () => {
+    onUpdate({ plans: [...(data.plans || []), { title: 'New Plan', price: '$0', period: '', features: [], ctaText: 'Choose', ctaLink: '#', highlight: false }] })
+  }
+  const removePlan = (idx:number) => {
+    onUpdate({ plans: (data.plans || []).filter((_,i)=>i!==idx) })
+  }
+  const updatePlan = (idx:number, field: keyof PricingTableComponent['data']['plans'][number], value: any) => {
+    const arr = [...(data.plans || [])]
+    // @ts-ignore
+    arr[idx] = { ...arr[idx], [field]: value }
+    onUpdate({ plans: arr })
+  }
+  const addFeature = (idx:number) => {
+    const arr = [...(data.plans || [])]
+    arr[idx].features = [...(arr[idx].features || []), 'New feature']
+    onUpdate({ plans: arr })
+  }
+  const updateFeature = (planIdx:number, featIdx:number, value:string) => {
+    const arr = [...(data.plans || [])]
+    arr[planIdx].features[featIdx] = value
+    onUpdate({ plans: arr })
+  }
+  const removeFeature = (planIdx:number, featIdx:number) => {
+    const arr = [...(data.plans || [])]
+    arr[planIdx].features = arr[planIdx].features.filter((_,i)=>i!==featIdx)
+    onUpdate({ plans: arr })
+  }
+  return (
+    <div className="space-y-4">
+      <div>
+        <label className="block text-sm font-medium mb-1">Heading</label>
+        <input type="text" value={data.heading || ''} onChange={(e)=>onUpdate({ heading: e.target.value })} className="w-full border rounded px-3 py-2" placeholder="Packages & Pricing" />
+      </div>
+      <div>
+        <label className="block text-sm font-medium mb-1">Subheading</label>
+        <input type="text" value={data.subheading || ''} onChange={(e)=>onUpdate({ subheading: e.target.value })} className="w-full border rounded px-3 py-2" placeholder="Simple packages for every need" />
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="block text-sm font-medium mb-1">Columns</label>
+          <select value={data.columns || 3} onChange={(e)=>onUpdate({ columns: Number(e.target.value) })} className="w-full border rounded px-3 py-2">
+            <option value={2}>2 Columns</option>
+            <option value={3}>3 Columns</option>
+            <option value={4}>4 Columns</option>
+          </select>
+        </div>
+        <div>
+          <label className="block text-sm font-medium mb-1">Animation</label>
+          <select value={data.animation || 'fade-in'} onChange={(e)=>onUpdate({ animation: e.target.value })} className="w-full border rounded px-3 py-2">
+            <option value="none">None</option>
+            <option value="fade-in">Fade In</option>
+            <option value="slide-up">Slide Up</option>
+            <option value="zoom">Zoom</option>
+          </select>
+        </div>
+      </div>
+      <div className="border-t pt-4">
+        <div className="flex items-center justify-between mb-2">
+          <label className="text-sm font-medium">Plans</label>
+          <button type="button" onClick={addPlan} className="px-3 py-1.5 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">Add Plan</button>
+        </div>
+        <div className="space-y-3">
+          {(data.plans || []).map((p, idx) => (
+            <div key={idx} className="border rounded p-3 bg-gray-50 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-gray-600">Plan #{idx+1}</span>
+                <label className="text-xs flex items-center gap-2"><input type="checkbox" checked={!!p.highlight} onChange={(e)=>updatePlan(idx,'highlight', e.target.checked)} /> Highlight</label>
+                <button type="button" onClick={()=>removePlan(idx)} className="text-red-600 text-xs hover:underline">Remove</button>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block text-xs font-medium mb-1">Title</label>
+                  <input type="text" value={p.title || ''} onChange={(e)=>updatePlan(idx,'title', e.target.value)} className="w-full border rounded px-2 py-1 text-sm" />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium mb-1">Price</label>
+                  <input type="text" value={p.price || ''} onChange={(e)=>updatePlan(idx,'price', e.target.value)} className="w-full border rounded px-2 py-1 text-sm" />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block text-xs font-medium mb-1">Period</label>
+                  <input type="text" value={p.period || ''} onChange={(e)=>updatePlan(idx,'period', e.target.value)} className="w-full border rounded px-2 py-1 text-sm" placeholder="per session" />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium mb-1">CTA Text</label>
+                  <input type="text" value={p.ctaText || ''} onChange={(e)=>updatePlan(idx,'ctaText', e.target.value)} className="w-full border rounded px-2 py-1 text-sm" placeholder="Book Now" />
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-medium mb-1">CTA Link</label>
+                <input type="text" value={p.ctaLink || ''} onChange={(e)=>updatePlan(idx,'ctaLink', e.target.value)} className="w-full border rounded px-2 py-1 text-sm" placeholder="/book-a-session" />
+              </div>
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-xs font-medium">Features</label>
+                  <button type="button" onClick={()=>addFeature(idx)} className="px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600">Add</button>
+                </div>
+                {(p.features || []).map((f, fi) => (
+                  <div key={fi} className="flex items-center gap-2 mb-1">
+                    <input type="text" value={f} onChange={(e)=>updateFeature(idx, fi, e.target.value)} className="flex-1 border rounded px-2 py-1 text-xs" placeholder="Feature" />
+                    <button type="button" onClick={()=>removeFeature(idx, fi)} className="text-red-600 text-xs hover:underline">×</button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+          {!data.plans?.length && <p className="text-sm text-gray-500">No plans yet. Add your first plan above.</p>}
         </div>
       </div>
     </div>

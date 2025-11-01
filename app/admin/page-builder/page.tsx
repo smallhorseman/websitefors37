@@ -351,6 +351,33 @@ export default function PageBuilderPage() {
           style: (a.style as any) || 'card',
           animation: a.animation || 'fade-in'
         }})
+      } else if (line.startsWith('<FAQBlock')) {
+        const a = parseAttrs(line)
+        let items: any[] = []
+        try {
+          const json = a.itemsB64 ? decodeURIComponent(escape(atob(a.itemsB64))) : '[]'
+          items = JSON.parse(json || '[]')
+        } catch { items = [] }
+        comps.push({ id: `component-${Date.now()}-${comps.length}`, type: 'faq', data: {
+          heading: a.heading || '',
+          items: items.map((it:any)=>({ question: it.question || '', answer: it.answer || '' })),
+          columns: Number(a.columns) || 1,
+          animation: a.animation || 'fade-in'
+        }})
+      } else if (line.startsWith('<PricingTableBlock')) {
+        const a = parseAttrs(line)
+        let plans: any[] = []
+        try {
+          const json = a.plansB64 ? decodeURIComponent(escape(atob(a.plansB64))) : '[]'
+          plans = JSON.parse(json || '[]')
+        } catch { plans = [] }
+        comps.push({ id: `component-${Date.now()}-${comps.length}`, type: 'pricingTable', data: {
+          heading: a.heading || '',
+          subheading: a.subheading || '',
+          plans: plans.map((p:any)=>({ title:p.title||'', price:p.price||'', period:p.period||'', features:p.features||[], ctaText:p.ctaText||'', ctaLink:p.ctaLink||'', highlight: !!p.highlight })),
+          columns: Number(a.columns) || 3,
+          animation: a.animation || 'fade-in'
+        }})
       }
     }
     return comps
@@ -414,6 +441,16 @@ export default function PageBuilderPage() {
     list.forEach((c) => {
       const d = c.data || {}
       switch (c.type) {
+        case 'faq': {
+          const itemsB64 = toB64(JSON.stringify(d.items || []))
+          md.push(`<FAQBlock itemsB64="${itemsB64}" heading="${escapeAttr(d.heading || '')}" columns="${Number(d.columns || 1)}" animation="${escapeAttr(d.animation || 'fade-in')}" />`)
+          break
+        }
+        case 'pricingTable': {
+          const plansB64 = toB64(JSON.stringify(d.plans || []))
+          md.push(`<PricingTableBlock plansB64="${plansB64}" heading="${escapeAttr(d.heading || '')}" subheading="${escapeAttr(d.subheading || '')}" columns="${Number(d.columns || 3)}" animation="${escapeAttr(d.animation || 'fade-in')}" />`)
+          break
+        }
         case 'contactForm': {
           md.push(`<ContactFormBlock heading="${escapeAttr(d.heading || '')}" subheading="${escapeAttr(d.subheading || '')}" animation="${escapeAttr(d.animation || 'fade-in')}" />`)
           break

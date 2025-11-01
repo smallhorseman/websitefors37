@@ -762,6 +762,94 @@ export function NewsletterBlock({ heading, subheading, disclaimer, style = 'card
   )
 }
 
+// FAQ block - collapsible Q&A list, supports 1-2 columns
+export function FAQBlock({ itemsB64, heading, columns = '1', animation = 'fade-in' }: { itemsB64?: string, heading?: string, columns?: string | number, animation?: string }) {
+  const json = itemsB64 ? Buffer.from(itemsB64, 'base64').toString('utf-8') : '[]'
+  let items: Array<{ question: string; answer: string }> = []
+  try { items = JSON.parse(json || '[]') } catch { items = [] }
+  const cols = Math.min(Math.max(Number(columns || 1), 1), 2)
+  const mid = Math.ceil(items.length / cols)
+  const col1 = items.slice(0, cols === 2 ? mid : items.length)
+  const col2 = cols === 2 ? items.slice(mid) : []
+  const animClass = animation === 'fade-in' ? 'animate-fadeIn' : animation === 'slide-up' ? 'animate-slideUp' : animation === 'zoom' ? 'animate-zoom' : ''
+
+  const renderCol = (arr: typeof items) => (
+    <div className="space-y-3">
+      {arr.map((qa, i) => (
+        <details key={i} className="group bg-white border rounded-lg p-4">
+          <summary className="cursor-pointer list-none font-semibold flex items-center justify-between">
+            <span>{qa.question}</span>
+            <span className="ml-4 text-gray-400 group-open:rotate-180 transition">⌄</span>
+          </summary>
+          <div className="mt-2 text-gray-600" dangerouslySetInnerHTML={{ __html: qa.answer }} />
+        </details>
+      ))}
+    </div>
+  )
+
+  return (
+    <section className={`p-6 md:p-10 ${animClass}`}>
+      <div className="max-w-5xl mx-auto">
+        {heading && <h2 className="text-3xl font-bold text-gray-900 mb-6 text-center">{heading}</h2>}
+        <div className={`grid grid-cols-1 ${cols === 2 ? 'md:grid-cols-2' : 'md:grid-cols-1'} gap-6`}>
+          {renderCol(col1)}
+          {col2.length > 0 && renderCol(col2)}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+// Pricing Table block - plan cards with features
+export function PricingTableBlock({ plansB64, heading, subheading, columns = '3', animation = 'fade-in' }: { plansB64?: string, heading?: string, subheading?: string, columns?: string | number, animation?: string }) {
+  const json = plansB64 ? Buffer.from(plansB64, 'base64').toString('utf-8') : '[]'
+  let plans: Array<{ title: string; price: string; period?: string; features: string[]; ctaText?: string; ctaLink?: string; highlight?: boolean }> = []
+  try { plans = JSON.parse(json || '[]') } catch { plans = [] }
+  const gridCols: Record<string, string> = { '2': 'md:grid-cols-2', '3': 'md:grid-cols-3', '4': 'md:grid-cols-4' }
+  const animClass = animation === 'fade-in' ? 'animate-fadeIn' : animation === 'slide-up' ? 'animate-slideUp' : animation === 'zoom' ? 'animate-zoom' : ''
+  const colClass = gridCols[String(columns)] || 'md:grid-cols-3'
+
+  return (
+    <section className={`p-6 md:p-10 ${animClass}`}>
+      <div className="max-w-7xl mx-auto">
+        {(heading || subheading) && (
+          <div className="text-center mb-8">
+            {heading && <h2 className="text-3xl font-bold text-gray-900 mb-2">{heading}</h2>}
+            {subheading && <p className="text-lg text-gray-600">{subheading}</p>}
+          </div>
+        )}
+        <div className={`grid grid-cols-1 ${colClass} gap-6`}>
+          {plans.map((plan, i) => (
+            <div key={i} className={`rounded-xl border ${plan.highlight ? 'border-primary-300 ring-1 ring-primary-200 bg-primary-50/30' : 'border-gray-200 bg-white'} p-6 flex flex-col`}>
+              <div className="mb-4">
+                <h3 className="text-xl font-bold text-gray-900">{plan.title}</h3>
+                <div className="mt-2 text-3xl font-extrabold text-gray-900">{plan.price} {plan.period && <span className="text-sm text-gray-500 font-medium">/ {plan.period}</span>}</div>
+              </div>
+              {plan.features && plan.features.length > 0 && (
+                <ul className="space-y-2 mb-4">
+                  {plan.features.map((f, fi) => (
+                    <li key={fi} className="flex items-start gap-2 text-sm text-gray-700">
+                      <svg className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      <span>{f}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {plan.ctaText && (
+                <a href={plan.ctaLink || '#'} className={`mt-auto inline-block px-5 py-2 rounded-lg text-center no-underline ${plan.highlight ? 'bg-primary-600 text-white hover:bg-primary-700' : 'border border-primary-600 text-primary-700 hover:bg-primary-50'}`}>
+                  {plan.ctaText}
+                </a>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
 export const MDXBuilderComponents = {
   LogoBlock,
   HeroBlock,
@@ -782,4 +870,6 @@ export const MDXBuilderComponents = {
   IconFeaturesBlock,
   ContactFormBlock,
   NewsletterBlock,
+  FAQBlock,
+  PricingTableBlock,
 }
