@@ -21,12 +21,11 @@ export async function getAdminUser(): Promise<AdminUser | null> {
       return null
     }
 
-    // Verify session token against user_profiles table
+    // Verify session token against admin_users table
     const { data: user, error } = await supabase
-      .from('user_profiles')
+      .from('admin_users')
       .select('id, email, role, created_at')
       .eq('id', sessionToken)
-      .eq('role', 'admin')
       .single()
 
     if (error || !user) {

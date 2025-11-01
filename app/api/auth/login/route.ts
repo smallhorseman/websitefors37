@@ -14,13 +14,13 @@ export async function POST(request: NextRequest) {
     }
 
     // Query admin user from database
-    const { data: credentials, error } = await supabase
-      .from('admin_credentials')
-      .select('*, user_profiles!admin_credentials_user_profile_id_fkey(*)')
+    const { data: user, error } = await supabase
+      .from('admin_users')
+      .select('*')
       .eq('email', email)
       .single()
 
-    if (error || !credentials) {
+    if (error || !user) {
       return NextResponse.json(
         { error: 'Invalid credentials' },
         { status: 401 }
@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
     }
 
     // TEMPORARY: Direct password comparison (MUST use bcrypt.compare() in production)
-    const passwordMatch = password === credentials.password_hash
+    const passwordMatch = password === user.password_hash
 
     if (!passwordMatch) {
       return NextResponse.json(
@@ -37,19 +37,9 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Get user profile data
-    const userProfile = credentials.user_profiles
-
-    if (!userProfile || userProfile.role !== 'admin') {
-      return NextResponse.json(
-        { error: 'Unauthorized - admin access required' },
-        { status: 403 }
-      )
-    }
-
     // Create session by setting secure HTTP-only cookie
     const cookieStore = await cookies()
-    cookieStore.set('admin_session', userProfile.id, {
+    cookieStore.set('admin_session', user.id, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
@@ -60,10 +50,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       user: {
-        id: userProfile.id,
-        email: userProfile.email,
-        role: userProfile.role,
-        name: userProfile.name
+        id: user.id,
+        email: user.email,
+        role: user.role,
+        name: user.name
       }
     })
 
