@@ -105,7 +105,7 @@ export default function PageBuilderPage() {
               d.backgroundImage || ''
             )}" buttonText="${escapeAttr(d.buttonText)}" buttonLink="${escapeAttr(d.buttonLink)}" alignment="${escapeAttr(
               d.alignment || 'center'
-            )}" overlay={${Number.isFinite(d.overlay) ? d.overlay : 50}} />`
+            )}" overlay="${Number.isFinite(d.overlay) ? d.overlay : 50}" />`
           )
           break
         }
@@ -165,6 +165,9 @@ export default function PageBuilderPage() {
 
       // Build MDX content from components
       const mdx = componentsToMDX(components)
+      
+      // Log MDX for debugging
+      console.log('Generated MDX:', mdx)
 
       // Derive title and meta from components
       let derivedTitle = cleanSlug.replace(/-/g, ' ')
