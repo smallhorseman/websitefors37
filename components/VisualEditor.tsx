@@ -10,7 +10,7 @@ import Image from 'next/image'
 import ImageUploader from './ImageUploader'
 
 // Component types
-type ComponentType = 'hero' | 'text' | 'image' | 'button' | 'columns' | 'spacer' | 'seoFooter' | 'slideshowHero' | 'testimonials' | 'galleryHighlights' | 'widgetEmbed' | 'badges' | 'servicesGrid' | 'stats' | 'ctaBanner' | 'iconFeatures'
+type ComponentType = 'hero' | 'text' | 'image' | 'button' | 'columns' | 'spacer' | 'seoFooter' | 'slideshowHero' | 'testimonials' | 'galleryHighlights' | 'widgetEmbed' | 'badges' | 'servicesGrid' | 'stats' | 'ctaBanner' | 'iconFeatures' | 'logo' | 'contactForm' | 'newsletterSignup'
 
 interface BaseComponent {
   id: string
@@ -227,7 +227,44 @@ interface IconFeaturesComponent extends BaseComponent {
   }
 }
 
-type PageComponent = HeroComponent | TextComponent | ImageComponent | ButtonComponent | ColumnsComponent | SpacerComponent | SEOFooterComponent | SlideshowHeroComponent | TestimonialsComponent | GalleryHighlightsComponent | WidgetEmbedComponent | BadgesComponent | ServicesGridComponent | StatsComponent | CTABannerComponent | IconFeaturesComponent
+interface LogoComponent extends BaseComponent {
+  type: 'logo'
+  data: {
+    mode: 'svg' | 'image'
+    text: string
+    subtext?: string
+    showCamera?: boolean
+    color?: string
+    accentColor?: string
+    imageUrl?: string
+    size?: 'sm' | 'md' | 'lg'
+    alignment?: 'left' | 'center' | 'right'
+    link?: string
+    animation?: 'none' | 'fade-in' | 'slide-up' | 'zoom'
+  }
+}
+
+interface ContactFormComponent extends BaseComponent {
+  type: 'contactForm'
+  data: {
+    heading?: string
+    subheading?: string
+    animation?: 'none' | 'fade-in' | 'slide-up' | 'zoom'
+  }
+}
+
+interface NewsletterComponent extends BaseComponent {
+  type: 'newsletterSignup'
+  data: {
+    heading?: string
+    subheading?: string
+    disclaimer?: string
+    style?: 'card' | 'banner'
+    animation?: 'none' | 'fade-in' | 'slide-up' | 'zoom'
+  }
+}
+
+type PageComponent = HeroComponent | TextComponent | ImageComponent | ButtonComponent | ColumnsComponent | SpacerComponent | SEOFooterComponent | SlideshowHeroComponent | TestimonialsComponent | GalleryHighlightsComponent | WidgetEmbedComponent | BadgesComponent | ServicesGridComponent | StatsComponent | CTABannerComponent | IconFeaturesComponent | LogoComponent | ContactFormComponent | NewsletterComponent
 
 interface VisualEditorProps {
   initialComponents?: PageComponent[]
@@ -460,6 +497,34 @@ export default function VisualEditor({ initialComponents = [], onSave, onChange,
           columns: 4,
           animation: 'fade-in'
         }
+      case 'logo':
+        return {
+          mode: 'svg',
+          text: 'Studio 37',
+          subtext: 'Photography',
+          showCamera: true,
+          color: '#111827',
+          accentColor: '#b46e14',
+          imageUrl: '',
+          size: 'md',
+          alignment: 'left',
+          link: '/',
+          animation: 'none'
+        }
+      case 'contactForm':
+        return {
+          heading: 'Get in Touch',
+          subheading: 'Tell us about your photography needs and we’ll reply within 24 hours.',
+          animation: 'fade-in'
+        }
+      case 'newsletterSignup':
+        return {
+          heading: 'Get 10% Off Your First Session',
+          subheading: 'Subscribe for tips, behind-the-scenes, and special offers.',
+          disclaimer: 'By subscribing, you agree to receive marketing emails. Unsubscribe anytime.',
+          style: 'card',
+          animation: 'fade-in'
+        }
       default:
         return {}
     }
@@ -546,6 +611,27 @@ export default function VisualEditor({ initialComponents = [], onSave, onChange,
           </div>
           
           <div className="p-4 space-y-2">
+            <button
+              onClick={() => addComponent('logo')}
+              className="w-full flex items-center gap-2 p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition"
+            >
+              <Layout className="h-5 w-5" />
+              <span>Logo</span>
+            </button>
+            <button
+              onClick={() => addComponent('contactForm')}
+              className="w-full flex items-center gap-2 p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition"
+            >
+              <Layout className="h-5 w-5" />
+              <span>Contact Form</span>
+            </button>
+            <button
+              onClick={() => addComponent('newsletterSignup')}
+              className="w-full flex items-center gap-2 p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition"
+            >
+              <Layout className="h-5 w-5" />
+              <span>Newsletter Signup</span>
+            </button>
             <button
               onClick={() => addComponent('hero')}
               className="w-full flex items-center gap-2 p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition"
@@ -819,6 +905,12 @@ export default function VisualEditor({ initialComponents = [], onSave, onChange,
 // Component Renderer
 function ComponentRenderer({ component }: { component: PageComponent }) {
   switch (component.type) {
+    case 'contactForm':
+      return <ContactFormRenderer data={(component as any).data} />
+    case 'newsletterSignup':
+      return <NewsletterRenderer data={(component as any).data} />
+    case 'logo':
+      return <LogoRenderer data={(component as any).data} />
     case 'hero':
       return <HeroRenderer data={component.data} />
     case 'text':
@@ -1642,6 +1734,95 @@ function IconFeaturesRenderer({ data }: { data: IconFeaturesComponent['data'] })
   )
 }
 
+// Logo Renderer (Editor Preview)
+function LogoRenderer({ data }: { data: LogoComponent['data'] }) {
+  const sizeMap: Record<string,string> = { sm: 'text-xl', md: 'text-2xl md:text-3xl', lg: 'text-4xl md:text-5xl' }
+  const alignMap: Record<string,string> = { left: 'justify-start text-left', center: 'justify-center text-center', right: 'justify-end text-right' }
+  const anim = data.animation === 'fade-in' ? 'animate-fadeIn' : data.animation === 'slide-up' ? 'animate-slideUp' : data.animation === 'zoom' ? 'animate-zoom' : ''
+
+  const content = (
+    <div className={`flex items-center gap-3 ${sizeMap[data.size || 'md']}`}>
+      {data.mode === 'image' && data.imageUrl ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={data.imageUrl} alt={data.text || 'Logo'} className="h-10 w-auto object-contain" />
+      ) : (
+        <div className="flex items-center gap-2">
+          {data.showCamera && (
+            <svg className="h-8 w-8" viewBox="0 0 24 24" fill={data.accentColor || '#b46e14'} aria-hidden="true"><path d="M9 3l2 2h2l2-2h3a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h4z"/><circle cx="12" cy="13" r="4" fill="currentColor"/></svg>
+          )}
+          <div>
+            <div className="font-serif font-bold leading-none" style={{ color: data.color || '#111827' }}>{data.text || 'Studio 37'}</div>
+            {data.subtext && <div className="text-sm tracking-wide" style={{ color: data.accentColor || '#b46e14' }}>{data.subtext}</div>}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+
+  const wrapped = data.link ? <a href={data.link} className="no-underline">{content}</a> : content
+
+  return (
+    <div className={`p-4 ${anim}`}>
+      <div className={`flex ${alignMap[data.alignment || 'left']}`}>{wrapped}</div>
+    </div>
+  )
+}
+
+// Contact Form Renderer (Editor Preview)
+function ContactFormRenderer({ data }: { data: ContactFormComponent['data'] }) {
+  const animClass = data.animation === 'fade-in' ? 'animate-fadeIn' : data.animation === 'slide-up' ? 'animate-slideUp' : data.animation === 'zoom' ? 'animate-zoom' : ''
+  return (
+    <div className={`p-8 ${animClass}`}>
+      <div className="max-w-3xl mx-auto">
+        {(data.heading || data.subheading) && (
+          <div className="text-center mb-6">
+            {data.heading && <h2 className="text-3xl font-bold text-gray-900 mb-2">{data.heading}</h2>}
+            {data.subheading && <p className="text-gray-600">{data.subheading}</p>}
+          </div>
+        )}
+        <div className="bg-gray-50 border rounded-lg p-6 text-gray-600">
+          <div className="text-sm mb-3">Contact form preview</div>
+          <div className="grid md:grid-cols-2 gap-4">
+            <input className="border rounded px-3 py-2" placeholder="Full Name" disabled />
+            <input className="border rounded px-3 py-2" placeholder="Email" disabled />
+            <input className="border rounded px-3 py-2" placeholder="Phone" disabled />
+            <select className="border rounded px-3 py-2" disabled><option>Service Interest</option></select>
+            <select className="border rounded px-3 py-2" disabled><option>Budget Range</option></select>
+            <input className="border rounded px-3 py-2" placeholder="Event Date" disabled />
+          </div>
+          <textarea className="border rounded px-3 py-2 mt-4 w-full" placeholder="Message" rows={3} disabled />
+          <button className="btn-primary mt-4 opacity-60 cursor-not-allowed" disabled>Get Your Quote</button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// Newsletter Renderer (Editor Preview)
+function NewsletterRenderer({ data }: { data: NewsletterComponent['data'] }) {
+  const animClass = data.animation === 'fade-in' ? 'animate-fadeIn' : data.animation === 'slide-up' ? 'animate-slideUp' : data.animation === 'zoom' ? 'animate-zoom' : ''
+  const wrapperClass = data.style === 'banner' ? 'bg-primary-50 border-primary-200' : 'bg-white border-gray-200'
+  return (
+    <div className={`p-8 ${animClass}`}>
+      <div className={`max-w-3xl mx-auto border rounded-xl p-6 ${wrapperClass}`}>
+        {(data.heading || data.subheading) && (
+          <div className="text-center mb-6">
+            {data.heading && <h2 className="text-2xl font-bold text-gray-900 mb-2">{data.heading}</h2>}
+            {data.subheading && <p className="text-gray-600">{data.subheading}</p>}
+          </div>
+        )}
+        <div className="grid md:grid-cols-3 gap-3">
+          <input className="border rounded px-3 py-2" placeholder="Full Name" disabled />
+          <input className="border rounded px-3 py-2" placeholder="Email" disabled />
+          <input className="border rounded px-3 py-2" placeholder="Phone" disabled />
+        </div>
+        <button className="btn-primary mt-4 opacity-60 cursor-not-allowed" disabled>Subscribe</button>
+        {data.disclaimer && <p className="text-xs text-gray-500 mt-2 text-center">{data.disclaimer}</p>}
+      </div>
+    </div>
+  )
+}
+
 // Slideshow Hero Renderer (Editor Preview)
 function SlideshowHeroRenderer({ data }: { data: SlideshowHeroComponent['data'] }) {
   const [idx, setIdx] = React.useState(0)
@@ -1739,9 +1920,96 @@ function WidgetEmbedRenderer({ data }: { data: WidgetEmbedComponent['data'] }) {
   )
 }
 
+// Logo Properties
+function LogoProperties({ data, onUpdate }: { data: LogoComponent['data']; onUpdate: (d: any) => void }) {
+  return (
+    <div className="space-y-4">
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="block text-sm font-medium mb-1">Mode</label>
+          <select value={data.mode} onChange={(e)=>onUpdate({ mode: e.target.value })} className="w-full border rounded px-3 py-2">
+            <option value="svg">SVG Wordmark</option>
+            <option value="image">Image URL</option>
+          </select>
+        </div>
+        <div>
+          <label className="block text-sm font-medium mb-1">Size</label>
+          <select value={data.size || 'md'} onChange={(e)=>onUpdate({ size: e.target.value })} className="w-full border rounded px-3 py-2">
+            <option value="sm">Small</option>
+            <option value="md">Medium</option>
+            <option value="lg">Large</option>
+          </select>
+        </div>
+      </div>
+      <div>
+        <label className="block text-sm font-medium mb-1">Alignment</label>
+        <select value={data.alignment || 'left'} onChange={(e)=>onUpdate({ alignment: e.target.value })} className="w-full border rounded px-3 py-2">
+          <option value="left">Left</option>
+          <option value="center">Center</option>
+          <option value="right">Right</option>
+        </select>
+      </div>
+
+      {data.mode === 'image' ? (
+        <div>
+          <label className="block text-sm font-medium mb-1">Logo Image URL</label>
+          <input type="url" value={data.imageUrl || ''} onChange={(e)=>onUpdate({ imageUrl: e.target.value })} className="w-full border rounded px-3 py-2" placeholder="https://res.cloudinary.com/.../logo.png" />
+          <p className="text-xs text-gray-500 mt-1">Upload to Cloudinary and paste the URL here.</p>
+        </div>
+      ) : (
+        <>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm font-medium mb-1">Text</label>
+              <input type="text" value={data.text || ''} onChange={(e)=>onUpdate({ text: e.target.value })} className="w-full border rounded px-3 py-2" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Subtext</label>
+              <input type="text" value={data.subtext || ''} onChange={(e)=>onUpdate({ subtext: e.target.value })} className="w-full border rounded px-3 py-2" placeholder="Photography" />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm font-medium mb-1">Text Color</label>
+              <input type="text" value={data.color || ''} onChange={(e)=>onUpdate({ color: e.target.value })} className="w-full border rounded px-3 py-2" placeholder="#111827" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Accent Color</label>
+              <input type="text" value={data.accentColor || ''} onChange={(e)=>onUpdate({ accentColor: e.target.value })} className="w-full border rounded px-3 py-2" placeholder="#b46e14" />
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <input id="showCamera" type="checkbox" checked={!!data.showCamera} onChange={(e)=>onUpdate({ showCamera: e.target.checked })} />
+            <label htmlFor="showCamera" className="text-sm">Show camera icon</label>
+          </div>
+        </>
+      )}
+
+      <div>
+        <label className="block text-sm font-medium mb-1">Link (optional)</label>
+        <input type="url" value={data.link || ''} onChange={(e)=>onUpdate({ link: e.target.value })} className="w-full border rounded px-3 py-2" placeholder="/ or https://..." />
+      </div>
+      <div>
+        <label className="block text-sm font-medium mb-1">Animation</label>
+        <select value={data.animation || 'none'} onChange={(e)=>onUpdate({ animation: e.target.value })} className="w-full border rounded px-3 py-2">
+          <option value="none">None</option>
+          <option value="fade-in">Fade In</option>
+          <option value="slide-up">Slide Up</option>
+          <option value="zoom">Zoom</option>
+        </select>
+      </div>
+    </div>
+  )
+}
 // Component Properties Editor
 function ComponentProperties({ component, onUpdate }: { component: PageComponent; onUpdate: (data: any) => void }) {
   switch (component.type) {
+    case 'contactForm':
+      return <ContactFormProperties data={component.data as ContactFormComponent['data']} onUpdate={onUpdate} />
+    case 'newsletterSignup':
+      return <NewsletterProperties data={component.data as NewsletterComponent['data']} onUpdate={onUpdate} />
+    case 'logo':
+      return <LogoProperties data={component.data as LogoComponent['data']} onUpdate={onUpdate} />
     case 'hero':
       return <HeroProperties data={component.data as HeroComponent['data']} onUpdate={onUpdate} />
     case 'text':
@@ -2075,6 +2343,69 @@ function HeroProperties({ data, onUpdate }: { data: HeroComponent['data']; onUpd
           title="Overlay darkness percentage"
           aria-label="Overlay darkness percentage"
         />
+      </div>
+    </div>
+  )
+}
+
+// Contact Form Properties
+function ContactFormProperties({ data, onUpdate }: { data: ContactFormComponent['data']; onUpdate: (data: any) => void }) {
+  return (
+    <div className="space-y-4">
+      <div>
+        <label className="block text-sm font-medium mb-1">Heading</label>
+        <input type="text" value={data.heading || ''} onChange={(e)=>onUpdate({ heading: e.target.value })} className="w-full border rounded px-3 py-2" placeholder="Get in Touch" />
+      </div>
+      <div>
+        <label className="block text-sm font-medium mb-1">Subheading</label>
+        <textarea value={data.subheading || ''} onChange={(e)=>onUpdate({ subheading: e.target.value })} className="w-full border rounded px-3 py-2" rows={2} placeholder="Tell us about your photography needs and we’ll reply within 24 hours." />
+      </div>
+      <div>
+        <label className="block text-sm font-medium mb-1">Animation</label>
+        <select value={data.animation || 'fade-in'} onChange={(e)=>onUpdate({ animation: e.target.value })} className="w-full border rounded px-3 py-2">
+          <option value="none">None</option>
+          <option value="fade-in">Fade In</option>
+          <option value="slide-up">Slide Up</option>
+          <option value="zoom">Zoom</option>
+        </select>
+      </div>
+    </div>
+  )
+}
+
+// Newsletter Signup Properties
+function NewsletterProperties({ data, onUpdate }: { data: NewsletterComponent['data']; onUpdate: (data: any) => void }) {
+  return (
+    <div className="space-y-4">
+      <div>
+        <label className="block text-sm font-medium mb-1">Heading</label>
+        <input type="text" value={data.heading || ''} onChange={(e)=>onUpdate({ heading: e.target.value })} className="w-full border rounded px-3 py-2" placeholder="Get 10% Off Your First Session" />
+      </div>
+      <div>
+        <label className="block text-sm font-medium mb-1">Subheading</label>
+        <textarea value={data.subheading || ''} onChange={(e)=>onUpdate({ subheading: e.target.value })} className="w-full border rounded px-3 py-2" rows={2} placeholder="Subscribe for tips, behind-the-scenes, and special offers." />
+      </div>
+      <div>
+        <label className="block text-sm font-medium mb-1">Disclaimer</label>
+        <input type="text" value={data.disclaimer || ''} onChange={(e)=>onUpdate({ disclaimer: e.target.value })} className="w-full border rounded px-3 py-2" placeholder="By subscribing, you agree to receive marketing emails. Unsubscribe anytime." />
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="block text-sm font-medium mb-1">Style</label>
+          <select value={data.style || 'card'} onChange={(e)=>onUpdate({ style: e.target.value })} className="w-full border rounded px-3 py-2">
+            <option value="card">Card</option>
+            <option value="banner">Banner</option>
+          </select>
+        </div>
+        <div>
+          <label className="block text-sm font-medium mb-1">Animation</label>
+          <select value={data.animation || 'fade-in'} onChange={(e)=>onUpdate({ animation: e.target.value })} className="w-full border rounded px-3 py-2">
+            <option value="none">None</option>
+            <option value="fade-in">Fade In</option>
+            <option value="slide-up">Slide Up</option>
+            <option value="zoom">Zoom</option>
+          </select>
+        </div>
       </div>
     </div>
   )

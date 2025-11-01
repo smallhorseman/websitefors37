@@ -4,8 +4,70 @@ import LocalBusinessSchema from './LocalBusinessSchema'
 import SlideshowHeroClient from './blocks/SlideshowHeroClient'
 import TestimonialsClient from './blocks/TestimonialsClient'
 import WidgetEmbedClient from './blocks/WidgetEmbedClient'
+import LeadCaptureForm from './LeadCaptureForm'
+import NewsletterInlineClient from './blocks/NewsletterInlineClient'
 
 // Server components used by MDX to render VisualEditor output faithfully
+
+// Logo block - renders brand logo as SVG wordmark or image
+export function LogoBlock({
+  mode = 'svg',
+  text = 'Studio 37',
+  subtext,
+  showCamera = 'true',
+  color = '#111827',
+  accentColor = '#b46e14',
+  imageUrl,
+  size = 'md',
+  alignment = 'left',
+  link,
+  animation = 'none',
+}: {
+  mode?: 'svg' | 'image' | string
+  text?: string
+  subtext?: string
+  showCamera?: boolean | string
+  color?: string
+  accentColor?: string
+  imageUrl?: string
+  size?: 'sm' | 'md' | 'lg' | string
+  alignment?: 'left' | 'center' | 'right' | string
+  link?: string
+  animation?: string
+}) {
+  const sizeMap: Record<string, string> = { sm: 'text-xl', md: 'text-2xl md:text-3xl', lg: 'text-4xl md:text-5xl' }
+  const alignMap: Record<string, string> = { left: 'justify-start text-left', center: 'justify-center text-center', right: 'justify-end text-right' }
+  const animClass = animation === 'fade-in' ? 'animate-fadeIn' : animation === 'slide-up' ? 'animate-slideUp' : animation === 'zoom' ? 'animate-zoom' : ''
+  const showCam = String(showCamera) !== 'false'
+
+  const node = (
+    <div className={`p-4 ${animClass}`}>
+      <div className={`flex ${alignMap[String(alignment)] || alignMap.left}`}>
+        <div className={`flex items-center gap-3 ${sizeMap[String(size)] || sizeMap.md}`}>
+          {String(mode) === 'image' && imageUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={imageUrl} alt={text || 'Logo'} className="h-10 w-auto object-contain" />
+          ) : (
+            <div className="flex items-center gap-2">
+              {showCam && (
+                <svg className="h-8 w-8" viewBox="0 0 24 24" fill={accentColor || '#b46e14'} aria-hidden="true"><path d="M9 3l2 2h2l2-2h3a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h4z"/><circle cx="12" cy="13" r="4" fill="currentColor"/></svg>
+              )}
+              <div>
+                <div className="font-serif font-bold leading-none" style={{ color: color || '#111827' }} dangerouslySetInnerHTML={{ __html: text || '' }} />
+                {subtext && <div className="text-sm tracking-wide" style={{ color: accentColor || '#b46e14' }}>{subtext}</div>}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+
+  if (link) {
+    return <a href={link} className="no-underline">{node}</a>
+  }
+  return node
+}
 
 export function HeroBlock({
   title,
@@ -669,7 +731,39 @@ export function IconFeaturesBlock({ featuresB64, heading, subheading, columns = 
   )
 }
 
+// Contact Form - wraps client LeadCaptureForm with heading/subheading
+export function ContactFormBlock({ heading, subheading, animation = 'fade-in' }: { heading?: string, subheading?: string, animation?: string }) {
+  const animClass = animation === 'fade-in' ? 'animate-fadeIn' : animation === 'slide-up' ? 'animate-slideUp' : animation === 'zoom' ? 'animate-zoom' : ''
+  return (
+    <section className={`p-6 md:p-10 ${animClass}`}>
+      <div className="max-w-3xl mx-auto">
+        {(heading || subheading) && (
+          <div className="text-center mb-6">
+            {heading && <h2 className="text-3xl font-bold text-gray-900 mb-2">{heading}</h2>}
+            {subheading && <p className="text-gray-600">{subheading}</p>}
+          </div>
+        )}
+        <LeadCaptureForm />
+      </div>
+    </section>
+  )
+}
+
+// Newsletter Signup - inline client form
+export function NewsletterBlock({ heading, subheading, disclaimer, style = 'card', animation = 'fade-in' }: { heading?: string, subheading?: string, disclaimer?: string, style?: 'card' | 'banner' | string, animation?: string }) {
+  const animClass = animation === 'fade-in' ? 'animate-fadeIn' : animation === 'slide-up' ? 'animate-slideUp' : animation === 'zoom' ? 'animate-zoom' : ''
+  const isBanner = String(style) === 'banner'
+  return (
+    <section className={`p-6 md:p-10 ${animClass}`}>
+      <div className={`max-w-3xl mx-auto border rounded-xl p-6 ${isBanner ? 'bg-primary-50 border-primary-200' : 'bg-white border-gray-200'}`}>
+        <NewsletterInlineClient heading={heading} subheading={subheading} disclaimer={disclaimer} />
+      </div>
+    </section>
+  )
+}
+
 export const MDXBuilderComponents = {
+  LogoBlock,
   HeroBlock,
   TextBlock,
   ImageBlock,
@@ -686,4 +780,6 @@ export const MDXBuilderComponents = {
   StatsBlock,
   CTABannerBlock,
   IconFeaturesBlock,
+  ContactFormBlock,
+  NewsletterBlock,
 }

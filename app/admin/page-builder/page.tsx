@@ -110,7 +110,26 @@ export default function PageBuilderPage() {
     const comps: any[] = []
     const lines = mdx.split(/\n+/).map(l => l.trim()).filter(Boolean)
     for (const line of lines) {
-      if (line.startsWith('<HeroBlock')) {
+      if (line.startsWith('<LogoBlock')) {
+        const a = parseAttrs(line)
+        comps.push({
+          id: `component-${Date.now()}-${comps.length}`,
+          type: 'logo',
+          data: {
+            mode: (a.mode as any) || 'svg',
+            text: a.text || 'Studio 37',
+            subtext: a.subtext || '',
+            showCamera: String(a.showCamera) !== 'false',
+            color: a.color || '#111827',
+            accentColor: a.accentColor || '#b46e14',
+            imageUrl: a.imageUrl || '',
+            size: (a.size as any) || 'md',
+            alignment: (a.alignment as any) || 'left',
+            link: a.link || '',
+            animation: (a.animation as any) || 'none'
+          }
+        })
+  } else if (line.startsWith('<HeroBlock')) {
         const a = parseAttrs(line)
         comps.push({
           id: `component-${Date.now()}-${comps.length}`,
@@ -316,6 +335,22 @@ export default function PageBuilderPage() {
           columns: Number(a.columns) || 4,
           animation: a.animation || 'fade-in'
         }})
+      } else if (line.startsWith('<ContactFormBlock')) {
+        const a = parseAttrs(line)
+        comps.push({ id: `component-${Date.now()}-${comps.length}`, type: 'contactForm', data: {
+          heading: a.heading || '',
+          subheading: a.subheading || '',
+          animation: a.animation || 'fade-in'
+        }})
+      } else if (line.startsWith('<NewsletterBlock')) {
+        const a = parseAttrs(line)
+        comps.push({ id: `component-${Date.now()}-${comps.length}`, type: 'newsletterSignup', data: {
+          heading: a.heading || '',
+          subheading: a.subheading || '',
+          disclaimer: a.disclaimer || '',
+          style: (a.style as any) || 'card',
+          animation: a.animation || 'fade-in'
+        }})
       }
     }
     return comps
@@ -379,6 +414,20 @@ export default function PageBuilderPage() {
     list.forEach((c) => {
       const d = c.data || {}
       switch (c.type) {
+        case 'contactForm': {
+          md.push(`<ContactFormBlock heading="${escapeAttr(d.heading || '')}" subheading="${escapeAttr(d.subheading || '')}" animation="${escapeAttr(d.animation || 'fade-in')}" />`)
+          break
+        }
+        case 'newsletterSignup': {
+          md.push(`<NewsletterBlock heading="${escapeAttr(d.heading || '')}" subheading="${escapeAttr(d.subheading || '')}" disclaimer="${escapeAttr(d.disclaimer || '')}" style="${escapeAttr(d.style || 'card')}" animation="${escapeAttr(d.animation || 'fade-in')}" />`)
+          break
+        }
+        case 'logo': {
+          md.push(
+            `<LogoBlock mode="${escapeAttr(d.mode || 'svg')}" text="${escapeAttr(d.text || 'Studio 37')}" subtext="${escapeAttr(d.subtext || '')}" showCamera="${(d.showCamera ?? true) ? 'true' : 'false'}" color="${escapeAttr(d.color || '#111827')}" accentColor="${escapeAttr(d.accentColor || '#b46e14')}" imageUrl="${escapeAttr(d.imageUrl || '')}" size="${escapeAttr(d.size || 'md')}" alignment="${escapeAttr(d.alignment || 'left')}" link="${escapeAttr(d.link || '')}" animation="${escapeAttr(d.animation || 'none')}" />`
+          )
+          break
+        }
         case 'hero': {
           md.push(
             `<HeroBlock title="${escapeAttr(d.title)}" subtitle="${escapeAttr(d.subtitle)}" backgroundImage="${escapeAttr(
