@@ -7,13 +7,13 @@ import {
   Type, Image as ImageIcon, Square, Columns, Layout, Save, Copy,
   Sparkles, Mail, DollarSign, HelpCircle, Award, Grid3x3, BarChart3,
   Megaphone, Star, BringToFront, Play, MessageSquare, Camera, CodeXml,
-  ChevronDown, ChevronRight
+  ChevronDown, ChevronRight, Users, Instagram, Link2
 } from 'lucide-react'
 import Image from 'next/image'
 import ImageUploader from './ImageUploader'
 
 // Component types
-type ComponentType = 'hero' | 'text' | 'image' | 'button' | 'columns' | 'spacer' | 'seoFooter' | 'slideshowHero' | 'testimonials' | 'galleryHighlights' | 'widgetEmbed' | 'badges' | 'servicesGrid' | 'stats' | 'ctaBanner' | 'iconFeatures' | 'logo' | 'contactForm' | 'newsletterSignup' | 'faq' | 'pricingTable'
+type ComponentType = 'hero' | 'text' | 'image' | 'button' | 'columns' | 'spacer' | 'seoFooter' | 'slideshowHero' | 'testimonials' | 'galleryHighlights' | 'widgetEmbed' | 'badges' | 'servicesGrid' | 'stats' | 'ctaBanner' | 'iconFeatures' | 'logo' | 'contactForm' | 'newsletterSignup' | 'faq' | 'pricingTable' | 'teamMembers' | 'socialFeed' | 'dualCTA'
 
 interface BaseComponent {
   id: string
@@ -202,7 +202,7 @@ interface StatsComponent extends BaseComponent {
       suffix?: string
     }>
     columns: 2 | 3 | 4
-    style: 'default' | 'cards' | 'minimal'
+      style: 'default' | 'cards' | 'minimal' | 'inline-badges'
     animation?: 'none' | 'fade-in' | 'slide-up' | 'zoom'
   }
 }
@@ -310,7 +310,68 @@ interface PricingTableComponent extends BaseComponent {
   }
 }
 
-type PageComponent = HeroComponent | TextComponent | ImageComponent | ButtonComponent | ColumnsComponent | SpacerComponent | SEOFooterComponent | SlideshowHeroComponent | TestimonialsComponent | GalleryHighlightsComponent | WidgetEmbedComponent | BadgesComponent | ServicesGridComponent | StatsComponent | CTABannerComponent | IconFeaturesComponent | LogoComponent | ContactFormComponent | NewsletterComponent | FAQComponent | PricingTableComponent
+interface TeamMembersComponent extends BaseComponent {
+  type: 'teamMembers'
+  data: {
+    heading?: string
+    subheading?: string
+    members: Array<{
+      name: string
+      title: string
+      image: string
+      bio: string
+      expertise: string[]
+      social?: {
+        instagram?: string
+        linkedin?: string
+        twitter?: string
+      }
+    }>
+    columns: 2 | 3 | 4
+    layout: 'cards' | 'bio-left' | 'bio-right' | 'alternating'
+    animation?: 'none' | 'fade-in' | 'slide-up' | 'zoom'
+  }
+}
+
+interface SocialFeedComponent extends BaseComponent {
+  type: 'socialFeed'
+  data: {
+    heading?: string
+    source: 'instagram' | 'manual'
+    username?: string
+    posts: Array<{
+      image: string
+      caption: string
+      likes?: number
+      comments?: number
+      timestamp?: string
+      location?: string
+      avatar?: string
+    }>
+    limit: number
+    columns: 2 | 3 | 4
+    showEngagement?: boolean
+    animation?: 'none' | 'fade-in' | 'slide-up' | 'zoom'
+  }
+}
+
+interface DualCTAComponent extends BaseComponent {
+  type: 'dualCTA'
+  data: {
+    heading?: string
+    subheading?: string
+    primaryButtonText: string
+    primaryButtonLink: string
+    secondaryButtonText: string
+    secondaryButtonLink: string
+    alignment: 'left' | 'center' | 'right'
+    backgroundColor?: string
+    textColor?: string
+    animation?: 'none' | 'fade-in' | 'slide-up' | 'zoom'
+  }
+}
+
+type PageComponent = HeroComponent | TextComponent | ImageComponent | ButtonComponent | ColumnsComponent | SpacerComponent | SEOFooterComponent | SlideshowHeroComponent | TestimonialsComponent | GalleryHighlightsComponent | WidgetEmbedComponent | BadgesComponent | ServicesGridComponent | StatsComponent | CTABannerComponent | IconFeaturesComponent | LogoComponent | ContactFormComponent | NewsletterComponent | FAQComponent | PricingTableComponent | TeamMembersComponent | SocialFeedComponent | DualCTAComponent
 
 interface VisualEditorProps {
   initialComponents?: PageComponent[]
@@ -687,6 +748,75 @@ export default function VisualEditor({ initialComponents = [], onSave, onChange,
           variant: 'card',
           showFeatureChecks: true
         }
+      case 'teamMembers':
+        return {
+          heading: 'Meet Your Photography Team',
+          subheading: 'Christian and Caitie bring together years of experience, artistic vision, and genuine passion for storytelling through photography.',
+          members: [
+            {
+              name: 'Christian',
+              title: 'CEO, Marketing Lead & Photographer',
+              image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop',
+              bio: 'Christian brings business acumen and artistic vision to every project, specializing in wedding and commercial photography.',
+              expertise: ['Wedding Photography', '5+ years experience', 'Client Relations'],
+              social: { instagram: 'https://instagram.com/studio37photography' }
+            },
+            {
+              name: 'Caitie',
+              title: 'Co-Owner, Photographer & Editor',
+              image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop',
+              bio: 'Caitie\'s artistic eye and attention to detail ensure every image tells a perfect story.',
+              expertise: ['Portrait Photography', 'Expert Photo Editor', 'Creative Direction'],
+              social: { instagram: 'https://instagram.com/studio37photography' }
+            }
+          ],
+          columns: 2,
+          layout: 'cards',
+          animation: 'fade-in'
+        }
+      case 'socialFeed':
+        return {
+          heading: 'Behind the Scenes',
+          source: 'manual',
+          username: '@studio37photography',
+          posts: [
+            {
+              image: 'https://images.unsplash.com/photo-1452587925148-ce544e77e70d?w=600&h=600&fit=crop',
+              caption: '🎬 Behind the scenes of today\'s portrait session! The magic happens when natural light meets genuine emotion. #BehindTheScenes #Photography',
+              likes: 47,
+              comments: 12,
+              timestamp: '2 hours ago',
+              location: 'Pinehurst, TX',
+              avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop'
+            },
+            {
+              image: 'https://images.unsplash.com/photo-1554048612-b6a482bc67e5?w=600&h=600&fit=crop',
+              caption: '✨ Editing session in progress! There\'s something deeply satisfying about bringing out the perfect tones. #PhotoEditing',
+              likes: 32,
+              comments: 8,
+              timestamp: '1 day ago',
+              location: 'Studio37',
+              avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop'
+            }
+          ],
+          limit: 6,
+          columns: 3,
+          showEngagement: true,
+          animation: 'fade-in'
+        }
+      case 'dualCTA':
+        return {
+          heading: 'Ready to Work with Studio37?',
+          subheading: 'Let\'s discuss your photography needs and create beautiful memories together.',
+          primaryButtonText: 'Get In Touch',
+          primaryButtonLink: '/contact',
+          secondaryButtonText: 'View Our Work',
+          secondaryButtonLink: '/gallery',
+          alignment: 'center',
+          backgroundColor: '',
+          textColor: 'text-gray-900',
+          animation: 'fade-in'
+        }
       default:
         return {}
     }
@@ -786,37 +916,37 @@ export default function VisualEditor({ initialComponents = [], onSave, onChange,
           
           <div className="overflow-y-auto">
             {/* Basic Components */}
-            <div className="border-b">
-              <button
-                onClick={() => toggleCategory('basic')}
-                className="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-50 font-medium text-sm"
-              >
-                <span>Basic</span>
-                {expandedCategories.includes('basic') ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-              </button>
-              {expandedCategories.includes('basic') && (
-                <div className="p-2 space-y-1 bg-gray-50">
-                  <button
-                    onClick={() => addComponent('text')}
-                    className="w-full flex items-center gap-2 p-2 bg-white hover:bg-gray-100 rounded transition text-sm"
-                  >
-                    <Type className="h-4 w-4" />
-                    <span>Text Block</span>
-                  </button>
-                  <button
-                    onClick={() => addComponent('image')}
-                    className="w-full flex items-center gap-2 p-2 bg-white hover:bg-gray-100 rounded transition text-sm"
-                  >
-                    <ImageIcon className="h-4 w-4" />
-                    <span>Image</span>
-                  </button>
-                  <button
-                    onClick={() => addComponent('button')}
-                    className="w-full flex items-center gap-2 p-2 bg-white hover:bg-gray-100 rounded transition text-sm"
-                  >
-                    <Square className="h-4 w-4" />
-                    <span>Button</span>
-                  </button>
+              <div className="border-b">
+                <button
+                  onClick={() => toggleCategory('basic')}
+                  className="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-50 font-medium text-sm"
+                >
+                  <span>Basic</span>
+                  {expandedCategories.includes('basic') ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                </button>
+                {expandedCategories.includes('basic') && (
+                  <div className="p-2 space-y-1 bg-gray-50">
+                    <button
+                      onClick={() => addComponent('text')}
+                      className="w-full flex items-center gap-2 p-2 bg-white hover:bg-gray-100 rounded transition text-sm"
+                    >
+                      <Type className="h-4 w-4" />
+                      <span>Text Block</span>
+                    </button>
+                    <button
+                      onClick={() => addComponent('image')}
+                      className="w-full flex items-center gap-2 p-2 bg-white hover:bg-gray-100 rounded transition text-sm"
+                    >
+                      <ImageIcon className="h-4 w-4" />
+                      <span>Image</span>
+                    </button>
+                    <button
+                      onClick={() => addComponent('button')}
+                      className="w-full flex items-center gap-2 p-2 bg-white hover:bg-gray-100 rounded transition text-sm"
+                    >
+                      <Square className="h-4 w-4" />
+                      <span>Button</span>
+                    </button>
                   <button
                     onClick={() => addComponent('spacer')}
                     className="w-full flex items-center gap-2 p-2 bg-white hover:bg-gray-100 rounded transition text-sm"
@@ -867,6 +997,13 @@ export default function VisualEditor({ initialComponents = [], onSave, onChange,
                     <Megaphone className="h-4 w-4" />
                     <span>CTA Banner</span>
                   </button>
+                    <button
+                      onClick={() => addComponent('dualCTA')}
+                      className="w-full flex items-center gap-2 p-2 bg-white hover:bg-gray-100 rounded transition text-sm"
+                    >
+                      <Link2 className="h-4 w-4" />
+                      <span>Dual CTA</span>
+                    </button>
                 </div>
               )}
             </div>
@@ -889,6 +1026,20 @@ export default function VisualEditor({ initialComponents = [], onSave, onChange,
                     <Camera className="h-4 w-4" />
                     <span>Gallery Highlights</span>
                   </button>
+                    <button
+                      onClick={() => addComponent('teamMembers')}
+                      className="w-full flex items-center gap-2 p-2 bg-white hover:bg-gray-100 rounded transition text-sm"
+                    >
+                      <Users className="h-4 w-4" />
+                      <span>Team Members</span>
+                    </button>
+                    <button
+                      onClick={() => addComponent('socialFeed')}
+                      className="w-full flex items-center gap-2 p-2 bg-white hover:bg-gray-100 rounded transition text-sm"
+                    >
+                      <Instagram className="h-4 w-4" />
+                      <span>Social Feed</span>
+                    </button>
                   <button
                     onClick={() => addComponent('testimonials')}
                     className="w-full flex items-center gap-2 p-2 bg-white hover:bg-gray-100 rounded transition text-sm"
@@ -1205,6 +1356,12 @@ function ComponentRenderer({ component }: { component: PageComponent }) {
       return <FAQRenderer data={(component as any).data} />
     case 'pricingTable':
       return <PricingTableRenderer data={(component as any).data} />
+      case 'teamMembers':
+        return <TeamMembersRenderer data={(component as any).data} />
+      case 'socialFeed':
+        return <SocialFeedRenderer data={(component as any).data} />
+      case 'dualCTA':
+        return <DualCTARenderer data={(component as any).data} />
     case 'contactForm':
       return <ContactFormRenderer data={(component as any).data} />
     case 'newsletterSignup':
@@ -2257,8 +2414,31 @@ function StatsRenderer({ data }: { data: StatsComponent['data'] }) {
   const styleClasses = {
     default: '',
     cards: 'bg-white rounded-lg shadow-md p-6',
-    minimal: 'border-b border-gray-200 pb-4'
+      minimal: 'border-b border-gray-200 pb-4',
+      'inline-badges': ''
   }
+
+    // Inline badges layout
+    if (data.style === 'inline-badges') {
+      return (
+        <div className={`p-8 ${data.animation === 'fade-in' ? 'animate-fadeIn' : data.animation === 'slide-up' ? 'animate-slideUp' : data.animation === 'zoom' ? 'animate-zoom' : ''}`}>
+          <div className="max-w-7xl mx-auto">
+            {data.heading && (
+              <h2 className="text-3xl font-bold text-gray-900 text-center mb-6">{data.heading}</h2>
+            )}
+            <div className="flex flex-wrap justify-center gap-4">
+              {(data.stats || []).map((stat, i) => (
+                <div key={i} className="inline-flex items-center gap-2 px-4 py-2 bg-primary-50 border border-primary-200 rounded-full">
+                  {stat.icon && <span className="text-xl">{stat.icon}</span>}
+                  <span className="font-semibold text-gray-900">{stat.number}{stat.suffix || ''}</span>
+                  <span className="text-gray-600">{stat.label}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )
+    }
 
   return (
     <div className={`p-8 ${data.animation === 'fade-in' ? 'animate-fadeIn' : data.animation === 'slide-up' ? 'animate-slideUp' : data.animation === 'zoom' ? 'animate-zoom' : ''}`}>
@@ -2538,6 +2718,154 @@ function PricingTableRenderer({ data }: { data: PricingTableComponent['data'] })
   )
 }
 
+  // Team Members Renderer
+  function TeamMembersRenderer({ data }: { data: TeamMembersComponent['data'] }) {
+    const animClass = data.animation === 'fade-in' ? 'animate-fadeIn' : data.animation === 'slide-up' ? 'animate-slideUp' : data.animation === 'zoom' ? 'animate-zoom' : ''
+    const gridCols = {
+      2: 'md:grid-cols-2',
+      3: 'md:grid-cols-3',
+      4: 'md:grid-cols-4'
+    }[data.columns || 2]
+    return (
+      <div className={`p-8 ${animClass}`}>
+        <div className="max-w-7xl mx-auto">
+          {(data.heading || data.subheading) && (
+            <div className="text-center mb-8">
+              {data.heading && <h2 className="text-3xl font-bold text-gray-900 mb-2">{data.heading}</h2>}
+              {data.subheading && <p className="text-lg text-gray-600">{data.subheading}</p>}
+            </div>
+          )}
+          <div className={`grid grid-cols-1 ${gridCols} gap-8`}>
+            {(data.members || []).map((member, i) => (
+              <div key={i} className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow">
+                <div className="aspect-square w-full overflow-hidden bg-gray-100">
+                  <img src={member.image} alt={member.name} className="w-full h-full object-cover" />
+                </div>
+                <div className="p-6">
+                  <h3 className="text-xl font-bold text-gray-900">{member.name}</h3>
+                  <p className="text-sm text-primary-600 font-medium mb-3">{member.title}</p>
+                  <p className="text-gray-700 mb-4">{member.bio}</p>
+                  {member.expertise && member.expertise.length > 0 && (
+                    <ul className="space-y-1 mb-4">
+                      {member.expertise.map((item, ei) => (
+                        <li key={ei} className="text-sm text-gray-600 flex items-start gap-2">
+                          <span className="text-primary-500">•</span>
+                          <span>{item}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  {member.social && (
+                    <div className="flex gap-3">
+                      {member.social.instagram && (
+                        <a href={member.social.instagram} className="text-gray-400 hover:text-primary-600 transition-colors">
+                          <Instagram className="h-5 w-5" />
+                        </a>
+                      )}
+                      {member.social.linkedin && (
+                        <a href={member.social.linkedin} className="text-gray-400 hover:text-primary-600 transition-colors">
+                          <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+                        </a>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Social Feed Renderer
+  function SocialFeedRenderer({ data }: { data: SocialFeedComponent['data'] }) {
+    const animClass = data.animation === 'fade-in' ? 'animate-fadeIn' : data.animation === 'slide-up' ? 'animate-slideUp' : data.animation === 'zoom' ? 'animate-zoom' : ''
+    const gridCols = {
+      2: 'md:grid-cols-2',
+      3: 'md:grid-cols-3',
+      4: 'md:grid-cols-4'
+    }[data.columns || 3]
+    return (
+      <div className={`p-8 bg-gray-50 ${animClass}`}>
+        <div className="max-w-7xl mx-auto">
+          {data.heading && (
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-bold text-gray-900">{data.heading}</h2>
+            </div>
+          )}
+          <div className={`grid grid-cols-1 ${gridCols} gap-6`}>
+            {(data.posts || []).slice(0, data.limit || 6).map((post, i) => (
+              <div key={i} className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow">
+                <div className="aspect-square w-full overflow-hidden bg-gray-100">
+                  <img src={post.image} alt={`Post ${i + 1}`} className="w-full h-full object-cover" />
+                </div>
+                <div className="p-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    {post.avatar && (
+                      <img src={post.avatar} alt="Avatar" className="w-8 h-8 rounded-full object-cover" />
+                    )}
+                    <div className="text-sm">
+                      <div className="font-semibold">{data.username || '@studio37photography'}</div>
+                      {post.timestamp && <div className="text-gray-500 text-xs">{post.timestamp}</div>}
+                    </div>
+                  </div>
+                  <p className="text-sm text-gray-700 mb-3 line-clamp-3">{post.caption}</p>
+                  {data.showEngagement && (post.likes || post.comments) && (
+                    <div className="flex items-center gap-4 text-sm text-gray-500">
+                      {post.likes && (
+                        <div className="flex items-center gap-1">
+                          <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                          <span>{post.likes}</span>
+                        </div>
+                      )}
+                      {post.comments && (
+                        <div className="flex items-center gap-1">
+                          <MessageSquare className="h-4 w-4" />
+                          <span>{post.comments}</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  {post.location && (
+                    <div className="text-xs text-gray-500 mt-2">📍 {post.location}</div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Dual CTA Renderer
+  function DualCTARenderer({ data }: { data: DualCTAComponent['data'] }) {
+    const animClass = data.animation === 'fade-in' ? 'animate-fadeIn' : data.animation === 'slide-up' ? 'animate-slideUp' : data.animation === 'zoom' ? 'animate-zoom' : ''
+    const alignClass = {
+      left: 'text-left',
+      center: 'text-center',
+      right: 'text-right'
+    }[data.alignment || 'center']
+    const bgStyle = data.backgroundColor ? { backgroundColor: data.backgroundColor } : {}
+    return (
+      <div className={`p-12 ${animClass}`} style={bgStyle}>
+        <div className={`max-w-4xl mx-auto ${alignClass}`}>
+          {data.heading && <h2 className={`text-3xl font-bold mb-3 ${data.textColor || 'text-gray-900'}`}>{data.heading}</h2>}
+          {data.subheading && <p className={`text-lg mb-6 ${data.textColor || 'text-gray-700'}`}>{data.subheading}</p>}
+          <div className={`flex gap-4 ${data.alignment === 'center' ? 'justify-center' : data.alignment === 'right' ? 'justify-end' : ''}`}>
+            <a href={data.primaryButtonLink || '#'} className="inline-block px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition no-underline font-medium">
+              {data.primaryButtonText}
+            </a>
+            <a href={data.secondaryButtonLink || '#'} className="inline-block px-6 py-3 border-2 border-primary-600 text-primary-700 rounded-lg hover:bg-primary-50 transition no-underline font-medium">
+              {data.secondaryButtonText}
+            </a>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
 // Slideshow Hero Renderer (Editor Preview)
 function SlideshowHeroRenderer({ data }: { data: SlideshowHeroComponent['data'] }) {
   const [idx, setIdx] = React.useState(0)
@@ -2730,6 +3058,12 @@ function ComponentProperties({ component, onUpdate }: { component: PageComponent
       return <FAQProperties data={component.data as FAQComponent['data']} onUpdate={onUpdate} />
     case 'pricingTable':
       return <PricingTableProperties data={component.data as PricingTableComponent['data']} onUpdate={onUpdate} />
+      case 'teamMembers':
+        return <TeamMembersProperties data={component.data as TeamMembersComponent['data']} onUpdate={onUpdate} />
+      case 'socialFeed':
+        return <SocialFeedProperties data={component.data as SocialFeedComponent['data']} onUpdate={onUpdate} />
+      case 'dualCTA':
+        return <DualCTAProperties data={component.data as DualCTAComponent['data']} onUpdate={onUpdate} />
     case 'contactForm':
       return <ContactFormProperties data={component.data as ContactFormComponent['data']} onUpdate={onUpdate} />
     case 'newsletterSignup':
@@ -4542,6 +4876,7 @@ function StatsProperties({ data, onUpdate }: { data: StatsComponent['data']; onU
             <option value="default">Default</option>
             <option value="cards">Cards</option>
             <option value="minimal">Minimal</option>
+              <option value="inline-badges">Inline Badges</option>
           </select>
         </div>
       </div>
