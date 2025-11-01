@@ -450,10 +450,16 @@ export function TestimonialsBlock({ testimonialsB64, animation = 'fade-in' }: { 
 }
 
 // Gallery highlights, fetches featured images by categories (if provided)
-export async function GalleryHighlightsBlock({ categoriesB64, featuredOnly = 'true', limit = '6', animation = 'fade-in' }: {
+export async function GalleryHighlightsBlock({ categoriesB64, collectionsB64, tagsB64, group, featuredOnly = 'true', limit = '6', limitPerCategory, sortBy = 'display_order', sortDir = 'asc', animation = 'fade-in' }: {
   categoriesB64?: string,
+  collectionsB64?: string,
+  tagsB64?: string,
+  group?: string,
   featuredOnly?: string | boolean,
   limit?: string | number,
+  limitPerCategory?: string | number,
+  sortBy?: 'display_order' | 'created_at' | string,
+  sortDir?: 'asc' | 'desc' | string,
   animation?: string
 }) {
   // Dynamic import to avoid making this entire module depend on Supabase at compile time
@@ -462,18 +468,52 @@ export async function GalleryHighlightsBlock({ categoriesB64, featuredOnly = 'tr
   const supabase = createServerComponentClient({ cookies })
 
   let categories: string[] = []
+  let collections: string[] = []
+  let tags: string[] = []
   if (categoriesB64) {
     try { categories = JSON.parse(Buffer.from(categoriesB64, 'base64').toString('utf-8') || '[]') } catch {}
   }
-  let query = supabase.from('gallery_images').select('*')
-  if (categories.length) {
-    // @ts-ignore supabase-js supports .in
-    query = query.in('category', categories)
+  if (collectionsB64) {
+    try { collections = JSON.parse(Buffer.from(collectionsB64, 'base64').toString('utf-8') || '[]') } catch {}
   }
-  if (String(featuredOnly) !== 'false') {
-    query = query.eq('featured', true)
+  if (tagsB64) {
+    try { tags = JSON.parse(Buffer.from(tagsB64, 'base64').toString('utf-8') || '[]') } catch {}
   }
-  const { data } = await query.order('display_order', { ascending: true }).limit(Number(limit || 6))
+
+  const asc = String(sortDir).toLowerCase() !== 'desc'
+  const sortColumn = (sortBy === 'created_at') ? 'created_at' : 'display_order'
+
+  const fetchBatch = async (extraFilters: (q: any) => any, lim?: number) => {
+    let q: any = supabase.from('gallery_images').select('*')
+    if (categories.length) { q = q.in('category', categories) }
+    if (collections.length) { q = q.in('collection', collections) }
+    if (tags.length) { /* supabase: overlaps for any tag match */ q = q.overlaps('tags', tags) }
+    if (group) { q = q.eq('highlight_group', group) }
+    if (String(featuredOnly) !== 'false') { q = q.eq('featured', true) }
+    q = extraFilters(q)
+    q = q.order(sortColumn, { ascending: asc })
+    if (lim && lim > 0) q = q.limit(lim)
+    const { data } = await q
+    return data || []
+  }
+
+  let data: any[] = []
+  const perCat = Number(limitPerCategory || 0)
+  const totalLimit = Number(limit || 6)
+
+  if (perCat > 0 && categories.length > 0) {
+    // Fetch per category and merge
+    for (const cat of categories) {
+      const rows = await fetchBatch((q) => q.eq('category', cat), perCat)
+      data.push(...rows)
+    }
+    // If overall limit set, trim
+    if (data.length > totalLimit) {
+      data = data.slice(0, totalLimit)
+    }
+  } else {
+    data = await fetchBatch((q) => q, totalLimit)
+  }
 
   return (
     <div className={`p-6 md:p-10 ${animation === 'fade-in' ? 'animate-fadeIn' : animation === 'slide-up' ? 'animate-slideUp' : animation === 'zoom' ? 'animate-zoom' : ''}`}>

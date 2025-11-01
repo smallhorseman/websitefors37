@@ -144,6 +144,23 @@ interface WidgetEmbedComponent extends BaseComponent {
   }
 }
 
+interface GalleryHighlightsComponent extends BaseComponent {
+  type: 'galleryHighlights'
+  data: {
+    categories: string[]
+    featuredOnly?: boolean
+    limit?: number
+    // New organizing fields
+    collections?: string[]
+    tags?: string[]
+    group?: string
+    sortBy?: 'display_order' | 'created_at'
+    sortDir?: 'asc' | 'desc'
+    limitPerCategory?: number
+    animation?: 'none' | 'fade-in' | 'slide-up' | 'zoom'
+  }
+}
+
 interface BadgesComponent extends BaseComponent {
   type: 'badges'
   data: {
@@ -433,9 +450,15 @@ export default function VisualEditor({ initialComponents = [], onSave, onChange,
         }
       case 'galleryHighlights':
         return {
-          categories: ['professional portraits','creative portraits','product photography','brand photography'],
+          categories: [],
           featuredOnly: true,
           limit: 6,
+          collections: [],
+          tags: [],
+          group: '',
+          sortBy: 'display_order',
+          sortDir: 'asc',
+          limitPerCategory: 0,
           animation: 'fade-in'
         }
       case 'widgetEmbed':
@@ -2393,6 +2416,13 @@ function GalleryHighlightsRenderer({ data }: { data: GalleryHighlightsComponent[
           <div><span className="font-medium">Categories:</span> {data.categories?.length ? data.categories.join(', ') : 'All'}</div>
           <div><span className="font-medium">Featured only:</span> {String(data.featuredOnly ?? true)}</div>
           <div><span className="font-medium">Limit:</span> {data.limit || 6}</div>
+          {data.collections && <div><span className="font-medium">Collections:</span> {data.collections.length ? data.collections.join(', ') : 'Any'}</div>}
+          {data.tags && <div><span className="font-medium">Tags:</span> {data.tags.length ? data.tags.join(', ') : 'Any'}</div>}
+          {typeof data.limitPerCategory === 'number' && data.limitPerCategory > 0 && (
+            <div><span className="font-medium">Limit per category:</span> {data.limitPerCategory}</div>
+          )}
+          <div><span className="font-medium">Group:</span> {data.group || '—'}</div>
+          <div><span className="font-medium">Sort:</span> {(data.sortBy || 'display_order')} · {(data.sortDir || 'asc')}</div>
         </div>
       </div>
     </div>
@@ -2544,6 +2574,8 @@ function ComponentProperties({ component, onUpdate }: { component: PageComponent
       return <CTABannerProperties data={component.data as CTABannerComponent['data']} onUpdate={onUpdate} />
     case 'iconFeatures':
       return <IconFeaturesProperties data={component.data as IconFeaturesComponent['data']} onUpdate={onUpdate} />
+    case 'galleryHighlights':
+      return <GalleryHighlightsProperties data={component.data as GalleryHighlightsComponent['data']} onUpdate={onUpdate} />
     default:
       return null
   }
@@ -3110,6 +3142,72 @@ function PricingTableProperties({ data, onUpdate }: { data: PricingTableComponen
           ))}
           {!data.plans?.length && <p className="text-sm text-gray-500">No plans yet. Add your first plan above.</p>}
         </div>
+      </div>
+    </div>
+  )
+}
+
+// Gallery Highlights Properties
+function GalleryHighlightsProperties({ data, onUpdate }: { data: GalleryHighlightsComponent['data']; onUpdate: (data: any) => void }) {
+  const parseList = (s: string) => s.split(',').map(v => v.trim()).filter(Boolean)
+  return (
+    <div className="space-y-4">
+      <div>
+        <label className="block text-sm font-medium mb-1">Categories (comma-separated)</label>
+        <input type="text" value={(data.categories || []).join(', ')} onChange={(e)=>onUpdate({ categories: parseList(e.target.value) })} className="w-full border rounded px-3 py-2" placeholder="wedding, portrait, event" />
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div className="flex items-center gap-2">
+          <input id="gh-featured" type="checkbox" checked={data.featuredOnly ?? true} onChange={(e)=>onUpdate({ featuredOnly: e.target.checked })} />
+          <label htmlFor="gh-featured" className="text-sm">Featured only</label>
+        </div>
+        <div>
+          <label className="block text-sm font-medium mb-1">Total Limit</label>
+          <input type="number" min={1} value={Number(data.limit || 6)} onChange={(e)=>onUpdate({ limit: Number(e.target.value) })} className="w-full border rounded px-3 py-2" />
+        </div>
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="block text-sm font-medium mb-1">Limit per Category (optional)</label>
+          <input type="number" min={0} value={Number(data.limitPerCategory || 0)} onChange={(e)=>onUpdate({ limitPerCategory: Number(e.target.value) })} className="w-full border rounded px-3 py-2" />
+        </div>
+        <div>
+          <label className="block text-sm font-medium mb-1">Group</label>
+          <input type="text" value={data.group || ''} onChange={(e)=>onUpdate({ group: e.target.value })} className="w-full border rounded px-3 py-2" placeholder="e.g., homepage, fall-campaign" />
+        </div>
+      </div>
+      <div>
+        <label className="block text-sm font-medium mb-1">Collections (comma-separated)</label>
+        <input type="text" value={(data.collections || []).join(', ')} onChange={(e)=>onUpdate({ collections: parseList(e.target.value) })} className="w-full border rounded px-3 py-2" placeholder="studio, on-location, products" />
+      </div>
+      <div>
+        <label className="block text-sm font-medium mb-1">Tags (comma-separated)</label>
+        <input type="text" value={(data.tags || []).join(', ')} onChange={(e)=>onUpdate({ tags: parseList(e.target.value) })} className="w-full border rounded px-3 py-2" placeholder="best, hero, cover, bts" />
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="block text-sm font-medium mb-1">Sort By</label>
+          <select value={data.sortBy || 'display_order'} onChange={(e)=>onUpdate({ sortBy: e.target.value })} className="w-full border rounded px-3 py-2">
+            <option value="display_order">Display Order</option>
+            <option value="created_at">Created At</option>
+          </select>
+        </div>
+        <div>
+          <label className="block text-sm font-medium mb-1">Sort Direction</label>
+          <select value={data.sortDir || 'asc'} onChange={(e)=>onUpdate({ sortDir: e.target.value })} className="w-full border rounded px-3 py-2">
+            <option value="asc">Ascending</option>
+            <option value="desc">Descending</option>
+          </select>
+        </div>
+      </div>
+      <div>
+        <label className="block text-sm font-medium mb-1">Animation</label>
+        <select value={data.animation || 'fade-in'} onChange={(e)=>onUpdate({ animation: e.target.value })} className="w-full border rounded px-3 py-2">
+          <option value="none">None</option>
+          <option value="fade-in">Fade In</option>
+          <option value="slide-up">Slide Up</option>
+          <option value="zoom">Zoom</option>
+        </select>
       </div>
     </div>
   )

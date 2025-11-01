@@ -110,6 +110,27 @@ export default function PageBuilderPage() {
     const comps: any[] = []
     const lines = mdx.split(/\n+/).map(l => l.trim()).filter(Boolean)
     for (const line of lines) {
+      if (line.startsWith('<GalleryHighlightsBlock')) {
+        const a = parseAttrs(line)
+        let categories: any[] = []
+        let collections: any[] = []
+        let tags: any[] = []
+        try { const json = a.categoriesB64 ? decodeURIComponent(escape(atob(a.categoriesB64))) : '[]'; categories = JSON.parse(json || '[]') } catch { categories = [] }
+        try { const json = a.collectionsB64 ? decodeURIComponent(escape(atob(a.collectionsB64))) : '[]'; collections = JSON.parse(json || '[]') } catch { collections = [] }
+        try { const json = a.tagsB64 ? decodeURIComponent(escape(atob(a.tagsB64))) : '[]'; tags = JSON.parse(json || '[]') } catch { tags = [] }
+        comps.push({ id: `component-${Date.now()}-${comps.length}`, type: 'galleryHighlights', data: {
+          categories: categories as string[],
+          collections: collections as string[],
+          tags: tags as string[],
+          group: a.group || '',
+          featuredOnly: String(a.featuredOnly) !== 'false',
+          limit: Number(a.limit || 6),
+          limitPerCategory: Number(a.limitPerCategory || 0) || undefined,
+          sortBy: (a.sortBy as any) || 'display_order',
+          sortDir: (a.sortDir as any) || 'asc',
+          animation: a.animation || 'fade-in'
+        }})
+      }
       if (line.startsWith('<LogoBlock')) {
         const a = parseAttrs(line)
         comps.push({
@@ -538,7 +559,9 @@ export default function PageBuilderPage() {
         }
         case 'galleryHighlights': {
           const categoriesB64 = toB64(JSON.stringify(d.categories || []))
-          md.push(`<GalleryHighlightsBlock categoriesB64="${categoriesB64}" featuredOnly="${(d.featuredOnly ?? true) ? 'true' : 'false'}" limit="${Number(d.limit || 6)}" animation="${escapeAttr(d.animation || 'fade-in')}" />`)
+          const collectionsB64 = toB64(JSON.stringify(d.collections || []))
+          const tagsB64 = toB64(JSON.stringify(d.tags || []))
+          md.push(`<GalleryHighlightsBlock categoriesB64="${categoriesB64}" collectionsB64="${collectionsB64}" tagsB64="${tagsB64}" group="${escapeAttr(d.group || '')}" featuredOnly="${(d.featuredOnly ?? true) ? 'true' : 'false'}" limit="${Number(d.limit || 6)}" limitPerCategory="${Number(d.limitPerCategory || 0)}" sortBy="${escapeAttr(d.sortBy || 'display_order')}" sortDir="${escapeAttr(d.sortDir || 'asc')}" animation="${escapeAttr(d.animation || 'fade-in')}" />`)
           break
         }
         case 'badges': {
