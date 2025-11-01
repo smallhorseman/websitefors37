@@ -226,6 +226,79 @@ export function SeoFooterBlock({ contentB64, includeSchema = 'true' }: { content
   )
 }
 
+// Badges block
+export function BadgesBlock({ badgesB64, alignment = 'center', size = 'md', style = 'pill', animation = 'fade-in' }: {
+  badgesB64?: string
+  alignment?: 'left' | 'center' | 'right' | string
+  size?: 'sm' | 'md' | 'lg' | string
+  style?: 'solid' | 'outline' | 'pill' | string
+  animation?: string
+}) {
+  const json = badgesB64 ? Buffer.from(badgesB64, 'base64').toString('utf-8') : '[]'
+  let badges: Array<{ icon: 'star'|'thumbtack'|'shield'|'camera'|'check'|'yelp'|'google'; label: string; sublabel?: string; href?: string; color?: string }> = []
+  try { badges = JSON.parse(json || '[]') } catch { badges = [] }
+
+  const sizeClasses: Record<string,string> = { sm: 'text-xs px-2 py-1', md: 'text-sm px-3 py-1.5', lg: 'text-base px-4 py-2' }
+  const alignClass = alignment === 'left' ? 'justify-start' : alignment === 'right' ? 'justify-end' : 'justify-center'
+  const badgeBase = style === 'solid' ? 'bg-primary-600 text-white' : style === 'outline' ? 'border border-gray-300 text-gray-800 bg-white' : 'bg-white/90 border border-gray-200 text-gray-800 rounded-full'
+  const animClass = animation === 'fade-in' ? 'animate-fadeIn' : animation === 'slide-up' ? 'animate-slideUp' : animation === 'zoom' ? 'animate-zoom' : ''
+
+  const Icon = ({ name, className }: { name: string, className?: string }) => {
+    const cls = className || 'h-4 w-4'
+    switch (name) {
+      case 'star':
+      case 'yelp':
+      case 'google':
+        return (
+          <svg className={cls} viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.802 2.036a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.802-2.036a1 1 0 00-1.175 0l-2.802 2.036c-.785.57-1.84-.197-1.54-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81H7.03a1 1 0 00.95-.69l1.07-3.292z" /></svg>
+        )
+      case 'thumbtack':
+        return (
+          <svg className={cls} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M14 2l8 8-5.5 1.5L10.5 17 7 13.5l5.5-6.5L14 2z" /></svg>
+        )
+      case 'shield':
+        return (
+          <svg className={cls} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l7 3v6c0 5.55-3.84 10.74-7 12-3.16-1.26-7-6.45-7-12V5l7-3z" /><path d="M10 12l2 2 4-4" stroke="currentColor" strokeWidth="2" fill="none" /></svg>
+        )
+      case 'camera':
+        return (
+          <svg className={cls} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M9 3l2 2h2l2-2h3a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h4z" /><circle cx="12" cy="13" r="4" fill="currentColor" /></svg>
+        )
+      case 'check':
+        return (
+          <svg className={cls} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M9 16.2l-3.5-3.5L4 14.2l5 5 12-12-1.5-1.5z" /></svg>
+        )
+      default:
+        return null
+    }
+  }
+
+  return (
+    <div className={`p-6 md:p-8 ${animClass}`}>
+      <div className={`flex flex-wrap gap-2 ${alignClass}`}>
+        {badges.map((b, i) => {
+          const styleColor = b.color && b.color.startsWith('#') ? { color: b.color } as React.CSSProperties : undefined
+          const colorClass = b.color && b.color.startsWith('text-') ? b.color : ''
+          const content = (
+            <span className={`inline-flex items-center gap-2 ${sizeClasses[size || 'md']} ${badgeBase}`}>
+              <span className={`inline-flex items-center ${colorClass}`} style={styleColor}>
+                <Icon name={b.icon} />
+              </span>
+              <span className="font-medium">{b.label}</span>
+              {b.sublabel && <span className="text-xs opacity-80">{b.sublabel}</span>}
+            </span>
+          )
+          return b.href ? (
+            <a key={i} href={b.href} className="no-underline" target="_blank" rel="noopener noreferrer">{content}</a>
+          ) : (
+            <span key={i}>{content}</span>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
 // Slideshow hero with multiple images and interval
 export function SlideshowHeroBlock({
   slidesB64,
@@ -371,6 +444,7 @@ export const MDXBuilderComponents = {
   ColumnsBlock,
   SpacerBlock,
   SeoFooterBlock,
+  BadgesBlock,
   SlideshowHeroBlock,
   TestimonialsBlock,
   GalleryHighlightsBlock,

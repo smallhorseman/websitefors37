@@ -10,7 +10,7 @@ import Image from 'next/image'
 import ImageUploader from './ImageUploader'
 
 // Component types
-type ComponentType = 'hero' | 'text' | 'image' | 'button' | 'columns' | 'spacer' | 'seoFooter' | 'slideshowHero' | 'testimonials' | 'galleryHighlights' | 'widgetEmbed'
+type ComponentType = 'hero' | 'text' | 'image' | 'button' | 'columns' | 'spacer' | 'seoFooter' | 'slideshowHero' | 'testimonials' | 'galleryHighlights' | 'widgetEmbed' | 'badges'
 
 interface BaseComponent {
   id: string
@@ -142,7 +142,24 @@ interface WidgetEmbedComponent extends BaseComponent {
   }
 }
 
-type PageComponent = HeroComponent | TextComponent | ImageComponent | ButtonComponent | ColumnsComponent | SpacerComponent | SEOFooterComponent | SlideshowHeroComponent | TestimonialsComponent | GalleryHighlightsComponent | WidgetEmbedComponent
+interface BadgesComponent extends BaseComponent {
+  type: 'badges'
+  data: {
+    badges: Array<{
+      icon: 'star' | 'thumbtack' | 'shield' | 'camera' | 'check' | 'yelp' | 'google'
+      label: string
+      sublabel?: string
+      href?: string
+      color?: string
+    }>
+    alignment: 'left' | 'center' | 'right'
+    size: 'sm' | 'md' | 'lg'
+    style: 'solid' | 'outline' | 'pill'
+    animation?: 'none' | 'fade-in' | 'slide-up' | 'zoom'
+  }
+}
+
+type PageComponent = HeroComponent | TextComponent | ImageComponent | ButtonComponent | ColumnsComponent | SpacerComponent | SEOFooterComponent | SlideshowHeroComponent | TestimonialsComponent | GalleryHighlightsComponent | WidgetEmbedComponent | BadgesComponent
 
 interface VisualEditorProps {
   initialComponents?: PageComponent[]
@@ -287,6 +304,18 @@ export default function VisualEditor({ initialComponents = [], onSave, onChange,
           html: '<div id="tt-dynamic"></div>',
           scriptSrcs: ['https://www.thumbtack.com/profile/widgets/scripts/?service_pk=YOUR_SERVICE_PK&widget_id=review&type=one'],
           styleReset: true
+        }
+      case 'badges':
+        return {
+          badges: [
+            { icon: 'yelp', label: '5.0 • Yelp Reviews', sublabel: '★★★★★', color: '#d32323', href: 'https://www.yelp.com' },
+            { icon: 'thumbtack', label: 'Thumbtack Top Pro', sublabel: 'Highly Rated', color: '#15a6ff', href: 'https://www.thumbtack.com' },
+            { icon: 'shield', label: 'Certified Professional Photographer', sublabel: 'Studio 37', color: '#0ea5e9' }
+          ],
+          alignment: 'center',
+          size: 'md',
+          style: 'pill',
+          animation: 'fade-in'
         }
       default:
         return {}
@@ -445,6 +474,14 @@ export default function VisualEditor({ initialComponents = [], onSave, onChange,
               <Layout className="h-5 w-5" />
               <span>Embed Widget</span>
             </button>
+            
+              <button
+                onClick={() => addComponent('badges')}
+                className="w-full flex items-center gap-2 p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition"
+              >
+                <Layout className="h-5 w-5" />
+                <span>Badges</span>
+              </button>
             
             <button
               onClick={() => addComponent('spacer')}
@@ -625,6 +662,8 @@ function ComponentRenderer({ component }: { component: PageComponent }) {
       return <GalleryHighlightsRenderer data={(component as any).data} />
     case 'widgetEmbed':
       return <WidgetEmbedRenderer data={(component as any).data} />
+    case 'badges':
+      return <BadgesRenderer data={(component as any).data} />
     case 'spacer':
       return <SpacerRenderer data={component.data} />
     case 'seoFooter':
@@ -1172,6 +1211,93 @@ function SEOFooterRenderer({ data }: { data: SEOFooterComponent['data'] }) {
   )
 }
 
+// Badges Renderer (Editor Preview)
+function BadgesRenderer({ data }: { data: BadgesComponent['data'] }) {
+  const sizeClasses = {
+    sm: 'text-xs px-2 py-1',
+    md: 'text-sm px-3 py-1.5',
+    lg: 'text-base px-4 py-2'
+  }
+  const containerAlign = {
+    left: 'justify-start',
+    center: 'justify-center',
+    right: 'justify-end'
+  }
+
+  const Icon = ({ name, className }: { name: BadgesComponent['data']['badges'][number]['icon']; className?: string }) => {
+    const cls = className || 'h-4 w-4'
+    switch (name) {
+      case 'star':
+      case 'yelp':
+      case 'google':
+        return (
+          <svg className={cls} viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.802 2.036a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.802-2.036a1 1 0 00-1.175 0l-2.802 2.036c-.785.57-1.84-.197-1.54-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81H7.03a1 1 0 00.95-.69l1.07-3.292z" />
+          </svg>
+        )
+      case 'thumbtack':
+        return (
+          <svg className={cls} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M14 2l8 8-5.5 1.5L10.5 17 7 13.5l5.5-6.5L14 2z" />
+          </svg>
+        )
+      case 'shield':
+        return (
+          <svg className={cls} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M12 2l7 3v6c0 5.55-3.84 10.74-7 12-3.16-1.26-7-6.45-7-12V5l7-3z" />
+            <path d="M10 12l2 2 4-4" stroke="currentColor" strokeWidth="2" fill="none" />
+          </svg>
+        )
+      case 'camera':
+        return (
+          <svg className={cls} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M9 3l2 2h2l2-2h3a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h4z" />
+            <circle cx="12" cy="13" r="4" fill="currentColor" />
+          </svg>
+        )
+      case 'check':
+        return (
+          <svg className={cls} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M9 16.2l-3.5-3.5L4 14.2l5 5 12-12-1.5-1.5z" />
+          </svg>
+        )
+      default:
+        return null
+    }
+  }
+
+  const badgeBase = data.style === 'solid'
+    ? 'bg-primary-600 text-white'
+    : data.style === 'outline'
+    ? 'border border-gray-300 text-gray-800 bg-white'
+    : 'bg-white/90 border border-gray-200 text-gray-800 rounded-full'
+
+  return (
+    <div className={`p-6 ${data.animation === 'fade-in' ? 'animate-fadeIn' : data.animation === 'slide-up' ? 'animate-slideUp' : data.animation === 'zoom' ? 'animate-zoom' : ''}`}>
+      <div className={`flex flex-wrap gap-2 ${containerAlign[data.alignment || 'center']}`}>
+        {(data.badges || []).map((b, i) => {
+          const styleColor = b.color && b.color.startsWith('#') ? { color: b.color } as React.CSSProperties : undefined
+          const colorClass = b.color && b.color.startsWith('text-') ? b.color : ''
+          const content = (
+            <span className={`inline-flex items-center gap-2 ${sizeClasses[data.size || 'md']} ${badgeBase}`}>
+              <span className={`inline-flex items-center ${colorClass}`} style={styleColor}>
+                <Icon name={b.icon} />
+              </span>
+              <span className="font-medium">{b.label}</span>
+              {b.sublabel && <span className="text-xs opacity-80">{b.sublabel}</span>}
+            </span>
+          )
+          return b.href ? (
+            <a key={i} href={b.href} className="no-underline" target="_blank" rel="noopener noreferrer">{content}</a>
+          ) : (
+            <span key={i}>{content}</span>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
 // Slideshow Hero Renderer (Editor Preview)
 function SlideshowHeroRenderer({ data }: { data: SlideshowHeroComponent['data'] }) {
   const [idx, setIdx] = React.useState(0)
@@ -1294,6 +1420,8 @@ function ComponentProperties({ component, onUpdate }: { component: PageComponent
       return <GalleryHighlightsProperties data={component.data as GalleryHighlightsComponent['data']} onUpdate={onUpdate} />
     case 'widgetEmbed':
       return <WidgetEmbedProperties data={component.data as WidgetEmbedComponent['data']} onUpdate={onUpdate} />
+    case 'badges':
+      return <BadgesProperties data={component.data as BadgesComponent['data']} onUpdate={onUpdate} />
     default:
       return null
   }
@@ -2485,6 +2613,134 @@ function WidgetEmbedProperties({ data, onUpdate }: { data: WidgetEmbedComponent[
           Tip: Paste the Thumbtack script URL like <code>https://www.thumbtack.com/profile/widgets/scripts/?service_pk=YOUR_SERVICE_PK&widget_id=review&type=one</code>. Use minimal HTML like <code>&lt;div id=\"tt-dynamic\"&gt;&lt;/div&gt;</code>. The style reset here fixes the oversized fonts/colors in your screenshot.
         </div>
       )}
+    </div>
+  )
+}
+
+function BadgesProperties({ data, onUpdate }: { data: BadgesComponent['data']; onUpdate: (data: any) => void }) {
+  const addBadge = () => {
+    const next = { icon: 'star' as const, label: 'New Badge', sublabel: '', color: '', href: '' }
+    onUpdate({ badges: [...(data.badges || []), next] })
+  }
+  const removeBadge = (idx: number) => {
+    onUpdate({ badges: (data.badges || []).filter((_, i) => i !== idx) })
+  }
+  const updateBadge = (idx: number, field: keyof BadgesComponent['data']['badges'][number], value: string) => {
+    const arr = [...(data.badges || [])]
+    //@ts-ignore
+    arr[idx] = { ...arr[idx], [field]: value }
+    onUpdate({ badges: arr })
+  }
+
+  const applyPreset = (name: 'yelp' | 'thumbtack' | 'google' | 'certified') => {
+    let preset: BadgesComponent['data']['badges'] = []
+    if (name === 'yelp') {
+      preset = [{ icon: 'yelp', label: '5.0 • Yelp Reviews', sublabel: '★★★★★', color: '#d32323', href: 'https://www.yelp.com' }]
+    } else if (name === 'thumbtack') {
+      preset = [{ icon: 'thumbtack', label: 'Thumbtack Top Pro', sublabel: 'Highly Rated', color: '#15a6ff', href: 'https://www.thumbtack.com' }]
+    } else if (name === 'google') {
+      preset = [{ icon: 'google', label: '5.0 • Google Reviews', sublabel: '★★★★★', color: '#34a853', href: 'https://www.google.com/search' }]
+    } else if (name === 'certified') {
+      preset = [{ icon: 'shield', label: 'Certified Professional Photographer', sublabel: 'Studio 37', color: '#0ea5e9' }]
+    }
+    onUpdate({ badges: [...(data.badges || []), ...preset] })
+  }
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <label className="block text-sm font-medium mb-1">Alignment</label>
+        <select value={data.alignment || 'center'} onChange={(e)=>onUpdate({ alignment: e.target.value })} className="w-full border rounded px-3 py-2">
+          <option value="left">Left</option>
+          <option value="center">Center</option>
+          <option value="right">Right</option>
+        </select>
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="block text-sm font-medium mb-1">Size</label>
+          <select value={data.size || 'md'} onChange={(e)=>onUpdate({ size: e.target.value })} className="w-full border rounded px-3 py-2">
+            <option value="sm">Small</option>
+            <option value="md">Medium</option>
+            <option value="lg">Large</option>
+          </select>
+        </div>
+        <div>
+          <label className="block text-sm font-medium mb-1">Style</label>
+          <select value={data.style || 'pill'} onChange={(e)=>onUpdate({ style: e.target.value })} className="w-full border rounded px-3 py-2">
+            <option value="pill">Pill</option>
+            <option value="solid">Solid</option>
+            <option value="outline">Outline</option>
+          </select>
+        </div>
+      </div>
+      <div>
+        <label className="block text-sm font-medium mb-1">Animation</label>
+        <select value={data.animation || 'fade-in'} onChange={(e)=>onUpdate({ animation: e.target.value })} className="w-full border rounded px-3 py-2">
+          <option value="none">None</option>
+          <option value="fade-in">Fade In</option>
+          <option value="slide-up">Slide Up</option>
+          <option value="zoom">Zoom</option>
+        </select>
+      </div>
+
+      <div className="border-t pt-4">
+        <div className="flex items-center justify-between mb-2">
+          <label className="block text-sm font-medium">Badges</label>
+          <button type="button" onClick={addBadge} className="px-3 py-1.5 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">Add Badge</button>
+        </div>
+        <div className="space-y-3">
+          {(data.badges || []).map((b, idx) => (
+            <div key={idx} className="border rounded p-3 bg-gray-50 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-gray-600">Badge #{idx+1}</span>
+                <button type="button" onClick={()=>removeBadge(idx)} className="text-red-600 text-xs hover:underline">Remove</button>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block text-xs font-medium mb-1">Icon</label>
+                  <select value={b.icon} onChange={(e)=>updateBadge(idx,'icon', e.target.value)} className="w-full border rounded px-2 py-1 text-sm">
+                    <option value="star">Star</option>
+                    <option value="yelp">Yelp (star)</option>
+                    <option value="google">Google (star)</option>
+                    <option value="thumbtack">Thumbtack</option>
+                    <option value="shield">Shield</option>
+                    <option value="camera">Camera</option>
+                    <option value="check">Check</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium mb-1">Color (hex or CSS)</label>
+                  <input type="text" value={b.color || ''} onChange={(e)=>updateBadge(idx,'color', e.target.value)} className="w-full border rounded px-2 py-1 text-sm" placeholder="#d32323 or text-red-600" />
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-medium mb-1">Label</label>
+                <input type="text" value={b.label || ''} onChange={(e)=>updateBadge(idx,'label', e.target.value)} className="w-full border rounded px-2 py-1 text-sm" placeholder="Badge label" />
+              </div>
+              <div>
+                <label className="block text-xs font-medium mb-1">Sublabel (optional)</label>
+                <input type="text" value={b.sublabel || ''} onChange={(e)=>updateBadge(idx,'sublabel', e.target.value)} className="w-full border rounded px-2 py-1 text-sm" placeholder="e.g., ★★★★★ or Highly Rated" />
+              </div>
+              <div>
+                <label className="block text-xs font-medium mb-1">Link (optional)</label>
+                <input type="url" value={b.href || ''} onChange={(e)=>updateBadge(idx,'href', e.target.value)} className="w-full border rounded px-2 py-1 text-sm" placeholder="https://..." />
+              </div>
+            </div>
+          ))}
+          {!data.badges?.length && <p className="text-sm text-gray-500">No badges yet. Use presets below or add your first badge.</p>}
+        </div>
+      </div>
+
+      <div className="border-t pt-4">
+        <label className="block text-sm font-medium mb-2">Quick Presets</label>
+        <div className="flex flex-wrap gap-2">
+          <button type="button" onClick={()=>applyPreset('yelp')} className="px-3 py-1.5 text-sm border rounded hover:bg-gray-50">Add Yelp 5-Star</button>
+          <button type="button" onClick={()=>applyPreset('google')} className="px-3 py-1.5 text-sm border rounded hover:bg-gray-50">Add Google 5-Star</button>
+          <button type="button" onClick={()=>applyPreset('thumbtack')} className="px-3 py-1.5 text-sm border rounded hover:bg-gray-50">Add Thumbtack Top Pro</button>
+          <button type="button" onClick={()=>applyPreset('certified')} className="px-3 py-1.5 text-sm border rounded hover:bg-gray-50">Add Certified Photographer</button>
+        </div>
+      </div>
     </div>
   )
 }

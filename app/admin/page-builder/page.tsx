@@ -226,6 +226,20 @@ export default function PageBuilderPage() {
           limit: Number(a.limit || 6),
           animation: (a.animation as any) || 'fade-in'
         }})
+      } else if (line.startsWith('<BadgesBlock')) {
+        const a = parseAttrs(line)
+        let badges: any[] = []
+        try {
+          const json = a.badgesB64 ? decodeURIComponent(escape(atob(a.badgesB64))) : '[]'
+          badges = JSON.parse(json || '[]')
+        } catch { badges = [] }
+        comps.push({ id: `component-${Date.now()}-${comps.length}`, type: 'badges', data: {
+          badges: badges.map((b:any)=>({ icon: b.icon || 'star', label: b.label || '', sublabel: b.sublabel || '', href: b.href || '', color: b.color || '' })),
+          alignment: (a.alignment as any) || 'center',
+          size: (a.size as any) || 'md',
+          style: (a.style as any) || 'pill',
+          animation: (a.animation as any) || 'fade-in'
+        }})
       } else if (line.startsWith('<WidgetEmbedBlock')) {
         const a = parseAttrs(line)
         let html = ''
@@ -375,6 +389,11 @@ export default function PageBuilderPage() {
         case 'galleryHighlights': {
           const categoriesB64 = toB64(JSON.stringify(d.categories || []))
           md.push(`<GalleryHighlightsBlock categoriesB64="${categoriesB64}" featuredOnly="${(d.featuredOnly ?? true) ? 'true' : 'false'}" limit="${Number(d.limit || 6)}" animation="${escapeAttr(d.animation || 'fade-in')}" />`)
+          break
+        }
+        case 'badges': {
+          const badgesB64 = toB64(JSON.stringify(d.badges || []))
+          md.push(`<BadgesBlock badgesB64="${badgesB64}" alignment="${escapeAttr(d.alignment || 'center')}" size="${escapeAttr(d.size || 'md')}" style="${escapeAttr(d.style || 'pill')}" animation="${escapeAttr(d.animation || 'fade-in')}" />`)
           break
         }
         case 'widgetEmbed': {
