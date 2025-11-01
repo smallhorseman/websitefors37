@@ -15,10 +15,15 @@ import {
   Eye,
   Activity,
   Clock,
-  Target
+  Target,
+  ArrowUpRight,
+  ArrowDownRight,
+  Sparkles,
+  BarChart3
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import ProgressBar from '@/components/ProgressBar'
+import Link from 'next/link'
 
 interface DashboardStats {
   totalLeads: number
@@ -31,6 +36,10 @@ interface DashboardStats {
   completedSessions: number
   galleryImages: number
   websiteViews: number
+  // Trend data (comparing to last period)
+  leadsTrend?: number
+  revenueTrend?: number
+  conversionTrend?: number
 }
 
 interface RecentActivity {
@@ -40,6 +49,22 @@ interface RecentActivity {
   description: string
   timestamp: string
   priority?: 'low' | 'medium' | 'high'
+}
+
+// Trend indicator component
+const TrendIndicator = ({ value, suffix = '%' }: { value?: number; suffix?: string }) => {
+  if (value === undefined || value === 0) return null
+  
+  const isPositive = value > 0
+  const Icon = isPositive ? ArrowUpRight : ArrowDownRight
+  const colorClass = isPositive ? 'text-green-600' : 'text-red-600'
+  
+  return (
+    <span className={`text-xs flex items-center gap-1 ${colorClass}`}>
+      <Icon className="h-3 w-3" />
+      {Math.abs(value).toFixed(1)}{suffix}
+    </span>
+  )
 }
 
 export default function AdminDashboard() {
@@ -53,11 +78,15 @@ export default function AdminDashboard() {
     activeBookings: 0,
     completedSessions: 0,
     galleryImages: 0,
-    websiteViews: 0
+    websiteViews: 0,
+    leadsTrend: 0,
+    revenueTrend: 0,
+    conversionTrend: 0
   })
   const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([])
   const [loading, setLoading] = useState(true)
   const [user, setUser] = useState<any>(null)
+  const [timeRange, setTimeRange] = useState<'7d' | '30d' | '90d'>('30d')
 
   useEffect(() => {
     fetchDashboardData()
