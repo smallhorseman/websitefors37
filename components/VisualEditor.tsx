@@ -4271,6 +4271,10 @@ function ServicesGridProperties({ data, onUpdate }: { data: ServicesGridComponen
                 <textarea value={s.description || ''} onChange={(e)=>updateService(idx,'description', e.target.value)} className="w-full border rounded px-2 py-1 text-sm" rows={2} placeholder="Service description" />
               </div>
               <div>
+                <label className="block text-xs font-medium mb-1">Link (optional)</label>
+                <input type="text" value={s.link || ''} onChange={(e)=>updateService(idx,'link', e.target.value)} className="w-full border rounded px-2 py-1 text-sm" placeholder="/services/wedding-photography" />
+              </div>
+              <div>
                 <div className="flex items-center justify-between mb-1">
                   <label className="text-xs font-medium">Features</label>
                   <button type="button" onClick={()=>addFeature(idx)} className="px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600">Add</button>
