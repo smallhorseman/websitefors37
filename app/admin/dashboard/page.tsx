@@ -193,14 +193,17 @@ export default function AdminDashboard() {
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {/* Total Leads */}
-          <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+          <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200 hover:shadow-md transition-shadow">
             <div className="flex items-center justify-between">
-              <div>
+              <div className="flex-1">
                 <p className="text-sm font-medium text-gray-600">Total Leads</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.totalLeads}</p>
-                <p className="text-xs text-gray-500 mt-1">
-                  {stats.newLeads} new this month
-                </p>
+                <p className="text-2xl font-bold text-gray-900 mt-1">{stats.totalLeads}</p>
+                <div className="flex items-center gap-2 mt-2">
+                  <p className="text-xs text-gray-500">
+                    {stats.newLeads} new this month
+                  </p>
+                  <TrendIndicator value={stats.leadsTrend} />
+                </div>
               </div>
               <div className="bg-blue-100 p-3 rounded-lg">
                 <Users className="h-6 w-6 text-blue-600" />
@@ -209,17 +212,19 @@ export default function AdminDashboard() {
           </div>
 
           {/* Revenue */}
-          <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+          <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200 hover:shadow-md transition-shadow">
             <div className="flex items-center justify-between">
-              <div>
+              <div className="flex-1">
                 <p className="text-sm font-medium text-gray-600">Revenue</p>
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-2xl font-bold text-gray-900 mt-1">
                   ${stats.totalRevenue.toLocaleString()}
                 </p>
-                <p className="text-xs text-green-600 mt-1 flex items-center gap-1">
-                  <TrendingUp className="h-3 w-3" />
-                  {stats.conversionRate.toFixed(1)}% conversion
-                </p>
+                <div className="flex items-center gap-2 mt-2">
+                  <p className="text-xs text-gray-500">
+                    {stats.conversionRate.toFixed(1)}% conversion
+                  </p>
+                  <TrendIndicator value={stats.revenueTrend} />
+                </div>
               </div>
               <div className="bg-green-100 p-3 rounded-lg">
                 <DollarSign className="h-6 w-6 text-green-600" />
@@ -228,16 +233,18 @@ export default function AdminDashboard() {
           </div>
 
           {/* Average Deal Size */}
-          <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+          <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200 hover:shadow-md transition-shadow">
             <div className="flex items-center justify-between">
-              <div>
+              <div className="flex-1">
                 <p className="text-sm font-medium text-gray-600">Avg Deal Size</p>
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-2xl font-bold text-gray-900 mt-1">
                   ${stats.avgDealSize.toFixed(0)}
                 </p>
-                <p className="text-xs text-gray-500 mt-1">
-                  From {stats.convertedLeads} closed deals
-                </p>
+                <div className="flex items-center gap-2 mt-2">
+                  <p className="text-xs text-gray-500">
+                    From {stats.convertedLeads} deals
+                  </p>
+                </div>
               </div>
               <div className="bg-purple-100 p-3 rounded-lg">
                 <Target className="h-6 w-6 text-purple-600" />
@@ -246,12 +253,12 @@ export default function AdminDashboard() {
           </div>
 
           {/* Gallery Images */}
-          <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+          <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200 hover:shadow-md transition-shadow">
             <div className="flex items-center justify-between">
-              <div>
+              <div className="flex-1">
                 <p className="text-sm font-medium text-gray-600">Gallery Images</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.galleryImages}</p>
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-2xl font-bold text-gray-900 mt-1">{stats.galleryImages}</p>
+                <p className="text-xs text-gray-500 mt-2">
                   Showcasing your work
                 </p>
               </div>
@@ -321,7 +328,7 @@ export default function AdminDashboard() {
                 <h2 className="text-lg font-semibold text-gray-900">Quick Actions</h2>
               </div>
               <div className="p-6 space-y-4">
-                <button className="w-full text-left p-4 rounded-lg border-2 border-dashed border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-colors group">
+                <Link href="/admin/leads" className="block w-full text-left p-4 rounded-lg border-2 border-dashed border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-colors group">
                   <div className="flex items-center gap-3">
                     <div className="bg-blue-100 group-hover:bg-blue-200 p-2 rounded-lg">
                       <Users className="h-5 w-5 text-blue-600" />
@@ -331,9 +338,9 @@ export default function AdminDashboard() {
                       <p className="text-sm text-gray-600">Manage your prospects</p>
                     </div>
                   </div>
-                </button>
+                </Link>
 
-                <button className="w-full text-left p-4 rounded-lg border-2 border-dashed border-gray-200 hover:border-green-300 hover:bg-green-50 transition-colors group">
+                <Link href="/admin/bookings" className="block w-full text-left p-4 rounded-lg border-2 border-dashed border-gray-200 hover:border-green-300 hover:bg-green-50 transition-colors group">
                   <div className="flex items-center gap-3">
                     <div className="bg-green-100 group-hover:bg-green-200 p-2 rounded-lg">
                       <Calendar className="h-5 w-5 text-green-600" />
@@ -343,9 +350,9 @@ export default function AdminDashboard() {
                       <p className="text-sm text-gray-600">Schedule & organize</p>
                     </div>
                   </div>
-                </button>
+                </Link>
 
-                <button className="w-full text-left p-4 rounded-lg border-2 border-dashed border-gray-200 hover:border-purple-300 hover:bg-purple-50 transition-colors group">
+                <Link href="/admin/gallery" className="block w-full text-left p-4 rounded-lg border-2 border-dashed border-gray-200 hover:border-purple-300 hover:bg-purple-50 transition-colors group">
                   <div className="flex items-center gap-3">
                     <div className="bg-purple-100 group-hover:bg-purple-200 p-2 rounded-lg">
                       <Camera className="h-5 w-5 text-purple-600" />
@@ -355,7 +362,7 @@ export default function AdminDashboard() {
                       <p className="text-sm text-gray-600">Showcase your work</p>
                     </div>
                   </div>
-                </button>
+                </Link>
               </div>
             </div>
 
