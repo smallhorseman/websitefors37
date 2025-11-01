@@ -212,7 +212,6 @@ export default function PageBuilderPage() {
         alert('Could not parse any components from the published content.')
         return
       }
-      notify(imported)
       // Save as draft for this slug
       await supabase
         .from('page_configs')
