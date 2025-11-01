@@ -11,6 +11,9 @@ export function HeroBlock({
   buttonLink,
   alignment = 'center',
   overlay = 50,
+  titleColor = 'text-white',
+  subtitleColor = 'text-amber-50',
+  buttonStyle = 'primary',
 }: {
   title?: string
   subtitle?: string
@@ -19,7 +22,16 @@ export function HeroBlock({
   buttonLink?: string
   alignment?: 'left' | 'center' | 'right'
   overlay?: number | string
+  titleColor?: string
+  subtitleColor?: string
+  buttonStyle?: string
 }) {
+  const buttonStyleClasses: Record<string, string> = {
+    primary: 'btn-primary',
+    secondary: 'btn-secondary bg-white/10 hover:bg-white/20 border border-amber-200/30',
+    outline: 'border-2 border-white text-white hover:bg-white/10'
+  }
+  
   return (
     <section className="relative h-96 md:h-[28rem] flex items-center justify-center text-white overflow-hidden rounded-lg">
       {backgroundImage && (
@@ -30,12 +42,12 @@ export function HeroBlock({
         style={{ backgroundColor: `rgba(0,0,0,${Math.min(Math.max(Number(overlay ?? 50), 0), 100) / 100})` }}
       />
       <div className={`relative z-10 max-w-4xl w-full px-6 text-${alignment}`}>
-        {title && <h1 className="text-4xl md:text-5xl font-bold mb-3">{title}</h1>}
-        {subtitle && <p className="text-lg md:text-xl mb-6 opacity-90">{subtitle}</p>}
+        {title && <h1 className={`text-4xl md:text-5xl font-bold mb-3 ${titleColor}`}>{title}</h1>}
+        {subtitle && <p className={`text-lg md:text-xl mb-6 opacity-90 ${subtitleColor}`}>{subtitle}</p>}
         {buttonText && (
           <a
             href={buttonLink || '#'}
-            className="inline-block px-6 py-3 bg-primary-600 rounded-lg hover:bg-primary-700"
+            className={`inline-block px-6 py-3 rounded-lg transition ${buttonStyleClasses[buttonStyle] || buttonStyleClasses.primary}`}
           >
             {buttonText}
           </a>
@@ -64,11 +76,13 @@ export function TextBlock({ contentB64, alignment = 'left', size = 'md' }: {
   )
 }
 
-export function ImageBlock({ url, alt = '', caption, width = 'full' }: {
+export function ImageBlock({ url, alt = '', caption, width = 'full', link, animation = 'none' }: {
   url?: string
   alt?: string
   caption?: string
   width?: 'full' | 'large' | 'medium' | 'small'
+  link?: string
+  animation?: string
 }) {
   const widthClasses: Record<string, string> = {
     small: 'max-w-md',
@@ -76,16 +90,33 @@ export function ImageBlock({ url, alt = '', caption, width = 'full' }: {
     large: 'max-w-4xl',
     full: 'w-full',
   }
+  
+  const animationClasses: Record<string, string> = {
+    none: '',
+    'hover-zoom': 'transition-transform duration-300 hover:scale-105',
+    'fade-in': 'animate-fadeIn',
+    'slide-up': 'animate-slideUp',
+    'zoom': 'animate-zoom'
+  }
+  
+  const imageElement = (
+    <div className={`mx-auto ${widthClasses[width || 'full']}`}>
+      {url && (
+        <div className={`relative aspect-video overflow-hidden ${animationClasses[animation || 'none']}`}>
+          <Image src={url} alt={alt} fill className="object-cover rounded-lg" />
+        </div>
+      )}
+      {caption && <p className="text-sm text-gray-600 mt-2 text-center">{caption}</p>}
+    </div>
+  )
+  
   return (
     <div className="p-6 md:p-8">
-      <div className={`mx-auto ${widthClasses[width || 'full']}`}>
-        {url && (
-          <div className="relative aspect-video">
-            <Image src={url} alt={alt} fill className="object-cover rounded-lg" />
-          </div>
-        )}
-        {caption && <p className="text-sm text-gray-600 mt-2 text-center">{caption}</p>}
-      </div>
+      {link ? (
+        <a href={link} className="block cursor-pointer">
+          {imageElement}
+        </a>
+      ) : imageElement}
     </div>
   )
 }

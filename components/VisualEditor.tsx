@@ -27,6 +27,9 @@ interface HeroComponent extends BaseComponent {
     buttonLink: string
     alignment: 'left' | 'center' | 'right'
     overlay: number
+    titleColor: string
+    subtitleColor: string
+    buttonStyle: 'primary' | 'secondary' | 'outline'
   }
 }
 
@@ -46,6 +49,8 @@ interface ImageComponent extends BaseComponent {
     alt: string
     caption?: string
     width: 'full' | 'large' | 'medium' | 'small'
+    link?: string
+    animation: 'none' | 'fade-in' | 'slide-up' | 'zoom' | 'hover-zoom'
   }
 }
 
@@ -126,7 +131,10 @@ export default function VisualEditor({ initialComponents = [], onSave, onChange 
           buttonText: 'Learn More',
           buttonLink: '#',
           alignment: 'center',
-          overlay: 50
+          overlay: 50,
+          titleColor: 'text-white',
+          subtitleColor: 'text-amber-50',
+          buttonStyle: 'primary'
         }
       case 'text':
         return {
@@ -139,7 +147,9 @@ export default function VisualEditor({ initialComponents = [], onSave, onChange 
           url: '',
           alt: 'Image',
           caption: '',
-          width: 'full'
+          width: 'full',
+          link: '',
+          animation: 'none'
         }
       case 'button':
         return {
@@ -405,6 +415,12 @@ function ComponentRenderer({ component }: { component: PageComponent }) {
 
 // Individual Component Renderers
 function HeroRenderer({ data }: { data: HeroComponent['data'] }) {
+  const buttonStyleClasses = {
+    primary: 'btn-primary',
+    secondary: 'btn-secondary bg-white/10 hover:bg-white/20 border border-amber-200/30',
+    outline: 'border-2 border-white text-white hover:bg-white/10'
+  }
+  
   return (
     <div className="relative h-96 flex items-center justify-center text-white overflow-hidden">
       {data.backgroundImage && (
@@ -415,10 +431,10 @@ function HeroRenderer({ data }: { data: HeroComponent['data'] }) {
         style={{ backgroundColor: `rgba(0,0,0,${Math.min(Math.max(Number(data.overlay ?? 50), 0), 100) / 100})` }}
       />
       <div className={`relative z-10 text-${data.alignment} max-w-4xl px-8`}>
-        <h1 className="text-5xl font-bold mb-4">{data.title}</h1>
-        <p className="text-xl mb-6">{data.subtitle}</p>
+        <h1 className={`text-5xl font-bold mb-4 ${data.titleColor || 'text-white'}`}>{data.title}</h1>
+        <p className={`text-xl mb-6 ${data.subtitleColor || 'text-amber-50'}`}>{data.subtitle}</p>
         {data.buttonText && (
-          <a href={data.buttonLink} className="inline-block px-6 py-3 bg-primary-600 rounded-lg hover:bg-primary-700">
+          <a href={data.buttonLink} className={`inline-block px-6 py-3 rounded-lg transition ${buttonStyleClasses[data.buttonStyle || 'primary']}`}>
             {data.buttonText}
           </a>
         )}
@@ -450,18 +466,34 @@ function ImageRenderer({ data }: { data: ImageComponent['data'] }) {
     full: 'w-full'
   }
   
+  const animationClasses = {
+    none: '',
+    'fade-in': 'animate-fadeIn',
+    'slide-up': 'animate-slideUp',
+    'zoom': 'animate-zoom',
+    'hover-zoom': 'transition-transform duration-300 hover:scale-105'
+  }
+  
+  const imageElement = (
+    <div className={`mx-auto ${widthClasses[data.width]}`}>
+      {data.url && (
+        <div className={`relative aspect-video ${animationClasses[data.animation || 'none']} overflow-hidden`}>
+          <Image src={data.url} alt={data.alt} fill className="object-cover rounded-lg" />
+        </div>
+      )}
+      {data.caption && (
+        <p className="text-sm text-gray-600 mt-2 text-center">{data.caption}</p>
+      )}
+    </div>
+  )
+  
   return (
     <div className="p-8">
-      <div className={`mx-auto ${widthClasses[data.width]}`}>
-        {data.url && (
-          <div className="relative aspect-video">
-            <Image src={data.url} alt={data.alt} fill className="object-cover rounded-lg" />
-          </div>
-        )}
-        {data.caption && (
-          <p className="text-sm text-gray-600 mt-2 text-center">{data.caption}</p>
-        )}
-      </div>
+      {data.link ? (
+        <a href={data.link} className="block cursor-pointer">
+          {imageElement}
+        </a>
+      ) : imageElement}
     </div>
   )
 }
@@ -611,6 +643,49 @@ function HeroProperties({ data, onUpdate }: { data: HeroComponent['data']; onUpd
         />
       </div>
       <div>
+        <label className="block text-sm font-medium mb-1">Button Style</label>
+        <select
+          value={data.buttonStyle || 'primary'}
+          onChange={(e) => onUpdate({ buttonStyle: e.target.value })}
+          className="w-full border rounded px-3 py-2"
+          title="Button style"
+        >
+          <option value="primary">Primary (Gold)</option>
+          <option value="secondary">Secondary (Transparent)</option>
+          <option value="outline">Outline (White Border)</option>
+        </select>
+      </div>
+      <div>
+        <label className="block text-sm font-medium mb-1">Title Color</label>
+        <select
+          value={data.titleColor || 'text-white'}
+          onChange={(e) => onUpdate({ titleColor: e.target.value })}
+          className="w-full border rounded px-3 py-2"
+          title="Title color"
+        >
+          <option value="text-white">White</option>
+          <option value="text-amber-200">Amber Light</option>
+          <option value="text-amber-50">Amber Pale</option>
+          <option value="text-gray-900">Dark Gray</option>
+          <option value="text-primary-600">Primary (Gold)</option>
+        </select>
+      </div>
+      <div>
+        <label className="block text-sm font-medium mb-1">Subtitle Color</label>
+        <select
+          value={data.subtitleColor || 'text-amber-50'}
+          onChange={(e) => onUpdate({ subtitleColor: e.target.value })}
+          className="w-full border rounded px-3 py-2"
+          title="Subtitle color"
+        >
+          <option value="text-amber-50">Amber Pale</option>
+          <option value="text-white">White</option>
+          <option value="text-amber-200">Amber Light</option>
+          <option value="text-gray-100">Light Gray</option>
+          <option value="text-gray-800">Dark Gray</option>
+        </select>
+      </div>
+      <div>
         <label className="block text-sm font-medium mb-1">Alignment</label>
         <select
           value={data.alignment}
@@ -725,6 +800,47 @@ function ImageProperties({ data, onUpdate }: { data: ImageComponent['data']; onU
         />
         <div className="mt-2 mb-2 text-xs text-gray-500">or upload:</div>
         <ImageUploader onImageUrl={(url) => onUpdate({ url })} />
+      </div>
+      <div>
+        <label className="block text-sm font-medium mb-1">Link To (optional)</label>
+        <input
+          type="text"
+          value={data.link || ''}
+          onChange={(e) => onUpdate({ link: e.target.value })}
+          className="w-full border rounded px-3 py-2"
+          title="Image link"
+          placeholder="/gallery or https://example.com"
+        />
+        <p className="text-xs text-gray-500 mt-1">Make image clickable - links to another page</p>
+      </div>
+      <div>
+        <label className="block text-sm font-medium mb-1">Animation</label>
+        <select
+          value={data.animation || 'none'}
+          onChange={(e) => onUpdate({ animation: e.target.value })}
+          className="w-full border rounded px-3 py-2"
+          title="Image animation"
+        >
+          <option value="none">None</option>
+          <option value="hover-zoom">Zoom on Hover</option>
+          <option value="fade-in">Fade In (scroll)</option>
+          <option value="slide-up">Slide Up (scroll)</option>
+          <option value="zoom">Zoom In (scroll)</option>
+        </select>
+      </div>
+      <div>
+        <label className="block text-sm font-medium mb-1">Width</label>
+        <select
+          value={data.width}
+          onChange={(e) => onUpdate({ width: e.target.value })}
+          className="w-full border rounded px-3 py-2"
+          title="Image width"
+        >
+          <option value="small">Small</option>
+          <option value="medium">Medium</option>
+          <option value="large">Large</option>
+          <option value="full">Full Width</option>
+        </select>
       </div>
     </div>
   )

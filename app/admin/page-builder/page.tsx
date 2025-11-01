@@ -105,7 +105,11 @@ export default function PageBuilderPage() {
               d.backgroundImage || ''
             )}" buttonText="${escapeAttr(d.buttonText)}" buttonLink="${escapeAttr(d.buttonLink)}" alignment="${escapeAttr(
               d.alignment || 'center'
-            )}" overlay="${Number.isFinite(d.overlay) ? d.overlay : 50}" />`
+            )}" overlay="${Number.isFinite(d.overlay) ? d.overlay : 50}" titleColor="${escapeAttr(
+              d.titleColor || 'text-white'
+            )}" subtitleColor="${escapeAttr(d.subtitleColor || 'text-amber-50')}" buttonStyle="${escapeAttr(
+              d.buttonStyle || 'primary'
+            )}" />`
           )
           break
         }
@@ -122,7 +126,9 @@ export default function PageBuilderPage() {
           md.push(
             `<ImageBlock url="${escapeAttr(d.url || '')}" alt="${escapeAttr(d.alt || '')}" caption="${escapeAttr(
               d.caption || ''
-            )}" width="${escapeAttr(d.width || 'full')}" />`
+            )}" width="${escapeAttr(d.width || 'full')}" link="${escapeAttr(d.link || '')}" animation="${escapeAttr(
+              d.animation || 'none'
+            )}" />`
           )
           break
         }
