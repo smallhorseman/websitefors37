@@ -13,6 +13,8 @@ export function HeroBlock({
   backgroundImage,
   buttonText,
   buttonLink,
+  secondaryButtonText,
+  secondaryButtonLink,
   alignment = 'center',
   overlay = 50,
   titleColor = 'text-white',
@@ -27,6 +29,8 @@ export function HeroBlock({
   backgroundImage?: string
   buttonText?: string
   buttonLink?: string
+  secondaryButtonText?: string
+  secondaryButtonLink?: string
   alignment?: 'left' | 'center' | 'right'
   overlay?: number | string
   titleColor?: string
@@ -57,14 +61,24 @@ export function HeroBlock({
       <div className={`relative z-10 max-w-4xl w-full px-6 text-${alignment}`}>
         {title && <h1 className={`text-4xl md:text-5xl lg:text-6xl font-bold mb-3 ${titleColor}`} dangerouslySetInnerHTML={{ __html: title }} />}
         {subtitle && <p className={`text-lg md:text-xl mb-6 opacity-90 ${subtitleColor}`} dangerouslySetInnerHTML={{ __html: subtitle }} />}
-        {buttonText && (
-          <a
-            href={buttonLink || '#'}
-            className={`inline-block px-6 py-3 rounded-lg transition no-underline ${buttonStyleClasses[buttonStyle] || buttonStyleClasses.primary} ${hoverZoom}`}
-          >
-            {buttonText}
-          </a>
-        )}
+        <div className="flex flex-wrap gap-4 justify-center items-center">
+          {buttonText && (
+            <a
+              href={buttonLink || '#'}
+              className={`inline-block px-6 py-3 rounded-lg transition no-underline ${buttonStyleClasses[buttonStyle] || buttonStyleClasses.primary} ${hoverZoom}`}
+            >
+              {buttonText}
+            </a>
+          )}
+          {secondaryButtonText && (
+            <a
+              href={secondaryButtonLink || '#'}
+              className={`inline-block px-6 py-3 rounded-lg transition no-underline ${buttonStyleClasses.outline} ${hoverZoom}`}
+            >
+              {secondaryButtonText}
+            </a>
+          )}
+        </div>
       </div>
     </section>
   )
@@ -436,6 +450,114 @@ export function WidgetEmbedBlock({ htmlB64, scriptSrcsB64, provider = 'custom', 
   )
 }
 
+// Services Grid - displays services with images and feature lists
+export function ServicesGridBlock({ servicesB64, heading, subheading, columns = '3', animation = 'fade-in' }: {
+  servicesB64?: string
+  heading?: string
+  subheading?: string
+  columns?: string | number
+  animation?: string
+}) {
+  const json = servicesB64 ? Buffer.from(servicesB64, 'base64').toString('utf-8') : '[]'
+  let services: Array<{ image: string; title: string; description: string; features: string[] }> = []
+  try { services = JSON.parse(json || '[]') } catch { services = [] }
+
+  const gridCols: Record<string, string> = {
+    '2': 'md:grid-cols-2',
+    '3': 'md:grid-cols-2 lg:grid-cols-3',
+    '4': 'md:grid-cols-2 lg:grid-cols-4'
+  }
+  const animClass = animation === 'fade-in' ? 'animate-fadeIn' : animation === 'slide-up' ? 'animate-slideUp' : animation === 'zoom' ? 'animate-zoom' : ''
+
+  return (
+    <div className={`p-6 md:p-8 ${animClass}`}>
+      <div className="max-w-7xl mx-auto">
+        {heading && (
+          <div className="text-center mb-8">
+            <h2 className="text-3xl font-bold text-gray-900 mb-2">{heading}</h2>
+            {subheading && <p className="text-lg text-gray-600">{subheading}</p>}
+          </div>
+        )}
+        <div className={`grid grid-cols-1 ${gridCols[String(columns)] || 'md:grid-cols-3'} gap-6`}>
+          {services.map((service, i) => (
+            <div key={i} className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow">
+              {service.image && (
+                <div className="aspect-video relative overflow-hidden">
+                  <Image src={service.image} alt={service.title} fill className="object-cover" />
+                </div>
+              )}
+              <div className="p-6">
+                <h3 className="text-xl font-bold text-gray-900 mb-2">{service.title}</h3>
+                {service.description && <p className="text-gray-600 mb-4">{service.description}</p>}
+                {service.features && service.features.length > 0 && (
+                  <ul className="space-y-2">
+                    {service.features.map((feature, fi) => (
+                      <li key={fi} className="flex items-start gap-2 text-sm text-gray-700">
+                        <svg className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                        <span>{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// Stats Block - displays statistics with icons and numbers
+export function StatsBlock({ statsB64, heading, columns = '3', style = 'default', animation = 'fade-in' }: {
+  statsB64?: string
+  heading?: string
+  columns?: string | number
+  style?: 'default' | 'cards' | 'minimal' | string
+  animation?: string
+}) {
+  const json = statsB64 ? Buffer.from(statsB64, 'base64').toString('utf-8') : '[]'
+  let stats: Array<{ icon: string; number: string; label: string; suffix?: string }> = []
+  try { stats = JSON.parse(json || '[]') } catch { stats = [] }
+
+  const gridCols: Record<string, string> = {
+    '2': 'md:grid-cols-2',
+    '3': 'md:grid-cols-3',
+    '4': 'md:grid-cols-2 lg:grid-cols-4'
+  }
+  const styleClasses: Record<string, string> = {
+    default: '',
+    cards: 'bg-white rounded-lg shadow-md p-6',
+    minimal: 'border-b border-gray-200 pb-4'
+  }
+  const animClass = animation === 'fade-in' ? 'animate-fadeIn' : animation === 'slide-up' ? 'animate-slideUp' : animation === 'zoom' ? 'animate-zoom' : ''
+
+  return (
+    <div className={`p-6 md:p-8 ${animClass}`}>
+      <div className="max-w-7xl mx-auto">
+        {heading && (
+          <h2 className="text-3xl font-bold text-gray-900 text-center mb-8">{heading}</h2>
+        )}
+        <div className={`grid grid-cols-1 ${gridCols[String(columns)] || 'md:grid-cols-3'} gap-6`}>
+          {stats.map((stat, i) => (
+            <div key={i} className={`text-center ${styleClasses[style] || ''}`}>
+              {stat.icon && (
+                <div className="text-4xl mb-3">{stat.icon}</div>
+              )}
+              <div className="text-4xl font-bold text-primary-600 mb-2">
+                {stat.number}{stat.suffix || ''}
+              </div>
+              <div className="text-gray-700 font-medium">{stat.label}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export const MDXBuilderComponents = {
   HeroBlock,
   TextBlock,
@@ -449,4 +571,6 @@ export const MDXBuilderComponents = {
   TestimonialsBlock,
   GalleryHighlightsBlock,
   WidgetEmbedBlock,
+  ServicesGridBlock,
+  StatsBlock,
 }

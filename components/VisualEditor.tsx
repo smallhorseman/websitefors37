@@ -10,7 +10,7 @@ import Image from 'next/image'
 import ImageUploader from './ImageUploader'
 
 // Component types
-type ComponentType = 'hero' | 'text' | 'image' | 'button' | 'columns' | 'spacer' | 'seoFooter' | 'slideshowHero' | 'testimonials' | 'galleryHighlights' | 'widgetEmbed' | 'badges'
+type ComponentType = 'hero' | 'text' | 'image' | 'button' | 'columns' | 'spacer' | 'seoFooter' | 'slideshowHero' | 'testimonials' | 'galleryHighlights' | 'widgetEmbed' | 'badges' | 'servicesGrid' | 'stats'
 
 interface BaseComponent {
   id: string
@@ -25,6 +25,8 @@ interface HeroComponent extends BaseComponent {
     backgroundImage: string
     buttonText: string
     buttonLink: string
+    secondaryButtonText?: string
+    secondaryButtonLink?: string
     alignment: 'left' | 'center' | 'right'
     overlay: number
     titleColor: string
@@ -159,7 +161,40 @@ interface BadgesComponent extends BaseComponent {
   }
 }
 
-type PageComponent = HeroComponent | TextComponent | ImageComponent | ButtonComponent | ColumnsComponent | SpacerComponent | SEOFooterComponent | SlideshowHeroComponent | TestimonialsComponent | GalleryHighlightsComponent | WidgetEmbedComponent | BadgesComponent
+interface ServicesGridComponent extends BaseComponent {
+  type: 'servicesGrid'
+  data: {
+    heading?: string
+    subheading?: string
+    services: Array<{
+      image: string
+      title: string
+      description: string
+      features: string[]
+      link?: string
+    }>
+    columns: 2 | 3 | 4
+    animation?: 'none' | 'fade-in' | 'slide-up' | 'zoom'
+  }
+}
+
+interface StatsComponent extends BaseComponent {
+  type: 'stats'
+  data: {
+    heading?: string
+    stats: Array<{
+      icon?: string
+      number: string
+      label: string
+      suffix?: string
+    }>
+    columns: 2 | 3 | 4
+    style: 'default' | 'cards' | 'minimal'
+    animation?: 'none' | 'fade-in' | 'slide-up' | 'zoom'
+  }
+}
+
+type PageComponent = HeroComponent | TextComponent | ImageComponent | ButtonComponent | ColumnsComponent | SpacerComponent | SEOFooterComponent | SlideshowHeroComponent | TestimonialsComponent | GalleryHighlightsComponent | WidgetEmbedComponent | BadgesComponent | ServicesGridComponent | StatsComponent
 
 interface VisualEditorProps {
   initialComponents?: PageComponent[]
@@ -211,18 +246,20 @@ export default function VisualEditor({ initialComponents = [], onSave, onChange,
     switch (type) {
       case 'hero':
         return {
-          title: 'Welcome to Our Site',
-          subtitle: 'This is a hero section',
+          title: 'Studio 37',
+          subtitle: 'Capturing your precious moments with artistic excellence and professional craftsmanship',
           backgroundImage: '',
-          buttonText: 'Learn More',
-          buttonLink: '#',
+          buttonText: 'Book Your Session',
+          buttonLink: '/book-a-session',
+          secondaryButtonText: 'View Portfolio',
+          secondaryButtonLink: '/gallery',
           alignment: 'center',
           overlay: 50,
           titleColor: 'text-white',
-          subtitleColor: 'text-amber-50',
+          subtitleColor: 'text-white',
           buttonStyle: 'primary',
-          animation: 'none',
-          buttonAnimation: 'none',
+          animation: 'fade-in',
+          buttonAnimation: 'hover-zoom',
           fullBleed: true
         }
       case 'text':
@@ -315,6 +352,51 @@ export default function VisualEditor({ initialComponents = [], onSave, onChange,
           alignment: 'center',
           size: 'md',
           style: 'pill',
+          animation: 'fade-in'
+        }
+      case 'servicesGrid':
+        return {
+          heading: 'Our Photography Services',
+          subheading: 'From intimate portraits to grand celebrations, we offer comprehensive photography services tailored to your unique needs.',
+          services: [
+            {
+              image: 'https://images.unsplash.com/photo-1519741497674-611481863552?w=600&h=400&fit=crop',
+              title: 'Wedding Photography',
+              description: 'Capture your special day with romantic and timeless images that tell your love story.',
+              features: ['Full day coverage', 'Engagement session', 'Digital gallery', 'Print options']
+            },
+            {
+              image: 'https://images.unsplash.com/photo-1511895426328-dc8714191300?w=600&h=400&fit=crop',
+              title: 'Portrait Sessions',
+              description: 'Professional headshots, family portraits, and individual sessions in studio or on location.',
+              features: ['Studio or outdoor', 'Multiple outfits', 'Retouched images', 'Same day preview']
+            },
+            {
+              image: 'https://images.unsplash.com/photo-1505236858219-8359eb29e329?w=600&h=400&fit=crop',
+              title: 'Event Photography',
+              description: 'Document your corporate events, parties, and celebrations with candid and posed shots.',
+              features: ['Event coverage', 'Candid moments', 'Group photos', 'Quick turnaround']
+            },
+            {
+              image: 'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=600&h=400&fit=crop',
+              title: 'Commercial Photography',
+              description: 'Product photography, business headshots, and marketing materials for your brand.',
+              features: ['Product shots', 'Brand imagery', 'Marketing content', 'Commercial rights']
+            }
+          ],
+          columns: 2,
+          animation: 'fade-in'
+        }
+      case 'stats':
+        return {
+          heading: '',
+          stats: [
+            { icon: '👥', number: '150', label: 'Business Clients', suffix: '+' },
+            { icon: '📸', number: '800', label: 'Projects Completed', suffix: '+' },
+            { icon: '⭐', number: '95', label: 'Client Retention', suffix: '%' }
+          ],
+          columns: 3,
+          style: 'cards',
           animation: 'fade-in'
         }
       default:
@@ -475,15 +557,30 @@ export default function VisualEditor({ initialComponents = [], onSave, onChange,
               <span>Embed Widget</span>
             </button>
             
-              <button
-                onClick={() => addComponent('badges')}
-                className="w-full flex items-center gap-2 p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition"
-              >
-                <Layout className="h-5 w-5" />
-                <span>Badges</span>
-              </button>
-            
             <button
+              onClick={() => addComponent('badges')}
+              className="w-full flex items-center gap-2 p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition"
+            >
+              <Layout className="h-5 w-5" />
+              <span>Badges</span>
+            </button>
+
+            <button
+              onClick={() => addComponent('servicesGrid')}
+              className="w-full flex items-center gap-2 p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition"
+            >
+              <Layout className="h-5 w-5" />
+              <span>Services Grid</span>
+            </button>
+
+            <button
+              onClick={() => addComponent('stats')}
+              className="w-full flex items-center gap-2 p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition"
+            >
+              <Layout className="h-5 w-5" />
+              <span>Stats/Numbers</span>
+            </button>
+                        <button
               onClick={() => addComponent('spacer')}
               className="w-full flex items-center gap-2 p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition"
             >
@@ -664,6 +761,10 @@ function ComponentRenderer({ component }: { component: PageComponent }) {
       return <WidgetEmbedRenderer data={(component as any).data} />
     case 'badges':
       return <BadgesRenderer data={(component as any).data} />
+    case 'servicesGrid':
+      return <ServicesGridRenderer data={(component as any).data} />
+    case 'stats':
+      return <StatsRenderer data={(component as any).data} />
     case 'spacer':
       return <SpacerRenderer data={component.data} />
     case 'seoFooter':
@@ -678,7 +779,7 @@ function buildHomepageTemplate(): PageComponent[] {
   const id = () => `component-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
   const components: PageComponent[] = []
 
-  // Hero with CTA
+  // Hero with dual CTAs - matching live site design
   components.push({
     id: id(),
     type: 'hero',
@@ -688,29 +789,18 @@ function buildHomepageTemplate(): PageComponent[] {
       backgroundImage: 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?q=80&w=2000&auto=format&fit=crop',
       buttonText: 'Book Your Session',
       buttonLink: '/book-a-session',
+      secondaryButtonText: 'View Portfolio',
+      secondaryButtonLink: '/gallery',
       alignment: 'center',
-      overlay: 60,
+      overlay: 50,
       titleColor: 'text-white',
-      subtitleColor: 'text-amber-50',
+      subtitleColor: 'text-white',
       buttonStyle: 'primary',
       animation: 'fade-in',
       buttonAnimation: 'hover-zoom',
       fullBleed: true
     }
   } as HeroComponent)
-
-  // Secondary CTA button (View Portfolio)
-  components.push({
-    id: id(),
-    type: 'button',
-    data: {
-      text: 'View Portfolio',
-      link: '/gallery',
-      style: 'secondary',
-      alignment: 'center',
-      animation: 'hover-zoom'
-    }
-  } as ButtonComponent)
 
   // Spacer
   components.push({ id: id(), type: 'spacer', data: { height: 'lg' } } as SpacerComponent)
@@ -1073,11 +1163,18 @@ function HeroRenderer({ data }: { data: HeroComponent['data'] }) {
       <div className={`relative z-10 text-${data.alignment} max-w-4xl px-8`}>
         <h1 className={`text-4xl md:text-5xl lg:text-6xl font-bold mb-4 ${data.titleColor || 'text-white'}`} dangerouslySetInnerHTML={{ __html: data.title }} />
         <p className={`text-lg md:text-xl mb-6 ${data.subtitleColor || 'text-amber-50'}`} dangerouslySetInnerHTML={{ __html: data.subtitle }} />
-        {data.buttonText && (
-          <a href={data.buttonLink} className={`inline-block px-6 py-3 rounded-lg transition no-underline ${buttonStyleClasses[data.buttonStyle || 'primary']} ${buttonHoverZoom}`}>
-            {data.buttonText}
-          </a>
-        )}
+        <div className="flex flex-wrap gap-4 justify-center items-center">
+          {data.buttonText && (
+            <a href={data.buttonLink} className={`inline-block px-6 py-3 rounded-lg transition no-underline ${buttonStyleClasses[data.buttonStyle || 'primary']} ${buttonHoverZoom}`}>
+              {data.buttonText}
+            </a>
+          )}
+          {data.secondaryButtonText && (
+            <a href={data.secondaryButtonLink || '#'} className={`inline-block px-6 py-3 rounded-lg transition no-underline ${buttonStyleClasses.outline} ${buttonHoverZoom}`}>
+              {data.secondaryButtonText}
+            </a>
+          )}
+        </div>
       </div>
     </div>
   )
@@ -1298,6 +1395,93 @@ function BadgesRenderer({ data }: { data: BadgesComponent['data'] }) {
   )
 }
 
+// Services Grid Renderer (Editor Preview)
+function ServicesGridRenderer({ data }: { data: ServicesGridComponent['data'] }) {
+  const gridCols = {
+    2: 'md:grid-cols-2',
+    3: 'md:grid-cols-2 lg:grid-cols-3',
+    4: 'md:grid-cols-2 lg:grid-cols-4'
+  }
+
+  return (
+    <div className={`p-8 ${data.animation === 'fade-in' ? 'animate-fadeIn' : data.animation === 'slide-up' ? 'animate-slideUp' : data.animation === 'zoom' ? 'animate-zoom' : ''}`}>
+      <div className="max-w-7xl mx-auto">
+        {data.heading && (
+          <div className="text-center mb-8">
+            <h2 className="text-3xl font-bold text-gray-900 mb-2">{data.heading}</h2>
+            {data.subheading && <p className="text-lg text-gray-600">{data.subheading}</p>}
+          </div>
+        )}
+        <div className={`grid grid-cols-1 ${gridCols[data.columns || 3]} gap-6`}>
+          {(data.services || []).map((service, i) => (
+            <div key={i} className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow">
+              {service.image && (
+                <div className="aspect-video relative overflow-hidden">
+                  <Image src={service.image} alt={service.title} fill className="object-cover" />
+                </div>
+              )}
+              <div className="p-6">
+                <h3 className="text-xl font-bold text-gray-900 mb-2">{service.title}</h3>
+                {service.description && <p className="text-gray-600 mb-4">{service.description}</p>}
+                {service.features && service.features.length > 0 && (
+                  <ul className="space-y-2">
+                    {service.features.map((feature, fi) => (
+                      <li key={fi} className="flex items-start gap-2 text-sm text-gray-700">
+                        <svg className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                        <span>{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// Stats Renderer (Editor Preview)
+function StatsRenderer({ data }: { data: StatsComponent['data'] }) {
+  const gridCols = {
+    2: 'md:grid-cols-2',
+    3: 'md:grid-cols-3',
+    4: 'md:grid-cols-2 lg:grid-cols-4'
+  }
+
+  const styleClasses = {
+    default: '',
+    cards: 'bg-white rounded-lg shadow-md p-6',
+    minimal: 'border-b border-gray-200 pb-4'
+  }
+
+  return (
+    <div className={`p-8 ${data.animation === 'fade-in' ? 'animate-fadeIn' : data.animation === 'slide-up' ? 'animate-slideUp' : data.animation === 'zoom' ? 'animate-zoom' : ''}`}>
+      <div className="max-w-7xl mx-auto">
+        {data.heading && (
+          <h2 className="text-3xl font-bold text-gray-900 text-center mb-8">{data.heading}</h2>
+        )}
+        <div className={`grid grid-cols-1 ${gridCols[data.columns || 3]} gap-6`}>
+          {(data.stats || []).map((stat, i) => (
+            <div key={i} className={`text-center ${styleClasses[data.style || 'default']}`}>
+              {stat.icon && (
+                <div className="text-4xl mb-3">{stat.icon}</div>
+              )}
+              <div className="text-4xl font-bold text-primary-600 mb-2">
+                {stat.number}{stat.suffix || ''}
+              </div>
+              <div className="text-gray-700 font-medium">{stat.label}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // Slideshow Hero Renderer (Editor Preview)
 function SlideshowHeroRenderer({ data }: { data: SlideshowHeroComponent['data'] }) {
   const [idx, setIdx] = React.useState(0)
@@ -1422,6 +1606,10 @@ function ComponentProperties({ component, onUpdate }: { component: PageComponent
       return <WidgetEmbedProperties data={component.data as WidgetEmbedComponent['data']} onUpdate={onUpdate} />
     case 'badges':
       return <BadgesProperties data={component.data as BadgesComponent['data']} onUpdate={onUpdate} />
+    case 'servicesGrid':
+      return <ServicesGridProperties data={component.data as ServicesGridComponent['data']} onUpdate={onUpdate} />
+    case 'stats':
+      return <StatsProperties data={component.data as StatsComponent['data']} onUpdate={onUpdate} />
     default:
       return null
   }
@@ -1631,6 +1819,28 @@ function HeroProperties({ data, onUpdate }: { data: HeroComponent['data']; onUpd
           className="w-full border rounded px-3 py-2"
           title="Button link"
           placeholder="Enter button link"
+        />
+      </div>
+      <div>
+        <label className="block text-sm font-medium mb-1">Secondary Button Text (optional)</label>
+        <input
+          type="text"
+          value={data.secondaryButtonText || ''}
+          onChange={(e) => onUpdate({ secondaryButtonText: e.target.value })}
+          className="w-full border rounded px-3 py-2"
+          title="Secondary button text"
+          placeholder="e.g., View Portfolio"
+        />
+      </div>
+      <div>
+        <label className="block text-sm font-medium mb-1">Secondary Button Link</label>
+        <input
+          type="text"
+          value={data.secondaryButtonLink || ''}
+          onChange={(e) => onUpdate({ secondaryButtonLink: e.target.value })}
+          className="w-full border rounded px-3 py-2"
+          title="Secondary button link"
+          placeholder="e.g., /gallery"
         />
       </div>
       <div>
@@ -2739,6 +2949,201 @@ function BadgesProperties({ data, onUpdate }: { data: BadgesComponent['data']; o
           <button type="button" onClick={()=>applyPreset('google')} className="px-3 py-1.5 text-sm border rounded hover:bg-gray-50">Add Google 5-Star</button>
           <button type="button" onClick={()=>applyPreset('thumbtack')} className="px-3 py-1.5 text-sm border rounded hover:bg-gray-50">Add Thumbtack Top Pro</button>
           <button type="button" onClick={()=>applyPreset('certified')} className="px-3 py-1.5 text-sm border rounded hover:bg-gray-50">Add Certified Photographer</button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// Services Grid Properties
+function ServicesGridProperties({ data, onUpdate }: { data: ServicesGridComponent['data']; onUpdate: (data: any) => void }) {
+  const addService = () => {
+    const next = { image: '', title: 'New Service', description: '', features: [] }
+    onUpdate({ services: [...(data.services || []), next] })
+  }
+  const removeService = (idx: number) => {
+    onUpdate({ services: (data.services || []).filter((_, i) => i !== idx) })
+  }
+  const updateService = (idx: number, field: keyof ServicesGridComponent['data']['services'][number], value: any) => {
+    const arr = [...(data.services || [])]
+    arr[idx] = { ...arr[idx], [field]: value }
+    onUpdate({ services: arr })
+  }
+  const addFeature = (serviceIdx: number) => {
+    const arr = [...(data.services || [])]
+    arr[serviceIdx].features = [...(arr[serviceIdx].features || []), 'New feature']
+    onUpdate({ services: arr })
+  }
+  const removeFeature = (serviceIdx: number, featureIdx: number) => {
+    const arr = [...(data.services || [])]
+    arr[serviceIdx].features = arr[serviceIdx].features.filter((_, i) => i !== featureIdx)
+    onUpdate({ services: arr })
+  }
+  const updateFeature = (serviceIdx: number, featureIdx: number, value: string) => {
+    const arr = [...(data.services || [])]
+    arr[serviceIdx].features[featureIdx] = value
+    onUpdate({ services: arr })
+  }
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <label className="block text-sm font-medium mb-1">Heading</label>
+        <input type="text" value={data.heading || ''} onChange={(e)=>onUpdate({ heading: e.target.value })} className="w-full border rounded px-3 py-2" placeholder="Our Services" />
+      </div>
+      <div>
+        <label className="block text-sm font-medium mb-1">Subheading</label>
+        <input type="text" value={data.subheading || ''} onChange={(e)=>onUpdate({ subheading: e.target.value })} className="w-full border rounded px-3 py-2" placeholder="What we offer" />
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="block text-sm font-medium mb-1">Columns</label>
+          <select value={data.columns || 3} onChange={(e)=>onUpdate({ columns: Number(e.target.value) })} className="w-full border rounded px-3 py-2">
+            <option value={2}>2 Columns</option>
+            <option value={3}>3 Columns</option>
+            <option value={4}>4 Columns</option>
+          </select>
+        </div>
+        <div>
+          <label className="block text-sm font-medium mb-1">Animation</label>
+          <select value={data.animation || 'none'} onChange={(e)=>onUpdate({ animation: e.target.value })} className="w-full border rounded px-3 py-2">
+            <option value="none">None</option>
+            <option value="fade-in">Fade In</option>
+            <option value="slide-up">Slide Up</option>
+            <option value="zoom">Zoom</option>
+          </select>
+        </div>
+      </div>
+
+      <div className="border-t pt-4">
+        <div className="flex items-center justify-between mb-2">
+          <label className="text-sm font-medium">Services</label>
+          <button type="button" onClick={addService} className="px-3 py-1.5 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">Add Service</button>
+        </div>
+        <div className="space-y-3">
+          {(data.services || []).map((s, idx) => (
+            <div key={idx} className="border rounded p-3 bg-gray-50 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-gray-600">Service #{idx+1}</span>
+                <button type="button" onClick={()=>removeService(idx)} className="text-red-600 text-xs hover:underline">Remove</button>
+              </div>
+              <div>
+                <label className="block text-xs font-medium mb-1">Image URL</label>
+                <input type="url" value={s.image || ''} onChange={(e)=>updateService(idx,'image', e.target.value)} className="w-full border rounded px-2 py-1 text-sm" placeholder="https://..." />
+              </div>
+              <div>
+                <label className="block text-xs font-medium mb-1">Title</label>
+                <input type="text" value={s.title || ''} onChange={(e)=>updateService(idx,'title', e.target.value)} className="w-full border rounded px-2 py-1 text-sm" placeholder="Service name" />
+              </div>
+              <div>
+                <label className="block text-xs font-medium mb-1">Description</label>
+                <textarea value={s.description || ''} onChange={(e)=>updateService(idx,'description', e.target.value)} className="w-full border rounded px-2 py-1 text-sm" rows={2} placeholder="Service description" />
+              </div>
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-xs font-medium">Features</label>
+                  <button type="button" onClick={()=>addFeature(idx)} className="px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600">Add</button>
+                </div>
+                {(s.features || []).map((f, fi) => (
+                  <div key={fi} className="flex items-center gap-2 mb-1">
+                    <input type="text" value={f} onChange={(e)=>updateFeature(idx, fi, e.target.value)} className="flex-1 border rounded px-2 py-1 text-xs" placeholder="Feature" />
+                    <button type="button" onClick={()=>removeFeature(idx, fi)} className="text-red-600 text-xs hover:underline">×</button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+          {!data.services?.length && <p className="text-sm text-gray-500">No services yet. Add your first service above.</p>}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// Stats Properties
+function StatsProperties({ data, onUpdate }: { data: StatsComponent['data']; onUpdate: (data: any) => void }) {
+  const addStat = () => {
+    const next = { icon: '📊', number: '0', label: 'New Stat', suffix: '' }
+    onUpdate({ stats: [...(data.stats || []), next] })
+  }
+  const removeStat = (idx: number) => {
+    onUpdate({ stats: (data.stats || []).filter((_, i) => i !== idx) })
+  }
+  const updateStat = (idx: number, field: keyof StatsComponent['data']['stats'][number], value: string) => {
+    const arr = [...(data.stats || [])]
+    arr[idx] = { ...arr[idx], [field]: value }
+    onUpdate({ stats: arr })
+  }
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <label className="block text-sm font-medium mb-1">Heading</label>
+        <input type="text" value={data.heading || ''} onChange={(e)=>onUpdate({ heading: e.target.value })} className="w-full border rounded px-3 py-2" placeholder="Our Impact" />
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="block text-sm font-medium mb-1">Columns</label>
+          <select value={data.columns || 3} onChange={(e)=>onUpdate({ columns: Number(e.target.value) })} className="w-full border rounded px-3 py-2">
+            <option value={2}>2 Columns</option>
+            <option value={3}>3 Columns</option>
+            <option value={4}>4 Columns</option>
+          </select>
+        </div>
+        <div>
+          <label className="block text-sm font-medium mb-1">Style</label>
+          <select value={data.style || 'default'} onChange={(e)=>onUpdate({ style: e.target.value })} className="w-full border rounded px-3 py-2">
+            <option value="default">Default</option>
+            <option value="cards">Cards</option>
+            <option value="minimal">Minimal</option>
+          </select>
+        </div>
+      </div>
+      <div>
+        <label className="block text-sm font-medium mb-1">Animation</label>
+        <select value={data.animation || 'none'} onChange={(e)=>onUpdate({ animation: e.target.value })} className="w-full border rounded px-3 py-2">
+          <option value="none">None</option>
+          <option value="fade-in">Fade In</option>
+          <option value="slide-up">Slide Up</option>
+          <option value="zoom">Zoom</option>
+        </select>
+      </div>
+
+      <div className="border-t pt-4">
+        <div className="flex items-center justify-between mb-2">
+          <label className="text-sm font-medium">Statistics</label>
+          <button type="button" onClick={addStat} className="px-3 py-1.5 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">Add Stat</button>
+        </div>
+        <div className="space-y-3">
+          {(data.stats || []).map((s, idx) => (
+            <div key={idx} className="border rounded p-3 bg-gray-50 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-gray-600">Stat #{idx+1}</span>
+                <button type="button" onClick={()=>removeStat(idx)} className="text-red-600 text-xs hover:underline">Remove</button>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block text-xs font-medium mb-1">Icon (emoji or text)</label>
+                  <input type="text" value={s.icon || ''} onChange={(e)=>updateStat(idx,'icon', e.target.value)} className="w-full border rounded px-2 py-1 text-sm" placeholder="📊 or icon" />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium mb-1">Number</label>
+                  <input type="text" value={s.number || ''} onChange={(e)=>updateStat(idx,'number', e.target.value)} className="w-full border rounded px-2 py-1 text-sm" placeholder="150" />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block text-xs font-medium mb-1">Suffix (optional)</label>
+                  <input type="text" value={s.suffix || ''} onChange={(e)=>updateStat(idx,'suffix', e.target.value)} className="w-full border rounded px-2 py-1 text-sm" placeholder="+ or %" />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium mb-1">Label</label>
+                  <input type="text" value={s.label || ''} onChange={(e)=>updateStat(idx,'label', e.target.value)} className="w-full border rounded px-2 py-1 text-sm" placeholder="Happy Clients" />
+                </div>
+              </div>
+            </div>
+          ))}
+          {!data.stats?.length && <p className="text-sm text-gray-500">No stats yet. Add your first statistic above.</p>}
         </div>
       </div>
     </div>

@@ -121,6 +121,8 @@ export default function PageBuilderPage() {
             backgroundImage: a.backgroundImage || '',
             buttonText: a.buttonText || '',
             buttonLink: a.buttonLink || '#',
+            secondaryButtonText: a.secondaryButtonText || '',
+            secondaryButtonLink: a.secondaryButtonLink || '',
             alignment: (a.alignment as any) || 'center',
             overlay: Number(a.overlay ?? 50),
             titleColor: a.titleColor || 'text-white',
@@ -256,6 +258,34 @@ export default function PageBuilderPage() {
           scriptSrcs,
           styleReset: String(a.styleReset) !== 'false'
         }})
+      } else if (line.startsWith('<ServicesGridBlock')) {
+        const a = parseAttrs(line)
+        let services: any[] = []
+        try {
+          const json = a.servicesB64 ? decodeURIComponent(escape(atob(a.servicesB64))) : '[]'
+          services = JSON.parse(json || '[]')
+        } catch { services = [] }
+        comps.push({ id: `component-${Date.now()}-${comps.length}`, type: 'servicesGrid', data: {
+          heading: a.heading || '',
+          subheading: a.subheading || '',
+          services: services.map((s:any)=>({ image: s.image || '', title: s.title || '', description: s.description || '', features: s.features || [] })),
+          columns: Number(a.columns) || 3,
+          animation: a.animation || 'fade-in'
+        }})
+      } else if (line.startsWith('<StatsBlock')) {
+        const a = parseAttrs(line)
+        let stats: any[] = []
+        try {
+          const json = a.statsB64 ? decodeURIComponent(escape(atob(a.statsB64))) : '[]'
+          stats = JSON.parse(json || '[]')
+        } catch { stats = [] }
+        comps.push({ id: `component-${Date.now()}-${comps.length}`, type: 'stats', data: {
+          heading: a.heading || '',
+          stats: stats.map((s:any)=>({ icon: s.icon || '', number: s.number || '', label: s.label || '', suffix: s.suffix || '' })),
+          columns: Number(a.columns) || 3,
+          style: a.style || 'default',
+          animation: a.animation || 'fade-in'
+        }})
       }
     }
     return comps
@@ -323,7 +353,7 @@ export default function PageBuilderPage() {
           md.push(
             `<HeroBlock title="${escapeAttr(d.title)}" subtitle="${escapeAttr(d.subtitle)}" backgroundImage="${escapeAttr(
               d.backgroundImage || ''
-            )}" buttonText="${escapeAttr(d.buttonText)}" buttonLink="${escapeAttr(d.buttonLink)}" alignment="${escapeAttr(
+            )}" buttonText="${escapeAttr(d.buttonText)}" buttonLink="${escapeAttr(d.buttonLink)}" secondaryButtonText="${escapeAttr(d.secondaryButtonText || '')}" secondaryButtonLink="${escapeAttr(d.secondaryButtonLink || '')}" alignment="${escapeAttr(
               d.alignment || 'center'
             )}" overlay="${Number.isFinite(d.overlay) ? d.overlay : 50}" titleColor="${escapeAttr(
               d.titleColor || 'text-white'
@@ -400,6 +430,16 @@ export default function PageBuilderPage() {
           const htmlB64 = toB64(String(d.html || ''))
           const scriptSrcsB64 = toB64(JSON.stringify(d.scriptSrcs || []))
           md.push(`<WidgetEmbedBlock provider="${escapeAttr(d.provider || 'custom')}" htmlB64="${htmlB64}" scriptSrcsB64="${scriptSrcsB64}" styleReset="${(d.styleReset ?? true) ? 'true' : 'false'}" />`)
+          break
+        }
+        case 'servicesGrid': {
+          const servicesB64 = toB64(JSON.stringify(d.services || []))
+          md.push(`<ServicesGridBlock servicesB64="${servicesB64}" heading="${escapeAttr(d.heading || '')}" subheading="${escapeAttr(d.subheading || '')}" columns="${Number(d.columns || 3)}" animation="${escapeAttr(d.animation || 'fade-in')}" />`)
+          break
+        }
+        case 'stats': {
+          const statsB64 = toB64(JSON.stringify(d.stats || []))
+          md.push(`<StatsBlock statsB64="${statsB64}" heading="${escapeAttr(d.heading || '')}" columns="${Number(d.columns || 3)}" style="${escapeAttr(d.style || 'default')}" animation="${escapeAttr(d.animation || 'fade-in')}" />`)
           break
         }
       }
