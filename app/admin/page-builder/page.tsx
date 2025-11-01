@@ -180,6 +180,52 @@ export default function PageBuilderPage() {
           content,
           includeSchema: String(a.includeSchema) !== 'false'
         }})
+      } else if (line.startsWith('<SlideshowHeroBlock')) {
+        const a = parseAttrs(line)
+        let slides: any[] = []
+        try {
+          const json = a.slidesB64 ? decodeURIComponent(escape(atob(a.slidesB64))) : '[]'
+          slides = JSON.parse(json || '[]')
+        } catch { slides = [] }
+        comps.push({ id: `component-${Date.now()}-${comps.length}`, type: 'slideshowHero', data: {
+          slides: slides.map((s:any)=>({ image:s.image||'', category:s.category||'', title:s.title||'' })),
+          intervalMs: Number(a.intervalMs || 5000),
+          overlay: Number(a.overlay || 60),
+          title: a.title || '',
+          subtitle: a.subtitle || '',
+          buttonText: a.buttonText || '',
+          buttonLink: a.buttonLink || '/book-a-session',
+          alignment: (a.alignment as any) || 'center',
+          titleColor: a.titleColor || 'text-white',
+          subtitleColor: a.subtitleColor || 'text-amber-50',
+          buttonStyle: (a.buttonStyle as any) || 'primary',
+          buttonAnimation: (a.buttonAnimation as any) || 'hover-zoom',
+          fullBleed: String(a.fullBleed) !== 'false'
+        }})
+      } else if (line.startsWith('<TestimonialsBlock')) {
+        const a = parseAttrs(line)
+        let testimonials: any[] = []
+        try {
+          const json = a.testimonialsB64 ? decodeURIComponent(escape(atob(a.testimonialsB64))) : '[]'
+          testimonials = JSON.parse(json || '[]')
+        } catch { testimonials = [] }
+        comps.push({ id: `component-${Date.now()}-${comps.length}`, type: 'testimonials', data: {
+          testimonials: testimonials.map((t:any)=>({ quote:t.quote||'', author:t.author||'', subtext:t.subtext||'', avatar:t.avatar||'' })),
+          animation: (a.animation as any) || 'fade-in'
+        }})
+      } else if (line.startsWith('<GalleryHighlightsBlock')) {
+        const a = parseAttrs(line)
+        let categories: string[] = []
+        try {
+          const json = a.categoriesB64 ? decodeURIComponent(escape(atob(a.categoriesB64))) : '[]'
+          categories = JSON.parse(json || '[]')
+        } catch { categories = [] }
+        comps.push({ id: `component-${Date.now()}-${comps.length}`, type: 'galleryHighlights', data: {
+          categories,
+          featuredOnly: String(a.featuredOnly) !== 'false',
+          limit: Number(a.limit || 6),
+          animation: (a.animation as any) || 'fade-in'
+        }})
       }
     }
     return comps
@@ -257,6 +303,13 @@ export default function PageBuilderPage() {
           )
           break
         }
+        case 'slideshowHero': {
+          const slidesB64 = toB64(JSON.stringify(d.slides || []))
+          md.push(
+            `<SlideshowHeroBlock slidesB64="${slidesB64}" intervalMs="${Number(d.intervalMs || 5000)}" overlay="${Number(d.overlay || 60)}" title="${escapeAttr(d.title || '')}" subtitle="${escapeAttr(d.subtitle || '')}" buttonText="${escapeAttr(d.buttonText || '')}" buttonLink="${escapeAttr(d.buttonLink || '/book-a-session')}" alignment="${escapeAttr(d.alignment || 'center')}" titleColor="${escapeAttr(d.titleColor || 'text-white')}" subtitleColor="${escapeAttr(d.subtitleColor || 'text-amber-50')}" buttonStyle="${escapeAttr(d.buttonStyle || 'primary')}" buttonAnimation="${escapeAttr(d.buttonAnimation || 'hover-zoom')}" fullBleed="${(d.fullBleed ?? true) ? 'true' : 'false'}" />`
+          )
+          break
+        }
         case 'text': {
           const contentB64 = toB64(String(d.content || ''))
           md.push(
@@ -296,6 +349,16 @@ export default function PageBuilderPage() {
         case 'seoFooter': {
           const contentB64 = toB64(String(d.content || ''))
           md.push(`<SeoFooterBlock contentB64="${contentB64}" includeSchema="${(d.includeSchema ?? true) ? 'true' : 'false'}" />`)
+          break
+        }
+        case 'testimonials': {
+          const testimonialsB64 = toB64(JSON.stringify(d.testimonials || []))
+          md.push(`<TestimonialsBlock testimonialsB64="${testimonialsB64}" animation="${escapeAttr(d.animation || 'fade-in')}" />`)
+          break
+        }
+        case 'galleryHighlights': {
+          const categoriesB64 = toB64(JSON.stringify(d.categories || []))
+          md.push(`<GalleryHighlightsBlock categoriesB64="${categoriesB64}" featuredOnly="${(d.featuredOnly ?? true) ? 'true' : 'false'}" limit="${Number(d.limit || 6)}" animation="${escapeAttr(d.animation || 'fade-in')}" />`)
           break
         }
       }

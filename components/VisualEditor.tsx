@@ -10,7 +10,7 @@ import Image from 'next/image'
 import ImageUploader from './ImageUploader'
 
 // Component types
-type ComponentType = 'hero' | 'text' | 'image' | 'button' | 'columns' | 'spacer' | 'seoFooter'
+type ComponentType = 'hero' | 'text' | 'image' | 'button' | 'columns' | 'spacer' | 'seoFooter' | 'slideshowHero' | 'testimonials' | 'galleryHighlights'
 
 interface BaseComponent {
   id: string
@@ -95,7 +95,44 @@ interface SEOFooterComponent extends BaseComponent {
   }
 }
 
-type PageComponent = HeroComponent | TextComponent | ImageComponent | ButtonComponent | ColumnsComponent | SpacerComponent | SEOFooterComponent
+interface SlideshowHeroComponent extends BaseComponent {
+  type: 'slideshowHero'
+  data: {
+    slides: Array<{ image: string; category?: string; title?: string }>
+    intervalMs: number
+    overlay: number
+    title?: string
+    subtitle?: string
+    buttonText?: string
+    buttonLink?: string
+    alignment?: 'left' | 'center' | 'right'
+    titleColor?: string
+    subtitleColor?: string
+    buttonStyle?: 'primary' | 'secondary' | 'outline'
+    buttonAnimation?: 'none' | 'hover-zoom'
+    fullBleed?: boolean
+  }
+}
+
+interface TestimonialsComponent extends BaseComponent {
+  type: 'testimonials'
+  data: {
+    testimonials: Array<{ quote: string; author?: string; subtext?: string; avatar?: string }>
+    animation?: 'none' | 'fade-in' | 'slide-up' | 'zoom'
+  }
+}
+
+interface GalleryHighlightsComponent extends BaseComponent {
+  type: 'galleryHighlights'
+  data: {
+    categories: string[]
+    featuredOnly?: boolean
+    limit?: number
+    animation?: 'none' | 'fade-in' | 'slide-up' | 'zoom'
+  }
+}
+
+type PageComponent = HeroComponent | TextComponent | ImageComponent | ButtonComponent | ColumnsComponent | SpacerComponent | SEOFooterComponent | SlideshowHeroComponent | TestimonialsComponent | GalleryHighlightsComponent
 
 interface VisualEditorProps {
   initialComponents?: PageComponent[]
@@ -200,6 +237,40 @@ export default function VisualEditor({ initialComponents = [], onSave, onChange,
           content: '<h3 class="text-lg font-bold mb-2">About Studio 37</h3><p class="text-sm">Professional portraits and photography serving Tomball, Magnolia, Pinehurst, and the 77362 area.</p><h3 class="text-lg font-bold mt-4 mb-2">Contact</h3><p class="text-sm">Studio 37 Photography • (xxx) xxx-xxxx • contact@studio37.cc</p>',
           includeSchema: true
         }
+      case 'slideshowHero':
+        return {
+          slides: [
+            { image: 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?q=80&w=1600&auto=format&fit=crop', category: 'creative portraits' },
+            { image: 'https://images.unsplash.com/photo-1504196606672-aef5c9cefc92?q=80&w=1600&auto=format&fit=crop', category: 'brand photography' }
+          ],
+          intervalMs: 5000,
+          overlay: 60,
+          title: 'Studio 37',
+          subtitle: 'Artistic excellence, professional craft',
+          buttonText: 'Book Your Session',
+          buttonLink: '/book-a-session',
+          alignment: 'center',
+          titleColor: 'text-white',
+          subtitleColor: 'text-amber-50',
+          buttonStyle: 'primary',
+          buttonAnimation: 'hover-zoom',
+          fullBleed: true
+        }
+      case 'testimonials':
+        return {
+          testimonials: [
+            { quote: 'Absolutely stunning photos and a wonderful experience.', author: 'A Happy Client' },
+            { quote: 'Professional, friendly, and incredible results!', author: 'Another Client' }
+          ],
+          animation: 'fade-in'
+        }
+      case 'galleryHighlights':
+        return {
+          categories: ['professional portraits','creative portraits','product photography','brand photography'],
+          featuredOnly: true,
+          limit: 6,
+          animation: 'fade-in'
+        }
       default:
         return {}
     }
@@ -292,6 +363,30 @@ export default function VisualEditor({ initialComponents = [], onSave, onChange,
             >
               <Columns className="h-5 w-5" />
               <span>Columns</span>
+            </button>
+
+            <button
+              onClick={() => addComponent('slideshowHero')}
+              className="w-full flex items-center gap-2 p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition"
+            >
+              <Layout className="h-5 w-5" />
+              <span>Slideshow Hero</span>
+            </button>
+
+            <button
+              onClick={() => addComponent('testimonials')}
+              className="w-full flex items-center gap-2 p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition"
+            >
+              <Layout className="h-5 w-5" />
+              <span>Testimonials</span>
+            </button>
+
+            <button
+              onClick={() => addComponent('galleryHighlights')}
+              className="w-full flex items-center gap-2 p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition"
+            >
+              <Layout className="h-5 w-5" />
+              <span>Gallery Highlights</span>
             </button>
             
             <button
@@ -463,8 +558,14 @@ function ComponentRenderer({ component }: { component: PageComponent }) {
       return <ImageRenderer data={component.data} />
     case 'button':
       return <ButtonRenderer data={component.data} />
-    case 'columns':
+     case 'columns':
       return <ColumnsRenderer data={component.data} />
+    case 'slideshowHero':
+      return <SlideshowHeroRenderer data={(component as any).data} />
+    case 'testimonials':
+      return <TestimonialsRenderer data={(component as any).data} />
+    case 'galleryHighlights':
+      return <GalleryHighlightsRenderer data={(component as any).data} />
     case 'spacer':
       return <SpacerRenderer data={component.data} />
     case 'seoFooter':
@@ -751,6 +852,84 @@ function SEOFooterRenderer({ data }: { data: SEOFooterComponent['data'] }) {
   )
 }
 
+// Slideshow Hero Renderer (Editor Preview)
+function SlideshowHeroRenderer({ data }: { data: SlideshowHeroComponent['data'] }) {
+  const [idx, setIdx] = React.useState(0)
+  React.useEffect(() => {
+    if (!data.slides || data.slides.length < 2) return
+    const id = setInterval(() => setIdx((i) => (i + 1) % data.slides.length), Math.max(1500, data.intervalMs || 5000))
+    return () => clearInterval(id)
+  }, [data.slides?.length, data.intervalMs])
+  const slide = data.slides?.[idx]
+  const overlayAlpha = Math.min(Math.max(Number(data.overlay ?? 60), 0), 100) / 100
+  const buttonStyleClasses: Record<string, string> = {
+    primary: 'btn-primary',
+    secondary: 'btn-secondary bg-white/10 hover:bg-white/20 border border-amber-200/30',
+    outline: 'border-2 border-white text-white hover:bg-white/10'
+  }
+  const hoverZoom = (data.buttonAnimation || 'none') === 'hover-zoom' ? 'transition-transform duration-300 hover:scale-105' : ''
+  return (
+    <div className={`relative min-h-[60vh] flex items-center justify-center text-white overflow-hidden ${data.fullBleed ? '' : 'rounded-lg'}`}>
+      {slide && (
+        <Image src={slide.image} alt={slide.title || 'Slide'} fill className="object-cover" />
+      )}
+      <div className="absolute inset-0" style={{ backgroundColor: `rgba(0,0,0,${overlayAlpha})` }} />
+      <div className={`relative z-10 max-w-4xl w-full px-6 text-${data.alignment || 'center'}`}>
+        {data.title && <h1 className={`text-4xl md:text-5xl lg:text-6xl font-bold mb-3 ${data.titleColor || 'text-white'}`}>{data.title}</h1>}
+        {data.subtitle && <p className={`text-lg md:text-xl mb-6 opacity-90 ${data.subtitleColor || 'text-amber-50'}`}>{data.subtitle}</p>}
+        {data.buttonText && (
+          <a href={data.buttonLink || '#'} className={`inline-block px-6 py-3 rounded-lg transition no-underline ${buttonStyleClasses[data.buttonStyle || 'primary']} ${hoverZoom}`}>
+            {data.buttonText}
+          </a>
+        )}
+        {slide?.category && <div className="mt-3 text-sm opacity-80">{slide.category}</div>}
+      </div>
+    </div>
+  )
+}
+
+// Testimonials Renderer (Editor Preview)
+function TestimonialsRenderer({ data }: { data: TestimonialsComponent['data'] }) {
+  const [idx, setIdx] = React.useState(0)
+  React.useEffect(() => {
+    if (!data.testimonials || data.testimonials.length < 2) return
+    const id = setInterval(() => setIdx((i) => (i + 1) % data.testimonials.length), 5000)
+    return () => clearInterval(id)
+  }, [data.testimonials?.length])
+  const t = data.testimonials?.[idx]
+  return (
+    <div className={`p-8 ${data.animation === 'fade-in' ? 'animate-fadeIn' : data.animation === 'slide-up' ? 'animate-slideUp' : data.animation === 'zoom' ? 'animate-zoom' : ''}`}>
+      <div className="max-w-3xl mx-auto text-center">
+        {t?.avatar && <img src={t.avatar} alt={t.author || 'Client'} className="mx-auto h-16 w-16 rounded-full object-cover mb-4" />}
+        {t?.quote && <blockquote className="text-xl italic text-gray-800">"{t.quote}"</blockquote>}
+        {(t?.author || t?.subtext) && (
+          <div className="mt-3 text-gray-600">
+            {t?.author && <div className="font-medium">{t.author}</div>}
+            {t?.subtext && <div className="text-sm opacity-80">{t.subtext}</div>}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// Gallery Highlights Renderer (Editor Preview)
+function GalleryHighlightsRenderer({ data }: { data: GalleryHighlightsComponent['data'] }) {
+  return (
+    <div className={`p-8 ${data.animation === 'fade-in' ? 'animate-fadeIn' : data.animation === 'slide-up' ? 'animate-slideUp' : data.animation === 'zoom' ? 'animate-zoom' : ''}`}>
+      <div className="border rounded-lg p-6 bg-gray-50">
+        <h4 className="font-semibold mb-2">Gallery Highlights (Preview)</h4>
+        <p className="text-sm text-gray-600">This will show featured images from the database when published.</p>
+        <div className="mt-3 text-sm">
+          <div><span className="font-medium">Categories:</span> {data.categories?.length ? data.categories.join(', ') : 'All'}</div>
+          <div><span className="font-medium">Featured only:</span> {String(data.featuredOnly ?? true)}</div>
+          <div><span className="font-medium">Limit:</span> {data.limit || 6}</div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // Component Properties Editor
 function ComponentProperties({ component, onUpdate }: { component: PageComponent; onUpdate: (data: any) => void }) {
   switch (component.type) {
@@ -766,8 +945,14 @@ function ComponentProperties({ component, onUpdate }: { component: PageComponent
       return <ColumnsProperties data={component.data as ColumnsComponent['data']} onUpdate={onUpdate} />
     case 'spacer':
       return <SpacerProperties data={component.data as SpacerComponent['data']} onUpdate={onUpdate} />
-      case 'seoFooter':
-        return <SEOFooterProperties data={component.data as SEOFooterComponent['data']} onUpdate={onUpdate} />
+    case 'seoFooter':
+      return <SEOFooterProperties data={component.data as SEOFooterComponent['data']} onUpdate={onUpdate} />
+    case 'slideshowHero':
+      return <SlideshowHeroProperties data={component.data as SlideshowHeroComponent['data']} onUpdate={onUpdate} />
+    case 'testimonials':
+      return <TestimonialsProperties data={component.data as TestimonialsComponent['data']} onUpdate={onUpdate} />
+    case 'galleryHighlights':
+      return <GalleryHighlightsProperties data={component.data as GalleryHighlightsComponent['data']} onUpdate={onUpdate} />
     default:
       return null
   }
@@ -1445,6 +1630,249 @@ function SEOFooterProperties({ data, onUpdate }: { data: SEOFooterComponent['dat
       <div className="flex items-center gap-2">
         <input id="seo-footer-schema" type="checkbox" checked={!!data.includeSchema} onChange={(e)=>onUpdate({ includeSchema: e.target.checked })} className="h-4 w-4 text-primary-600 rounded border-gray-300 focus:ring-primary-500" />
         <label htmlFor="seo-footer-schema" className="text-sm">Embed LocalBusiness JSON-LD</label>
+      </div>
+    </div>
+  )
+}
+
+function SlideshowHeroProperties({ data, onUpdate }: { data: SlideshowHeroComponent['data']; onUpdate: (data: any) => void }) {
+  const addSlide = () => {
+    onUpdate({ slides: [...(data.slides || []), { image: '', category: '', title: '' }] })
+  }
+  const removeSlide = (idx: number) => {
+    onUpdate({ slides: data.slides?.filter((_, i) => i !== idx) || [] })
+  }
+  const updateSlide = (idx: number, field: keyof typeof data.slides[0], value: string) => {
+    const newSlides = [...(data.slides || [])]
+    newSlides[idx] = { ...newSlides[idx], [field]: value }
+    onUpdate({ slides: newSlides })
+  }
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <label className="block text-sm font-medium mb-1">Main Title</label>
+        <input type="text" value={data.title || ''} onChange={(e) => onUpdate({ title: e.target.value })} className="w-full border rounded px-3 py-2" placeholder="Studio 37" />
+      </div>
+      <div>
+        <label className="block text-sm font-medium mb-1">Subtitle</label>
+        <input type="text" value={data.subtitle || ''} onChange={(e) => onUpdate({ subtitle: e.target.value })} className="w-full border rounded px-3 py-2" placeholder="Professional Photography" />
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="block text-sm font-medium mb-1">Button Text</label>
+          <input type="text" value={data.buttonText || ''} onChange={(e) => onUpdate({ buttonText: e.target.value })} className="w-full border rounded px-3 py-2" placeholder="Book Now" />
+        </div>
+        <div>
+          <label className="block text-sm font-medium mb-1">Button Link</label>
+          <input type="text" value={data.buttonLink || ''} onChange={(e) => onUpdate({ buttonLink: e.target.value })} className="w-full border rounded px-3 py-2" placeholder="/book-a-session" />
+        </div>
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="block text-sm font-medium mb-1">Interval (ms)</label>
+          <input type="number" value={data.intervalMs || 5000} onChange={(e) => onUpdate({ intervalMs: Number(e.target.value) })} className="w-full border rounded px-3 py-2" min="1500" step="500" />
+        </div>
+        <div>
+          <label className="block text-sm font-medium mb-1">Overlay Opacity (%)</label>
+          <input type="number" value={data.overlay ?? 60} onChange={(e) => onUpdate({ overlay: Number(e.target.value) })} className="w-full border rounded px-3 py-2" min="0" max="100" />
+        </div>
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="block text-sm font-medium mb-1">Alignment</label>
+          <select value={data.alignment || 'center'} onChange={(e) => onUpdate({ alignment: e.target.value })} className="w-full border rounded px-3 py-2">
+            <option value="left">Left</option>
+            <option value="center">Center</option>
+            <option value="right">Right</option>
+          </select>
+        </div>
+        <div>
+          <label className="block text-sm font-medium mb-1">Button Style</label>
+          <select value={data.buttonStyle || 'primary'} onChange={(e) => onUpdate({ buttonStyle: e.target.value })} className="w-full border rounded px-3 py-2">
+            <option value="primary">Primary</option>
+            <option value="secondary">Secondary</option>
+            <option value="outline">Outline</option>
+          </select>
+        </div>
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="block text-sm font-medium mb-1">Title Color</label>
+          <select value={data.titleColor || 'text-white'} onChange={(e) => onUpdate({ titleColor: e.target.value })} className="w-full border rounded px-3 py-2">
+            <option value="text-white">White</option>
+            <option value="text-amber-50">Light Amber</option>
+            <option value="text-amber-200">Amber</option>
+            <option value="text-gray-100">Light Gray</option>
+          </select>
+        </div>
+        <div>
+          <label className="block text-sm font-medium mb-1">Subtitle Color</label>
+          <select value={data.subtitleColor || 'text-amber-50'} onChange={(e) => onUpdate({ subtitleColor: e.target.value })} className="w-full border rounded px-3 py-2">
+            <option value="text-white">White</option>
+            <option value="text-amber-50">Light Amber</option>
+            <option value="text-amber-200">Amber</option>
+            <option value="text-gray-100">Light Gray</option>
+          </select>
+        </div>
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="block text-sm font-medium mb-1">Button Animation</label>
+          <select value={data.buttonAnimation || 'none'} onChange={(e) => onUpdate({ buttonAnimation: e.target.value })} className="w-full border rounded px-3 py-2">
+            <option value="none">None</option>
+            <option value="hover-zoom">Hover Zoom</option>
+          </select>
+        </div>
+        <div className="flex items-center gap-2 pt-6">
+          <input id="slideshow-fullbleed" type="checkbox" checked={!!data.fullBleed} onChange={(e) => onUpdate({ fullBleed: e.target.checked })} className="h-4 w-4" />
+          <label htmlFor="slideshow-fullbleed" className="text-sm">Full Bleed</label>
+        </div>
+      </div>
+
+      <div className="border-t pt-4">
+        <div className="flex items-center justify-between mb-3">
+          <label className="block text-sm font-medium">Slides</label>
+          <button type="button" onClick={addSlide} className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">+ Add Slide</button>
+        </div>
+        {data.slides?.map((slide, idx) => (
+          <div key={idx} className="border rounded p-3 mb-3 space-y-2">
+            <div className="flex items-center justify-between">
+              <h4 className="font-medium text-sm">Slide {idx + 1}</h4>
+              <button type="button" onClick={() => removeSlide(idx)} className="text-red-600 text-xs hover:underline">Remove</button>
+            </div>
+            <div>
+              <label className="block text-xs font-medium mb-1">Image URL</label>
+              <input type="text" value={slide.image || ''} onChange={(e) => updateSlide(idx, 'image', e.target.value)} className="w-full border rounded px-2 py-1 text-sm" placeholder="https://..." />
+            </div>
+            <div>
+              <label className="block text-xs font-medium mb-1">Category</label>
+              <input type="text" value={slide.category || ''} onChange={(e) => updateSlide(idx, 'category', e.target.value)} className="w-full border rounded px-2 py-1 text-sm" placeholder="Creative Portraits" />
+            </div>
+            <div>
+              <label className="block text-xs font-medium mb-1">Title (optional)</label>
+              <input type="text" value={slide.title || ''} onChange={(e) => updateSlide(idx, 'title', e.target.value)} className="w-full border rounded px-2 py-1 text-sm" placeholder="Slide Title" />
+            </div>
+          </div>
+        ))}
+        {!data.slides?.length && <p className="text-sm text-gray-500">No slides yet. Add your first slide above.</p>}
+      </div>
+    </div>
+  )
+}
+
+function TestimonialsProperties({ data, onUpdate }: { data: TestimonialsComponent['data']; onUpdate: (data: any) => void }) {
+  const addTestimonial = () => {
+    onUpdate({ testimonials: [...(data.testimonials || []), { quote: '', author: '', subtext: '', avatar: '' }] })
+  }
+  const removeTestimonial = (idx: number) => {
+    onUpdate({ testimonials: data.testimonials?.filter((_, i) => i !== idx) || [] })
+  }
+  const updateTestimonial = (idx: number, field: keyof typeof data.testimonials[0], value: string) => {
+    const newTestimonials = [...(data.testimonials || [])]
+    newTestimonials[idx] = { ...newTestimonials[idx], [field]: value }
+    onUpdate({ testimonials: newTestimonials })
+  }
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <label className="block text-sm font-medium mb-1">Animation</label>
+        <select value={data.animation || 'fade-in'} onChange={(e) => onUpdate({ animation: e.target.value })} className="w-full border rounded px-3 py-2">
+          <option value="none">None</option>
+          <option value="fade-in">Fade In</option>
+          <option value="slide-up">Slide Up</option>
+          <option value="zoom">Zoom</option>
+        </select>
+      </div>
+
+      <div className="border-t pt-4">
+        <div className="flex items-center justify-between mb-3">
+          <label className="block text-sm font-medium">Testimonials</label>
+          <button type="button" onClick={addTestimonial} className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">+ Add Testimonial</button>
+        </div>
+        {data.testimonials?.map((t, idx) => (
+          <div key={idx} className="border rounded p-3 mb-3 space-y-2">
+            <div className="flex items-center justify-between">
+              <h4 className="font-medium text-sm">Testimonial {idx + 1}</h4>
+              <button type="button" onClick={() => removeTestimonial(idx)} className="text-red-600 text-xs hover:underline">Remove</button>
+            </div>
+            <div>
+              <label className="block text-xs font-medium mb-1">Quote</label>
+              <textarea value={t.quote || ''} onChange={(e) => updateTestimonial(idx, 'quote', e.target.value)} className="w-full border rounded px-2 py-1 text-sm" rows={3} placeholder="Their testimonial..." />
+            </div>
+            <div>
+              <label className="block text-xs font-medium mb-1">Author</label>
+              <input type="text" value={t.author || ''} onChange={(e) => updateTestimonial(idx, 'author', e.target.value)} className="w-full border rounded px-2 py-1 text-sm" placeholder="Client Name" />
+            </div>
+            <div>
+              <label className="block text-xs font-medium mb-1">Subtext (Role/Location)</label>
+              <input type="text" value={t.subtext || ''} onChange={(e) => updateTestimonial(idx, 'subtext', e.target.value)} className="w-full border rounded px-2 py-1 text-sm" placeholder="Client from Houston, TX" />
+            </div>
+            <div>
+              <label className="block text-xs font-medium mb-1">Avatar URL (optional)</label>
+              <input type="text" value={t.avatar || ''} onChange={(e) => updateTestimonial(idx, 'avatar', e.target.value)} className="w-full border rounded px-2 py-1 text-sm" placeholder="https://..." />
+            </div>
+          </div>
+        ))}
+        {!data.testimonials?.length && <p className="text-sm text-gray-500">No testimonials yet. Add your first testimonial above.</p>}
+      </div>
+    </div>
+  )
+}
+
+function GalleryHighlightsProperties({ data, onUpdate }: { data: GalleryHighlightsComponent['data']; onUpdate: (data: any) => void }) {
+  const [categoryInput, setCategoryInput] = React.useState('')
+  const addCategory = () => {
+    if (!categoryInput.trim()) return
+    onUpdate({ categories: [...(data.categories || []), categoryInput.trim()] })
+    setCategoryInput('')
+  }
+  const removeCategory = (idx: number) => {
+    onUpdate({ categories: data.categories?.filter((_, i) => i !== idx) || [] })
+  }
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <label className="block text-sm font-medium mb-1">Featured Only</label>
+        <div className="flex items-center gap-2">
+          <input id="gallery-featured" type="checkbox" checked={data.featuredOnly ?? true} onChange={(e) => onUpdate({ featuredOnly: e.target.checked })} className="h-4 w-4" />
+          <label htmlFor="gallery-featured" className="text-sm">Show only featured images</label>
+        </div>
+      </div>
+      <div>
+        <label className="block text-sm font-medium mb-1">Limit</label>
+        <input type="number" value={data.limit || 6} onChange={(e) => onUpdate({ limit: Number(e.target.value) })} className="w-full border rounded px-3 py-2" min="1" step="1" />
+        <p className="text-xs text-gray-500 mt-1">Max number of images to show</p>
+      </div>
+      <div>
+        <label className="block text-sm font-medium mb-1">Animation</label>
+        <select value={data.animation || 'fade-in'} onChange={(e) => onUpdate({ animation: e.target.value })} className="w-full border rounded px-3 py-2">
+          <option value="none">None</option>
+          <option value="fade-in">Fade In</option>
+          <option value="slide-up">Slide Up</option>
+          <option value="zoom">Zoom</option>
+        </select>
+      </div>
+
+      <div className="border-t pt-4">
+        <div className="flex items-center justify-between mb-3">
+          <label className="block text-sm font-medium">Categories</label>
+        </div>
+        <div className="flex gap-2 mb-3">
+          <input type="text" value={categoryInput} onChange={(e) => setCategoryInput(e.target.value)} onKeyPress={(e) => { if (e.key === 'Enter') { e.preventDefault(); addCategory() } }} className="flex-1 border rounded px-3 py-2 text-sm" placeholder="Enter category name" />
+          <button type="button" onClick={addCategory} className="px-3 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">Add</button>
+        </div>
+        <div className="space-y-1">
+          {data.categories?.map((cat, idx) => (
+            <div key={idx} className="flex items-center justify-between border rounded px-3 py-2 text-sm bg-gray-50">
+              <span>{cat}</span>
+              <button type="button" onClick={() => removeCategory(idx)} className="text-red-600 text-xs hover:underline">Remove</button>
+            </div>
+          ))}
+          {!data.categories?.length && <p className="text-sm text-gray-500">No categories (will show all). Add categories to filter.</p>}
+        </div>
       </div>
     </div>
   )

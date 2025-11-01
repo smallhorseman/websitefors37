@@ -1,6 +1,8 @@
 import Image from 'next/image'
 import React from 'react'
 import LocalBusinessSchema from './LocalBusinessSchema'
+import SlideshowHeroClient from './blocks/SlideshowHeroClient'
+import TestimonialsClient from './blocks/TestimonialsClient'
 
 // Server components used by MDX to render VisualEditor output faithfully
 
@@ -223,6 +225,124 @@ export function SeoFooterBlock({ contentB64, includeSchema = 'true' }: { content
   )
 }
 
+// Slideshow hero with multiple images and interval
+export function SlideshowHeroBlock({
+  slidesB64,
+  intervalMs = '5000',
+  overlay = '60',
+  title,
+  subtitle,
+  buttonText,
+  buttonLink = '/book-a-session',
+  alignment = 'center',
+  titleColor = 'text-white',
+  subtitleColor = 'text-amber-50',
+  buttonStyle = 'primary',
+  buttonAnimation = 'hover-zoom',
+  fullBleed = 'true'
+}: {
+  slidesB64?: string
+  intervalMs?: string | number
+  overlay?: string | number
+  title?: string
+  subtitle?: string
+  buttonText?: string
+  buttonLink?: string
+  alignment?: 'left' | 'center' | 'right' | string
+  titleColor?: string
+  subtitleColor?: string
+  buttonStyle?: string
+  buttonAnimation?: string
+  fullBleed?: string | boolean
+}) {
+  const json = slidesB64 ? Buffer.from(slidesB64, 'base64').toString('utf-8') : '[]'
+  let slides: Array<{ image: string; category?: string; title?: string }> = []
+  try { slides = JSON.parse(json || '[]') } catch { slides = [] }
+  const isFullBleed = String(fullBleed) === 'true'
+
+  const node = (
+    <SlideshowHeroClient
+      slides={slides}
+      intervalMs={Number(intervalMs || 5000)}
+      overlay={Number(overlay || 60)}
+      heading={title}
+      subheading={subtitle}
+      ctaText={buttonText}
+      ctaLink={buttonLink}
+      alignment={String(alignment) as any}
+      titleColor={titleColor}
+      subtitleColor={subtitleColor}
+      buttonStyle={buttonStyle}
+      buttonAnimation={buttonAnimation}
+    />
+  )
+
+  if (isFullBleed) {
+    return (
+      <div className="relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen overflow-x-clip">
+        {node}
+      </div>
+    )
+  }
+  return node
+}
+
+// Testimonials simple client carousel
+export function TestimonialsBlock({ testimonialsB64, animation = 'fade-in' }: { testimonialsB64?: string, animation?: string }) {
+  const json = testimonialsB64 ? Buffer.from(testimonialsB64, 'base64').toString('utf-8') : '[]'
+  let testimonials: Array<{ quote: string; author?: string; subtext?: string; avatar?: string }> = []
+  try { testimonials = JSON.parse(json || '[]') } catch { testimonials = [] }
+  return (
+    <div className={`p-6 md:p-10 ${animation === 'fade-in' ? 'animate-fadeIn' : animation === 'slide-up' ? 'animate-slideUp' : animation === 'zoom' ? 'animate-zoom' : ''}`}>
+      <TestimonialsClient testimonials={testimonials} />
+    </div>
+  )
+}
+
+// Gallery highlights, fetches featured images by categories (if provided)
+export async function GalleryHighlightsBlock({ categoriesB64, featuredOnly = 'true', limit = '6', animation = 'fade-in' }: {
+  categoriesB64?: string,
+  featuredOnly?: string | boolean,
+  limit?: string | number,
+  animation?: string
+}) {
+  // Dynamic import to avoid making this entire module depend on Supabase at compile time
+  const { createServerComponentClient } = await import('@supabase/auth-helpers-nextjs')
+  const { cookies } = await import('next/headers')
+  const supabase = createServerComponentClient({ cookies })
+
+  let categories: string[] = []
+  if (categoriesB64) {
+    try { categories = JSON.parse(Buffer.from(categoriesB64, 'base64').toString('utf-8') || '[]') } catch {}
+  }
+  let query = supabase.from('gallery_images').select('*')
+  if (categories.length) {
+    // @ts-ignore supabase-js supports .in
+    query = query.in('category', categories)
+  }
+  if (String(featuredOnly) !== 'false') {
+    query = query.eq('featured', true)
+  }
+  const { data } = await query.order('display_order', { ascending: true }).limit(Number(limit || 6))
+
+  return (
+    <div className={`p-6 md:p-10 ${animation === 'fade-in' ? 'animate-fadeIn' : animation === 'slide-up' ? 'animate-slideUp' : animation === 'zoom' ? 'animate-zoom' : ''}`}>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {(data || []).map((img) => (
+          <div key={img.id} className="relative aspect-video">
+            <Image src={img.image_url} alt={img.title || ''} fill className="object-cover rounded-lg" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent rounded-lg"></div>
+            <div className="absolute bottom-2 left-2 text-white drop-shadow">
+              <div className="text-sm capitalize opacity-90">{img.category}</div>
+              <div className="text-base font-medium">{img.title}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 export const MDXBuilderComponents = {
   HeroBlock,
   TextBlock,
@@ -231,4 +351,7 @@ export const MDXBuilderComponents = {
   ColumnsBlock,
   SpacerBlock,
   SeoFooterBlock,
+  SlideshowHeroBlock,
+  TestimonialsBlock,
+  GalleryHighlightsBlock,
 }
