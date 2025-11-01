@@ -23,6 +23,16 @@ export const DEFAULT_SETTINGS = {
   contact_email: 'sales@studio37.cc',
   contact_phone: '832-713-9944',
   business_address: '1701 Goodson Loop, TRLR 80, Pinehurst, TX 77362',
+  social_facebook: '',
+  social_instagram: '',
+  social_twitter: '',
+  seo_title_template: '%s | Studio37 Photography',
+  seo_default_description: 'Professional photography services',
+  theme_primary_color: '#b46e14',
+  theme_secondary_color: '#111827',
+  google_analytics_id: '',
+  logo_url: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1730486234/studio37-logo-light_xyzvwu.svg',
+}
 
 export async function getSettings(): Promise<SiteSettings> {
   try {

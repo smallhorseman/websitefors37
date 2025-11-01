@@ -410,7 +410,7 @@ export default function VisualEditor({ initialComponents = [], onSave, onChange,
         return { height: 'md' }
       case 'seoFooter':
         return {
-          content: '<h3 class="text-lg font-bold mb-2">About Studio 37</h3><p class="text-sm">Professional portraits and photography serving Tomball, Magnolia, Pinehurst, and the 77362 area.</p><h3 class="text-lg font-bold mt-4 mb-2">Contact</h3><p class="text-sm">Studio 37 Photography • (xxx) xxx-xxxx • contact@studio37.cc</p>',
+          content: '<h3 class="text-lg font-bold mb-2">About Studio37</h3><p class="text-sm">Professional photography serving Pinehurst, Tomball, Magnolia, The Woodlands, Conroe, Spring, and surrounding areas within 50 miles. Specializing in portraits, weddings, events, and commercial photography.</p><h3 class="text-lg font-bold mt-4 mb-2">Contact</h3><p class="text-sm">Studio37 • 832-713-9944 • sales@studio37.cc • 1701 Goodson Loop, TRLR 80, Pinehurst, TX 77362</p>',
           includeSchema: true
         }
       case 'slideshowHero':
@@ -1155,7 +1155,7 @@ function buildHomepageTemplate(): PageComponent[] {
     id: id(),
     type: 'seoFooter',
     data: {
-      content: '<h3 class="text-lg font-bold mb-2">About Studio 37</h3><p class="text-sm">Professional photography serving Tomball, Magnolia, Pinehurst, and the 77362 area.</p><h3 class="text-lg font-bold mt-4 mb-2">Contact</h3><p class="text-sm">Studio 37 Photography • contact@studio37.cc</p>',
+      content: '<h3 class="text-lg font-bold mb-2">About Studio37</h3><p class="text-sm">Professional photography serving Pinehurst, Tomball, Magnolia, The Woodlands, Conroe, Spring, and surrounding areas within 50 miles.</p><h3 class="text-lg font-bold mt-4 mb-2">Contact</h3><p class="text-sm">Studio37 • 832-713-9944 • sales@studio37.cc</p>',
       includeSchema: true
     }
   } as SEOFooterComponent)
