@@ -3,6 +3,7 @@ import React from 'react'
 import LocalBusinessSchema from './LocalBusinessSchema'
 import SlideshowHeroClient from './blocks/SlideshowHeroClient'
 import TestimonialsClient from './blocks/TestimonialsClient'
+import WidgetEmbedClient from './blocks/WidgetEmbedClient'
 
 // Server components used by MDX to render VisualEditor output faithfully
 
@@ -343,6 +344,25 @@ export async function GalleryHighlightsBlock({ categoriesB64, featuredOnly = 'tr
   )
 }
 
+// Generic third-party widget embed with style isolation
+export function WidgetEmbedBlock({ htmlB64, scriptSrcsB64, provider = 'custom', styleReset = 'true' }: {
+  htmlB64?: string
+  scriptSrcsB64?: string
+  provider?: string
+  styleReset?: string | boolean
+}) {
+  const html = htmlB64 ? Buffer.from(htmlB64, 'base64').toString('utf-8') : ''
+  let scriptSrcs: string[] = []
+  if (scriptSrcsB64) {
+    try { scriptSrcs = JSON.parse(Buffer.from(scriptSrcsB64, 'base64').toString('utf-8') || '[]') } catch { scriptSrcs = [] }
+  }
+  return (
+    <div className="p-6 md:p-8">
+      <WidgetEmbedClient html={html} scriptSrcs={scriptSrcs} provider={provider} styleReset={String(styleReset) !== 'false'} />
+    </div>
+  )
+}
+
 export const MDXBuilderComponents = {
   HeroBlock,
   TextBlock,
@@ -354,4 +374,5 @@ export const MDXBuilderComponents = {
   SlideshowHeroBlock,
   TestimonialsBlock,
   GalleryHighlightsBlock,
+  WidgetEmbedBlock,
 }

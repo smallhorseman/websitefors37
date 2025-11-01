@@ -10,7 +10,7 @@ import Image from 'next/image'
 import ImageUploader from './ImageUploader'
 
 // Component types
-type ComponentType = 'hero' | 'text' | 'image' | 'button' | 'columns' | 'spacer' | 'seoFooter' | 'slideshowHero' | 'testimonials' | 'galleryHighlights'
+type ComponentType = 'hero' | 'text' | 'image' | 'button' | 'columns' | 'spacer' | 'seoFooter' | 'slideshowHero' | 'testimonials' | 'galleryHighlights' | 'widgetEmbed'
 
 interface BaseComponent {
   id: string
@@ -132,7 +132,17 @@ interface GalleryHighlightsComponent extends BaseComponent {
   }
 }
 
-type PageComponent = HeroComponent | TextComponent | ImageComponent | ButtonComponent | ColumnsComponent | SpacerComponent | SEOFooterComponent | SlideshowHeroComponent | TestimonialsComponent | GalleryHighlightsComponent
+interface WidgetEmbedComponent extends BaseComponent {
+  type: 'widgetEmbed'
+  data: {
+    provider?: 'thumbtack' | 'google' | 'yelp' | 'custom'
+    html: string
+    scriptSrcs: string[]
+    styleReset?: boolean
+  }
+}
+
+type PageComponent = HeroComponent | TextComponent | ImageComponent | ButtonComponent | ColumnsComponent | SpacerComponent | SEOFooterComponent | SlideshowHeroComponent | TestimonialsComponent | GalleryHighlightsComponent | WidgetEmbedComponent
 
 interface VisualEditorProps {
   initialComponents?: PageComponent[]
@@ -270,6 +280,13 @@ export default function VisualEditor({ initialComponents = [], onSave, onChange,
           featuredOnly: true,
           limit: 6,
           animation: 'fade-in'
+        }
+      case 'widgetEmbed':
+        return {
+          provider: 'thumbtack',
+          html: '<div id="tt-dynamic"></div>',
+          scriptSrcs: ['https://www.thumbtack.com/profile/widgets/scripts/?service_pk=YOUR_SERVICE_PK&widget_id=review&type=one'],
+          styleReset: true
         }
       default:
         return {}
@@ -419,6 +436,14 @@ export default function VisualEditor({ initialComponents = [], onSave, onChange,
             >
               <Layout className="h-5 w-5" />
               <span>Gallery Highlights</span>
+            </button>
+            
+            <button
+              onClick={() => addComponent('widgetEmbed')}
+              className="w-full flex items-center gap-2 p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition"
+            >
+              <Layout className="h-5 w-5" />
+              <span>Embed Widget</span>
             </button>
             
             <button
@@ -598,6 +623,8 @@ function ComponentRenderer({ component }: { component: PageComponent }) {
       return <TestimonialsRenderer data={(component as any).data} />
     case 'galleryHighlights':
       return <GalleryHighlightsRenderer data={(component as any).data} />
+    case 'widgetEmbed':
+      return <WidgetEmbedRenderer data={(component as any).data} />
     case 'spacer':
       return <SpacerRenderer data={component.data} />
     case 'seoFooter':
@@ -1223,6 +1250,25 @@ function GalleryHighlightsRenderer({ data }: { data: GalleryHighlightsComponent[
   )
 }
 
+// Widget Embed Renderer (Editor Preview)
+function WidgetEmbedRenderer({ data }: { data: WidgetEmbedComponent['data'] }) {
+  return (
+    <div className="p-6">
+      <div className="border rounded-lg p-6 bg-gray-50">
+        <h4 className="font-semibold mb-2">{data.provider ? `${data.provider[0].toUpperCase()}${data.provider.slice(1)}` : 'Custom'} Widget</h4>
+        <p className="text-sm text-gray-600">Preview only. Third-party scripts run on the published page.</p>
+        <div className="mt-3 text-xs text-gray-500">
+          <div>Scripts: {data.scriptSrcs?.length || 0}</div>
+          <div>Style reset: {String(data.styleReset ?? true)}</div>
+        </div>
+        <div className="mt-3 text-xs text-gray-500 line-clamp-3">
+          {(data.html || '').slice(0, 200) || '<no html>'}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // Component Properties Editor
 function ComponentProperties({ component, onUpdate }: { component: PageComponent; onUpdate: (data: any) => void }) {
   switch (component.type) {
@@ -1246,6 +1292,8 @@ function ComponentProperties({ component, onUpdate }: { component: PageComponent
       return <TestimonialsProperties data={component.data as TestimonialsComponent['data']} onUpdate={onUpdate} />
     case 'galleryHighlights':
       return <GalleryHighlightsProperties data={component.data as GalleryHighlightsComponent['data']} onUpdate={onUpdate} />
+    case 'widgetEmbed':
+      return <WidgetEmbedProperties data={component.data as WidgetEmbedComponent['data']} onUpdate={onUpdate} />
     default:
       return null
   }
@@ -2167,6 +2215,62 @@ function GalleryHighlightsProperties({ data, onUpdate }: { data: GalleryHighligh
           {!data.categories?.length && <p className="text-sm text-gray-500">No categories (will show all). Add categories to filter.</p>}
         </div>
       </div>
+    </div>
+  )
+}
+
+function WidgetEmbedProperties({ data, onUpdate }: { data: WidgetEmbedComponent['data']; onUpdate: (data:any)=>void }) {
+  const [scriptUrl, setScriptUrl] = React.useState('')
+  const addScript = () => {
+    const url = scriptUrl.trim()
+    if (!url) return
+    onUpdate({ scriptSrcs: [...(data.scriptSrcs || []), url] })
+    setScriptUrl('')
+  }
+  const removeScript = (idx:number) => {
+    onUpdate({ scriptSrcs: (data.scriptSrcs || []).filter((_,i)=>i!==idx) })
+  }
+  return (
+    <div className="space-y-4">
+      <div>
+        <label className="block text-sm font-medium mb-1">Provider</label>
+        <select value={data.provider || 'thumbtack'} onChange={(e)=>onUpdate({ provider: e.target.value })} className="w-full border rounded px-3 py-2">
+          <option value="thumbtack">Thumbtack</option>
+          <option value="google">Google</option>
+          <option value="yelp">Yelp</option>
+          <option value="custom">Custom</option>
+        </select>
+      </div>
+      <div>
+        <label className="block text-sm font-medium mb-1">HTML Snippet</label>
+        <textarea value={data.html || ''} onChange={(e)=>onUpdate({ html: e.target.value })} className="w-full border rounded px-3 py-2 font-mono text-xs" rows={6} placeholder="Paste the widget HTML (without <script> tags is okay)" />
+  <p className="text-xs text-gray-500 mt-1">If your snippet includes a &lt;script src=...&gt;, we\'ll try to detect it too.</p>
+      </div>
+      <div className="border-t pt-3">
+        <label className="block text-sm font-medium mb-2">Script URLs</label>
+        <div className="flex gap-2 mb-2">
+          <input type="url" value={scriptUrl} onChange={(e)=>setScriptUrl(e.target.value)} onKeyDown={(e)=>{ if(e.key==='Enter'){ e.preventDefault(); addScript() }}} className="flex-1 border rounded px-3 py-2 text-sm" placeholder="https://..." />
+          <button type="button" onClick={addScript} className="px-3 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">Add</button>
+        </div>
+        <div className="space-y-1">
+          {(data.scriptSrcs || []).map((src, idx)=> (
+            <div key={idx} className="flex items-center justify-between border rounded px-3 py-2 text-xs bg-gray-50">
+              <span className="truncate mr-2">{src}</span>
+              <button type="button" onClick={()=>removeScript(idx)} className="text-red-600 hover:underline">Remove</button>
+            </div>
+          ))}
+          {!data.scriptSrcs?.length && <p className="text-xs text-gray-500">No scripts yet. Add at least one script URL (e.g., the Thumbtack widget script).</p>}
+        </div>
+      </div>
+      <div className="flex items-center gap-2">
+        <input id="widget-style-reset" type="checkbox" checked={data.styleReset ?? true} onChange={(e)=>onUpdate({ styleReset: e.target.checked })} className="h-4 w-4" />
+        <label htmlFor="widget-style-reset" className="text-sm">Reset styles inside widget (recommended)</label>
+      </div>
+      {data.provider === 'thumbtack' && (
+        <div className="text-xs text-gray-600 bg-amber-50 border border-amber-200 rounded p-2">
+          Tip: Paste the Thumbtack script URL like <code>https://www.thumbtack.com/profile/widgets/scripts/?service_pk=YOUR_SERVICE_PK&widget_id=review&type=one</code>. Use minimal HTML like <code>&lt;div id=\"tt-dynamic\"&gt;&lt;/div&gt;</code>. The style reset here fixes the oversized fonts/colors in your screenshot.
+        </div>
+      )}
     </div>
   )
 }

@@ -226,6 +226,22 @@ export default function PageBuilderPage() {
           limit: Number(a.limit || 6),
           animation: (a.animation as any) || 'fade-in'
         }})
+      } else if (line.startsWith('<WidgetEmbedBlock')) {
+        const a = parseAttrs(line)
+        let html = ''
+        if (a.htmlB64) {
+          try { html = decodeURIComponent(escape(atob(a.htmlB64))) } catch { html = '' }
+        }
+        let scriptSrcs: string[] = []
+        if (a.scriptSrcsB64) {
+          try { scriptSrcs = JSON.parse(decodeURIComponent(escape(atob(a.scriptSrcsB64))) || '[]') } catch { scriptSrcs = [] }
+        }
+        comps.push({ id: `component-${Date.now()}-${comps.length}`, type: 'widgetEmbed', data: {
+          provider: a.provider || 'custom',
+          html,
+          scriptSrcs,
+          styleReset: String(a.styleReset) !== 'false'
+        }})
       }
     }
     return comps
@@ -359,6 +375,12 @@ export default function PageBuilderPage() {
         case 'galleryHighlights': {
           const categoriesB64 = toB64(JSON.stringify(d.categories || []))
           md.push(`<GalleryHighlightsBlock categoriesB64="${categoriesB64}" featuredOnly="${(d.featuredOnly ?? true) ? 'true' : 'false'}" limit="${Number(d.limit || 6)}" animation="${escapeAttr(d.animation || 'fade-in')}" />`)
+          break
+        }
+        case 'widgetEmbed': {
+          const htmlB64 = toB64(String(d.html || ''))
+          const scriptSrcsB64 = toB64(JSON.stringify(d.scriptSrcs || []))
+          md.push(`<WidgetEmbedBlock provider="${escapeAttr(d.provider || 'custom')}" htmlB64="${htmlB64}" scriptSrcsB64="${scriptSrcsB64}" styleReset="${(d.styleReset ?? true) ? 'true' : 'false'}" />`)
           break
         }
       }

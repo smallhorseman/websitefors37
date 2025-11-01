@@ -98,6 +98,28 @@
     background-size: 200px 200px;
     background-repeat: repeat;
   }
+
+  /* Third-party widget isolation to prevent site styles from leaking in */
+  .third-party-embed {
+    isolation: isolate;
+  }
+  .third-party-embed,
+  .third-party-embed * {
+    all: revert !important; /* reset Tailwind/base/prose styles */
+  }
+  .third-party-embed {
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif !important;
+    color: #111 !important;
+    line-height: 1.4 !important;
+  }
+  .third-party-embed img {
+    max-width: none !important; /* avoid Tailwind img {max-width:100%} stretching */
+    height: auto !important;
+  }
+  .third-party-embed a {
+    text-decoration: none !important;
+    color: inherit !important;
+  }
 }
 
 @layer utilities {
