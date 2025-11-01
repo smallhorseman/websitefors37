@@ -15,12 +15,10 @@ import {
   Eye,
   Activity,
   Clock,
-  Target,
-  Search
+  Target
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import ProgressBar from '@/components/ProgressBar'
-import SEOAnalyzerModal from '@/components/SEOAnalyzerModal'
 
 interface DashboardStats {
   totalLeads: number
@@ -60,7 +58,6 @@ export default function AdminDashboard() {
   const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([])
   const [loading, setLoading] = useState(true)
   const [user, setUser] = useState<any>(null)
-  const [showSEOModal, setShowSEOModal] = useState(false)
 
   useEffect(() => {
     fetchDashboardData()
@@ -235,24 +232,7 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          {/* SEO & AI Analyzer */}
-          <div 
-            onClick={() => setShowSEOModal(true)}
-            className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg shadow-sm p-6 border border-blue-200 cursor-pointer hover:shadow-md transition-shadow"
-          >
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">SEO & AI</p>
-                <p className="text-2xl font-bold text-gray-900">Analyzer</p>
-                <p className="text-xs text-gray-500 mt-1">
-                  Optimize your pages
-                </p>
-              </div>
-              <div className="bg-blue-100 p-3 rounded-lg">
-                <Search className="h-6 w-6 text-blue-600" />
-              </div>
-            </div>
-          </div>
+          {/* Empty slot previously for SEO card - reserved for future tool */}
         </div>
 
         {/* Main Content Grid */}
@@ -388,8 +368,7 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* SEO Analyzer Modal */}
-      <SEOAnalyzerModal isOpen={showSEOModal} onClose={() => setShowSEOModal(false)} />
+      {/* SEO Analyzer Modal removed (tool will be rebuilt) */}
     </div>
   )
 }
