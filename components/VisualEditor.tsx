@@ -2298,9 +2298,11 @@ function PricingTableRenderer({ data }: { data: PricingTableComponent['data'] })
                 <ul className="space-y-2 mb-4">
                   {plan.features.map((f, fi) => (
                     <li key={fi} className="flex items-start gap-2 text-sm text-gray-700">
-                      <svg className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
+                      {(data.showFeatureChecks ?? true) && (
+                        <svg className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                      )}
                       <span>{f}</span>
                     </li>
                   ))}

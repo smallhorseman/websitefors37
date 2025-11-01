@@ -376,7 +376,11 @@ export default function PageBuilderPage() {
           subheading: a.subheading || '',
           plans: plans.map((p:any)=>({ title:p.title||'', price:p.price||'', period:p.period||'', features:p.features||[], ctaText:p.ctaText||'', ctaLink:p.ctaLink||'', highlight: !!p.highlight })),
           columns: Number(a.columns) || 3,
-          animation: a.animation || 'fade-in'
+          animation: a.animation || 'fade-in',
+          // New styling props (default to editor defaults if missing)
+          style: (a.style as any) || 'light',
+          variant: (a.variant as any) || 'card',
+          showFeatureChecks: String(a.showFeatureChecks) !== 'false'
         }})
       }
     }
@@ -448,7 +452,7 @@ export default function PageBuilderPage() {
         }
         case 'pricingTable': {
           const plansB64 = toB64(JSON.stringify(d.plans || []))
-          md.push(`<PricingTableBlock plansB64="${plansB64}" heading="${escapeAttr(d.heading || '')}" subheading="${escapeAttr(d.subheading || '')}" columns="${Number(d.columns || 3)}" animation="${escapeAttr(d.animation || 'fade-in')}" />`)
+          md.push(`<PricingTableBlock plansB64="${plansB64}" heading="${escapeAttr(d.heading || '')}" subheading="${escapeAttr(d.subheading || '')}" columns="${Number(d.columns || 3)}" animation="${escapeAttr(d.animation || 'fade-in')}" style="${escapeAttr(d.style || 'light')}" variant="${escapeAttr(d.variant || 'card')}" showFeatureChecks="${(d.showFeatureChecks ?? true) ? 'true' : 'false'}" />`)
           break
         }
         case 'contactForm': {
