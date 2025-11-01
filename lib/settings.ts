@@ -31,7 +31,7 @@ export const DEFAULT_SETTINGS = {
   theme_primary_color: '#b46e14',
   theme_secondary_color: '#111827',
   google_analytics_id: '',
-  logo_url: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1730486234/studio37-logo-light_xyzvwu.svg',
+  logo_url: '/brand/studio37-logo-watermark-light.svg',
 }
 
 export async function getSettings(): Promise<SiteSettings> {

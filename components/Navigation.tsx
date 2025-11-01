@@ -10,7 +10,8 @@ export default function Navigation() {
   const [isOpen, setIsOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const [logoUrl, setLogoUrl] = useState<string | null>(null)
-  const DEFAULT_LOGO_URL = 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1762019202/studio37-logo-dark_ikyrze.svg'
+  const DEFAULT_LOGO_LIGHT = '/brand/studio37-logo-watermark-light.svg'
+  const DEFAULT_LOGO_DARK = '/brand/studio37-logo-watermark-dark.svg'
   
   useEffect(() => {
     const handleScroll = () => {
@@ -31,22 +32,22 @@ export default function Navigation() {
         if (!error && data && data.logo_url) {
           setLogoUrl(data.logo_url as string)
         } else {
-          // Fallback to a sane default if settings not configured yet
-          setLogoUrl(DEFAULT_LOGO_URL)
+          // Use watermarked logo based on scroll state (light for scrolled, dark for transparent)
+          setLogoUrl(scrolled ? DEFAULT_LOGO_LIGHT : DEFAULT_LOGO_DARK)
         }
       } catch {
-        // Fallback on error
-        if (mounted) setLogoUrl(DEFAULT_LOGO_URL)
+        // Fallback on error - use watermarked logo
+        if (mounted) setLogoUrl(scrolled ? DEFAULT_LOGO_LIGHT : DEFAULT_LOGO_DARK)
       }
     }
     fetchLogo()
     return () => { mounted = false }
-  }, [])
+  }, [scrolled]) // Re-run when scroll state changes
 
   return (
     <nav 
       className={`fixed w-full z-50 transition-all duration-300 ${
-        scrolled ? 'bg-white/90 backdrop-blur-md shadow-md' : 'bg-black/30 backdrop-blur-sm'
+        scrolled ? 'bg-white/90 backdrop-blur-md shadow-md' : 'bg-transparent'
       }`}
       role="navigation"
       aria-label="Main navigation"
@@ -60,10 +61,14 @@ export default function Navigation() {
           >
             {logoUrl ? (
               <div className="flex items-center gap-2">
-                {/* Use next/image for optimization when possible */}
-                <div className="relative h-8 w-auto" style={{ minWidth: 96 }}>
+                {/* Watermarked logo with responsive sizing */}
+                <div className={`relative transition-all duration-300 ${scrolled ? 'h-8' : 'h-10'} w-auto`} style={{ minWidth: scrolled ? 120 : 140 }}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={logoUrl} alt="Studio 37 logo" className="h-8 w-auto object-contain" />
+                  <img 
+                    src={logoUrl} 
+                    alt="Studio 37 Photography - Professional photography in Pinehurst, TX" 
+                    className={`w-auto object-contain transition-all duration-300 ${scrolled ? 'h-8' : 'h-10'}`}
+                  />
                 </div>
               </div>
             ) : (

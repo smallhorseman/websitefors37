@@ -1,17 +1,30 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    domains: ['res.cloudinary.com', 'images.unsplash.com'],
+    // Enable image optimization for better performance
     unoptimized: false,
+    formats: ['image/avif', 'image/webp'],  // Prioritize AVIF
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920],  // Reduced larger sizes
+    imageSizes: [16, 32, 48, 64, 96, 128, 256],  // Optimized sizes
+    minimumCacheTTL: 31536000, // 1 year cache
+    contentSecurityPolicy: "default-src 'self'; img-src 'self' blob: data: https://*.cloudinary.com https://*.unsplash.com;",
     remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'supabase.co',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.supabase.co',
+      },
       {
         protocol: 'https',
         hostname: 'res.cloudinary.com',
       },
-      {
-        protocol: 'https',
-        hostname: 'images.unsplash.com',
-      }
     ],
   },
   // Performance optimizations
@@ -61,16 +74,20 @@ const nextConfig = {
             value: 'on'
           },
           {
-            key: 'Access-Control-Allow-Origin',
-            value: '*'
+            key: 'X-XSS-Protection',
+            value: '1; mode=block'
           },
           {
-            key: 'Access-Control-Allow-Methods',
-            value: 'GET'
+            key: 'X-Frame-Options',
+            value: 'SAMEORIGIN'
           },
           {
-            key: 'Cross-Origin-Resource-Policy',
-            value: 'cross-origin'
+            key: 'X-Content-Type-Options',
+            value: 'nosniff'
+          },
+          {
+            key: 'Referrer-Policy',
+            value: 'origin-when-cross-origin'
           }
         ]
       },

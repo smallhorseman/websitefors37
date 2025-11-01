@@ -231,8 +231,6 @@ export default function AdminDashboard() {
               </div>
             </div>
           </div>
-
-          {/* Empty slot previously for SEO card - reserved for future tool */}
         </div>
 
         {/* Main Content Grid */}
@@ -367,8 +365,6 @@ export default function AdminDashboard() {
           </div>
         </div>
       </div>
-
-      {/* SEO Analyzer Modal removed (tool will be rebuilt) */}
     </div>
   )
 }

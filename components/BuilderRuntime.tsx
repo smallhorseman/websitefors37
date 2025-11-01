@@ -149,7 +149,7 @@ export function HeroBlock({
     </section>
   )
 
-  const overlapClasses = shouldOverlap ? '-mt-16 pt-20 md:-mt-20 md:pt-24' : ''
+  const overlapClasses = shouldOverlap ? '-mt-16 md:-mt-20 pt-16 md:pt-20' : ''
 
   if (isFullBleed) {
     return (
