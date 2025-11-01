@@ -102,8 +102,9 @@ export default function PageBuilderPage() {
           break
         }
         case 'text': {
+          const contentJson = JSON.stringify(String(d.content || ''))
           md.push(
-            `<TextBlock content="${escapeAttr(d.content || '')}" alignment="${escapeAttr(
+            `<TextBlock contentJson="${escapeAttr(contentJson)}" alignment="${escapeAttr(
               d.alignment || 'left'
             )}" size="${escapeAttr(d.size || 'md')}" />`
           )
@@ -259,6 +260,7 @@ export default function PageBuilderPage() {
         <VisualEditor
           initialComponents={components}
           onSave={handleSave}
+          onChange={(next) => setComponents(next)}
         />
         <div className="p-4 flex justify-end gap-2">
           <Link

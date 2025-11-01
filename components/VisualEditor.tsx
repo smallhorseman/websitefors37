@@ -81,13 +81,19 @@ type PageComponent = HeroComponent | TextComponent | ImageComponent | ButtonComp
 interface VisualEditorProps {
   initialComponents?: PageComponent[]
   onSave: (components: PageComponent[]) => void
+  onChange?: (components: PageComponent[]) => void
 }
 
-export default function VisualEditor({ initialComponents = [], onSave }: VisualEditorProps) {
+export default function VisualEditor({ initialComponents = [], onSave, onChange }: VisualEditorProps) {
   const [components, setComponents] = useState<PageComponent[]>(initialComponents)
   const [selectedComponent, setSelectedComponent] = useState<string | null>(null)
   const [viewMode, setViewMode] = useState<'desktop' | 'tablet' | 'mobile'>('desktop')
   const [previewMode, setPreviewMode] = useState(false)
+
+  const notify = (next: PageComponent[]) => {
+    setComponents(next)
+    if (onChange) onChange(next)
+  }
 
   const handleDragEnd = (result: DropResult) => {
     if (!result.destination) return
@@ -96,7 +102,7 @@ export default function VisualEditor({ initialComponents = [], onSave }: VisualE
     const [reorderedItem] = items.splice(result.source.index, 1)
     items.splice(result.destination.index, 0, reorderedItem)
 
-    setComponents(items)
+    notify(items)
   }
 
   const addComponent = (type: ComponentType) => {
@@ -106,7 +112,7 @@ export default function VisualEditor({ initialComponents = [], onSave }: VisualE
       data: getDefaultData(type)
     } as PageComponent
 
-    setComponents([...components, newComponent])
+    notify([...components, newComponent])
     setSelectedComponent(newComponent.id)
   }
 
@@ -157,13 +163,14 @@ export default function VisualEditor({ initialComponents = [], onSave }: VisualE
   }
 
   const updateComponent = (id: string, data: any) => {
-    setComponents(components.map(c => 
+    const updated = components.map(c => 
       c.id === id ? { ...c, data: { ...c.data, ...data } } : c
-    ))
+    )
+    notify(updated)
   }
 
   const deleteComponent = (id: string) => {
-    setComponents(components.filter(c => c.id !== id))
+    notify(components.filter(c => c.id !== id))
     if (selectedComponent === id) setSelectedComponent(null)
   }
 

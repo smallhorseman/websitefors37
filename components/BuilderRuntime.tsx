@@ -45,8 +45,8 @@ export function HeroBlock({
   )
 }
 
-export function TextBlock({ content, alignment = 'left', size = 'md' }: {
-  content?: string
+export function TextBlock({ contentJson, alignment = 'left', size = 'md' }: {
+  contentJson?: string
   alignment?: 'left' | 'center' | 'right'
   size?: 'sm' | 'md' | 'lg' | 'xl'
 }) {
@@ -56,6 +56,7 @@ export function TextBlock({ content, alignment = 'left', size = 'md' }: {
     lg: 'text-lg',
     xl: 'text-2xl',
   }
+  const content = contentJson ? JSON.parse(contentJson) as string : ''
   return (
     <div className={`p-6 md:p-8 ${sizeClasses[size || 'md']} text-${alignment}`}>
       {content && <div dangerouslySetInnerHTML={{ __html: content }} />}
