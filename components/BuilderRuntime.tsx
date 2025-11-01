@@ -14,6 +14,7 @@ export function HeroBlock({
   titleColor = 'text-white',
   subtitleColor = 'text-amber-50',
   buttonStyle = 'primary',
+  animation = 'none',
 }: {
   title?: string
   subtitle?: string
@@ -25,6 +26,7 @@ export function HeroBlock({
   titleColor?: string
   subtitleColor?: string
   buttonStyle?: string
+  animation?: string
 }) {
   const buttonStyleClasses: Record<string, string> = {
     primary: 'btn-primary',
@@ -33,7 +35,7 @@ export function HeroBlock({
   }
   
   return (
-    <section className="relative h-96 md:h-[28rem] flex items-center justify-center text-white overflow-hidden rounded-lg">
+    <section className={`relative h-96 md:h-[28rem] flex items-center justify-center text-white overflow-hidden rounded-lg ${animation === 'fade-in' ? 'animate-fadeIn' : animation === 'slide-up' ? 'animate-slideUp' : animation === 'zoom' ? 'animate-zoom' : ''}`}>
       {backgroundImage && (
         <Image src={backgroundImage} alt="" fill className="object-cover" />
       )}
@@ -47,7 +49,7 @@ export function HeroBlock({
         {buttonText && (
           <a
             href={buttonLink || '#'}
-            className={`inline-block px-6 py-3 rounded-lg transition ${buttonStyleClasses[buttonStyle] || buttonStyleClasses.primary}`}
+            className={`inline-block px-6 py-3 rounded-lg transition no-underline ${buttonStyleClasses[buttonStyle] || buttonStyleClasses.primary}`}
           >
             {buttonText}
           </a>
@@ -57,10 +59,11 @@ export function HeroBlock({
   )
 }
 
-export function TextBlock({ contentB64, alignment = 'left', size = 'md' }: {
+export function TextBlock({ contentB64, alignment = 'left', size = 'md', animation = 'none' }: {
   contentB64?: string
   alignment?: 'left' | 'center' | 'right'
   size?: 'sm' | 'md' | 'lg' | 'xl'
+  animation?: string
 }) {
   const sizeClasses: Record<string, string> = {
     sm: 'text-sm',
@@ -70,7 +73,7 @@ export function TextBlock({ contentB64, alignment = 'left', size = 'md' }: {
   }
   const content = contentB64 ? Buffer.from(contentB64, 'base64').toString('utf-8') : ''
   return (
-    <div className={`p-6 md:p-8 ${sizeClasses[size || 'md']} text-${alignment}`}>
+    <div className={`p-6 md:p-8 ${sizeClasses[size || 'md']} text-${alignment} ${animation === 'fade-in' ? 'animate-fadeIn' : animation === 'slide-up' ? 'animate-slideUp' : animation === 'zoom' ? 'animate-zoom' : ''}`}>
       {content && <div dangerouslySetInnerHTML={{ __html: content }} />}
     </div>
   )
@@ -121,21 +124,22 @@ export function ImageBlock({ url, alt = '', caption, width = 'full', link, anima
   )
 }
 
-export function ButtonBlock({ text, link = '#', style = 'primary', alignment = 'center' }: {
+export function ButtonBlock({ text, link = '#', style = 'primary', alignment = 'center', animation = 'none' }: {
   text?: string
   link?: string
   style?: 'primary' | 'secondary' | 'outline'
   alignment?: 'left' | 'center' | 'right'
+  animation?: string
 }) {
   const styleClasses: Record<string, string> = {
-    primary: 'bg-primary-600 text-white hover:bg-primary-700',
-    secondary: 'bg-gray-600 text-white hover:bg-gray-700',
+    primary: 'btn-primary',
+    secondary: 'btn-secondary bg-white/10 hover:bg-white/20 border border-amber-200/30',
     outline: 'border-2 border-primary-600 text-primary-600 hover:bg-primary-50',
   }
   return (
-    <div className={`p-6 md:p-8 text-${alignment}`}>
+    <div className={`p-6 md:p-8 text-${alignment} ${animation === 'fade-in' ? 'animate-fadeIn' : animation === 'slide-up' ? 'animate-slideUp' : animation === 'zoom' ? 'animate-zoom' : ''}`}>
       {text && (
-        <a href={link} className={`inline-block px-6 py-3 rounded-lg transition ${styleClasses[style]}`}>
+        <a href={link} className={`inline-block px-6 py-3 rounded-lg transition no-underline ${styleClasses[style]}`}>
           {text}
         </a>
       )}
@@ -143,7 +147,7 @@ export function ButtonBlock({ text, link = '#', style = 'primary', alignment = '
   )
 }
 
-export function ColumnsBlock({ columnsB64 }: { columnsB64?: string }) {
+export function ColumnsBlock({ columnsB64, animation = 'none' }: { columnsB64?: string, animation?: string }) {
   const decoded = columnsB64 ? Buffer.from(columnsB64, 'base64').toString('utf-8') : '[]'
   const cols: Array<{ content?: string; image?: string }> = JSON.parse(decoded || '[]')
   const count = Math.min(Math.max(cols.length || 2, 1), 4)
@@ -156,7 +160,7 @@ export function ColumnsBlock({ columnsB64 }: { columnsB64?: string }) {
       ? 'md:grid-cols-3'
       : 'md:grid-cols-4'
   return (
-    <div className="p-6 md:p-8">
+    <div className={`p-6 md:p-8 ${animation === 'fade-in' ? 'animate-fadeIn' : animation === 'slide-up' ? 'animate-slideUp' : animation === 'zoom' ? 'animate-zoom' : ''}`}>
       <div className={`grid grid-cols-1 ${gridClass} gap-6`}>
         {cols.map((col, i) => (
           <div key={i} className="space-y-4">

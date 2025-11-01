@@ -109,7 +109,7 @@ export default function PageBuilderPage() {
               d.titleColor || 'text-white'
             )}" subtitleColor="${escapeAttr(d.subtitleColor || 'text-amber-50')}" buttonStyle="${escapeAttr(
               d.buttonStyle || 'primary'
-            )}" />`
+            )}" animation="${escapeAttr(d.animation || 'none')}" />`
           )
           break
         }
@@ -118,7 +118,7 @@ export default function PageBuilderPage() {
           md.push(
             `<TextBlock contentB64="${contentB64}" alignment="${escapeAttr(
               d.alignment || 'left'
-            )}" size="${escapeAttr(d.size || 'md')}" />`
+            )}" size="${escapeAttr(d.size || 'md')}" animation="${escapeAttr(d.animation || 'none')}" />`
           )
           break
         }
@@ -136,13 +136,13 @@ export default function PageBuilderPage() {
           md.push(
             `<ButtonBlock text="${escapeAttr(d.text || '')}" link="${escapeAttr(d.link || '#')}" style="${escapeAttr(
               d.style || 'primary'
-            )}" alignment="${escapeAttr(d.alignment || 'center')}" />`
+            )}" alignment="${escapeAttr(d.alignment || 'center')}" animation="${escapeAttr(d.animation || 'none')}" />`
           )
           break
         }
         case 'columns': {
           const columnsB64 = toB64(JSON.stringify(d.columns || []))
-          md.push(`<ColumnsBlock columnsB64="${columnsB64}" />`)
+          md.push(`<ColumnsBlock columnsB64="${columnsB64}" animation="${escapeAttr(d.animation || 'none')}" />`)
           break
         }
         case 'spacer': {

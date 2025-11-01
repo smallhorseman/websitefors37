@@ -30,6 +30,7 @@ interface HeroComponent extends BaseComponent {
     titleColor: string
     subtitleColor: string
     buttonStyle: 'primary' | 'secondary' | 'outline'
+    animation: 'none' | 'fade-in' | 'slide-up' | 'zoom'
   }
 }
 
@@ -39,6 +40,7 @@ interface TextComponent extends BaseComponent {
     content: string
     alignment: 'left' | 'center' | 'right'
     size: 'sm' | 'md' | 'lg' | 'xl'
+    animation?: 'none' | 'fade-in' | 'slide-up' | 'zoom'
   }
 }
 
@@ -61,6 +63,7 @@ interface ButtonComponent extends BaseComponent {
     link: string
     style: 'primary' | 'secondary' | 'outline'
     alignment: 'left' | 'center' | 'right'
+    animation?: 'none' | 'fade-in' | 'slide-up' | 'zoom' | 'hover-zoom'
   }
 }
 
@@ -71,6 +74,7 @@ interface ColumnsComponent extends BaseComponent {
       content: string
       image?: string
     }>
+    animation?: 'none' | 'fade-in' | 'slide-up' | 'zoom'
   }
 }
 
@@ -134,13 +138,15 @@ export default function VisualEditor({ initialComponents = [], onSave, onChange 
           overlay: 50,
           titleColor: 'text-white',
           subtitleColor: 'text-amber-50',
-          buttonStyle: 'primary'
+          buttonStyle: 'primary',
+          animation: 'none'
         }
       case 'text':
         return {
           content: 'Enter your text here...',
           alignment: 'left',
-          size: 'md'
+          size: 'md',
+          animation: 'none'
         }
       case 'image':
         return {
@@ -156,14 +162,16 @@ export default function VisualEditor({ initialComponents = [], onSave, onChange 
           text: 'Click Here',
           link: '#',
           style: 'primary',
-          alignment: 'center'
+          alignment: 'center',
+          animation: 'none'
         }
       case 'columns':
         return {
           columns: [
             { content: 'Column 1 content' },
             { content: 'Column 2 content' }
-          ]
+          ],
+          animation: 'none'
         }
       case 'spacer':
         return { height: 'md' }
@@ -420,9 +428,11 @@ function HeroRenderer({ data }: { data: HeroComponent['data'] }) {
     secondary: 'btn-secondary bg-white/10 hover:bg-white/20 border border-amber-200/30',
     outline: 'border-2 border-white text-white hover:bg-white/10'
   }
+  const anim = data.animation || 'none'
+  const animClass = anim === 'fade-in' ? 'animate-fadeIn' : anim === 'slide-up' ? 'animate-slideUp' : anim === 'zoom' ? 'animate-zoom' : ''
   
   return (
-    <div className="relative h-96 flex items-center justify-center text-white overflow-hidden">
+    <div className={`relative h-96 flex items-center justify-center text-white overflow-hidden ${animClass}`}>
       {data.backgroundImage && (
         <Image src={data.backgroundImage} alt="" fill className="object-cover" />
       )}
@@ -434,7 +444,7 @@ function HeroRenderer({ data }: { data: HeroComponent['data'] }) {
         <h1 className={`text-5xl font-bold mb-4 ${data.titleColor || 'text-white'}`}>{data.title}</h1>
         <p className={`text-xl mb-6 ${data.subtitleColor || 'text-amber-50'}`}>{data.subtitle}</p>
         {data.buttonText && (
-          <a href={data.buttonLink} className={`inline-block px-6 py-3 rounded-lg transition ${buttonStyleClasses[data.buttonStyle || 'primary']}`}>
+          <a href={data.buttonLink} className={`inline-block px-6 py-3 rounded-lg transition no-underline ${buttonStyleClasses[data.buttonStyle || 'primary']}`}>
             {data.buttonText}
           </a>
         )}
@@ -450,9 +460,11 @@ function TextRenderer({ data }: { data: TextComponent['data'] }) {
     lg: 'text-lg',
     xl: 'text-2xl'
   }
+  const anim = data.animation || 'none'
+  const animClass = anim === 'fade-in' ? 'animate-fadeIn' : anim === 'slide-up' ? 'animate-slideUp' : anim === 'zoom' ? 'animate-zoom' : ''
   
   return (
-    <div className={`p-8 text-${data.alignment} ${sizeClasses[data.size]}`}>
+    <div className={`p-8 text-${data.alignment} ${sizeClasses[data.size]} ${animClass}`}>
       <div dangerouslySetInnerHTML={{ __html: data.content }} />
     </div>
   )
@@ -500,16 +512,18 @@ function ImageRenderer({ data }: { data: ImageComponent['data'] }) {
 
 function ButtonRenderer({ data }: { data: ButtonComponent['data'] }) {
   const styleClasses = {
-    primary: 'bg-primary-600 text-white hover:bg-primary-700',
-    secondary: 'bg-gray-600 text-white hover:bg-gray-700',
+    primary: 'btn-primary',
+    secondary: 'btn-secondary bg-white/10 hover:bg-white/20 border border-amber-200/30',
     outline: 'border-2 border-primary-600 text-primary-600 hover:bg-primary-50'
   }
-  
+  const anim = data.animation || 'none'
+  const animClass = anim === 'fade-in' ? 'animate-fadeIn' : anim === 'slide-up' ? 'animate-slideUp' : anim === 'zoom' ? 'animate-zoom' : ''
+  const hoverZoom = anim === 'hover-zoom' ? 'transition-transform duration-300 hover:scale-105' : ''
   return (
-    <div className={`p-8 text-${data.alignment}`}>
+    <div className={`p-8 text-${data.alignment} ${animClass}`}>
       <a
         href={data.link}
-        className={`inline-block px-6 py-3 rounded-lg transition ${styleClasses[data.style]}`}
+        className={`inline-block px-6 py-3 rounded-lg transition no-underline ${styleClasses[data.style]} ${hoverZoom}`}
       >
         {data.text}
       </a>
@@ -527,8 +541,10 @@ function ColumnsRenderer({ data }: { data: ColumnsComponent['data'] }) {
       : count === 3
       ? 'grid-cols-3'
       : 'grid-cols-4'
+  const anim = data.animation || 'none'
+  const animClass = anim === 'fade-in' ? 'animate-fadeIn' : anim === 'slide-up' ? 'animate-slideUp' : anim === 'zoom' ? 'animate-zoom' : ''
   return (
-    <div className="p-8">
+    <div className={`p-8 ${animClass}`}>
       <div className={`grid ${gridClass} gap-6`}>
         {data.columns.map((col, i) => (
           <div key={i} className="space-y-4">
@@ -590,6 +606,20 @@ function HeroProperties({ data, onUpdate }: { data: HeroComponent['data']; onUpd
           title="Hero title"
           placeholder="Enter hero title"
         />
+      </div>
+      <div>
+        <label className="block text-sm font-medium mb-1">Animation</label>
+        <select
+          value={data.animation}
+          onChange={(e) => onUpdate({ animation: e.target.value })}
+          className="w-full border rounded px-3 py-2"
+          title="Hero animation"
+        >
+          <option value="none">None</option>
+          <option value="fade-in">Fade In</option>
+          <option value="slide-up">Slide Up</option>
+          <option value="zoom">Zoom</option>
+        </select>
       </div>
       <div>
         <label className="block text-sm font-medium mb-1">Subtitle</label>
@@ -757,6 +787,20 @@ function TextProperties({ data, onUpdate }: { data: TextComponent['data']; onUpd
           <option value="xl">Extra Large</option>
         </select>
       </div>
+      <div>
+        <label className="block text-sm font-medium mb-1">Animation</label>
+        <select
+          value={data.animation || 'none'}
+          onChange={(e) => onUpdate({ animation: e.target.value })}
+          className="w-full border rounded px-3 py-2"
+          title="Text animation"
+        >
+          <option value="none">None</option>
+          <option value="fade-in">Fade In</option>
+          <option value="slide-up">Slide Up</option>
+          <option value="zoom">Zoom</option>
+        </select>
+      </div>
     </div>
   )
 }
@@ -900,6 +944,21 @@ function ButtonProperties({ data, onUpdate }: { data: ButtonComponent['data']; o
           <option value="right">Right</option>
         </select>
       </div>
+      <div>
+        <label className="block text-sm font-medium mb-1">Animation</label>
+        <select
+          value={data.animation || 'none'}
+          onChange={(e) => onUpdate({ animation: e.target.value })}
+          className="w-full border rounded px-3 py-2"
+          title="Button animation"
+        >
+          <option value="none">None</option>
+          <option value="hover-zoom">Zoom on Hover</option>
+          <option value="fade-in">Fade In</option>
+          <option value="slide-up">Slide Up</option>
+          <option value="zoom">Zoom</option>
+        </select>
+      </div>
     </div>
   )
 }
@@ -907,6 +966,20 @@ function ButtonProperties({ data, onUpdate }: { data: ButtonComponent['data']; o
 function ColumnsProperties({ data, onUpdate }: { data: ColumnsComponent['data']; onUpdate: (data: any) => void }) {
   return (
     <div className="space-y-4">
+      <div>
+        <label className="block text-sm font-medium mb-1">Animation</label>
+        <select
+          value={data.animation || 'none'}
+          onChange={(e) => onUpdate({ animation: e.target.value })}
+          className="w-full border rounded px-3 py-2"
+          title="Columns animation"
+        >
+          <option value="none">None</option>
+          <option value="fade-in">Fade In</option>
+          <option value="slide-up">Slide Up</option>
+          <option value="zoom">Zoom</option>
+        </select>
+      </div>
       {data.columns.map((col, i) => (
         <div key={i} className="border rounded p-3 space-y-2">
           <h4 className="font-medium">Column {i + 1}</h4>

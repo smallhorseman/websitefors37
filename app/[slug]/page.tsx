@@ -75,7 +75,6 @@ export default async function DynamicPage({ params }: { params: { slug: string }
   return (
     <div className="pt-16 min-h-screen">
       <div className="container mx-auto px-4 py-16">
-        <h1 className="text-4xl font-bold mb-6">{page.title}</h1>
         <article className="prose max-w-none">
           {page.content ? (
             <MDXRemote 
