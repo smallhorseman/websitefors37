@@ -31,7 +31,7 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   theme_secondary_color: '#a17a07', // Amber-800
   google_analytics_id: '',
   book_session_bg_url: 'https://images.unsplash.com/photo-1423666639041-f56000c27a9a',
-  logo_url: ''
+  logo_url: 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1762019202/studio37-logo-dark_ikyrze.svg'
 }
 
 export async function getSettings(): Promise<SiteSettings> {

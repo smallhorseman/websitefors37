@@ -10,6 +10,7 @@ export default function Navigation() {
   const [isOpen, setIsOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const [logoUrl, setLogoUrl] = useState<string | null>(null)
+  const DEFAULT_LOGO_URL = 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1762019202/studio37-logo-dark_ikyrze.svg'
   
   useEffect(() => {
     const handleScroll = () => {
@@ -29,9 +30,13 @@ export default function Navigation() {
         if (!mounted) return
         if (!error && data && data.logo_url) {
           setLogoUrl(data.logo_url as string)
+        } else {
+          // Fallback to a sane default if settings not configured yet
+          setLogoUrl(DEFAULT_LOGO_URL)
         }
       } catch {
-        // ignore
+        // Fallback on error
+        if (mounted) setLogoUrl(DEFAULT_LOGO_URL)
       }
     }
     fetchLogo()
