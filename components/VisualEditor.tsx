@@ -411,8 +411,8 @@ function HeroRenderer({ data }: { data: HeroComponent['data'] }) {
         <Image src={data.backgroundImage} alt="" fill className="object-cover" />
       )}
       <div 
-        className="absolute inset-0 bg-black ve-hero-overlay"
-        style={{ '--overlay': data.overlay } as React.CSSProperties}
+        className="absolute inset-0 bg-black/60"
+        style={{ backgroundColor: `rgba(0,0,0,${Math.min(Math.max(Number(data.overlay ?? 50), 0), 100) / 100})` }}
       />
       <div className={`relative z-10 text-${data.alignment} max-w-4xl px-8`}>
         <h1 className="text-5xl font-bold mb-4">{data.title}</h1>
@@ -486,9 +486,18 @@ function ButtonRenderer({ data }: { data: ButtonComponent['data'] }) {
 }
 
 function ColumnsRenderer({ data }: { data: ColumnsComponent['data'] }) {
+  const count = Math.min(Math.max(data.columns.length || 2, 1), 4)
+  const gridClass =
+    count === 1
+      ? 'grid-cols-1'
+      : count === 2
+      ? 'grid-cols-2'
+      : count === 3
+      ? 'grid-cols-3'
+      : 'grid-cols-4'
   return (
     <div className="p-8">
-      <div className={`grid grid-cols-${data.columns.length} gap-6`}>
+      <div className={`grid ${gridClass} gap-6`}>
         {data.columns.map((col, i) => (
           <div key={i} className="space-y-4">
             {col.image && (

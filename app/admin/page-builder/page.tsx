@@ -88,6 +88,14 @@ export default function PageBuilderPage() {
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#39;')
 
+    const toB64 = (s: string) => {
+      try {
+        return btoa(unescape(encodeURIComponent(s)))
+      } catch {
+        return ''
+      }
+    }
+
     list.forEach((c) => {
       const d = c.data || {}
       switch (c.type) {
@@ -102,9 +110,9 @@ export default function PageBuilderPage() {
           break
         }
         case 'text': {
-          const contentJson = JSON.stringify(String(d.content || ''))
+          const contentB64 = toB64(String(d.content || ''))
           md.push(
-            `<TextBlock contentJson="${escapeAttr(contentJson)}" alignment="${escapeAttr(
+            `<TextBlock contentB64="${contentB64}" alignment="${escapeAttr(
               d.alignment || 'left'
             )}" size="${escapeAttr(d.size || 'md')}" />`
           )
@@ -127,10 +135,8 @@ export default function PageBuilderPage() {
           break
         }
         case 'columns': {
-          const columnsJson = JSON.stringify(d.columns || [])
-          // Pass as a plain string attribute; escape quotes to avoid MDX parse issues
-          const escaped = escapeAttr(columnsJson)
-          md.push(`<ColumnsBlock columnsJson="${escaped}" />`)
+          const columnsB64 = toB64(JSON.stringify(d.columns || []))
+          md.push(`<ColumnsBlock columnsB64="${columnsB64}" />`)
           break
         }
         case 'spacer': {

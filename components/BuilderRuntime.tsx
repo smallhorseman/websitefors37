@@ -18,7 +18,7 @@ export function HeroBlock({
   buttonText?: string
   buttonLink?: string
   alignment?: 'left' | 'center' | 'right'
-  overlay?: number
+  overlay?: number | string
 }) {
   return (
     <section className="relative h-96 md:h-[28rem] flex items-center justify-center text-white overflow-hidden rounded-lg">
@@ -27,7 +27,7 @@ export function HeroBlock({
       )}
       <div
         className="absolute inset-0 bg-black/60"
-        style={{ backgroundColor: `rgba(0,0,0,${Math.min(Math.max(overlay ?? 50, 0), 100) / 100})` }}
+        style={{ backgroundColor: `rgba(0,0,0,${Math.min(Math.max(Number(overlay ?? 50), 0), 100) / 100})` }}
       />
       <div className={`relative z-10 max-w-4xl w-full px-6 text-${alignment}`}>
         {title && <h1 className="text-4xl md:text-5xl font-bold mb-3">{title}</h1>}
@@ -45,8 +45,8 @@ export function HeroBlock({
   )
 }
 
-export function TextBlock({ contentJson, alignment = 'left', size = 'md' }: {
-  contentJson?: string
+export function TextBlock({ contentB64, alignment = 'left', size = 'md' }: {
+  contentB64?: string
   alignment?: 'left' | 'center' | 'right'
   size?: 'sm' | 'md' | 'lg' | 'xl'
 }) {
@@ -56,7 +56,7 @@ export function TextBlock({ contentJson, alignment = 'left', size = 'md' }: {
     lg: 'text-lg',
     xl: 'text-2xl',
   }
-  const content = contentJson ? JSON.parse(contentJson) as string : ''
+  const content = contentB64 ? Buffer.from(contentB64, 'base64').toString('utf-8') : ''
   return (
     <div className={`p-6 md:p-8 ${sizeClasses[size || 'md']} text-${alignment}`}>
       {content && <div dangerouslySetInnerHTML={{ __html: content }} />}
@@ -112,8 +112,9 @@ export function ButtonBlock({ text, link = '#', style = 'primary', alignment = '
   )
 }
 
-export function ColumnsBlock({ columnsJson }: { columnsJson?: string }) {
-  const cols: Array<{ content?: string; image?: string }> = columnsJson ? JSON.parse(columnsJson) : []
+export function ColumnsBlock({ columnsB64 }: { columnsB64?: string }) {
+  const decoded = columnsB64 ? Buffer.from(columnsB64, 'base64').toString('utf-8') : '[]'
+  const cols: Array<{ content?: string; image?: string }> = JSON.parse(decoded || '[]')
   const count = Math.min(Math.max(cols.length || 2, 1), 4)
   const gridClass =
     count === 1
