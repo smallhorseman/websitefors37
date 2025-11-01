@@ -1032,8 +1032,8 @@ function HeroRenderer({ data }: { data: HeroComponent['data'] }) {
         style={{ backgroundColor: `rgba(0,0,0,${Math.min(Math.max(Number(data.overlay ?? 50), 0), 100) / 100})` }}
       />
       <div className={`relative z-10 text-${data.alignment} max-w-4xl px-8`}>
-        <h1 className={`text-4xl md:text-5xl lg:text-6xl font-bold mb-4 ${data.titleColor || 'text-white'}`}>{data.title}</h1>
-        <p className={`text-lg md:text-xl mb-6 ${data.subtitleColor || 'text-amber-50'}`}>{data.subtitle}</p>
+        <h1 className={`text-4xl md:text-5xl lg:text-6xl font-bold mb-4 ${data.titleColor || 'text-white'}`} dangerouslySetInnerHTML={{ __html: data.title }} />
+        <p className={`text-lg md:text-xl mb-6 ${data.subtitleColor || 'text-amber-50'}`} dangerouslySetInnerHTML={{ __html: data.subtitle }} />
         {data.buttonText && (
           <a href={data.buttonLink} className={`inline-block px-6 py-3 rounded-lg transition no-underline ${buttonStyleClasses[data.buttonStyle || 'primary']} ${buttonHoverZoom}`}>
             {data.buttonText}
@@ -1195,8 +1195,8 @@ function SlideshowHeroRenderer({ data }: { data: SlideshowHeroComponent['data'] 
       )}
       <div className="absolute inset-0" style={{ backgroundColor: `rgba(0,0,0,${overlayAlpha})` }} />
       <div className={`relative z-10 max-w-4xl w-full px-6 text-${data.alignment || 'center'}`}>
-        {data.title && <h1 className={`text-4xl md:text-5xl lg:text-6xl font-bold mb-3 ${data.titleColor || 'text-white'}`}>{data.title}</h1>}
-        {data.subtitle && <p className={`text-lg md:text-xl mb-6 opacity-90 ${data.subtitleColor || 'text-amber-50'}`}>{data.subtitle}</p>}
+        {data.title && <h1 className={`text-4xl md:text-5xl lg:text-6xl font-bold mb-3 ${data.titleColor || 'text-white'}`} dangerouslySetInnerHTML={{ __html: data.title }} />}
+        {data.subtitle && <p className={`text-lg md:text-xl mb-6 opacity-90 ${data.subtitleColor || 'text-amber-50'}`} dangerouslySetInnerHTML={{ __html: data.subtitle }} />}
         {data.buttonText && (
           <a href={data.buttonLink || '#'} className={`inline-block px-6 py-3 rounded-lg transition no-underline ${buttonStyleClasses[data.buttonStyle || 'primary']} ${hoverZoom}`}>
             {data.buttonText}
@@ -1301,18 +1301,90 @@ function ComponentProperties({ component, onUpdate }: { component: PageComponent
 
 // Add missing HeroProperties component
 function HeroProperties({ data, onUpdate }: { data: HeroComponent['data']; onUpdate: (data: any) => void }) {
+  const titleRef = React.useRef<HTMLTextAreaElement>(null)
+  const subtitleRef = React.useRef<HTMLTextAreaElement>(null)
+
+  const insertTitleFormatting = (before: string, after: string) => {
+    const textarea = titleRef.current
+    if (!textarea) return
+    const start = textarea.selectionStart
+    const end = textarea.selectionEnd
+    const text = data.title
+    const selectedText = text.substring(start, end)
+    const newText = text.substring(0, start) + before + selectedText + after + text.substring(end)
+    onUpdate({ title: newText })
+    setTimeout(() => {
+      textarea.focus()
+      const newPos = start + before.length + selectedText.length + after.length
+      textarea.setSelectionRange(newPos, newPos)
+    }, 0)
+  }
+
+  const insertSubtitleFormatting = (before: string, after: string) => {
+    const textarea = subtitleRef.current
+    if (!textarea) return
+    const start = textarea.selectionStart
+    const end = textarea.selectionEnd
+    const text = data.subtitle
+    const selectedText = text.substring(start, end)
+    const newText = text.substring(0, start) + before + selectedText + after + text.substring(end)
+    onUpdate({ subtitle: newText })
+    setTimeout(() => {
+      textarea.focus()
+      const newPos = start + before.length + selectedText.length + after.length
+      textarea.setSelectionRange(newPos, newPos)
+    }, 0)
+  }
+
   return (
     <div className="space-y-4">
       <div>
         <label className="block text-sm font-medium mb-1">Title</label>
-        <input
-          type="text"
+        {/* Title Formatting Toolbar */}
+        <div className="flex flex-wrap gap-1 mb-2 p-2 bg-gray-50 border rounded">
+          <button
+            type="button"
+            onClick={() => insertTitleFormatting('<strong>', '</strong>')}
+            className="px-2 py-1 text-xs border rounded hover:bg-white font-bold"
+            title="Bold"
+          >
+            <strong>B</strong>
+          </button>
+          <button
+            type="button"
+            onClick={() => insertTitleFormatting('<em>', '</em>')}
+            className="px-2 py-1 text-xs border rounded hover:bg-white italic"
+            title="Italic"
+          >
+            <em>I</em>
+          </button>
+          <button
+            type="button"
+            onClick={() => insertTitleFormatting('<br/>', '')}
+            className="px-2 py-1 text-xs border rounded hover:bg-white"
+            title="Line break"
+          >
+            ↵
+          </button>
+          <button
+            type="button"
+            onClick={() => insertTitleFormatting('<span class="text-amber-300">', '</span>')}
+            className="px-2 py-1 text-xs border rounded hover:bg-white"
+            title="Highlight (amber)"
+          >
+            ✨
+          </button>
+        </div>
+        <textarea
+          ref={titleRef}
           value={data.title}
           onChange={(e) => onUpdate({ title: e.target.value })}
-          className="w-full border rounded px-3 py-2"
+          className="w-full border rounded px-3 py-2 font-mono text-sm"
+          rows={2}
           title="Hero title"
-          placeholder="Enter hero title"
+          placeholder="Enter hero title (HTML allowed)"
         />
+        <p className="text-xs text-gray-500 mt-1">Tip: Use &lt;br/&gt; for line breaks, &lt;strong&gt; for bold</p>
       </div>
       <div>
         <label className="block text-sm font-medium mb-1">Layout</label>
@@ -1355,14 +1427,43 @@ function HeroProperties({ data, onUpdate }: { data: HeroComponent['data']; onUpd
       </div>
       <div>
         <label className="block text-sm font-medium mb-1">Subtitle</label>
-        <input
-          type="text"
+        {/* Subtitle Formatting Toolbar */}
+        <div className="flex flex-wrap gap-1 mb-2 p-2 bg-gray-50 border rounded">
+          <button
+            type="button"
+            onClick={() => insertSubtitleFormatting('<strong>', '</strong>')}
+            className="px-2 py-1 text-xs border rounded hover:bg-white font-bold"
+            title="Bold"
+          >
+            <strong>B</strong>
+          </button>
+          <button
+            type="button"
+            onClick={() => insertSubtitleFormatting('<em>', '</em>')}
+            className="px-2 py-1 text-xs border rounded hover:bg-white italic"
+            title="Italic"
+          >
+            <em>I</em>
+          </button>
+          <button
+            type="button"
+            onClick={() => insertSubtitleFormatting('<br/>', '')}
+            className="px-2 py-1 text-xs border rounded hover:bg-white"
+            title="Line break"
+          >
+            ↵
+          </button>
+        </div>
+        <textarea
+          ref={subtitleRef}
           value={data.subtitle}
           onChange={(e) => onUpdate({ subtitle: e.target.value })}
-          className="w-full border rounded px-3 py-2"
+          className="w-full border rounded px-3 py-2 font-mono text-sm"
+          rows={2}
           title="Hero subtitle"
-          placeholder="Enter hero subtitle"
+          placeholder="Enter hero subtitle (HTML allowed)"
         />
+        <p className="text-xs text-gray-500 mt-1">Tip: Use HTML tags for formatting</p>
       </div>
       <div>
         <label className="block text-sm font-medium mb-1">Background Image URL</label>
@@ -1977,6 +2078,41 @@ function SEOFooterProperties({ data, onUpdate }: { data: SEOFooterComponent['dat
 }
 
 function SlideshowHeroProperties({ data, onUpdate }: { data: SlideshowHeroComponent['data']; onUpdate: (data: any) => void }) {
+  const titleRef = React.useRef<HTMLTextAreaElement>(null)
+  const subtitleRef = React.useRef<HTMLTextAreaElement>(null)
+
+  const insertTitleFormatting = (before: string, after: string) => {
+    const textarea = titleRef.current
+    if (!textarea) return
+    const start = textarea.selectionStart
+    const end = textarea.selectionEnd
+    const text = data.title || ''
+    const selectedText = text.substring(start, end)
+    const newText = text.substring(0, start) + before + selectedText + after + text.substring(end)
+    onUpdate({ title: newText })
+    setTimeout(() => {
+      textarea.focus()
+      const newPos = start + before.length + selectedText.length + after.length
+      textarea.setSelectionRange(newPos, newPos)
+    }, 0)
+  }
+
+  const insertSubtitleFormatting = (before: string, after: string) => {
+    const textarea = subtitleRef.current
+    if (!textarea) return
+    const start = textarea.selectionStart
+    const end = textarea.selectionEnd
+    const text = data.subtitle || ''
+    const selectedText = text.substring(start, end)
+    const newText = text.substring(0, start) + before + selectedText + after + text.substring(end)
+    onUpdate({ subtitle: newText })
+    setTimeout(() => {
+      textarea.focus()
+      const newPos = start + before.length + selectedText.length + after.length
+      textarea.setSelectionRange(newPos, newPos)
+    }, 0)
+  }
+
   const addSlide = () => {
     onUpdate({ slides: [...(data.slides || []), { image: '', category: '', title: '' }] })
   }
@@ -1993,11 +2129,89 @@ function SlideshowHeroProperties({ data, onUpdate }: { data: SlideshowHeroCompon
     <div className="space-y-4">
       <div>
         <label className="block text-sm font-medium mb-1">Main Title</label>
-        <input type="text" value={data.title || ''} onChange={(e) => onUpdate({ title: e.target.value })} className="w-full border rounded px-3 py-2" placeholder="Studio 37" />
+        {/* Title Formatting Toolbar */}
+        <div className="flex flex-wrap gap-1 mb-2 p-2 bg-gray-50 border rounded">
+          <button
+            type="button"
+            onClick={() => insertTitleFormatting('<strong>', '</strong>')}
+            className="px-2 py-1 text-xs border rounded hover:bg-white font-bold"
+            title="Bold"
+          >
+            <strong>B</strong>
+          </button>
+          <button
+            type="button"
+            onClick={() => insertTitleFormatting('<em>', '</em>')}
+            className="px-2 py-1 text-xs border rounded hover:bg-white italic"
+            title="Italic"
+          >
+            <em>I</em>
+          </button>
+          <button
+            type="button"
+            onClick={() => insertTitleFormatting('<br/>', '')}
+            className="px-2 py-1 text-xs border rounded hover:bg-white"
+            title="Line break"
+          >
+            ↵
+          </button>
+          <button
+            type="button"
+            onClick={() => insertTitleFormatting('<span class="text-amber-300">', '</span>')}
+            className="px-2 py-1 text-xs border rounded hover:bg-white"
+            title="Highlight (amber)"
+          >
+            ✨
+          </button>
+        </div>
+        <textarea
+          ref={titleRef}
+          value={data.title || ''}
+          onChange={(e) => onUpdate({ title: e.target.value })}
+          className="w-full border rounded px-3 py-2 font-mono text-sm"
+          rows={2}
+          placeholder="Studio 37 (HTML allowed)"
+        />
+        <p className="text-xs text-gray-500 mt-1">Use HTML for formatting</p>
       </div>
       <div>
         <label className="block text-sm font-medium mb-1">Subtitle</label>
-        <input type="text" value={data.subtitle || ''} onChange={(e) => onUpdate({ subtitle: e.target.value })} className="w-full border rounded px-3 py-2" placeholder="Professional Photography" />
+        {/* Subtitle Formatting Toolbar */}
+        <div className="flex flex-wrap gap-1 mb-2 p-2 bg-gray-50 border rounded">
+          <button
+            type="button"
+            onClick={() => insertSubtitleFormatting('<strong>', '</strong>')}
+            className="px-2 py-1 text-xs border rounded hover:bg-white font-bold"
+            title="Bold"
+          >
+            <strong>B</strong>
+          </button>
+          <button
+            type="button"
+            onClick={() => insertSubtitleFormatting('<em>', '</em>')}
+            className="px-2 py-1 text-xs border rounded hover:bg-white italic"
+            title="Italic"
+          >
+            <em>I</em>
+          </button>
+          <button
+            type="button"
+            onClick={() => insertSubtitleFormatting('<br/>', '')}
+            className="px-2 py-1 text-xs border rounded hover:bg-white"
+            title="Line break"
+          >
+            ↵
+          </button>
+        </div>
+        <textarea
+          ref={subtitleRef}
+          value={data.subtitle || ''}
+          onChange={(e) => onUpdate({ subtitle: e.target.value })}
+          className="w-full border rounded px-3 py-2 font-mono text-sm"
+          rows={2}
+          placeholder="Professional Photography (HTML allowed)"
+        />
+        <p className="text-xs text-gray-500 mt-1">Use HTML for formatting</p>
       </div>
       <div className="grid grid-cols-2 gap-3">
         <div>

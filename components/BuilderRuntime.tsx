@@ -55,8 +55,8 @@ export function HeroBlock({
         style={{ backgroundColor: `rgba(0,0,0,${Math.min(Math.max(Number(overlay ?? 50), 0), 100) / 100})` }}
       />
       <div className={`relative z-10 max-w-4xl w-full px-6 text-${alignment}`}>
-        {title && <h1 className={`text-4xl md:text-5xl lg:text-6xl font-bold mb-3 ${titleColor}`}>{title}</h1>}
-        {subtitle && <p className={`text-lg md:text-xl mb-6 opacity-90 ${subtitleColor}`}>{subtitle}</p>}
+        {title && <h1 className={`text-4xl md:text-5xl lg:text-6xl font-bold mb-3 ${titleColor}`} dangerouslySetInnerHTML={{ __html: title }} />}
+        {subtitle && <p className={`text-lg md:text-xl mb-6 opacity-90 ${subtitleColor}`} dangerouslySetInnerHTML={{ __html: subtitle }} />}
         {buttonText && (
           <a
             href={buttonLink || '#'}

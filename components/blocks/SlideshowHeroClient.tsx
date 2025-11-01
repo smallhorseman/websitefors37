@@ -66,8 +66,8 @@ export default function SlideshowHeroClient({
 
       {/* Content */}
       <div className={`relative z-10 max-w-4xl w-full px-6 text-${alignment}`}>
-        {heading && <h1 className={`text-4xl md:text-5xl lg:text-6xl font-bold mb-3 ${titleColor}`}>{heading}</h1>}
-        {subheading && <p className={`text-lg md:text-xl mb-6 opacity-90 ${subtitleColor}`}>{subheading}</p>}
+        {heading && <h1 className={`text-4xl md:text-5xl lg:text-6xl font-bold mb-3 ${titleColor}`} dangerouslySetInnerHTML={{ __html: heading }} />}
+        {subheading && <p className={`text-lg md:text-xl mb-6 opacity-90 ${subtitleColor}`} dangerouslySetInnerHTML={{ __html: subheading }} />}
         {ctaText && (
           <a href={ctaLink} className={`inline-block px-6 py-3 rounded-lg transition no-underline ${buttonStyleClasses[buttonStyle] || buttonStyleClasses.primary} ${hoverZoom}`}>
             {ctaText}
