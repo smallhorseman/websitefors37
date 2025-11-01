@@ -17,7 +17,8 @@ import {
   Camera,
   LogOut,
   User,
-  Shield
+  Shield,
+  Search
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 
@@ -136,7 +137,7 @@ export default function AdminSidebar() {
     {
       name: 'SEO & AI',
       path: '/admin/seo',
-      icon: <FileText className="w-5 h-5" />
+      icon: <Search className="w-5 h-5" />
     },
     { 
       name: 'Gallery', 

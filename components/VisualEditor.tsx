@@ -1754,7 +1754,7 @@ function HeroRenderer({ data }: { data: HeroComponent['data'] }) {
   const buttonHoverZoom = (data.buttonAnimation || 'none') === 'hover-zoom' ? 'transition-transform duration-300 hover:scale-105' : ''
   const heightClasses = 'min-h-[50vh] md:min-h-[60vh] lg:min-h-[70vh]'
   const overlap = data.overlapHeader ?? true
-  const overlapClasses = overlap ? '-mt-16 md:-mt-20 pt-16 md:pt-20' : ''
+  const overlapClasses = overlap ? '-mt-16 pt-20 md:-mt-20 md:pt-24' : ''
   
   return (
     <div className={`${overlapClasses}`}>

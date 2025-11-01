@@ -46,7 +46,7 @@ export default function Navigation() {
   return (
     <nav 
       className={`fixed w-full z-50 transition-all duration-300 ${
-        scrolled ? 'bg-white/90 backdrop-blur-md shadow-md' : 'bg-transparent'
+        scrolled ? 'bg-white/90 backdrop-blur-md shadow-md' : 'bg-black/30 backdrop-blur-sm'
       }`}
       role="navigation"
       aria-label="Main navigation"
