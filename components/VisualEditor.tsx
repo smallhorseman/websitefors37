@@ -111,6 +111,12 @@ export default function VisualEditor({ initialComponents = [], onSave, onChange,
   const [viewMode, setViewMode] = useState<'desktop' | 'tablet' | 'mobile'>('desktop')
   const [previewMode, setPreviewMode] = useState(false)
 
+  const applyHomepageTemplate = () => {
+    const tpl = buildHomepageTemplate()
+    notify(tpl)
+    if (tpl.length) setSelectedComponent(tpl[0].id)
+  }
+
   const notify = (next: PageComponent[]) => {
     setComponents(next)
     if (onChange) onChange(next)
@@ -233,6 +239,16 @@ export default function VisualEditor({ initialComponents = [], onSave, onChange,
                 title={`Import published /${slug} into builder`}
               >
                 Import from published
+              </button>
+            )}
+            {/* Quick-start template for homepage */}
+            {!!slug && slug.trim().toLowerCase() === 'home' && (
+              <button
+                onClick={() => applyHomepageTemplate()}
+                className="mt-2 w-full px-3 py-2 bg-amber-600 text-white rounded hover:bg-amber-700 text-sm"
+                title="Prefill components that mirror the current homepage layout"
+              >
+                Start with Homepage Template
               </button>
             )}
           </div>
@@ -456,6 +472,121 @@ function ComponentRenderer({ component }: { component: PageComponent }) {
     default:
       return null
   }
+}
+
+// Helper: Build a starter homepage template approximating the current static homepage
+function buildHomepageTemplate(): PageComponent[] {
+  const id = () => `component-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+  const components: PageComponent[] = []
+
+  // Hero with CTA
+  components.push({
+    id: id(),
+    type: 'hero',
+    data: {
+      title: 'Studio 37',
+      subtitle: 'Capturing your precious moments with artistic excellence and professional craftsmanship',
+      backgroundImage: 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?q=80&w=2000&auto=format&fit=crop',
+      buttonText: 'Book Your Session',
+      buttonLink: '/book-a-session',
+      alignment: 'center',
+      overlay: 60,
+      titleColor: 'text-white',
+      subtitleColor: 'text-amber-50',
+      buttonStyle: 'primary',
+      animation: 'fade-in',
+      buttonAnimation: 'hover-zoom',
+      fullBleed: true
+    }
+  } as HeroComponent)
+
+  // Secondary CTA button (View Portfolio)
+  components.push({
+    id: id(),
+    type: 'button',
+    data: {
+      text: 'View Portfolio',
+      link: '/gallery',
+      style: 'secondary',
+      alignment: 'center',
+      animation: 'hover-zoom'
+    }
+  } as ButtonComponent)
+
+  // Spacer
+  components.push({ id: id(), type: 'spacer', data: { height: 'lg' } } as SpacerComponent)
+
+  // Services overview (as Columns)
+  components.push({
+    id: id(),
+    type: 'columns',
+    data: {
+      animation: 'fade-in',
+      columns: [
+        { content: '<h3 class="text-xl font-bold mb-2">Professional Portraits</h3><p>Refined images for personal and business branding.</p>' },
+        { content: '<h3 class="text-xl font-bold mb-2">Creative Portraits</h3><p>Artistic sessions tailored to your unique story.</p>' },
+        { content: '<h3 class="text-xl font-bold mb-2">Commercial & Product</h3><p>Clean, striking visuals that elevate your brand.</p>' }
+      ]
+    }
+  } as ColumnsComponent)
+
+  // Spacer
+  components.push({ id: id(), type: 'spacer', data: { height: 'md' } } as SpacerComponent)
+
+  // Lead capture prompt + button
+  components.push({
+    id: id(),
+    type: 'text',
+    data: {
+      content: '<h2 class="text-3xl font-bold mb-2">Ready to Capture Your Story?</h2><p class="text-lg text-gray-600">Let\'s discuss your photography needs and create something beautiful together.</p>',
+      alignment: 'center',
+      size: 'md',
+      animation: 'fade-in'
+    }
+  } as TextComponent)
+  components.push({
+    id: id(),
+    type: 'button',
+    data: {
+      text: 'Book a Session',
+      link: '/book-a-session',
+      style: 'primary',
+      alignment: 'center',
+      animation: 'hover-zoom'
+    }
+  } as ButtonComponent)
+
+  // Spacer
+  components.push({ id: id(), type: 'spacer', data: { height: 'lg' } } as SpacerComponent)
+
+  // Simple testimonials teaser
+  components.push({
+    id: id(),
+    type: 'text',
+    data: {
+      content: '<h3 class="text-2xl font-bold mb-4 text-center">What Clients Say</h3><p class="text-center italic max-w-3xl mx-auto">“Absolutely stunning photos and a wonderful experience from start to finish.” — A Happy Client</p>',
+      alignment: 'center',
+      size: 'md',
+      animation: 'fade-in'
+    }
+  } as TextComponent)
+
+  // Optional SEO footer starter
+  components.push({
+    id: id(),
+    type: 'seoFooter',
+    data: {
+      content: '<h3 class="text-lg font-bold mb-2">About Studio 37</h3><p class="text-sm">Professional photography serving Tomball, Magnolia, Pinehurst, and the 77362 area.</p><h3 class="text-lg font-bold mt-4 mb-2">Contact</h3><p class="text-sm">Studio 37 Photography • contact@studio37.cc</p>',
+      includeSchema: true
+    }
+  } as SEOFooterComponent)
+
+  return components
+}
+
+// Apply template to the current editor state and notify parent
+function applyHomepageTemplate(this: void) {
+  // This will be rebound in the component scope below
 }
 
 // Individual Component Renderers
