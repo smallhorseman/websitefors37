@@ -72,6 +72,115 @@ export default function PageBuilderPage() {
     }
   }
 
+  // Convert builder components to MDX content for content_pages
+  const componentsToMDX = (list: any[]): string => {
+    const md: string[] = []
+    const stripHtml = (html: string) => html.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim()
+
+    list.forEach((c) => {
+      switch (c.type) {
+        case 'hero': {
+          const d = c.data || {}
+          if (d.backgroundImage) md.push(`![${d.title || ''}](${d.backgroundImage})`)
+          if (d.title) md.push(`# ${d.title}`)
+          if (d.subtitle) md.push(`${d.subtitle}`)
+          if (d.buttonText && d.buttonLink) md.push(`[${d.buttonText}](${d.buttonLink})`)
+          md.push('\n---\n')
+          break
+        }
+        case 'text': {
+          const d = c.data || {}
+          // Allow raw HTML within MDX for rich formatting
+          if (d.content) md.push(String(d.content))
+          md.push('')
+          break
+        }
+        case 'image': {
+          const d = c.data || {}
+          if (d.url) {
+            md.push(`![${d.alt || ''}](${d.url})`)
+            if (d.caption) md.push(`*${d.caption}*`)
+            md.push('')
+          }
+          break
+        }
+        case 'button': {
+          const d = c.data || {}
+          if (d.text && d.link) md.push(`[${d.text}](${d.link})`)
+          md.push('')
+          break
+        }
+        case 'columns': {
+          const d = c.data || { columns: [] }
+          md.push('\n<!-- columns start -->')
+          ;(d.columns || []).forEach((col: any, i: number) => {
+            if (col?.image) md.push(`![Column ${i + 1}](${col.image})`)
+            if (col?.content) md.push(String(col.content))
+          })
+          md.push('<!-- columns end -->\n')
+          break
+        }
+        case 'spacer': {
+          md.push('\n')
+          break
+        }
+        default:
+          break
+      }
+    })
+
+    return md.join('\n')
+  }
+
+  const handlePublish = async () => {
+    setMessage(null)
+    setSaving(true)
+    try {
+      const cleanSlug = slug
+        .toLowerCase()
+        .replace(/[^a-z0-9-\s]/g, '')
+        .replace(/\s+/g, '-')
+        .trim()
+      if (!cleanSlug) {
+        alert('Please enter a valid URL slug before publishing.')
+        return
+      }
+
+      // Build MDX content from components
+      const mdx = componentsToMDX(components)
+
+      // Derive title and meta from components
+      let derivedTitle = cleanSlug.replace(/-/g, ' ')
+      const hero = components.find((c) => c.type === 'hero')
+      if (hero?.data?.title) derivedTitle = String(hero.data.title)
+      const firstText = components.find((c) => c.type === 'text' && c.data?.content)
+      const metaDescription = firstText ? firstText.data.content.replace(/<[^>]*>/g, '').slice(0, 160) : ''
+
+      const { error } = await supabase
+        .from('content_pages')
+        .upsert(
+          {
+            slug: cleanSlug,
+            title: derivedTitle,
+            content: mdx,
+            meta_description: metaDescription,
+            published: true,
+            updated_at: new Date().toISOString(),
+          },
+          { onConflict: 'slug' }
+        )
+
+      if (error) throw error
+
+      setMessage({ type: 'success', text: `Published to /${cleanSlug}.` })
+    } catch (e) {
+      console.error('Failed to publish:', e)
+      setMessage({ type: 'error', text: 'Failed to publish page. Please check the slug and try again.' })
+    } finally {
+      setSaving(false)
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -124,6 +233,22 @@ export default function PageBuilderPage() {
           initialComponents={components}
           onSave={handleSave}
         />
+        <div className="p-4 flex justify-end gap-2">
+          <button
+            onClick={() => handleSave(components)}
+            disabled={saving}
+            className="px-4 py-2 border rounded hover:bg-gray-50"
+          >
+            Save Draft
+          </button>
+          <button
+            onClick={handlePublish}
+            disabled={saving}
+            className="px-4 py-2 bg-primary-600 text-white rounded hover:bg-primary-700"
+          >
+            Publish to /{slug}
+          </button>
+        </div>
       </div>
     </div>
   )
