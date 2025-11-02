@@ -545,7 +545,13 @@ export default function SEOPage() {
                 </div>
               </a>
 
-              <button className="p-4 border border-gray-200 rounded-lg hover:border-purple-300 hover:bg-purple-50 transition-colors text-left">
+              <a
+                href="https://analytics.google.com/analytics/web/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="p-4 border border-gray-200 rounded-lg hover:border-purple-300 hover:bg-purple-50 transition-colors block"
+                title="Open Google Analytics in a new tab"
+              >
                 <div className="flex items-center gap-3">
                   <TrendingUp className="h-5 w-5 text-purple-600" />
                   <div>
@@ -557,7 +563,7 @@ export default function SEOPage() {
                     </p>
                   </div>
                 </div>
-              </button>
+              </a>
             </div>
           </div>
         </div>

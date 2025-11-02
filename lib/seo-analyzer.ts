@@ -624,14 +624,14 @@ export async function generateMetaDescription(
     .trim();
 
   const sentences = plainText.match(/[^.!?]+[.!?]+/g) || [];
-  
+
   // Extract key information
   const words = plainText.toLowerCase().split(/\s+/);
-  const hasPhotography = words.some(w => w.includes('photo'));
-  const hasWedding = words.some(w => w.includes('wedding'));
-  const hasPortrait = words.some(w => w.includes('portrait'));
-  const hasCommercial = words.some(w => w.includes('commercial'));
-  const hasEvent = words.some(w => w.includes('event'));
+  const hasPhotography = words.some((w) => w.includes("photo"));
+  const hasWedding = words.some((w) => w.includes("wedding"));
+  const hasPortrait = words.some((w) => w.includes("portrait"));
+  const hasCommercial = words.some((w) => w.includes("commercial"));
+  const hasEvent = words.some((w) => w.includes("event"));
 
   let description = "";
 
@@ -641,7 +641,7 @@ export async function generateMetaDescription(
     const keywordSentences = sentences.filter((s) =>
       s.toLowerCase().includes(targetKeyword.toLowerCase())
     );
-    
+
     if (keywordSentences.length > 0) {
       // Pick the most descriptive sentence (prefer longer ones that aren't too long)
       const bestSentence = keywordSentences.reduce((best, current) => {
@@ -652,7 +652,7 @@ export async function generateMetaDescription(
         }
         return best;
       }, keywordSentences[0]);
-      
+
       description = bestSentence.trim();
     }
   }
@@ -691,7 +691,8 @@ export async function generateMetaDescription(
 
   // Final fallback
   if (!description || description.length < 50) {
-    description = "Professional photography services in Pinehurst, TX. Specializing in weddings, portraits, events, and commercial photography. Book your session today!";
+    description =
+      "Professional photography services in Pinehurst, TX. Specializing in weddings, portraits, events, and commercial photography. Book your session today!";
   }
 
   return description;
@@ -718,11 +719,14 @@ export async function generateTitle(
   if (!title) {
     const sentences = plainText.match(/[^.!?]+/g) || [];
     // Find a sentence that looks like a title (shorter, punchy)
-    const potentialTitle = sentences.find(s => {
+    const potentialTitle = sentences.find((s) => {
       const len = s.trim().length;
-      return len > 20 && len < 100 && !s.toLowerCase().startsWith('the ');
+      return len > 20 && len < 100 && !s.toLowerCase().startsWith("the ");
     });
-    title = potentialTitle?.trim() || sentences[0]?.trim() || "Professional Photography";
+    title =
+      potentialTitle?.trim() ||
+      sentences[0]?.trim() ||
+      "Professional Photography";
   }
 
   // Clean up title
@@ -732,13 +736,16 @@ export async function generateTitle(
     .trim();
 
   // Add keyword if not present and if specified
-  if (targetKeyword && !title.toLowerCase().includes(targetKeyword.toLowerCase())) {
+  if (
+    targetKeyword &&
+    !title.toLowerCase().includes(targetKeyword.toLowerCase())
+  ) {
     // Smart keyword integration
     const keywordCapitalized = targetKeyword
-      .split(' ')
-      .map(w => w.charAt(0).toUpperCase() + w.slice(1))
-      .join(' ');
-    
+      .split(" ")
+      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(" ");
+
     // If title is short enough, prepend keyword
     if (title.length + keywordCapitalized.length + 3 <= maxLength) {
       title = `${keywordCapitalized} | ${title}`;
@@ -749,9 +756,10 @@ export async function generateTitle(
   }
 
   // Add brand if there's room and it's not already there
-  const hasBrand = title.toLowerCase().includes('studio') || 
-                   title.toLowerCase().includes('studio37');
-  
+  const hasBrand =
+    title.toLowerCase().includes("studio") ||
+    title.toLowerCase().includes("studio37");
+
   if (!hasBrand && title.length + 18 <= maxLength) {
     title = `${title} | Studio37`;
   }
@@ -760,7 +768,7 @@ export async function generateTitle(
   if (title.length > maxLength) {
     // Try to cut at a word boundary
     const truncated = title.substring(0, maxLength - 3);
-    const lastSpace = truncated.lastIndexOf(' ');
+    const lastSpace = truncated.lastIndexOf(" ");
     if (lastSpace > maxLength * 0.7) {
       title = truncated.substring(0, lastSpace) + "...";
     } else {
