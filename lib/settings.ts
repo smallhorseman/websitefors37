@@ -15,6 +15,9 @@ export interface SiteSettings {
   google_analytics_id: string
   book_session_bg_url?: string
   logo_url?: string
+  ai_enabled?: boolean
+  ai_model?: string
+  ai_key_ref?: string
 }
 
 export const DEFAULT_SETTINGS = {
@@ -33,6 +36,9 @@ export const DEFAULT_SETTINGS = {
   google_analytics_id: '',
   // Default to the refined badge logo (light variant)
   logo_url: '/brand/studio37-badge-light.svg',
+  ai_enabled: false,
+  ai_model: 'gemini-1.5-pro',
+  ai_key_ref: ''
 }
 
 export async function getSettings(): Promise<SiteSettings> {

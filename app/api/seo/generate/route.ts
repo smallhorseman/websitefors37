@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { supabase } from "@/lib/supabase";
 
 // Helper to build concise prompts for specific tasks
 function buildPrompt(params: {
@@ -49,6 +50,22 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
     }
 
+    // Check if AI is enabled in settings (best-effort)
+    try {
+      const { data } = await supabase
+        .from("settings")
+        .select("ai_enabled, ai_model")
+        .single();
+      if (data && data.ai_enabled === false) {
+        return NextResponse.json(
+          { error: "AI is disabled in settings" },
+          { status: 403 }
+        );
+      }
+    } catch {
+      // ignore settings read errors, allow call to continue
+    }
+
     const apiKey = process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY;
     if (!apiKey) {
       return NextResponse.json(
@@ -57,8 +74,8 @@ export async function POST(req: Request) {
       );
     }
 
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
+  const genAI = new GoogleGenerativeAI(apiKey);
+  const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
 
     const prompt = buildPrompt({ type, content, targetKeyword, maxLength });
     const result = await model.generateContent(prompt);

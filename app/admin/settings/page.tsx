@@ -17,6 +17,9 @@ interface SiteSettings {
   theme_secondary_color: string
   google_analytics_id: string
   logo_url?: string
+  ai_enabled?: boolean
+  ai_model?: string
+  ai_key_ref?: string
 }
 
 export default function SettingsPage() {
@@ -33,7 +36,10 @@ export default function SettingsPage() {
     theme_primary_color: '#b46e14', // amber-700
     theme_secondary_color: '#a17a07', // amber-800
     google_analytics_id: '',
-    logo_url: ''
+    logo_url: '',
+    ai_enabled: false,
+    ai_model: 'gemini-1.5-pro',
+    ai_key_ref: ''
   })
   
   const [loading, setLoading] = useState(true)
@@ -379,6 +385,46 @@ export default function SettingsPage() {
                     <li>Ensure your site loads quickly</li>
                     <li>Create quality content that answers visitors' questions</li>
                   </ul>
+                </div>
+
+                <div className="pt-4">
+                  <h3 className="text-md font-medium mb-2">AI Assistance</h3>
+                  <div className="flex items-center gap-2 mb-3">
+                    <input
+                      id="ai_enabled"
+                      type="checkbox"
+                      checked={!!settings.ai_enabled}
+                      onChange={(e) => setSettings({ ...settings, ai_enabled: e.target.checked })}
+                      className="h-4 w-4 text-primary-600 rounded"
+                    />
+                    <label htmlFor="ai_enabled" className="text-sm">Enable AI-powered title & meta suggestions</label>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Preferred Model</label>
+                      <input
+                        type="text"
+                        name="ai_model"
+                        value={settings.ai_model || ''}
+                        onChange={(e) => setSettings({ ...settings, ai_model: e.target.value })}
+                        placeholder="gemini-1.5-pro"
+                        className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Key Reference (Optional)</label>
+                      <input
+                        type="text"
+                        name="ai_key_ref"
+                        value={settings.ai_key_ref || ''}
+                        onChange={(e) => setSettings({ ...settings, ai_key_ref: e.target.value })}
+                        placeholder="e.g., Vercel env: GOOGLE_API_KEY"
+                        className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                      />
+                      <p className="mt-1 text-xs text-gray-500">This is just a label for where your key is stored. Do not paste the actual key here.</p>
+                    </div>
+                  </div>
+                  <p className="mt-2 text-xs text-gray-500">The actual API key must be set as a server environment variable (GOOGLE_API_KEY or GEMINI_API_KEY). The toggle only controls whether the UI/endpoint will attempt AI generation.</p>
                 </div>
               </div>
             )}
