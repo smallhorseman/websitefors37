@@ -13,35 +13,46 @@ import {
   ArrowLeft,
   Sparkles,
   Layout,
+  Keyboard,
+  Maximize2,
 } from "lucide-react";
 import { getPaginatedData } from "@/lib/supabase";
-import ImageUploader from "@/components/ImageUploader";
 import Link from "next/link";
 import EnhancedGalleryEditor from "@/components/EnhancedGalleryEditor";
 import GalleryHighlightsEditor from "@/components/GalleryHighlightsEditor";
+import GalleryAdvancedFilters from "@/components/GalleryAdvancedFilters";
+import GalleryBulkOperations from "@/components/GalleryBulkOperations";
+import EnhancedImageUploader from "@/components/EnhancedImageUploader";
 import type { GalleryImage } from "@/lib/supabase";
 
 export default function GalleryAdmin() {
-  const [images, setImages] = useState<GalleryImage[]>([]);
+  const [allImages, setAllImages] = useState<GalleryImage[]>([]);
+  const [filteredImages, setFilteredImages] = useState<GalleryImage[]>([]);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [showModal, setShowModal] = useState(false);
-  const [selectedImage, setSelectedImage] = useState<GalleryImage | null>(null);
-  const [isNew, setIsNew] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [viewMode, setViewMode] = useState<
-    "classic" | "enhanced" | "highlights"
-  >("enhanced");
 
-  // Pagination
+  // View modes
+  const [viewMode, setViewMode] = useState<"enhanced" | "highlights">(
+    "enhanced"
+  );
+  const [galleryViewMode, setGalleryViewMode] = useState<"grid" | "list">(
+    "grid"
+  );
+
+  // Modals
+  const [showUploader, setShowUploader] = useState(false);
+  const [showKeyboardHelp, setShowKeyboardHelp] = useState(false);
+  const [showImagePreview, setShowImagePreview] = useState<GalleryImage | null>(
+    null
+  );
+
+  // Legacy pagination (still used for initial load)
   const [currentPage, setCurrentPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
   const [pageCount, setPageCount] = useState(0);
-  const itemsPerPage = 24;
-
-  // Filter/search state
-  const [categoryFilter, setCategoryFilter] = useState("all");
-  const [showFeaturedOnly, setShowFeaturedOnly] = useState(false);
+  const itemsPerPage = 100; // Increased for better performance
 
   const [formData, setFormData] = useState({
     title: "",
@@ -52,106 +63,63 @@ export default function GalleryAdmin() {
     display_order: 0,
   });
 
-  // Fetch images from Supabase
+  // Fetch all images from Supabase (no pagination for better filtering)
   const fetchImages = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const filters = [];
-      if (categoryFilter !== "all") {
-        filters.push({ column: "category", value: categoryFilter });
-      }
-      if (showFeaturedOnly) {
-        filters.push({ column: "featured", value: true });
-      }
+      const { supabase } = await import("@/lib/supabase");
 
-      const response = await getPaginatedData<GalleryImage>(
-        "gallery_images",
-        { page: currentPage, limit: itemsPerPage },
-        filters,
-        { column: "display_order", ascending: true }
-      );
+      const { data, error, count } = await supabase
+        .from("gallery_images")
+        .select("*", { count: "exact" })
+        .order("display_order", { ascending: true });
 
-      setImages(response.data);
-      setTotalCount(response.count);
-      setPageCount(response.pageCount);
+      if (error) throw error;
+
+      setAllImages(data || []);
+      setFilteredImages(data || []); // Initially show all images
+      setTotalCount(count || 0);
     } catch (error: any) {
       console.error("Error fetching images:", error);
       setError(error.message || "Failed to load gallery images");
     } finally {
       setLoading(false);
     }
-  }, [currentPage, categoryFilter, showFeaturedOnly]);
+  }, []);
 
   useEffect(() => {
     fetchImages();
   }, [fetchImages]);
 
-  // Save a new image or update existing one
-  const saveImage = async (imageToSave?: GalleryImage) => {
-    const imageData = imageToSave || {
-      ...formData,
-      id: selectedImage?.id || "",
-    };
-
-    if (!imageData.title || !imageData.image_url) return;
-
+  // Enhanced save function for single images
+  const saveImage = async (imageToSave: GalleryImage) => {
     setSaving(true);
     try {
       const { supabase } = await import("@/lib/supabase");
 
-      if (isNew || !imageData.id) {
-        // Create new image
-        const { data, error } = await supabase
-          .from("gallery_images")
-          .insert([
-            {
-              title: imageData.title,
-              description: imageData.description,
-              image_url: imageData.image_url,
-              category: imageData.category,
-              featured: imageData.featured,
-              display_order: imageData.display_order,
-              alt_text: (imageData as any).alt_text,
-              tags: (imageData as any).tags,
-            },
-          ])
-          .select();
+      const { error } = await supabase
+        .from("gallery_images")
+        .update({
+          title: imageToSave.title,
+          description: imageToSave.description,
+          category: imageToSave.category,
+          featured: imageToSave.featured,
+          display_order: imageToSave.display_order,
+          alt_text: imageToSave.alt_text,
+          tags: imageToSave.tags,
+        })
+        .eq("id", imageToSave.id);
 
-        if (error) throw error;
+      if (error) throw error;
 
-        // Update state
-        if (data) {
-          setImages([data[0], ...images]);
-        }
-      } else if (selectedImage || imageToSave) {
-        // Update existing image
-        const { error } = await supabase
-          .from("gallery_images")
-          .update({
-            title: imageData.title,
-            description: imageData.description,
-            image_url: imageData.image_url,
-            category: imageData.category,
-            featured: imageData.featured,
-            display_order: imageData.display_order,
-            alt_text: (imageData as any).alt_text,
-            tags: (imageData as any).tags,
-          })
-          .eq("id", imageData.id);
-
-        if (error) throw error;
-
-        // Update state
-        setImages(
-          images.map((img) =>
-            img.id === imageData.id ? { ...img, ...imageData } : img
-          )
-        );
-      }
-
-      setShowModal(false);
-      await fetchImages(); // Refresh from server
+      // Update state
+      setAllImages((prev) =>
+        prev.map((img) => (img.id === imageToSave.id ? imageToSave : img))
+      );
+      setFilteredImages((prev) =>
+        prev.map((img) => (img.id === imageToSave.id ? imageToSave : img))
+      );
     } catch (error: any) {
       console.error("Error saving image:", error);
       alert("Failed to save image: " + error.message);
@@ -160,7 +128,7 @@ export default function GalleryAdmin() {
     }
   };
 
-  // Delete an image
+  // Enhanced delete function
   const deleteImage = async (id: string) => {
     if (!confirm("Are you sure you want to delete this image?")) return;
 
@@ -175,7 +143,13 @@ export default function GalleryAdmin() {
       if (error) throw error;
 
       // Update state
-      setImages(images.filter((img) => img.id !== id));
+      setAllImages((prev) => prev.filter((img) => img.id !== id));
+      setFilteredImages((prev) => prev.filter((img) => img.id !== id));
+      setSelectedIds((prev) => {
+        const newSet = new Set(prev);
+        newSet.delete(id);
+        return newSet;
+      });
     } catch (error: any) {
       console.error("Error deleting image:", error);
       alert("Failed to delete image: " + error.message);
@@ -212,61 +186,128 @@ export default function GalleryAdmin() {
     setShowModal(true);
   };
 
-  // Bulk actions
-  const [selectedImages, setSelectedImages] = useState<Set<string>>(new Set());
-
-  const handleSelectImage = (id: string) => {
-    const newSelected = new Set(selectedImages);
-    if (newSelected.has(id)) {
-      newSelected.delete(id);
-    } else {
-      newSelected.add(id);
-    }
-    setSelectedImages(newSelected);
-  };
-
-  const bulkDelete = async () => {
-    if (selectedImages.size === 0) return;
-    if (!confirm(`Delete ${selectedImages.size} images?`)) return;
-
+  // Enhanced bulk operations
+  const handleBulkUpdate = async (updates: Partial<GalleryImage>[]) => {
     try {
       const { supabase } = await import("@/lib/supabase");
 
-      const promises = Array.from(selectedImages).map((id) =>
+      const promises = updates.map(async (update) => {
+        const { id, ...updateData } = update;
+        return supabase.from("gallery_images").update(updateData).eq("id", id);
+      });
+
+      await Promise.all(promises);
+
+      // Update local state
+      setAllImages((prev) =>
+        prev.map((img) => {
+          const update = updates.find((u) => u.id === img.id);
+          return update ? { ...img, ...update } : img;
+        })
+      );
+
+      setFilteredImages((prev) =>
+        prev.map((img) => {
+          const update = updates.find((u) => u.id === img.id);
+          return update ? { ...img, ...update } : img;
+        })
+      );
+    } catch (error: any) {
+      console.error("Error updating images:", error);
+      throw error;
+    }
+  };
+
+  const handleBulkDelete = async (ids: string[]) => {
+    try {
+      const { supabase } = await import("@/lib/supabase");
+
+      const promises = ids.map((id) =>
         supabase.from("gallery_images").delete().eq("id", id)
       );
 
       await Promise.all(promises);
 
-      // Update state
-      setImages(images.filter((img) => !selectedImages.has(img.id)));
-      setSelectedImages(new Set());
+      // Update local state
+      setAllImages((prev) => prev.filter((img) => !ids.includes(img.id)));
+      setFilteredImages((prev) => prev.filter((img) => !ids.includes(img.id)));
+      setSelectedIds(new Set());
     } catch (error: any) {
       console.error("Error deleting images:", error);
-      alert("Failed to delete some images");
+      throw error;
     }
   };
 
-  // Bulk update for enhanced editor
-  const handleBulkUpdate = async (updatedImages: GalleryImage[]) => {
-    try {
-      const { supabase } = await import("@/lib/supabase");
-
-      // Update display orders
-      const promises = updatedImages.map((img) =>
-        supabase
-          .from("gallery_images")
-          .update({ display_order: img.display_order })
-          .eq("id", img.id)
-      );
-
-      await Promise.all(promises);
-      setImages(updatedImages);
-    } catch (error: any) {
-      console.error("Error updating images:", error);
-      alert("Failed to update image order");
-    }
+  // Handle upload completion
+  const handleUploadComplete = (newImages: GalleryImage[]) => {
+    setAllImages((prev) => [...newImages, ...prev]);
+    setFilteredImages((prev) => [...newImages, ...prev]);
+    setShowUploader(false);
+    fetchImages(); // Refresh to ensure consistency
   };
+
+  // Handle export functionality
+  const handleBulkExport = (imagesToExport: GalleryImage[]) => {
+    const dataStr = JSON.stringify(imagesToExport, null, 2);
+    const dataBlob = new Blob([dataStr], { type: "application/json" });
+    const url = URL.createObjectURL(dataBlob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `gallery-export-${
+      new Date().toISOString().split("T")[0]
+    }.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Only handle if not in input field
+      if (
+        e.target &&
+        (e.target as HTMLElement).tagName.match(/INPUT|TEXTAREA|SELECT/)
+      ) {
+        return;
+      }
+
+      switch (e.key) {
+        case "a":
+          if (e.ctrlKey || e.metaKey) {
+            e.preventDefault();
+            setSelectedIds(new Set(filteredImages.map((img) => img.id)));
+          }
+          break;
+        case "Delete":
+        case "Backspace":
+          if (selectedIds.size > 0) {
+            e.preventDefault();
+            handleBulkDelete(Array.from(selectedIds));
+          }
+          break;
+        case "Escape":
+          setSelectedIds(new Set());
+          setShowImagePreview(null);
+          setShowKeyboardHelp(false);
+          break;
+        case "?":
+          if (e.shiftKey) {
+            e.preventDefault();
+            setShowKeyboardHelp(true);
+          }
+          break;
+        case "u":
+          if (e.ctrlKey || e.metaKey) {
+            e.preventDefault();
+            setShowUploader(true);
+          }
+          break;
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [filteredImages, selectedIds]);
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -285,16 +326,6 @@ export default function GalleryAdmin() {
         <div className="flex items-center gap-2">
           {/* View Mode Switcher */}
           <div className="flex gap-1 bg-gray-100 rounded-lg p-1">
-            <button
-              onClick={() => setViewMode("classic")}
-              className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
-                viewMode === "classic"
-                  ? "bg-white shadow-sm"
-                  : "hover:bg-gray-200"
-              }`}
-            >
-              Classic
-            </button>
             <button
               onClick={() => setViewMode("enhanced")}
               className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
@@ -319,33 +350,30 @@ export default function GalleryAdmin() {
             </button>
           </div>
 
-          {selectedImages.size > 0 && viewMode === "classic" && (
-            <>
-              <span className="text-sm text-gray-600">
-                {selectedImages.size} selected
-              </span>
-              <button
-                onClick={bulkDelete}
-                className="px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
-              >
-                Delete Selected
-              </button>
-            </>
-          )}
+          {/* Quick Actions */}
           <button
-            onClick={addNewImage}
-            className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 flex items-center gap-2"
+            onClick={() => setShowKeyboardHelp(true)}
+            className="flex items-center gap-1 px-3 py-2 text-gray-600 hover:text-gray-900 transition-colors"
+            title="Keyboard shortcuts (Shift + ?)"
           >
-            <Plus className="h-4 w-4" />
-            Add Image
+            <Keyboard className="h-4 w-4" />
+          </button>
+
+          <button
+            onClick={() => setShowUploader(true)}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
+            title="Upload images (Ctrl + U)"
+          >
+            <Upload className="h-4 w-4" />
+            Upload
           </button>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 p-6">
+      <div className="flex-1 flex flex-col overflow-hidden">
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg mb-6">
+          <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 mx-6 mt-6 rounded-lg">
             <p className="font-semibold">Error:</p>
             <p>{error}</p>
             <button
@@ -362,107 +390,175 @@ export default function GalleryAdmin() {
             <Loader2 className="h-8 w-8 animate-spin text-primary-600" />
             <span className="ml-2">Loading gallery images...</span>
           </div>
-        ) : images.length === 0 ? (
-          <div className="text-center py-12 bg-gray-50 rounded-lg">
-            <p className="text-gray-500 mb-4">No images in the gallery yet.</p>
+        ) : allImages.length === 0 ? (
+          <div className="text-center py-12 mx-6 bg-gray-50 rounded-lg">
+            <ImageIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">No images yet</h3>
+            <p className="text-gray-500 mb-6">Start building your gallery by uploading some images.</p>
             <button
-              onClick={addNewImage}
-              className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
+              onClick={() => setShowUploader(true)}
+              className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2 mx-auto"
             >
-              Add Your First Image
+              <Upload className="h-5 w-5" />
+              Upload Your First Images
             </button>
           </div>
         ) : (
           <>
-            {viewMode === "enhanced" && (
-              <EnhancedGalleryEditor
-                images={images}
-                onUpdate={handleBulkUpdate}
-                onSave={saveImage}
-                onDelete={deleteImage}
-              />
-            )}
+            {/* Advanced Filters */}
+            <GalleryAdvancedFilters
+              images={allImages}
+              onFilteredChange={setFilteredImages}
+              viewMode={galleryViewMode}
+              onViewModeChange={setGalleryViewMode}
+              onBulkExport={handleBulkExport}
+            />
 
-            {viewMode === "highlights" && (
-              <GalleryHighlightsEditor
-                allImages={images}
-                onSave={async (config) => {
-                  console.log("Gallery Highlights Config:", config);
-                  // Could save to site settings or pass to page builder
-                }}
-              />
-            )}
+            {/* Bulk Operations Bar */}
+            <GalleryBulkOperations
+              images={filteredImages}
+              selectedIds={selectedIds}
+              onSelectionChange={setSelectedIds}
+              onBulkUpdate={handleBulkUpdate}
+              onBulkDelete={handleBulkDelete}
+              onBulkExport={handleBulkExport}
+            />
 
-            {viewMode === "classic" && (
-              <>
-                {/* Filters */}
-                <div className="mb-6 flex flex-wrap gap-4">
-                  <select
-                    value={categoryFilter}
-                    onChange={(e) => {
-                      setCategoryFilter(e.target.value);
-                      setCurrentPage(1);
+            {/* Gallery Content */}
+            <div className="flex-1 overflow-hidden">
+              {viewMode === "enhanced" && (
+                <EnhancedGalleryEditor
+                  images={filteredImages}
+                  onUpdate={(updatedImages) => {
+                    setFilteredImages(updatedImages);
+                    // Also update allImages to keep them in sync
+                    setAllImages(prev => {
+                      const updated = [...prev];
+                      updatedImages.forEach(updatedImg => {
+                        const index = updated.findIndex(img => img.id === updatedImg.id);
+                        if (index !== -1) updated[index] = updatedImg;
+                      });
+                      return updated;
+                    });
+                  }}
+                  onSave={saveImage}
+                  onDelete={deleteImage}
+                />
+              )}
+
+              {viewMode === "highlights" && (
+                <div className="p-6">
+                  <GalleryHighlightsEditor
+                    allImages={allImages}
+                    onSave={async (config) => {
+                      console.log("Gallery Highlights Config:", config);
+                      // TODO: Save to site settings or page builder config
                     }}
-                    className="px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                    aria-label="Filter by category"
-                  >
-                    <option value="all">All Categories</option>
-                    <option value="wedding">Wedding</option>
-                    <option value="portrait">Portrait</option>
-                    <option value="event">Event</option>
-                    <option value="commercial">Commercial</option>
-                    <option value="general">General</option>
-                  </select>
-
-                  <label className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      checked={showFeaturedOnly}
-                      onChange={(e) => {
-                        setShowFeaturedOnly(e.target.checked);
-                        setCurrentPage(1);
-                      }}
-                      className="h-4 w-4 text-primary-600 rounded"
-                    />
-                    <span className="text-sm">Featured only</span>
-                  </label>
+                  />
                 </div>
+              )}
+            </div>
+          </>
+        )}
+      </div>
 
-                {/* Gallery grid with checkbox selection */}
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                  {images.map((image) => (
-                    <div
-                      key={image.id}
-                      className="border rounded-lg overflow-hidden bg-white relative"
-                    >
-                      <div className="absolute top-2 left-2 z-10">
-                        <input
-                          type="checkbox"
-                          checked={selectedImages.has(image.id)}
-                          onChange={() => handleSelectImage(image.id)}
-                          className="h-4 w-4 text-primary-600 rounded border-gray-300 bg-white"
-                          aria-label={`Select image ${image.title}`}
-                        />
-                      </div>
+      {/* Modals */}
+      {showUploader && (
+        <EnhancedImageUploader
+          onUploadComplete={handleUploadComplete}
+          onClose={() => setShowUploader(false)}
+          existingImages={allImages}
+        />
+      )}
 
-                      <div className="relative aspect-[4/3]">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={image.image_url}
-                          alt={image.title}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
+      {showKeyboardHelp && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold">Keyboard Shortcuts</h3>
+              <button
+                onClick={() => setShowKeyboardHelp(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <div className="space-y-3">
+              <div className="flex justify-between">
+                <span className="text-sm">Select all images</span>
+                <kbd className="px-2 py-1 bg-gray-100 rounded text-xs">Ctrl + A</kbd>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm">Delete selected</span>
+                <kbd className="px-2 py-1 bg-gray-100 rounded text-xs">Delete</kbd>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm">Clear selection</span>
+                <kbd className="px-2 py-1 bg-gray-100 rounded text-xs">Esc</kbd>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm">Upload images</span>
+                <kbd className="px-2 py-1 bg-gray-100 rounded text-xs">Ctrl + U</kbd>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm">Show this help</span>
+                <kbd className="px-2 py-1 bg-gray-100 rounded text-xs">Shift + ?</kbd>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
-                      <div className="p-3">
-                        <h3 className="font-semibold truncate">
-                          {image.title}
-                        </h3>
-                        <p className="text-xs text-gray-500 mb-2">
-                          {image.category} {image.featured && "• Featured"}
-                        </p>
+      {showImagePreview && previewImage && (
+        <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50">
+          <div className="relative max-w-4xl max-h-[90vh] w-full h-full flex items-center justify-center">
+            <img
+              src={previewImage.optimized_url || previewImage.url}
+              alt={previewImage.alt_text || 'Image preview'}
+              className="max-w-full max-h-full object-contain"
+            />
+            <button
+              onClick={() => {
+                setShowImagePreview(false);
+                setPreviewImage(null);
+              }}
+              className="absolute top-4 right-4 text-white hover:text-gray-300"
+            >
+              <X className="h-8 w-8" />
+            </button>
+          </div>
+              <div className="flex justify-between">
+                <span className="text-sm">Show this help</span>
+                <kbd className="px-2 py-1 bg-gray-100 rounded text-xs">Shift + ?</kbd>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
-                        <div className="flex justify-between">
+      {showImagePreview && previewImage && (
+        <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50">
+          <div className="relative max-w-4xl max-h-[90vh] w-full h-full flex items-center justify-center">
+            <img
+              src={previewImage.optimized_url || previewImage.url}
+              alt={previewImage.alt_text || 'Image preview'}
+              className="max-w-full max-h-full object-contain"
+            />
+            <button
+              onClick={() => {
+                setShowImagePreview(false);
+                setPreviewImage(null);
+              }}
+              className="absolute top-4 right-4 text-white hover:text-gray-300"
+            >
+              <X className="h-8 w-8" />
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
                           <button
                             onClick={() => editImage(image)}
                             className="text-primary-600 hover:text-primary-800"
@@ -472,201 +568,73 @@ export default function GalleryAdmin() {
                             <Edit className="h-4 w-4" />
                           </button>
                           <button
-                            onClick={() => deleteImage(image.id)}
-                            className="text-red-600 hover:text-red-800"
-                            title="Delete image"
-                            aria-label="Delete image"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+      {/* Modals */}
+      {showUploader && (
+        <EnhancedImageUploader
+          onUploadComplete={handleUploadComplete}
+          onClose={() => setShowUploader(false)}
+          existingImages={allImages}
+        />
+      )}
 
-                {/* Pagination controls */}
-                <div className="mt-6">
-                  <span className="text-sm text-gray-600">
-                    Page {currentPage} of {pageCount}
-                  </span>
-                  <div className="flex gap-2 mt-2">
-                    <button
-                      onClick={() =>
-                        setCurrentPage((prev) => Math.max(prev - 1, 1))
-                      }
-                      disabled={currentPage === 1}
-                      className="px-3 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50"
-                    >
-                      Previous
-                    </button>
-                    <button
-                      onClick={() =>
-                        setCurrentPage((prev) => Math.min(prev + 1, pageCount))
-                      }
-                      disabled={currentPage === pageCount}
-                      className="px-3 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50"
-                    >
-                      Next
-                    </button>
-                  </div>
-                </div>
-              </>
-            )}
-          </>
-        )}
-
-        {/* Add/Edit Image Modal with Image Uploader */}
-        {showModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 px-4">
-            <div className="bg-white rounded-lg p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-semibold">
-                  {isNew ? "Add New Image" : "Edit Image"}
-                </h2>
-                <button
-                  onClick={() => setShowModal(false)}
-                  className="text-gray-400 hover:text-gray-500"
-                  title="Close modal"
-                  aria-label="Close modal"
-                >
-                  <X className="h-5 w-5" />
-                </button>
+      {showKeyboardHelp && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold">Keyboard Shortcuts</h3>
+              <button
+                onClick={() => setShowKeyboardHelp(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <div className="space-y-3">
+              <div className="flex justify-between">
+                <span className="text-sm">Select all images</span>
+                <kbd className="px-2 py-1 bg-gray-100 rounded text-xs">Ctrl + A</kbd>
               </div>
-
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Image Title *
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.title}
-                    onChange={(e) =>
-                      setFormData({ ...formData, title: e.target.value })
-                    }
-                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                    placeholder="Image title"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Upload Image or Enter URL
-                  </label>
-                  {isNew && (
-                    <ImageUploader
-                      onImageUrl={(url) =>
-                        setFormData({ ...formData, image_url: url })
-                      }
-                    />
-                  )}
-                  <input
-                    type="text"
-                    value={formData.image_url}
-                    onChange={(e) =>
-                      setFormData({ ...formData, image_url: e.target.value })
-                    }
-                    className="w-full mt-2 px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                    placeholder="https://example.com/image.jpg"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Description (Optional)
-                  </label>
-                  <textarea
-                    value={formData.description}
-                    onChange={(e) =>
-                      setFormData({ ...formData, description: e.target.value })
-                    }
-                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                    placeholder="Brief description of the image"
-                    rows={3}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Category
-                  </label>
-                  <select
-                    value={formData.category}
-                    onChange={(e) =>
-                      setFormData({ ...formData, category: e.target.value })
-                    }
-                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                    aria-label="Select category"
-                  >
-                    <option value="wedding">Wedding</option>
-                    <option value="portrait">Portrait</option>
-                    <option value="event">Event</option>
-                    <option value="commercial">Commercial</option>
-                    <option value="general">General</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Display Order
-                  </label>
-                  <input
-                    type="number"
-                    value={formData.display_order}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        display_order: parseInt(e.target.value) || 0,
-                      })
-                    }
-                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                    placeholder="0"
-                  />
-                  <p className="mt-1 text-xs text-gray-500">
-                    Lower numbers appear first
-                  </p>
-                </div>
-
-                <div className="flex items-center">
-                  <input
-                    type="checkbox"
-                    id="featured"
-                    checked={formData.featured}
-                    onChange={(e) =>
-                      setFormData({ ...formData, featured: e.target.checked })
-                    }
-                    className="h-4 w-4 text-primary-600 rounded border-gray-300"
-                  />
-                  <label
-                    htmlFor="featured"
-                    className="ml-2 text-sm text-gray-700"
-                  >
-                    Featured image (will appear in highlights)
-                  </label>
-                </div>
+              <div className="flex justify-between">
+                <span className="text-sm">Delete selected</span>
+                <kbd className="px-2 py-1 bg-gray-100 rounded text-xs">Delete</kbd>
               </div>
-
-              <div className="flex justify-end space-x-3 mt-6">
-                <button
-                  onClick={() => setShowModal(false)}
-                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={() => saveImage()}
-                  disabled={!formData.title || !formData.image_url || saving}
-                  className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50"
-                >
-                  {saving ? "Saving..." : "Save Image"}
-                </button>
+              <div className="flex justify-between">
+                <span className="text-sm">Clear selection</span>
+                <kbd className="px-2 py-1 bg-gray-100 rounded text-xs">Esc</kbd>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm">Upload images</span>
+                <kbd className="px-2 py-1 bg-gray-100 rounded text-xs">Ctrl + U</kbd>
+              </div>
+              <div className="flex justify-between">
+                <span>Show This Help</span>
+                <kbd className="bg-gray-100 px-2 py-1 rounded">Shift + ?</kbd>
               </div>
             </div>
           </div>
-        )}
+        </div>
+      )}
+
+      {/* Image Preview Modal */}
+      {showImagePreview && (
+        <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50">
+          <button
+            onClick={() => setShowImagePreview(null)}
+            className="absolute top-4 right-4 text-white hover:text-gray-300 z-10"
+          >
+            <X className="h-8 w-8" />
+          </button>
+          <img
+            src={showImagePreview.image_url}
+            alt={showImagePreview.title}
+            className="max-w-[90vw] max-h-[90vh] object-contain"
+          />
+          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black bg-opacity-50 text-white px-4 py-2 rounded">
+            {showImagePreview.title}
+          </div>
+        </div>
+      )}
+
       </div>
     </div>
   );
