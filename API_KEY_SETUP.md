@@ -8,7 +8,7 @@ All three AI features (Gallery Alt Text, Blog Generator, and Chatbot) use the **
 
 ## ✅ What We Just Fixed
 
-**Problem:** The code was using `gemini-1.5-pro` model name, but Google's API requires `gemini-pro` for the v1beta version.
+**Problem:** The code was using outdated model names. Google's current Gemini API requires `gemini-1.5-flash` or `gemini-1.5-pro-latest`.
 
 **Fixed in:**
 
@@ -18,6 +18,8 @@ All three AI features (Gallery Alt Text, Blog Generator, and Chatbot) use the **
 - ✅ `app/api/seo/generate/route.ts`
 - ✅ `lib/settings.ts` (default model)
 - ✅ `AI_FEATURES_GUIDE.md` (documentation)
+
+**Model Used:** `gemini-1.5-flash` (fast, efficient, perfect for your use case)
 
 **Chatbot Repetition:** Simplified the AI prompt to prevent repetitive responses.
 
@@ -113,7 +115,7 @@ For your usage:
 
    - Go to Admin → Settings
    - Look for "AI Model" field
-   - Should say `gemini-pro` (not `gemini-1.5-pro`)
+   - Should say `gemini-1.5-flash` (not `gemini-pro` or `gemini-1.5-pro`)
 
 2. **Verify API key in Netlify:**
 
@@ -155,9 +157,20 @@ The new prompt is much shorter and clearer. If it still repeats:
 
 ## ✨ Next Steps
 
-1. **Trigger a new Netlify deployment** (to deploy the `gemini-pro` fix)
+1. **Trigger a new Netlify deployment** (to deploy the `gemini-1.5-flash` fix)
 2. **Wait 2-3 minutes** for deployment to complete
 3. **Test all four features** in order above
 4. **Report back** if anything still gives errors
 
 The 404 error should be completely resolved now! 🎉
+
+---
+
+## 📚 Available Gemini Models (as of Nov 2025)
+
+- **`gemini-1.5-flash`** - Fast, efficient, recommended for most use cases ✅ (We use this)
+- **`gemini-1.5-pro-latest`** - More capable but slower, for complex tasks
+- ~~`gemini-pro`~~ - Deprecated, no longer works
+- ~~`gemini-1.5-pro`~~ - Wrong model ID for v1beta API
+
+If you ever want to upgrade to the more powerful model, change `gemini-1.5-flash` to `gemini-1.5-pro-latest` in Admin Settings.
