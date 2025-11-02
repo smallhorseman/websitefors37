@@ -1,6 +1,6 @@
 # 🔑 Google Gemini API Key Setup Guide
 
-## Good News: You Only Need ONE API Key! 
+## Good News: You Only Need ONE API Key!
 
 All three AI features (Gallery Alt Text, Blog Generator, and Chatbot) use the **same** Google Gemini API key. You don't need separate keys for different purposes.
 
@@ -11,6 +11,7 @@ All three AI features (Gallery Alt Text, Blog Generator, and Chatbot) use the **
 **Problem:** The code was using `gemini-1.5-pro` model name, but Google's API requires `gemini-pro` for the v1beta version.
 
 **Fixed in:**
+
 - ✅ `app/api/gallery/generate-alt-text/route.ts`
 - ✅ `app/api/blog/generate/route.ts`
 - ✅ `app/api/chat/respond/route.ts`
@@ -29,9 +30,7 @@ You already have your API key set in Netlify as `GEMINI_API_KEY`. This is perfec
 ### How the Code Uses It:
 
 ```typescript
-const apiKey = 
-  process.env.GEMINI_API_KEY || 
-  process.env.GOOGLE_API_KEY;
+const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
 ```
 
 The code checks for **either** environment variable name, so you're covered.
@@ -65,21 +64,25 @@ This ensures the new code with `gemini-pro` is live.
 After redeployment, test in this order:
 
 ### 1. SEO Analyzer (Simplest test)
+
 - Go to Admin → Blog → Create/Edit post
 - Click the SEO analyzer icon
 - Generate title/meta - should work without 404 error
 
 ### 2. Gallery Alt Text
+
 - Go to Admin → Gallery
 - Click a single image's sparkle ✨ button
 - Should generate alt text in 2-3 seconds
 
 ### 3. Blog Generator
+
 - Admin → Blog → "AI Writer" button
 - Enter a topic like "Wedding photography tips"
 - Click Generate - should create full post
 
 ### 4. Chatbot
+
 - Visit your site's homepage
 - Click the purple/pink chat button (bottom right)
 - Ask "What are your wedding packages?"
@@ -90,10 +93,12 @@ After redeployment, test in this order:
 ## 🆓 Free Tier Limits
 
 Google Gemini Pro free tier:
+
 - **60 requests per minute**
 - **1,500 requests per day**
 
 For your usage:
+
 - This is MORE than enough
 - Even with heavy testing, you won't hit limits
 - No need to upgrade to paid tier yet
@@ -105,11 +110,13 @@ For your usage:
 ### Still Getting 404 Error?
 
 1. **Check model name in Admin Settings:**
+
    - Go to Admin → Settings
    - Look for "AI Model" field
    - Should say `gemini-pro` (not `gemini-1.5-pro`)
 
 2. **Verify API key in Netlify:**
+
    - Netlify dashboard → Site settings → Environment variables
    - Make sure `GEMINI_API_KEY` is set
    - Value should start with `AIza`
@@ -122,6 +129,7 @@ For your usage:
 ### Chatbot Still Repeating?
 
 The new prompt is much shorter and clearer. If it still repeats:
+
 - Clear browser cache/cookies
 - Try a fresh conversation
 - The repetition should be gone with the simplified prompt

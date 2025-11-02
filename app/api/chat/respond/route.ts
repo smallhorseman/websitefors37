@@ -45,7 +45,11 @@ export async function POST(req: Request) {
 Services: Wedding, Portrait, Event, Commercial, Headshot photography
 Packages: $800-$5000+ depending on service
 
-${leadData && Object.keys(leadData).length > 0 ? `Known about customer: ${JSON.stringify(leadData)}` : ""}
+${
+  leadData && Object.keys(leadData).length > 0
+    ? `Known about customer: ${JSON.stringify(leadData)}`
+    : ""
+}
 ${context ? `Recent conversation:\n${context}` : ""}
 
 Customer says: "${message}"
