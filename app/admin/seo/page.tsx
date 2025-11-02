@@ -585,7 +585,10 @@ export default function SEOPage() {
       )}
       {/* GA Health Check Modal */}
       {showGAHealth && (
-        <GAHealthCheckModal isOpen={showGAHealth} onClose={() => setShowGAHealth(false)} />
+        <GAHealthCheckModal
+          isOpen={showGAHealth}
+          onClose={() => setShowGAHealth(false)}
+        />
       )}
     </div>
   );

@@ -1,7 +1,14 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
-import { X, CheckCircle, AlertTriangle, RefreshCw, ExternalLink, Activity } from "lucide-react";
+import {
+  X,
+  CheckCircle,
+  AlertTriangle,
+  RefreshCw,
+  ExternalLink,
+  Activity,
+} from "lucide-react";
 
 interface GAHealthCheckModalProps {
   isOpen: boolean;
@@ -13,19 +20,24 @@ function getMeasurementId(): string | null {
   const envId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || "";
   if (envId) return envId;
   // Try to sniff from script tag
-  const script = Array.from(document.querySelectorAll('script[src*="googletagmanager.com/gtag/js?id="]'))[0] as HTMLScriptElement | undefined;
+  const script = Array.from(
+    document.querySelectorAll('script[src*="googletagmanager.com/gtag/js?id="]')
+  )[0] as HTMLScriptElement | undefined;
   const fromScript = script?.src?.match(/id=([A-Z0-9\-]+)/)?.[1];
   return fromScript || null;
 }
 
-export default function GAHealthCheckModal({ isOpen, onClose }: GAHealthCheckModalProps) {
+export default function GAHealthCheckModal({
+  isOpen,
+  onClose,
+}: GAHealthCheckModalProps) {
   const [gtagLoaded, setGtagLoaded] = useState(false);
   const [dataLayerPresent, setDataLayerPresent] = useState(false);
   const [sending, setSending] = useState(false);
   const [lastEvent, setLastEvent] = useState<string | null>(null);
 
   const measurementId = useMemo(() => {
-    if (typeof window === 'undefined') return null;
+    if (typeof window === "undefined") return null;
     return getMeasurementId();
   }, [isOpen]);
 
@@ -33,9 +45,10 @@ export default function GAHealthCheckModal({ isOpen, onClose }: GAHealthCheckMod
     if (!isOpen) return;
     const check = () => {
       // @ts-ignore
-      const gtagFn = typeof window !== 'undefined' ? (window as any).gtag : undefined;
-      setGtagLoaded(typeof gtagFn === 'function');
-      setDataLayerPresent(typeof (window as any).dataLayer !== 'undefined');
+      const gtagFn =
+        typeof window !== "undefined" ? (window as any).gtag : undefined;
+      setGtagLoaded(typeof gtagFn === "function");
+      setDataLayerPresent(typeof (window as any).dataLayer !== "undefined");
     };
     check();
     const id = setInterval(check, 1000);
@@ -46,17 +59,20 @@ export default function GAHealthCheckModal({ isOpen, onClose }: GAHealthCheckMod
     setSending(true);
     try {
       // @ts-ignore
-      if (typeof window !== 'undefined' && typeof (window as any).gtag === 'function') {
+      if (
+        typeof window !== "undefined" &&
+        typeof (window as any).gtag === "function"
+      ) {
         // @ts-ignore
-        (window as any).gtag('event', 'test_event', {
+        (window as any).gtag("event", "test_event", {
           debug_mode: true,
-          event_category: 'diagnostics',
-          event_label: 'admin_health_check',
+          event_category: "diagnostics",
+          event_label: "admin_health_check",
           value: Date.now(),
         });
         setLastEvent(`Sent test_event at ${new Date().toLocaleTimeString()}`);
       } else {
-        setLastEvent('gtag not available on window');
+        setLastEvent("gtag not available on window");
       }
     } finally {
       setSending(false);
@@ -73,7 +89,10 @@ export default function GAHealthCheckModal({ isOpen, onClose }: GAHealthCheckMod
             <Activity className="h-5 w-5" />
             <h2 className="text-lg font-semibold">Analytics Health Check</h2>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-purple-500/40 rounded-lg">
+          <button
+            onClick={onClose}
+            className="p-2 hover:bg-purple-500/40 rounded-lg"
+          >
             <X className="h-5 w-5" />
           </button>
         </div>
@@ -82,15 +101,22 @@ export default function GAHealthCheckModal({ isOpen, onClose }: GAHealthCheckMod
           <div className="grid grid-cols-2 gap-3">
             <div className="p-3 border rounded-lg">
               <div className="text-xs text-gray-500">Measurement ID</div>
-              <div className="text-sm font-medium">{measurementId || 'Not detected'}</div>
+              <div className="text-sm font-medium">
+                {measurementId || "Not detected"}
+              </div>
             </div>
             <div className="p-3 border rounded-lg">
               <div className="text-xs text-gray-500">gtag</div>
               <div className="flex items-center gap-2 text-sm font-medium">
                 {gtagLoaded ? (
-                  <><CheckCircle className="h-4 w-4 text-green-600" /> Loaded</>
+                  <>
+                    <CheckCircle className="h-4 w-4 text-green-600" /> Loaded
+                  </>
                 ) : (
-                  <><AlertTriangle className="h-4 w-4 text-yellow-600" /> Not found</>
+                  <>
+                    <AlertTriangle className="h-4 w-4 text-yellow-600" /> Not
+                    found
+                  </>
                 )}
               </div>
             </div>
@@ -98,15 +124,22 @@ export default function GAHealthCheckModal({ isOpen, onClose }: GAHealthCheckMod
               <div className="text-xs text-gray-500">dataLayer</div>
               <div className="flex items-center gap-2 text-sm font-medium">
                 {dataLayerPresent ? (
-                  <><CheckCircle className="h-4 w-4 text-green-600" /> Present</>
+                  <>
+                    <CheckCircle className="h-4 w-4 text-green-600" /> Present
+                  </>
                 ) : (
-                  <><AlertTriangle className="h-4 w-4 text-yellow-600" /> Missing</>
+                  <>
+                    <AlertTriangle className="h-4 w-4 text-yellow-600" />{" "}
+                    Missing
+                  </>
                 )}
               </div>
             </div>
             <div className="p-3 border rounded-lg">
               <div className="text-xs text-gray-500">Status</div>
-              <div className="text-sm text-gray-700">{lastEvent || 'No test event sent yet'}</div>
+              <div className="text-sm text-gray-700">
+                {lastEvent || "No test event sent yet"}
+              </div>
             </div>
           </div>
 
@@ -116,7 +149,11 @@ export default function GAHealthCheckModal({ isOpen, onClose }: GAHealthCheckMod
               disabled={sending}
               className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:bg-gray-400 flex items-center gap-2"
             >
-              {sending ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Activity className="h-4 w-4" />}
+              {sending ? (
+                <RefreshCw className="h-4 w-4 animate-spin" />
+              ) : (
+                <Activity className="h-4 w-4" />
+              )}
               Send Test Event
             </button>
             <a
@@ -130,8 +167,9 @@ export default function GAHealthCheckModal({ isOpen, onClose }: GAHealthCheckMod
           </div>
 
           <p className="text-xs text-gray-500">
-            Tip: Realtime report should show your test event (can take up to ~60s). If GA is configured in Settings but not detected
-            here, ensure NEXT_PUBLIC_GA_MEASUREMENT_ID is set at build time.
+            Tip: Realtime report should show your test event (can take up to
+            ~60s). If GA is configured in Settings but not detected here, ensure
+            NEXT_PUBLIC_GA_MEASUREMENT_ID is set at build time.
           </p>
         </div>
       </div>
