@@ -569,7 +569,7 @@ export default function SEOAnalyzerModal({
         {/* Footer */}
         <div className="border-t px-6 py-4 flex items-center justify-between bg-gray-50 rounded-b-xl">
           <div className="text-sm text-gray-600">
-            Analysis powered by browser-based AI • No external APIs used
+            Smart SEO analysis • No external APIs used
           </div>
           <div className="flex gap-2">
             <button

@@ -612,7 +612,7 @@ export class SEOAnalyzer {
 }
 
 /**
- * Generate SEO-optimized meta description using AI
+ * Generate SEO-optimized meta description
  */
 export async function generateMetaDescription(
   content: string,
@@ -623,62 +623,82 @@ export async function generateMetaDescription(
     .replace(/\s+/g, " ")
     .trim();
 
-  // Try to use Chrome's built-in AI API if available
-  try {
-    // @ts-ignore - Chrome AI API is experimental
-    if (typeof window !== "undefined" && window.ai?.createTextSession) {
-      // @ts-ignore
-      const session = await window.ai.createTextSession();
-      const prompt = `Write a compelling SEO meta description (140-160 characters) for this content${
-        targetKeyword ? ` focusing on the keyword "${targetKeyword}"` : ""
-      }:\n\n${plainText.substring(0, 1000)}`;
-
-      const result = await session.prompt(prompt);
-      await session.destroy();
-
-      if (result && result.length >= 120 && result.length <= 160) {
-        return result;
-      }
-    }
-  } catch (error) {
-    console.warn("Chrome AI API not available, falling back to extraction");
-  }
-
-  // Fallback: Extract from content
   const sentences = plainText.match(/[^.!?]+[.!?]+/g) || [];
+  
+  // Extract key information
+  const words = plainText.toLowerCase().split(/\s+/);
+  const hasPhotography = words.some(w => w.includes('photo'));
+  const hasWedding = words.some(w => w.includes('wedding'));
+  const hasPortrait = words.some(w => w.includes('portrait'));
+  const hasCommercial = words.some(w => w.includes('commercial'));
+  const hasEvent = words.some(w => w.includes('event'));
 
   let description = "";
 
+  // Smart description generation based on content analysis
   if (targetKeyword) {
-    // Find sentence with keyword
-    const keywordSentence = sentences.find((s) =>
+    // Find the most relevant sentence with the keyword
+    const keywordSentences = sentences.filter((s) =>
       s.toLowerCase().includes(targetKeyword.toLowerCase())
     );
-    if (keywordSentence) {
-      description = keywordSentence.trim();
+    
+    if (keywordSentences.length > 0) {
+      // Pick the most descriptive sentence (prefer longer ones that aren't too long)
+      const bestSentence = keywordSentences.reduce((best, current) => {
+        const len = current.trim().length;
+        const bestLen = best.trim().length;
+        if (len > 80 && len < 160 && (bestLen < 80 || bestLen > 160)) {
+          return current;
+        }
+        return best;
+      }, keywordSentences[0]);
+      
+      description = bestSentence.trim();
     }
   }
 
-  if (!description) {
-    const firstSentence = sentences?.[0];
-    if (firstSentence) {
-      description = firstSentence.trim();
+  // If no keyword match, create a smart description from content
+  if (!description && sentences.length > 0) {
+    // Build a description from the first 2-3 sentences
+    let combined = "";
+    for (let i = 0; i < Math.min(3, sentences.length); i++) {
+      const sentence = sentences[i].trim();
+      if (combined.length + sentence.length < 155) {
+        combined += (combined ? " " : "") + sentence;
+      } else {
+        break;
+      }
     }
+    description = combined;
   }
 
-  // Truncate to ideal length
+  // Clean up and optimize
+  description = description
+    .replace(/\s+/g, " ")
+    .replace(/^(the|a|an)\s+/i, "") // Remove leading articles
+    .trim();
+
+  // Ensure it's within ideal length (150-160 chars)
   if (description.length > 160) {
     description = description.substring(0, 157) + "...";
+  } else if (description.length < 120 && targetKeyword) {
+    // Pad with keyword if too short
+    const addition = ` Professional ${targetKeyword} services.`;
+    if (description.length + addition.length <= 160) {
+      description += addition;
+    }
   }
 
-  return (
-    description ||
-    "Professional photography services. Contact us to learn more."
-  );
+  // Final fallback
+  if (!description || description.length < 50) {
+    description = "Professional photography services in Pinehurst, TX. Specializing in weddings, portraits, events, and commercial photography. Book your session today!";
+  }
+
+  return description;
 }
 
 /**
- * Generate SEO-friendly title using AI
+ * Generate SEO-friendly title
  */
 export async function generateTitle(
   content: string,
@@ -690,46 +710,62 @@ export async function generateTitle(
     .replace(/\s+/g, " ")
     .trim();
 
-  // Try to use Chrome's built-in AI API if available
-  try {
-    // @ts-ignore - Chrome AI API is experimental
-    if (typeof window !== "undefined" && window.ai?.createTextSession) {
-      // @ts-ignore
-      const session = await window.ai.createTextSession();
-      const prompt = `Write a compelling SEO page title (50-60 characters) for this content${
-        targetKeyword ? ` that includes the keyword "${targetKeyword}"` : ""
-      }:\n\n${plainText.substring(0, 1000)}`;
-
-      const result = await session.prompt(prompt);
-      await session.destroy();
-
-      if (result && result.length >= 30 && result.length <= 60) {
-        return result;
-      }
-    }
-  } catch (error) {
-    console.warn("Chrome AI API not available, falling back to extraction");
-  }
-
-  // Fallback: Extract from content
+  // Extract H1 as base
   const h1Match = content.match(/<h1[^>]*>([^<]+)<\/h1>/i);
   let title = h1Match ? h1Match[1].trim() : "";
 
+  // If no H1, look for the first strong statement
   if (!title) {
-    const firstSentence = plainText.match(/[^.!?]+/)?.[0];
-    title = firstSentence || "Untitled Page";
+    const sentences = plainText.match(/[^.!?]+/g) || [];
+    // Find a sentence that looks like a title (shorter, punchy)
+    const potentialTitle = sentences.find(s => {
+      const len = s.trim().length;
+      return len > 20 && len < 100 && !s.toLowerCase().startsWith('the ');
+    });
+    title = potentialTitle?.trim() || sentences[0]?.trim() || "Professional Photography";
   }
 
-  if (
-    targetKeyword &&
-    !title.toLowerCase().includes(targetKeyword.toLowerCase())
-  ) {
-    title = `${targetKeyword} | ${title}`;
+  // Clean up title
+  title = title
+    .replace(/\s+/g, " ")
+    .replace(/[:|—–-]\s*$/, "") // Remove trailing punctuation
+    .trim();
+
+  // Add keyword if not present and if specified
+  if (targetKeyword && !title.toLowerCase().includes(targetKeyword.toLowerCase())) {
+    // Smart keyword integration
+    const keywordCapitalized = targetKeyword
+      .split(' ')
+      .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(' ');
+    
+    // If title is short enough, prepend keyword
+    if (title.length + keywordCapitalized.length + 3 <= maxLength) {
+      title = `${keywordCapitalized} | ${title}`;
+    } else {
+      // Replace or shorten
+      title = `${keywordCapitalized} - ${title}`;
+    }
   }
 
-  // Truncate to max length
+  // Add brand if there's room and it's not already there
+  const hasBrand = title.toLowerCase().includes('studio') || 
+                   title.toLowerCase().includes('studio37');
+  
+  if (!hasBrand && title.length + 18 <= maxLength) {
+    title = `${title} | Studio37`;
+  }
+
+  // Truncate to max length if needed
   if (title.length > maxLength) {
-    title = title.substring(0, maxLength - 3) + "...";
+    // Try to cut at a word boundary
+    const truncated = title.substring(0, maxLength - 3);
+    const lastSpace = truncated.lastIndexOf(' ');
+    if (lastSpace > maxLength * 0.7) {
+      title = truncated.substring(0, lastSpace) + "...";
+    } else {
+      title = truncated + "...";
+    }
   }
 
   return title;
