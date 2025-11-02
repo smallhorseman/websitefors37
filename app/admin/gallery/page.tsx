@@ -657,7 +657,7 @@ export default function GalleryAdmin() {
                   Cancel
                 </button>
                 <button
-                  onClick={saveImage}
+                  onClick={() => saveImage()}
                   disabled={!formData.title || !formData.image_url || saving}
                   className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50"
                 >
