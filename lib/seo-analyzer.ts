@@ -676,9 +676,209 @@ export function generateTitle(
     title = `${targetKeyword} | ${title}`;
   }
 
+  // Truncate to max length
   if (title.length > maxLength) {
     title = title.substring(0, maxLength - 3) + "...";
   }
 
   return title;
+}
+
+/**
+ * Compare your content with a competitor's page
+ */
+export async function analyzeCompetitor(
+  competitorUrl: string
+): Promise<CompetitorComparison | null> {
+  try {
+    // Fetch competitor page (requires CORS or server-side proxy)
+    const response = await fetch(`/api/seo/analyze-live`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ url: competitorUrl }),
+    });
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const data = await response.json();
+
+    // Analyze their content
+    const analyzer = new SEOAnalyzer({
+      content: data.content.plainText,
+      title: data.title,
+      metaDescription: data.metaDescription,
+      url: competitorUrl,
+    });
+
+    const result = analyzer.analyze();
+
+    return {
+      yourScore: 0, // Will be filled by caller
+      competitorScore: result.score,
+      gaps: [
+        data.headings.h1.length > 0
+          ? `Competitor has ${data.headings.h1.length} H1 headings`
+          : "",
+        data.images.withAlt > data.images.withoutAlt
+          ? "Competitor has better image alt text coverage"
+          : "",
+        data.content.wordCount > 1000
+          ? `Competitor has ${data.content.wordCount} words`
+          : "",
+      ].filter(Boolean),
+      opportunities: [
+        data.links.external === 0 ? "Add external authoritative links" : "",
+        data.structuredData.length === 0 ? "Add structured data (JSON-LD)" : "",
+        !data.canonical ? "Add canonical tag" : "",
+      ].filter(Boolean),
+    };
+  } catch (error) {
+    console.error("Competitor analysis failed:", error);
+    return null;
+  }
+}
+
+/**
+ * Get trending photography/studio keywords
+ */
+export function getTrendingKeywords(
+  category: string = "photography"
+): string[] {
+  const keywordDatabase: Record<string, string[]> = {
+    photography: [
+      "professional photography",
+      "studio photography",
+      "portrait photography",
+      "wedding photography",
+      "commercial photography",
+      "family portraits",
+      "headshot photography",
+      "event photography",
+      "photography packages",
+      "photo session booking",
+    ],
+    wedding: [
+      "wedding photographer",
+      "engagement photos",
+      "bridal photography",
+      "wedding album",
+      "destination wedding",
+      "wedding package",
+    ],
+    portrait: [
+      "family portrait",
+      "senior portraits",
+      "professional headshots",
+      "maternity photos",
+      "newborn photography",
+      "children photography",
+    ],
+    commercial: [
+      "product photography",
+      "business headshots",
+      "commercial photography services",
+      "real estate photography",
+      "architectural photography",
+    ],
+  };
+
+  return keywordDatabase[category] || keywordDatabase.photography;
+}
+
+/**
+ * Calculate content freshness score
+ */
+export function calculateFreshnessScore(
+  publishDate: Date,
+  lastModified?: Date
+): number {
+  const now = new Date();
+  const contentDate = lastModified || publishDate;
+  const daysSince = Math.floor(
+    (now.getTime() - contentDate.getTime()) / (1000 * 60 * 60 * 24)
+  );
+
+  if (daysSince < 30) return 100;
+  if (daysSince < 90) return 90;
+  if (daysSince < 180) return 75;
+  if (daysSince < 365) return 60;
+  return 40;
+}
+
+/**
+ * Generate content improvement suggestions based on gaps
+ */
+export function generateImprovementPlan(
+  analysis: SEOAnalysisResult,
+  targetScore: number = 90
+): string[] {
+  const plan: string[] = [];
+  const currentScore = analysis.score;
+  const gap = targetScore - currentScore;
+
+  if (gap <= 0) {
+    return ["Your content is already well-optimized!"];
+  }
+
+  // Prioritize critical issues first
+  const critical = analysis.issues.filter((i) => i.severity === "critical");
+  const warnings = analysis.issues.filter((i) => i.severity === "warning");
+
+  if (critical.length > 0) {
+    plan.push(
+      `🚨 Fix ${critical.length} critical issue(s) first (potential +${
+        critical.length * 5
+      } points)`
+    );
+    critical.forEach((issue) => {
+      if (issue.fix) plan.push(`  → ${issue.fix}`);
+    });
+  }
+
+  if (warnings.length > 0 && gap > 10) {
+    plan.push(
+      `⚠️ Address ${warnings.length} warning(s) (potential +${
+        warnings.length * 3
+      } points)`
+    );
+    warnings.slice(0, 3).forEach((issue) => {
+      if (issue.fix) plan.push(`  → ${issue.fix}`);
+    });
+  }
+
+  // Content-specific recommendations
+  if (analysis.metrics.wordCount < 800) {
+    plan.push(
+      `📝 Expand content to 800-1200 words (currently ${analysis.metrics.wordCount})`
+    );
+  }
+
+  if (
+    analysis.metrics.keywordDensity &&
+    Object.keys(analysis.metrics.keywordDensity).length < 5
+  ) {
+    plan.push(
+      `🔑 Use more varied keywords (currently using ${
+        Object.keys(analysis.metrics.keywordDensity).length
+      })`
+    );
+  }
+
+  if (analysis.metrics.linkAnalysis.internalLinks < 3) {
+    plan.push(
+      `🔗 Add ${
+        3 - analysis.metrics.linkAnalysis.internalLinks
+      } more internal links`
+    );
+  }
+
+  if (analysis.metrics.imageAnalysis.missingAlt > 0) {
+    plan.push(
+      `🖼️ Add alt text to ${analysis.metrics.imageAnalysis.missingAlt} image(s)`
+    );
+  }
+
+  return plan;
 }
