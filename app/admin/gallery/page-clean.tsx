@@ -13,11 +13,11 @@ import {
   Keyboard,
   X,
 } from "lucide-react";
-import { EnhancedGalleryEditor } from "@/components/EnhancedGalleryEditor";
-import { GalleryHighlightsEditor } from "@/components/GalleryHighlightsEditor";
-import { GalleryAdvancedFilters } from "@/components/GalleryAdvancedFilters";
-import { GalleryBulkOperations } from "@/components/GalleryBulkOperations";
-import { EnhancedImageUploader } from "@/components/EnhancedImageUploader";
+import EnhancedGalleryEditor from "@/components/EnhancedGalleryEditor";
+import GalleryHighlightsEditor from "@/components/GalleryHighlightsEditor";
+import GalleryAdvancedFilters from "@/components/GalleryAdvancedFilters";
+import GalleryBulkOperations from "@/components/GalleryBulkOperations";
+import EnhancedImageUploader from "@/components/EnhancedImageUploader";
 
 export default function AdminGalleryPage() {
   // Main state
