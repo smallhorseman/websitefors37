@@ -8,6 +8,15 @@ export interface SEOAnalysisResult {
   issues: SEOIssue[];
   recommendations: string[];
   metrics: SEOMetrics;
+  competitorComparison?: CompetitorComparison;
+  trendingKeywords?: string[];
+}
+
+export interface CompetitorComparison {
+  yourScore: number;
+  competitorScore?: number;
+  gaps: string[];
+  opportunities: string[];
 }
 
 export interface SEOIssue {
