@@ -16,8 +16,9 @@ A complete AI training system built into your admin dashboard where you can:
 ## 🚀 How to Access
 
 1. Go to **Admin Dashboard**
-2. Click **"AI Training"** in the sidebar (Brain icon 🧠)
-3. Start training your chatbot!
+2. Use the new header button **🧠 AI Training** (top-right), or
+3. From **Admin → SEO & AI**, click the **AI Training** quick action card
+4. Start training your chatbot!
 
 ---
 
