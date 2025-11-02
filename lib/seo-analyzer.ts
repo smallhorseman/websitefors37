@@ -623,6 +623,21 @@ export async function generateMetaDescription(
     .replace(/\s+/g, " ")
     .trim();
 
+  // Try server AI endpoint first (Gemini via server-side key)
+  try {
+    const res = await fetch("/api/seo/generate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ type: "meta", content: plainText, targetKeyword }),
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (data?.text && data.text.length >= 120) return data.text;
+    }
+  } catch {
+    // ignore and fall back
+  }
+
   const sentences = plainText.match(/[^.!?]+[.!?]+/g) || [];
 
   // Extract key information
@@ -710,6 +725,26 @@ export async function generateTitle(
     .replace(/<[^>]*>/g, " ")
     .replace(/\s+/g, " ")
     .trim();
+
+  // Try server AI endpoint first (Gemini via server-side key)
+  try {
+    const res = await fetch("/api/seo/generate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        type: "title",
+        content: plainText,
+        targetKeyword,
+        maxLength,
+      }),
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (data?.text && data.text.length >= 30) return data.text;
+    }
+  } catch {
+    // ignore and fall back
+  }
 
   // Extract H1 as base
   const h1Match = content.match(/<h1[^>]*>([^<]+)<\/h1>/i);
