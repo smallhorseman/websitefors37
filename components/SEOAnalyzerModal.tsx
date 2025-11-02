@@ -53,6 +53,7 @@ export default function SEOAnalyzerModal({
   const [generatedTitle, setGeneratedTitle] = useState("");
   const [generatedMeta, setGeneratedMeta] = useState("");
   const [targetKeyword, setTargetKeyword] = useState("");
+  const [isGenerating, setIsGenerating] = useState(false);
 
   useEffect(() => {
     if (isOpen && content) {
@@ -73,14 +74,28 @@ export default function SEOAnalyzerModal({
     }
   };
 
-  const handleGenerateTitle = () => {
-    const generated = generateTitle(content, targetKeyword);
-    setGeneratedTitle(generated);
+  const handleGenerateTitle = async () => {
+    setIsGenerating(true);
+    try {
+      const generated = await generateTitle(content, targetKeyword);
+      setGeneratedTitle(generated);
+    } catch (error) {
+      console.error("Error generating title:", error);
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
-  const handleGenerateMeta = () => {
-    const generated = generateMetaDescription(content, targetKeyword);
-    setGeneratedMeta(generated);
+  const handleGenerateMeta = async () => {
+    setIsGenerating(true);
+    try {
+      const generated = await generateMetaDescription(content, targetKeyword);
+      setGeneratedMeta(generated);
+    } catch (error) {
+      console.error("Error generating meta description:", error);
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   const handleSave = () => {
@@ -374,10 +389,20 @@ export default function SEOAnalyzerModal({
                   </div>
                   <button
                     onClick={handleGenerateTitle}
-                    className="w-full px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 flex items-center justify-center gap-2"
+                    disabled={isGenerating}
+                    className="w-full px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                   >
-                    <Sparkles className="h-4 w-4" />
-                    Generate Optimized Title
+                    {isGenerating ? (
+                      <>
+                        <RefreshCw className="h-4 w-4 animate-spin" />
+                        Generating...
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="h-4 w-4" />
+                        Generate Optimized Title
+                      </>
+                    )}
                   </button>
                   {generatedTitle && (
                     <div>
@@ -420,10 +445,20 @@ export default function SEOAnalyzerModal({
                   </div>
                   <button
                     onClick={handleGenerateMeta}
-                    className="w-full px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 flex items-center justify-center gap-2"
+                    disabled={isGenerating}
+                    className="w-full px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                   >
-                    <Sparkles className="h-4 w-4" />
-                    Generate Meta Description
+                    {isGenerating ? (
+                      <>
+                        <RefreshCw className="h-4 w-4 animate-spin" />
+                        Generating...
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="h-4 w-4" />
+                        Generate Meta Description
+                      </>
+                    )}
                   </button>
                   {generatedMeta && (
                     <div>

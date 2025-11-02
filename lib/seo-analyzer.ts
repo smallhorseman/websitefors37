@@ -612,16 +612,39 @@ export class SEOAnalyzer {
 }
 
 /**
- * Generate SEO-optimized meta description
+ * Generate SEO-optimized meta description using AI
  */
-export function generateMetaDescription(
+export async function generateMetaDescription(
   content: string,
   targetKeyword?: string
-): string {
+): Promise<string> {
   const plainText = content
     .replace(/<[^>]*>/g, " ")
     .replace(/\s+/g, " ")
     .trim();
+
+  // Try to use Chrome's built-in AI API if available
+  try {
+    // @ts-ignore - Chrome AI API is experimental
+    if (typeof window !== "undefined" && window.ai?.createTextSession) {
+      // @ts-ignore
+      const session = await window.ai.createTextSession();
+      const prompt = `Write a compelling SEO meta description (140-160 characters) for this content${
+        targetKeyword ? ` focusing on the keyword "${targetKeyword}"` : ""
+      }:\n\n${plainText.substring(0, 1000)}`;
+
+      const result = await session.prompt(prompt);
+      await session.destroy();
+
+      if (result && result.length >= 120 && result.length <= 160) {
+        return result;
+      }
+    }
+  } catch (error) {
+    console.warn("Chrome AI API not available, falling back to extraction");
+  }
+
+  // Fallback: Extract from content
   const sentences = plainText.match(/[^.!?]+[.!?]+/g) || [];
 
   let description = "";
@@ -648,24 +671,52 @@ export function generateMetaDescription(
     description = description.substring(0, 157) + "...";
   }
 
-  return description;
+  return (
+    description ||
+    "Professional photography services. Contact us to learn more."
+  );
 }
 
 /**
- * Generate SEO-friendly title
+ * Generate SEO-friendly title using AI
  */
-export function generateTitle(
+export async function generateTitle(
   content: string,
   targetKeyword?: string,
   maxLength: number = 60
-): string {
+): Promise<string> {
+  const plainText = content
+    .replace(/<[^>]*>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  // Try to use Chrome's built-in AI API if available
+  try {
+    // @ts-ignore - Chrome AI API is experimental
+    if (typeof window !== "undefined" && window.ai?.createTextSession) {
+      // @ts-ignore
+      const session = await window.ai.createTextSession();
+      const prompt = `Write a compelling SEO page title (50-60 characters) for this content${
+        targetKeyword ? ` that includes the keyword "${targetKeyword}"` : ""
+      }:\n\n${plainText.substring(0, 1000)}`;
+
+      const result = await session.prompt(prompt);
+      await session.destroy();
+
+      if (result && result.length >= 30 && result.length <= 60) {
+        return result;
+      }
+    }
+  } catch (error) {
+    console.warn("Chrome AI API not available, falling back to extraction");
+  }
+
+  // Fallback: Extract from content
   const h1Match = content.match(/<h1[^>]*>([^<]+)<\/h1>/i);
   let title = h1Match ? h1Match[1].trim() : "";
 
   if (!title) {
-    const firstSentence = content
-      .replace(/<[^>]*>/g, " ")
-      .match(/[^.!?]+/)?.[0];
+    const firstSentence = plainText.match(/[^.!?]+/)?.[0];
     title = firstSentence || "Untitled Page";
   }
 
