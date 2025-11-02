@@ -85,23 +85,27 @@ export default function RootLayout({
         />
         {/* Removed aggressive preloads (they were contributing to LCP). Keep dns-prefetch instead. */}
         {/* DNS prefetch for external domains */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link
+          rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossOrigin="anonymous"
+        />
         <link rel="dns-prefetch" href="//images.unsplash.com" />
         <link rel="dns-prefetch" href="//res.cloudinary.com" />
-        <link rel="dns-prefetch" href="//fonts.googleapis.com" />
-        <link rel="dns-prefetch" href="//fonts.gstatic.com" />
         {/* Explicit favicon for modern browsers; Next will also use app/icon.svg */}
         <link rel="icon" href="/icon.svg" type="image/svg+xml" />
       </head>
       <body className={`${inter.variable} ${playfair.variable} font-sans`}>
-        {/* Google Analytics 4 */}
+        {/* Google Analytics 4 - Deferred to lazyOnload for better performance */}
         <Script
           id="ga4-src"
-          strategy="afterInteractive"
+          strategy="lazyOnload"
           src={`https://www.googletagmanager.com/gtag/js?id=${
             process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || "G-5NTFJK2GH8"
           }`}
         />
-        <Script id="ga4-init" strategy="afterInteractive">
+        <Script id="ga4-init" strategy="lazyOnload">
           {`
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);} 
