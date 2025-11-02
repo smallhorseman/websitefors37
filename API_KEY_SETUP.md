@@ -8,7 +8,7 @@ All three AI features (Gallery Alt Text, Blog Generator, and Chatbot) use the **
 
 ## ✅ What We Just Fixed
 
-**Problem:** The code was using outdated model names. Google's current Gemini API requires `gemini-2.0-flash-exp` (latest experimental) or `gemini-1.5-flash`.
+**Problem:** The code was using outdated model names. Google's current Gemini API requires `gemini-2.5-pro` (the fastest and most capable model).
 
 **Fixed in:**
 
@@ -19,7 +19,7 @@ All three AI features (Gallery Alt Text, Blog Generator, and Chatbot) use the **
 - ✅ `lib/settings.ts` (default model)
 - ✅ `AI_FEATURES_GUIDE.md` (documentation)
 
-**Model Used:** `gemini-2.0-flash-exp` (fastest, smartest, latest experimental model from Google)
+**Model Used:** `gemini-2.5-pro` (Google's most advanced, fastest, and highest quality model)
 
 **Chatbot Repetition:** Simplified the AI prompt to prevent repetitive responses.
 
@@ -115,7 +115,7 @@ For your usage:
 
    - Go to Admin → Settings
    - Look for "AI Model" field
-   - Should say `gemini-2.0-flash-exp` (latest experimental model)
+   - Should say `gemini-2.5-pro` (Google's most advanced model)
 
 2. **Verify API key in Netlify:**
 
@@ -157,7 +157,7 @@ The new prompt is much shorter and clearer. If it still repeats:
 
 ## ✨ Next Steps
 
-1. **Trigger a new Netlify deployment** (to deploy the `gemini-2.0-flash-exp` upgrade)
+1. **Trigger a new Netlify deployment** (to deploy the `gemini-2.5-pro` upgrade)
 2. **Wait 2-3 minutes** for deployment to complete
 3. **Test all four features** in order above
 4. **Report back** if anything still gives errors
@@ -168,16 +168,18 @@ The 404 error should be completely resolved now! 🎉
 
 ## 📚 Available Gemini Models (as of Nov 2025)
 
-- **`gemini-2.0-flash-exp`** - Latest experimental, fastest & smartest ✅ (We use this!)
+- **`gemini-2.5-pro`** - Most advanced, fastest & highest quality ✅ (We use this!)
+- **`gemini-2.0-flash-exp`** - Latest experimental, very fast
 - **`gemini-1.5-flash`** - Stable, fast, reliable fallback
-- **`gemini-1.5-pro-latest`** - More capable but slower, for complex tasks
+- **`gemini-1.5-pro-latest`** - Previous generation pro model
 - ~~`gemini-pro`~~ - Deprecated, no longer works
 - ~~`gemini-1.5-pro`~~ - Wrong model ID for v1beta API
 
-**Why 2.0-flash-exp?**
+**Why 2.5-pro?**
 
-- 2x faster than 1.5-flash
-- Better at following instructions
-- More natural conversation
+- Google's most advanced model (as of Nov 2025)
+- Fastest inference speed
+- Best quality outputs
+- Superior reasoning & context understanding
 - Same free tier limits
-- Experimental = cutting edge features, may change
+- Production-ready, not experimental
