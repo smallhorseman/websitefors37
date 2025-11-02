@@ -92,7 +92,27 @@ Return the response in JSON format:
 }`;
 
     const result = await model.generateContent(prompt);
-    let responseText = result.response.text().trim();
+    const response = result.response;
+
+    // Check if response exists
+    if (!response) {
+      console.error("No response from AI model");
+      return NextResponse.json(
+        { error: "No response from AI model" },
+        { status: 500 }
+      );
+    }
+
+    let responseText = response.text().trim();
+
+    // Check if response is empty
+    if (!responseText) {
+      console.error("Empty response from AI model");
+      return NextResponse.json(
+        { error: "AI returned empty response" },
+        { status: 500 }
+      );
+    }
 
     // Clean up response if it has markdown code blocks
     responseText = responseText
@@ -106,6 +126,7 @@ Return the response in JSON format:
     } catch (parseError) {
       // If JSON parsing fails, return a structured fallback
       console.error("Failed to parse AI response as JSON:", parseError);
+      console.error("Raw response:", responseText.substring(0, 500));
       return NextResponse.json({
         title: topic,
         metaDescription: `Learn about ${topic} with Studio37 Photography in Pinehurst, TX. Expert tips and professional insights.`,
