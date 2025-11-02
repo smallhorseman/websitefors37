@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import SEOAnalyzerModal from "@/components/SEOAnalyzerModal";
+import GAHealthCheckModal from "@/components/GAHealthCheckModal";
 import type { ContentPage, BlogPost } from "@/lib/supabase";
 
 interface SEOMetrics {
@@ -37,6 +38,7 @@ export default function SEOPage() {
     url: string;
   } | null>(null);
   const [showAnalyzer, setShowAnalyzer] = useState(false);
+  const [showGAHealth, setShowGAHealth] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState<"pages" | "posts">("pages");
 
@@ -60,7 +62,7 @@ export default function SEOPage() {
     try {
       const { supabase } = await import("@/lib/supabase");
 
-      // Fetch pages
+      // Fetch content pages
       const { data: pagesData, error: pagesError } = await supabase
         .from("content_pages")
         .select("*")
@@ -91,7 +93,7 @@ export default function SEOPage() {
             )
           : 0;
       const avgDescLength =
-        allContent.filter((p) => p.meta_description).length > 0
+        pagesWithMeta > 0
           ? Math.round(
               allContent
                 .filter((p) => p.meta_description)
@@ -105,7 +107,7 @@ export default function SEOPage() {
       setMetrics({
         totalPages: allContent.length,
         pagesWithMeta,
-        pagesWithImages: allContent.length, // Assume all have images for now
+        pagesWithImages: allContent.length, // TODO: compute real image presence
         avgTitleLength,
         avgDescriptionLength: avgDescLength,
         sitemapStatus: "active",
@@ -580,6 +582,10 @@ export default function SEOPage() {
           url={selectedItem.url}
           onSave={handleSaveUpdates}
         />
+      )}
+      {/* GA Health Check Modal */}
+      {showGAHealth && (
+        <GAHealthCheckModal isOpen={showGAHealth} onClose={() => setShowGAHealth(false)} />
       )}
     </div>
   );
