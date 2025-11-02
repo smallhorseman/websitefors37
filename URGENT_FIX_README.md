@@ -1,17 +1,18 @@
-# 🔧 UPGRADED TO GEMINI 2.0 FLASH! - Nov 2, 2025
+# 🔧 UPGRADED TO GEMINI 2.5 PRO! - Nov 2, 2025
 
-## 🎯 Latest Model = Fastest Performance
+## 🎯 The Fastest Model Available
 
-Google's newest experimental model is here:
+Google's most advanced model is here:
 
 - ❌ `gemini-pro` - **DEPRECATED** (doesn't exist anymore)
 - ❌ `gemini-1.5-pro` - **WRONG ID** for v1beta API
 - ⚠️ `gemini-1.5-flash` - **GOOD** (stable fallback)
-- ✅ `gemini-2.0-flash-exp` - **BEST** (2x faster, smarter!)
+- ⚠️ `gemini-2.0-flash-exp` - **BETTER** (experimental)
+- ✅ `gemini-2.5-pro` - **BEST** (fastest & most capable!)
 
 ## ✅ What I Just Upgraded
 
-Updated **ALL** API endpoints to use `gemini-2.0-flash-exp`:
+Updated **ALL** API endpoints to use `gemini-2.5-pro`:
 
 1. ✅ `app/api/gallery/generate-alt-text/route.ts`
 2. ✅ `app/api/blog/generate/route.ts`
@@ -95,7 +96,8 @@ Your existing `GEMINI_API_KEY` works perfectly. The issue was **only** the model
 - **Before:** Used `gemini-1.5-pro` → 404 errors
 - **First attempt:** Changed to `gemini-pro` → Still 404 (model deprecated!)
 - **Second attempt:** Changed to `gemini-1.5-flash` → Would work
-- **NOW:** Upgraded to `gemini-2.0-flash-exp` → ✅ Fastest & smartest!
+- **Third attempt:** Upgraded to `gemini-2.0-flash-exp` → Better
+- **NOW:** Upgraded to `gemini-2.5-pro` → ✅ FASTEST & BEST!
 
 ---
 

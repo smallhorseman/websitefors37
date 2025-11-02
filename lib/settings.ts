@@ -37,7 +37,7 @@ export const DEFAULT_SETTINGS = {
   // Default to the refined badge logo (light variant)
   logo_url: "/brand/studio37-badge-light.svg",
   ai_enabled: false,
-  ai_model: "gemini-2.0-flash-exp",
+  ai_model: "gemini-2.5-pro",
   ai_key_ref: "",
 };
 
