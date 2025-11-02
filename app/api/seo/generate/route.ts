@@ -51,6 +51,7 @@ export async function POST(req: Request) {
     }
 
     // Check if AI is enabled in settings (best-effort)
+    let preferredModel: string | undefined;
     try {
       const { data } = await supabase
         .from("settings")
@@ -62,6 +63,7 @@ export async function POST(req: Request) {
           { status: 403 }
         );
       }
+      if (data?.ai_model) preferredModel = data.ai_model;
     } catch {
       // ignore settings read errors, allow call to continue
     }
@@ -75,7 +77,7 @@ export async function POST(req: Request) {
     }
 
   const genAI = new GoogleGenerativeAI(apiKey);
-  const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
+  const model = genAI.getGenerativeModel({ model: preferredModel || "gemini-1.5-pro" });
 
     const prompt = buildPrompt({ type, content, targetKeyword, maxLength });
     const result = await model.generateContent(prompt);
