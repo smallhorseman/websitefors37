@@ -78,7 +78,7 @@ export async function POST(req: Request) {
 
     const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({
-      model: preferredModel || "gemini-1.5-pro",
+      model: preferredModel || "gemini-pro",
     });
 
     const prompt = buildPrompt({ type, content, targetKeyword, maxLength });

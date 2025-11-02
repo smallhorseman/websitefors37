@@ -108,7 +108,7 @@ GEMINI_API_KEY=your_key_here  # Set in Netlify
 
 1. Go to **Admin → Settings → SEO**
 2. Enable **"AI-powered title & meta suggestions"**
-3. Model: `gemini-1.5-pro` (default)
+3. Model: `gemini-pro` (default)
 
 ### Database:
 

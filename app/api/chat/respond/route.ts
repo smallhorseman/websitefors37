@@ -38,37 +38,19 @@ export async function POST(req: Request) {
     }
 
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
+    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
 
-    const prompt = `You are a friendly, helpful customer service assistant for Studio37 Photography in Pinehurst, TX.
+    const prompt = `You are a friendly customer service assistant for Studio37 Photography in Pinehurst, TX.
 
-Business Info:
-- Studio37 is a professional photography studio
-- Services: Wedding, Portrait, Event, Commercial, Headshot photography
-- Location: Pinehurst, TX
-- Typical packages: $800-$5000+ depending on service
-- Booking: Contact via form, phone, or email
+Services: Wedding, Portrait, Event, Commercial, Headshot photography
+Packages: $800-$5000+ depending on service
 
-Lead Context:
-${leadData ? JSON.stringify(leadData, null, 2) : "New conversation"}
+${leadData && Object.keys(leadData).length > 0 ? `Known about customer: ${JSON.stringify(leadData)}` : ""}
+${context ? `Recent conversation:\n${context}` : ""}
 
-Conversation Context:
-${context || "Starting conversation"}
+Customer says: "${message}"
 
-User Message: "${message}"
-
-Instructions:
-- Be warm, professional, and conversational
-- Keep responses under 100 words
-- If asked about pricing, provide ranges and suggest a consultation
-- If asked about availability, suggest using the booking form
-- If asked about services, describe briefly and ask what they're planning
-- Extract key info: service type, event date, budget, timeline
-- Always end with a helpful next step or question
-- Don't make up specific prices or dates
-- If you don't know something, be honest and offer to connect them with the team
-
-Response:`;
+Respond naturally in 2-3 sentences. Don't repeat information already discussed. Be helpful and conversational.`;
 
     const result = await model.generateContent(prompt);
     const response = result.response.text().trim();
