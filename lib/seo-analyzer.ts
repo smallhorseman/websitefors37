@@ -627,8 +627,11 @@ export function generateMetaDescription(
     }
   }
 
-  if (!description && sentences.length > 0) {
-    description = sentences[0].trim();
+  if (!description) {
+    const firstSentence = sentences?.[0];
+    if (firstSentence) {
+      description = firstSentence.trim();
+    }
   }
 
   // Truncate to ideal length
