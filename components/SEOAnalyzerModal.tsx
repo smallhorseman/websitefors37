@@ -54,6 +54,10 @@ export default function SEOAnalyzerModal({
   const [generatedMeta, setGeneratedMeta] = useState("");
   const [targetKeyword, setTargetKeyword] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
+  const [aiStatus, setAiStatus] = useState<
+    "enabled" | "disabled" | "error" | null
+  >(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
     if (isOpen && content) {
@@ -76,11 +80,24 @@ export default function SEOAnalyzerModal({
 
   const handleGenerateTitle = async () => {
     setIsGenerating(true);
+    setAiStatus(null);
+    setErrorMessage(null);
     try {
       const generated = await generateTitle(content, targetKeyword);
       setGeneratedTitle(generated);
-    } catch (error) {
+      setAiStatus("enabled");
+    } catch (error: any) {
       console.error("Error generating title:", error);
+      // Check if it's a 403 (AI disabled)
+      if (
+        error?.message?.includes("403") ||
+        error?.message?.includes("disabled")
+      ) {
+        setAiStatus("disabled");
+      } else {
+        setAiStatus("error");
+        setErrorMessage(error?.message || "Failed to generate title");
+      }
     } finally {
       setIsGenerating(false);
     }
@@ -88,11 +105,24 @@ export default function SEOAnalyzerModal({
 
   const handleGenerateMeta = async () => {
     setIsGenerating(true);
+    setAiStatus(null);
+    setErrorMessage(null);
     try {
       const generated = await generateMetaDescription(content, targetKeyword);
       setGeneratedMeta(generated);
-    } catch (error) {
+      setAiStatus("enabled");
+    } catch (error: any) {
       console.error("Error generating meta description:", error);
+      // Check if it's a 403 (AI disabled)
+      if (
+        error?.message?.includes("403") ||
+        error?.message?.includes("disabled")
+      ) {
+        setAiStatus("disabled");
+      } else {
+        setAiStatus("error");
+        setErrorMessage(error?.message || "Failed to generate description");
+      }
     } finally {
       setIsGenerating(false);
     }
@@ -219,6 +249,30 @@ export default function SEOAnalyzerModal({
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-6">
+          {/* AI Status Messages */}
+          {aiStatus === "disabled" && (
+            <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg flex items-start gap-2">
+              <Info className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
+              <div className="text-sm text-amber-800">
+                <strong>AI is off</strong> — using local suggestions. Enable AI
+                in{" "}
+                <a href="/admin/settings" className="underline font-medium">
+                  Admin Settings
+                </a>{" "}
+                for smarter generation.
+              </div>
+            </div>
+          )}
+          {aiStatus === "error" && errorMessage && (
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2">
+              <AlertTriangle className="h-4 w-4 text-red-600 mt-0.5 flex-shrink-0" />
+              <div className="text-sm text-red-800">
+                <strong>Error:</strong> {errorMessage}. Falling back to local
+                generation.
+              </div>
+            </div>
+          )}
+
           {activeTab === "overview" && analysis && (
             <div className="space-y-6">
               {/* Issues */}

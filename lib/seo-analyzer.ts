@@ -633,9 +633,21 @@ export async function generateMetaDescription(
     if (res.ok) {
       const data = await res.json();
       if (data?.text && data.text.length >= 120) return data.text;
+    } else if (res.status === 403) {
+      // AI is disabled - throw so modal can show the hint
+      const errorData = await res
+        .json()
+        .catch(() => ({ error: "AI disabled" }));
+      throw new Error(
+        `403: ${errorData.error || "AI is disabled in settings"}`
+      );
     }
-  } catch {
-    // ignore and fall back
+  } catch (error: any) {
+    // Re-throw 403 errors to propagate status to UI
+    if (error.message?.includes("403")) {
+      throw error;
+    }
+    // Otherwise ignore and fall back
   }
 
   const sentences = plainText.match(/[^.!?]+[.!?]+/g) || [];
@@ -741,9 +753,21 @@ export async function generateTitle(
     if (res.ok) {
       const data = await res.json();
       if (data?.text && data.text.length >= 30) return data.text;
+    } else if (res.status === 403) {
+      // AI is disabled - throw so modal can show the hint
+      const errorData = await res
+        .json()
+        .catch(() => ({ error: "AI disabled" }));
+      throw new Error(
+        `403: ${errorData.error || "AI is disabled in settings"}`
+      );
     }
-  } catch {
-    // ignore and fall back
+  } catch (error: any) {
+    // Re-throw 403 errors to propagate status to UI
+    if (error.message?.includes("403")) {
+      throw error;
+    }
+    // Otherwise ignore and fall back
   }
 
   // Extract H1 as base
