@@ -99,10 +99,15 @@ export async function POST(req: Request) {
     }
 
     return NextResponse.json({ text: finalText });
-  } catch (err) {
+  } catch (err: any) {
     console.error("AI generation failed:", err);
+    console.error("Error details:", {
+      message: err?.message,
+      stack: err?.stack,
+      name: err?.name,
+    });
     return NextResponse.json(
-      { error: "AI generation failed" },
+      { error: err?.message || "AI generation failed" },
       { status: 500 }
     );
   }

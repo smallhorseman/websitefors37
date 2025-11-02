@@ -643,9 +643,17 @@ export async function generateMetaDescription(
         .catch(() => ({ error: "AI disabled" }));
       aiDisabled = true;
       serverError = errorData.error || "AI is disabled in settings";
+    } else if (res.status === 500 || res.status === 503) {
+      // Server error - note it and continue with local fallback
+      const errorData = await res
+        .json()
+        .catch(() => ({ error: "Server error" }));
+      console.warn("AI server error:", errorData.error);
+      serverError = errorData.error || "Server error - using local generation";
     }
   } catch (error: any) {
     // Network errors - just continue with local fallback silently
+    console.warn("Network error calling AI endpoint:", error.message);
   }
 
   const sentences = plainText.match(/[^.!?]+[.!?]+/g) || [];
@@ -720,9 +728,11 @@ export async function generateMetaDescription(
       "Professional photography services in Pinehurst, TX. Specializing in weddings, portraits, events, and commercial photography. Book your session today!";
   }
 
-  // If AI was disabled, throw with the result attached so UI can show both the banner and the local result
-  if (aiDisabled && serverError) {
-    const error: any = new Error(`403: ${serverError}`);
+  // If there was a server error, throw with the result attached so UI can show both the banner and the local result
+  if (serverError) {
+    const error: any = new Error(
+      aiDisabled ? `403: ${serverError}` : serverError
+    );
     error.result = description;
     throw error;
   }
@@ -768,9 +778,17 @@ export async function generateTitle(
         .catch(() => ({ error: "AI disabled" }));
       aiDisabled = true;
       serverError = errorData.error || "AI is disabled in settings";
+    } else if (res.status === 500 || res.status === 503) {
+      // Server error - note it and continue with local fallback
+      const errorData = await res
+        .json()
+        .catch(() => ({ error: "Server error" }));
+      console.warn("AI server error:", errorData.error);
+      serverError = errorData.error || "Server error - using local generation";
     }
   } catch (error: any) {
     // Network errors - just continue with local fallback silently
+    console.warn("Network error calling AI endpoint:", error.message);
   }
 
   // Extract H1 as base
@@ -838,9 +856,11 @@ export async function generateTitle(
     }
   }
 
-  // If AI was disabled, throw with the result attached so UI can show both the banner and the local result
-  if (aiDisabled && serverError) {
-    const error: any = new Error(`403: ${serverError}`);
+  // If there was a server error, throw with the result attached so UI can show both the banner and the local result
+  if (serverError) {
+    const error: any = new Error(
+      aiDisabled ? `403: ${serverError}` : serverError
+    );
     error.result = title;
     throw error;
   }
