@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { createClient } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase";
 import {
   Sparkles,
   Plus,
@@ -82,7 +82,6 @@ export default function ChatbotTrainingPage() {
 
   const loadTrainingData = async () => {
     setLoading(true);
-    const supabase = createClient();
 
     try {
       // Load training examples
@@ -117,7 +116,6 @@ export default function ChatbotTrainingPage() {
     }
 
     setSaving(true);
-    const supabase = createClient();
 
     try {
       const { data, error } = await supabase
@@ -141,8 +139,6 @@ export default function ChatbotTrainingPage() {
   };
 
   const deleteExample = async (id: string) => {
-    const supabase = createClient();
-
     try {
       const { error } = await supabase
         .from("chatbot_training")
@@ -162,7 +158,6 @@ export default function ChatbotTrainingPage() {
 
   const saveSettings = async () => {
     setSaving(true);
-    const supabase = createClient();
 
     try {
       const { error } = await supabase
