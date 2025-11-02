@@ -20,6 +20,9 @@ import {
   Check,
   Trash2,
   Settings2,
+  Sparkles,
+  Loader2,
+  Wand2,
 } from "lucide-react";
 import Image from "next/image";
 import type { GalleryImage } from "@/lib/supabase";
@@ -41,6 +44,96 @@ export default function EnhancedGalleryEditor({
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [generatingAltText, setGeneratingAltText] = useState(false);
+  const [batchGenerating, setBatchGenerating] = useState(false);
+  const [batchProgress, setBatchProgress] = useState({ current: 0, total: 0 });
+
+  // Generate AI alt text for a single image
+  const generateAltText = async (image: GalleryImage) => {
+    setGeneratingAltText(true);
+    try {
+      const res = await fetch("/api/gallery/generate-alt-text", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          imageUrl: image.image_url,
+          title: image.title,
+          description: image.description,
+          category: image.category,
+          tags: image.tags,
+        }),
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to generate alt text");
+      }
+
+      const { altText } = await res.json();
+      updateField(image.id, "alt_text", altText);
+    } catch (error) {
+      console.error("Error generating alt text:", error);
+      alert("Failed to generate alt text. Please try again.");
+    } finally {
+      setGeneratingAltText(false);
+    }
+  };
+
+  // Batch generate alt text for all images missing it
+  const batchGenerateAltText = async () => {
+    const imagesToProcess = images.filter(
+      (img) => !img.alt_text || img.alt_text.trim() === ""
+    );
+
+    if (imagesToProcess.length === 0) {
+      alert("All images already have alt text!");
+      return;
+    }
+
+    if (
+      !confirm(
+        `Generate alt text for ${imagesToProcess.length} images? This may take a minute.`
+      )
+    ) {
+      return;
+    }
+
+    setBatchGenerating(true);
+    setBatchProgress({ current: 0, total: imagesToProcess.length });
+
+    for (let i = 0; i < imagesToProcess.length; i++) {
+      const image = imagesToProcess[i];
+      setBatchProgress({ current: i + 1, total: imagesToProcess.length });
+
+      try {
+        const res = await fetch("/api/gallery/generate-alt-text", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            imageUrl: image.image_url,
+            title: image.title,
+            description: image.description,
+            category: image.category,
+            tags: image.tags,
+          }),
+        });
+
+        if (res.ok) {
+          const { altText } = await res.json();
+          updateField(image.id, "alt_text", altText);
+          // Save immediately
+          await onSave({ ...image, alt_text: altText });
+        }
+
+        // Small delay to avoid rate limiting
+        await new Promise((resolve) => setTimeout(resolve, 500));
+      } catch (error) {
+        console.error(`Error generating alt text for ${image.title}:`, error);
+      }
+    }
+
+    setBatchGenerating(false);
+    alert(`Generated alt text for ${imagesToProcess.length} images!`);
+  };
 
   // Drag and drop handler
   const handleDragEnd = useCallback(
@@ -118,7 +211,28 @@ export default function EnhancedGalleryEditor({
               List
             </button>
           </div>
-          <span className="text-sm text-gray-600">{images.length} images</span>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={batchGenerateAltText}
+              disabled={batchGenerating}
+              className="px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 text-sm font-medium shadow-lg"
+            >
+              {batchGenerating ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  {batchProgress.current}/{batchProgress.total}
+                </>
+              ) : (
+                <>
+                  <Wand2 className="h-4 w-4" />
+                  AI Alt Text
+                </>
+              )}
+            </button>
+            <span className="text-sm text-gray-600">
+              {images.length} images
+            </span>
+          </div>
         </div>
 
         <DragDropContext onDragEnd={handleDragEnd}>
@@ -362,15 +476,32 @@ export default function EnhancedGalleryEditor({
               <label className="block text-sm font-medium mb-1">
                 Alt Text (SEO)
               </label>
-              <input
-                type="text"
-                value={selectedImage.alt_text || ""}
-                onChange={(e) =>
-                  updateField(selectedImage.id, "alt_text", e.target.value)
-                }
-                className="w-full px-3 py-2 border rounded-lg"
-                placeholder="Descriptive text for screen readers"
-              />
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={selectedImage.alt_text || ""}
+                  onChange={(e) =>
+                    updateField(selectedImage.id, "alt_text", e.target.value)
+                  }
+                  className="flex-1 px-3 py-2 border rounded-lg"
+                  placeholder="Descriptive text for screen readers"
+                />
+                <button
+                  onClick={() => generateAltText(selectedImage)}
+                  disabled={generatingAltText}
+                  className="px-3 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center gap-1"
+                  title="Generate with AI"
+                >
+                  {generatingAltText ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Sparkles className="h-4 w-4" />
+                  )}
+                </button>
+              </div>
+              <p className="text-xs text-gray-500 mt-1">
+                {selectedImage.alt_text?.length || 0}/125 characters
+              </p>
             </div>
 
             {/* Categorization */}
