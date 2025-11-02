@@ -72,15 +72,15 @@ export default function AdminGalleryPage() {
       const { error } = await supabase.from("gallery_images").upsert({
         id: image.id,
         title: image.title,
+        description: image.description,
         alt_text: image.alt_text,
-        caption: image.caption,
         category: image.category,
         tags: image.tags,
         featured: image.featured,
         order_index: image.order_index,
+        display_order: image.display_order,
         image_url: image.image_url,
-        optimized_url: image.optimized_url,
-        metadata: image.metadata,
+        thumbnail_url: image.thumbnail_url,
       });
 
       if (error) throw error;
