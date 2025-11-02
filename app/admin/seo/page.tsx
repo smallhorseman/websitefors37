@@ -12,6 +12,7 @@ import {
   Target,
   ArrowLeft,
   Loader2,
+  Brain,
 } from "lucide-react";
 import Link from "next/link";
 import SEOAnalyzerModal from "@/components/SEOAnalyzerModal";
@@ -543,6 +544,22 @@ export default function SEOPage() {
                   <div>
                     <p className="font-medium text-gray-900">Content Audit</p>
                     <p className="text-sm text-gray-600">Review page content</p>
+                  </div>
+                </div>
+              </a>
+
+              <a
+                href="/admin/chatbot-training"
+                className="p-4 border border-gray-200 rounded-lg hover:border-pink-300 hover:bg-pink-50 transition-colors"
+                title="Train your AI assistant with examples and personality settings"
+              >
+                <div className="flex items-center gap-3">
+                  <Brain className="h-5 w-5 text-pink-600" />
+                  <div>
+                    <p className="font-medium text-gray-900">AI Training</p>
+                    <p className="text-sm text-gray-600">
+                      Teach your chatbot with Q&A
+                    </p>
                   </div>
                 </div>
               </a>
