@@ -1,14 +1,14 @@
-'use client'
+"use client";
 
-import React, { useState, useEffect } from 'react'
-import Link from 'next/link'
-import { usePathname, useRouter } from 'next/navigation'
-import { 
-  LayoutDashboard, 
-  Users, 
-  FileText, 
-  Image, 
-  Settings, 
+import React, { useState, useEffect } from "react";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import {
+  LayoutDashboard,
+  Users,
+  FileText,
+  Image,
+  Settings,
   Calendar,
   MessageSquare,
   ChevronDown,
@@ -17,181 +17,198 @@ import {
   Camera,
   LogOut,
   User,
-  Shield
-} from 'lucide-react'
-import { supabase } from '@/lib/supabase'
+  Shield,
+  Brain,
+} from "lucide-react";
+import { supabase } from "@/lib/supabase";
 
 export default function AdminSidebar() {
-  const pathname = usePathname()
-  const router = useRouter()
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const pathname = usePathname();
+  const router = useRouter();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [expandedMenus, setExpandedMenus] = useState<Record<string, boolean>>({
     content: false,
-    gallery: false
-  })
-  const [user, setUser] = useState<any>(null)
-  const [profile, setProfile] = useState<any>(null)
+    gallery: false,
+  });
+  const [user, setUser] = useState<any>(null);
+  const [profile, setProfile] = useState<any>(null);
 
   useEffect(() => {
-    let isMounted = true
-    
+    let isMounted = true;
+
     // Get current user
     const getUser = async () => {
       try {
-        const { data: { session }, error } = await supabase.auth.getSession()
-        
+        const {
+          data: { session },
+          error,
+        } = await supabase.auth.getSession();
+
         if (error) {
-          console.error('Session error:', error)
-          return
+          console.error("Session error:", error);
+          return;
         }
-        
+
         if (session?.user && isMounted) {
-          setUser(session.user)
-          
+          setUser(session.user);
+
           // Get user profile
           const { data: profileData, error: profileError } = await supabase
-            .from('user_profiles')
-            .select('*')
-            .eq('id', session.user.id)
-            .single()
-          
+            .from("user_profiles")
+            .select("*")
+            .eq("id", session.user.id)
+            .single();
+
           if (profileError) {
-            console.error('Profile error:', profileError)
+            console.error("Profile error:", profileError);
           } else if (isMounted) {
-            setProfile(profileData)
+            setProfile(profileData);
           }
         }
       } catch (error) {
-        console.error('Error getting user:', error)
+        console.error("Error getting user:", error);
       }
-    }
-    
-    getUser()
-    
+    };
+
+    getUser();
+
     return () => {
-      isMounted = false
-    }
-  }, [])
-  
+      isMounted = false;
+    };
+  }, []);
+
   const toggleMenu = (menu: string) => {
-    setExpandedMenus(prev => ({
+    setExpandedMenus((prev) => ({
       ...prev,
-      [menu]: !prev[menu]
-    }))
-  }
+      [menu]: !prev[menu],
+    }));
+  };
 
   const handleLogout = async () => {
     try {
-      setUser(null)
-      setProfile(null)
-      await supabase.auth.signOut()
-      
+      setUser(null);
+      setProfile(null);
+      await supabase.auth.signOut();
+
       // Use window.location for clean logout redirect
       // Add a small delay to ensure signOut completes
       setTimeout(() => {
-        window.location.href = '/admin/login'
-      }, 100)
+        window.location.href = "/admin/login";
+      }, 100);
     } catch (error) {
-      console.error('Error logging out:', error)
+      console.error("Error logging out:", error);
       // Fallback redirect even if signOut fails
-      window.location.href = '/admin/login'
+      window.location.href = "/admin/login";
     }
-  }
-  
+  };
+
   const isActive = (path: string) => {
-    return pathname === path || pathname?.startsWith(`${path}/`)
-  }
+    return pathname === path || pathname?.startsWith(`${path}/`);
+  };
 
   const menuItems = [
-    { 
-      name: 'Dashboard', 
-      path: '/admin/dashboard', 
+    {
+      name: "Dashboard",
+      path: "/admin/dashboard",
       icon: <LayoutDashboard className="w-5 h-5" />,
-      exact: true
+      exact: true,
     },
-    { 
-      name: 'Leads', 
-      path: '/admin/leads', 
-      icon: <Users className="w-5 h-5" /> 
+    {
+      name: "Leads",
+      path: "/admin/leads",
+      icon: <Users className="w-5 h-5" />,
     },
-    { 
-      name: 'Content', 
-      path: '/admin/content', 
+    {
+      name: "Content",
+      path: "/admin/content",
       icon: <FileText className="w-5 h-5" />,
       submenu: [
-        { name: 'Pages', path: '/admin/content' },
-        { name: 'Blog Posts', path: '/admin/blog' }
-      ]
+        { name: "Pages", path: "/admin/content" },
+        { name: "Blog Posts", path: "/admin/blog" },
+      ],
     },
     {
-      name: 'Site Editor',
-      path: '/admin/site-editor',
-      icon: <Settings className="w-5 h-5" />
+      name: "Site Editor",
+      path: "/admin/site-editor",
+      icon: <Settings className="w-5 h-5" />,
     },
     {
-      name: 'Page Builder',
-      path: '/admin/page-builder',
-      icon: <Camera className="w-5 h-5" />
+      name: "Page Builder",
+      path: "/admin/page-builder",
+      icon: <Camera className="w-5 h-5" />,
     },
     {
-      name: 'SEO & AI',
-      path: '/admin/seo',
-      icon: <FileText className="w-5 h-5" />
+      name: "SEO & AI",
+      path: "/admin/seo",
+      icon: <FileText className="w-5 h-5" />,
     },
-    { 
-      name: 'Gallery', 
-      path: '/admin/gallery', 
+    {
+      name: "Gallery",
+      path: "/admin/gallery",
       icon: <Image className="w-5 h-5" />,
       submenu: [
-        { name: 'All Images', path: '/admin/gallery' },
-        { name: 'Categories', path: '/admin/gallery/categories' },
-      ]
+        { name: "All Images", path: "/admin/gallery" },
+        { name: "Categories", path: "/admin/gallery/categories" },
+      ],
     },
-    { 
-      name: 'Messages', 
-      path: '/admin/messages', 
-      icon: <MessageSquare className="w-5 h-5" /> 
+    {
+      name: "Messages",
+      path: "/admin/messages",
+      icon: <MessageSquare className="w-5 h-5" />,
     },
-    { 
-      name: 'Bookings', 
-      path: '/admin/bookings', 
-      icon: <Calendar className="w-5 h-5" /> 
+    {
+      name: "AI Training",
+      path: "/admin/chatbot-training",
+      icon: <Brain className="w-5 h-5" />,
     },
-    { 
-      name: 'Settings', 
-      path: '/admin/settings', 
-      icon: <Settings className="w-5 h-5" /> 
-    }
-  ]
-  
+    {
+      name: "Bookings",
+      path: "/admin/bookings",
+      icon: <Calendar className="w-5 h-5" />,
+    },
+    {
+      name: "Settings",
+      path: "/admin/settings",
+      icon: <Settings className="w-5 h-5" />,
+    },
+  ];
+
   const MenuItem = ({ item }: { item: any }) => {
-    const active = isActive(item.path)
-    const hasSubmenu = item.submenu && item.submenu.length > 0
-    const expanded = expandedMenus[item.name.toLowerCase()]
-    
+    const active = isActive(item.path);
+    const hasSubmenu = item.submenu && item.submenu.length > 0;
+    const expanded = expandedMenus[item.name.toLowerCase()];
+
     return (
       <>
         <Link
-          href={hasSubmenu ? '#' : item.path}
-          onClick={hasSubmenu ? () => toggleMenu(item.name.toLowerCase()) : undefined}
+          href={hasSubmenu ? "#" : item.path}
+          onClick={
+            hasSubmenu ? () => toggleMenu(item.name.toLowerCase()) : undefined
+          }
           className={`
             flex items-center px-4 py-3 text-sm
-            ${active && !hasSubmenu ? 'bg-primary-50 text-primary-700 border-r-4 border-primary-600' : 'text-gray-700 hover:bg-gray-100'}
-            ${hasSubmenu ? 'justify-between' : ''}
+            ${
+              active && !hasSubmenu
+                ? "bg-primary-50 text-primary-700 border-r-4 border-primary-600"
+                : "text-gray-700 hover:bg-gray-100"
+            }
+            ${hasSubmenu ? "justify-between" : ""}
           `}
         >
           <div className="flex items-center">
             <span className="mr-3">{item.icon}</span>
             {item.name}
           </div>
-          
+
           {hasSubmenu && (
-            <ChevronDown 
-              className={`h-4 w-4 transition-transform ${expanded ? 'transform rotate-180' : ''}`}
+            <ChevronDown
+              className={`h-4 w-4 transition-transform ${
+                expanded ? "transform rotate-180" : ""
+              }`}
             />
           )}
         </Link>
-        
+
         {/* Submenu */}
         {hasSubmenu && expanded && (
           <div className="pl-4 bg-gray-50">
@@ -201,7 +218,11 @@ export default function AdminSidebar() {
                 href={subitem.path}
                 className={`
                   flex items-center px-6 py-2 text-sm
-                  ${pathname === subitem.path ? 'text-primary-700 font-medium' : 'text-gray-600 hover:text-primary-600'}
+                  ${
+                    pathname === subitem.path
+                      ? "text-primary-700 font-medium"
+                      : "text-gray-600 hover:text-primary-600"
+                  }
                 `}
               >
                 {subitem.name}
@@ -210,35 +231,49 @@ export default function AdminSidebar() {
           </div>
         )}
       </>
-    )
-  }
-  
+    );
+  };
+
   return (
     <>
       {/* Mobile Menu Toggle */}
       <div className="lg:hidden fixed top-0 left-0 right-0 px-4 py-3 flex justify-between items-center bg-white z-30 border-b">
-        <Link href="/admin" className="font-semibold text-primary-600">Admin Panel</Link>
-        <button 
-          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} 
+        <Link href="/admin" className="font-semibold text-primary-600">
+          Admin Panel
+        </Link>
+        <button
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           className="text-gray-500"
         >
-          {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+          {isMobileMenuOpen ? (
+            <X className="h-6 w-6" />
+          ) : (
+            <Menu className="h-6 w-6" />
+          )}
         </button>
       </div>
-      
+
       {/* Sidebar */}
-      <aside className={`
+      <aside
+        className={`
         lg:block fixed z-20 h-full bg-white border-r w-64 transition-all duration-300 transform
-        ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'} 
-      `}>
+        ${
+          isMobileMenuOpen
+            ? "translate-x-0"
+            : "-translate-x-full lg:translate-x-0"
+        } 
+      `}
+      >
         <div className="flex flex-col h-full">
           <div className="p-5 border-b">
             <Link href="/admin" className="flex items-center">
               <Camera className="h-6 w-6 text-primary-600" />
-              <span className="text-lg font-semibold ml-2">Studio 37 Admin</span>
+              <span className="text-lg font-semibold ml-2">
+                Studio 37 Admin
+              </span>
             </Link>
           </div>
-          
+
           <div className="overflow-y-auto flex-1 py-4">
             <nav className="space-y-1">
               {menuItems.map((item, idx) => (
@@ -248,7 +283,7 @@ export default function AdminSidebar() {
               ))}
             </nav>
           </div>
-          
+
           {/* User Section */}
           <div className="p-4 border-t bg-gray-50">
             {profile && (
@@ -269,9 +304,9 @@ export default function AdminSidebar() {
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="space-y-1">
-                  <Link 
+                  <Link
                     href="/"
                     target="_blank"
                     className="flex items-center gap-2 text-sm text-gray-600 hover:text-primary-600 p-2 rounded-lg hover:bg-white transition-colors"
@@ -279,7 +314,7 @@ export default function AdminSidebar() {
                     <Camera className="h-4 w-4" />
                     <span>Visit Website</span>
                   </Link>
-                  
+
                   <button
                     onClick={handleLogout}
                     className="flex items-center gap-2 w-full text-sm text-red-600 hover:text-red-700 p-2 rounded-lg hover:bg-red-50 transition-colors"
@@ -293,14 +328,14 @@ export default function AdminSidebar() {
           </div>
         </div>
       </aside>
-      
+
       {/* Backdrop for mobile menu */}
       {isMobileMenuOpen && (
-        <div 
+        <div
           className="lg:hidden fixed inset-0 bg-black bg-opacity-30 z-10"
           onClick={() => setIsMobileMenuOpen(false)}
         />
       )}
     </>
-  )
+  );
 }

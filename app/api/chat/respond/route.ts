@@ -29,6 +29,26 @@ export async function POST(req: Request) {
       // ignore settings read errors, allow call to continue
     }
 
+    // Load chatbot settings and training data
+    let chatbotSettings = null;
+    let trainingExamples: any[] = [];
+
+    try {
+      const { data: settings } = await supabase
+        .from("chatbot_settings")
+        .select("*")
+        .single();
+      chatbotSettings = settings;
+
+      const { data: examples } = await supabase
+        .from("chatbot_training")
+        .select("question, answer, category")
+        .limit(50);
+      trainingExamples = examples || [];
+    } catch {
+      // Use defaults if tables don't exist yet
+    }
+
     const apiKey = process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY;
     if (!apiKey) {
       return NextResponse.json(
@@ -40,21 +60,40 @@ export async function POST(req: Request) {
     const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({ model: "gemini-2.5-pro" });
 
-    const prompt = `You are a friendly customer service assistant for Studio37 Photography in Pinehurst, TX.
+    // Build prompt with custom training data
+    const systemInstructions =
+      chatbotSettings?.system_instructions ||
+      "You are a friendly customer service assistant for Studio37 Photography in Pinehurst, TX.";
+
+    const personality = chatbotSettings?.personality || "friendly";
+    const tone = chatbotSettings?.tone || "professional";
+
+    // Format training examples for context
+    const trainingContext =
+      trainingExamples.length > 0
+        ? `\n\nTrained Q&A Examples:\n${trainingExamples
+            .map((ex) => `Q: ${ex.question}\nA: ${ex.answer}`)
+            .join("\n\n")}`
+        : "";
+
+    const prompt = `${systemInstructions}
+
+Personality: ${personality}
+Tone: ${tone}
 
 Services: Wedding, Portrait, Event, Commercial, Headshot photography
 Packages: $800-$5000+ depending on service
-
+${trainingContext}
 ${
   leadData && Object.keys(leadData).length > 0
-    ? `Known about customer: ${JSON.stringify(leadData)}`
+    ? `\nKnown about customer: ${JSON.stringify(leadData)}`
     : ""
 }
-${context ? `Recent conversation:\n${context}` : ""}
+${context ? `\nRecent conversation:\n${context}` : ""}
 
 Customer says: "${message}"
 
-Respond naturally in 2-3 sentences. Don't repeat information already discussed. Be helpful and conversational.`;
+Respond naturally in 2-3 sentences using the ${personality} personality and ${tone} tone. Use the training examples above as reference for similar questions. Don't repeat information already discussed. Be helpful and conversational.`;
 
     const result = await model.generateContent(prompt);
     const response = result.response.text().trim();
