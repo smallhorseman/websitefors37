@@ -623,6 +623,9 @@ export async function generateMetaDescription(
     .replace(/\s+/g, " ")
     .trim();
 
+  let aiDisabled = false;
+  let serverError: string | null = null;
+
   // Try server AI endpoint first (Gemini via server-side key)
   try {
     const res = await fetch("/api/seo/generate", {
@@ -634,20 +637,15 @@ export async function generateMetaDescription(
       const data = await res.json();
       if (data?.text && data.text.length >= 120) return data.text;
     } else if (res.status === 403) {
-      // AI is disabled - throw so modal can show the hint
+      // AI is disabled - note it and continue with local fallback
       const errorData = await res
         .json()
         .catch(() => ({ error: "AI disabled" }));
-      throw new Error(
-        `403: ${errorData.error || "AI is disabled in settings"}`
-      );
+      aiDisabled = true;
+      serverError = errorData.error || "AI is disabled in settings";
     }
   } catch (error: any) {
-    // Re-throw 403 errors to propagate status to UI
-    if (error.message?.includes("403")) {
-      throw error;
-    }
-    // Otherwise ignore and fall back
+    // Network errors - just continue with local fallback silently
   }
 
   const sentences = plainText.match(/[^.!?]+[.!?]+/g) || [];
@@ -722,6 +720,13 @@ export async function generateMetaDescription(
       "Professional photography services in Pinehurst, TX. Specializing in weddings, portraits, events, and commercial photography. Book your session today!";
   }
 
+  // If AI was disabled, throw with the result attached so UI can show both the banner and the local result
+  if (aiDisabled && serverError) {
+    const error: any = new Error(`403: ${serverError}`);
+    error.result = description;
+    throw error;
+  }
+
   return description;
 }
 
@@ -737,6 +742,9 @@ export async function generateTitle(
     .replace(/<[^>]*>/g, " ")
     .replace(/\s+/g, " ")
     .trim();
+
+  let aiDisabled = false;
+  let serverError: string | null = null;
 
   // Try server AI endpoint first (Gemini via server-side key)
   try {
@@ -754,20 +762,15 @@ export async function generateTitle(
       const data = await res.json();
       if (data?.text && data.text.length >= 30) return data.text;
     } else if (res.status === 403) {
-      // AI is disabled - throw so modal can show the hint
+      // AI is disabled - note it and continue with local fallback
       const errorData = await res
         .json()
         .catch(() => ({ error: "AI disabled" }));
-      throw new Error(
-        `403: ${errorData.error || "AI is disabled in settings"}`
-      );
+      aiDisabled = true;
+      serverError = errorData.error || "AI is disabled in settings";
     }
   } catch (error: any) {
-    // Re-throw 403 errors to propagate status to UI
-    if (error.message?.includes("403")) {
-      throw error;
-    }
-    // Otherwise ignore and fall back
+    // Network errors - just continue with local fallback silently
   }
 
   // Extract H1 as base
@@ -833,6 +836,13 @@ export async function generateTitle(
     } else {
       title = truncated + "...";
     }
+  }
+
+  // If AI was disabled, throw with the result attached so UI can show both the banner and the local result
+  if (aiDisabled && serverError) {
+    const error: any = new Error(`403: ${serverError}`);
+    error.result = title;
+    throw error;
   }
 
   return title;

@@ -88,15 +88,19 @@ export default function SEOAnalyzerModal({
       setAiStatus("enabled");
     } catch (error: any) {
       console.error("Error generating title:", error);
-      // Check if it's a 403 (AI disabled)
+      // Check if it's a 403 (AI disabled) - the generator will have already fallen back to local
       if (
         error?.message?.includes("403") ||
         error?.message?.includes("disabled")
       ) {
         setAiStatus("disabled");
+        // Still use the result from local fallback
+        setGeneratedTitle(error?.result || "");
       } else {
         setAiStatus("error");
         setErrorMessage(error?.message || "Failed to generate title");
+        // Use local fallback result if available
+        setGeneratedTitle(error?.result || "");
       }
     } finally {
       setIsGenerating(false);
@@ -113,15 +117,19 @@ export default function SEOAnalyzerModal({
       setAiStatus("enabled");
     } catch (error: any) {
       console.error("Error generating meta description:", error);
-      // Check if it's a 403 (AI disabled)
+      // Check if it's a 403 (AI disabled) - the generator will have already fallen back to local
       if (
         error?.message?.includes("403") ||
         error?.message?.includes("disabled")
       ) {
         setAiStatus("disabled");
+        // Still use the result from local fallback
+        setGeneratedMeta(error?.result || "");
       } else {
         setAiStatus("error");
         setErrorMessage(error?.message || "Failed to generate description");
+        // Use local fallback result if available
+        setGeneratedMeta(error?.result || "");
       }
     } finally {
       setIsGenerating(false);
