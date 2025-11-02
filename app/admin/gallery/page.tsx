@@ -1,39 +1,32 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
-import {
-  Loader2,
-  Plus,
-  Trash2,
-  Edit,
-  Settings,
-  X,
-  Upload,
-  Image as ImageIcon,
-  ArrowLeft,
-  Sparkles,
-  Layout,
-  Keyboard,
-  Maximize2,
-} from "lucide-react";
-import { getPaginatedData } from "@/lib/supabase";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import EnhancedGalleryEditor from "@/components/EnhancedGalleryEditor";
-import GalleryHighlightsEditor from "@/components/GalleryHighlightsEditor";
-import GalleryAdvancedFilters from "@/components/GalleryAdvancedFilters";
-import GalleryBulkOperations from "@/components/GalleryBulkOperations";
-import EnhancedImageUploader from "@/components/EnhancedImageUploader";
-import type { GalleryImage } from "@/lib/supabase";
+import { supabase, type GalleryImage } from "@/lib/supabase";
+import {
+  ArrowLeft,
+  Upload,
+  Loader2,
+  ImageIcon,
+  Layout,
+  Sparkles,
+  Keyboard,
+  X,
+} from "lucide-react";
+import { EnhancedGalleryEditor } from "@/components/EnhancedGalleryEditor";
+import { GalleryHighlightsEditor } from "@/components/GalleryHighlightsEditor";
+import { GalleryAdvancedFilters } from "@/components/GalleryAdvancedFilters";
+import { GalleryBulkOperations } from "@/components/GalleryBulkOperations";
+import { EnhancedImageUploader } from "@/components/EnhancedImageUploader";
 
-export default function GalleryAdmin() {
+export default function AdminGalleryPage() {
+  // Main state
   const [allImages, setAllImages] = useState<GalleryImage[]>([]);
   const [filteredImages, setFilteredImages] = useState<GalleryImage[]>([]);
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [saving, setSaving] = useState(false);
 
-  // View modes
+  // View mode state
   const [viewMode, setViewMode] = useState<"enhanced" | "highlights">(
     "enhanced"
   );
@@ -41,254 +34,209 @@ export default function GalleryAdmin() {
     "grid"
   );
 
-  // Modals
+  // Modal state
   const [showUploader, setShowUploader] = useState(false);
   const [showKeyboardHelp, setShowKeyboardHelp] = useState(false);
-  const [showImagePreview, setShowImagePreview] = useState<GalleryImage | null>(
-    null
-  );
+  const [showImagePreview, setShowImagePreview] = useState(false);
+  const [previewImage, setPreviewImage] = useState<GalleryImage | null>(null);
 
-  // Legacy pagination (still used for initial load)
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalCount, setTotalCount] = useState(0);
-  const [pageCount, setPageCount] = useState(0);
-  const itemsPerPage = 100; // Increased for better performance
+  // Selection state for bulk operations
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
-  const [formData, setFormData] = useState({
-    title: "",
-    description: "",
-    image_url: "",
-    category: "general",
-    featured: false,
-    display_order: 0,
-  });
-
-  // Fetch all images from Supabase (no pagination for better filtering)
+  // Fetch all images from the database
   const fetchImages = useCallback(async () => {
-    setLoading(true);
-    setError(null);
     try {
-      const { supabase } = await import("@/lib/supabase");
+      setLoading(true);
+      setError(null);
 
-      const { data, error, count } = await supabase
+      const { data, error } = await supabase
         .from("gallery_images")
-        .select("*", { count: "exact" })
-        .order("display_order", { ascending: true });
+        .select("*")
+        .order("created_at", { ascending: false });
 
       if (error) throw error;
 
       setAllImages(data || []);
-      setFilteredImages(data || []); // Initially show all images
-      setTotalCount(count || 0);
-    } catch (error: any) {
-      console.error("Error fetching images:", error);
-      setError(error.message || "Failed to load gallery images");
+      setFilteredImages(data || []);
+    } catch (err) {
+      console.error("Error fetching images:", err);
+      setError(err instanceof Error ? err.message : "Failed to fetch images");
     } finally {
       setLoading(false);
     }
   }, []);
 
-  useEffect(() => {
-    fetchImages();
-  }, [fetchImages]);
-
-  // Enhanced save function for single images
-  const saveImage = async (imageToSave: GalleryImage) => {
-    setSaving(true);
+  // Save/update an image
+  const saveImage = async (image: GalleryImage) => {
     try {
-      const { supabase } = await import("@/lib/supabase");
-
-      const { error } = await supabase
-        .from("gallery_images")
-        .update({
-          title: imageToSave.title,
-          description: imageToSave.description,
-          category: imageToSave.category,
-          featured: imageToSave.featured,
-          display_order: imageToSave.display_order,
-          alt_text: imageToSave.alt_text,
-          tags: imageToSave.tags,
-        })
-        .eq("id", imageToSave.id);
+      const { error } = await supabase.from("gallery_images").upsert({
+        id: image.id,
+        title: image.title,
+        alt_text: image.alt_text,
+        caption: image.caption,
+        category: image.category,
+        tags: image.tags,
+        featured: image.featured,
+        order_index: image.order_index,
+        image_url: image.image_url,
+        optimized_url: image.optimized_url,
+        metadata: image.metadata,
+      });
 
       if (error) throw error;
 
-      // Update state
+      // Update local state
       setAllImages((prev) =>
-        prev.map((img) => (img.id === imageToSave.id ? imageToSave : img))
+        prev.map((img) => (img.id === image.id ? { ...image } : img))
       );
       setFilteredImages((prev) =>
-        prev.map((img) => (img.id === imageToSave.id ? imageToSave : img))
+        prev.map((img) => (img.id === image.id ? { ...image } : img))
       );
-    } catch (error: any) {
-      console.error("Error saving image:", error);
-      alert("Failed to save image: " + error.message);
-    } finally {
-      setSaving(false);
+    } catch (err) {
+      console.error("Error saving image:", err);
+      throw err;
     }
   };
 
-  // Enhanced delete function
-  const deleteImage = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this image?")) return;
-
+  // Delete an image
+  const deleteImage = async (imageId: string) => {
     try {
-      const { supabase } = await import("@/lib/supabase");
-
       const { error } = await supabase
         .from("gallery_images")
         .delete()
-        .eq("id", id);
+        .eq("id", imageId);
 
       if (error) throw error;
 
-      // Update state
-      setAllImages((prev) => prev.filter((img) => img.id !== id));
-      setFilteredImages((prev) => prev.filter((img) => img.id !== id));
-      setSelectedIds((prev) => {
-        const newSet = new Set(prev);
-        newSet.delete(id);
-        return newSet;
-      });
-    } catch (error: any) {
-      console.error("Error deleting image:", error);
-      alert("Failed to delete image: " + error.message);
+      // Update local state
+      setAllImages((prev) => prev.filter((img) => img.id !== imageId));
+      setFilteredImages((prev) => prev.filter((img) => img.id !== imageId));
+    } catch (err) {
+      console.error("Error deleting image:", err);
+      throw err;
     }
   };
 
-  // Open modal to add a new image
-  const addNewImage = () => {
-    setSelectedImage(null);
-    setFormData({
-      title: "",
-      description: "",
-      image_url: "",
-      category: "general",
-      featured: false,
-      display_order: 0,
-    });
-    setIsNew(true);
-    setShowModal(true);
-  };
+  // Handle bulk operations
+  const handleBulkUpdate = async (updates: Partial<GalleryImage>) => {
+    const idsArray = Array.from(selectedIds);
+    if (idsArray.length === 0) return;
 
-  // Open modal to edit an existing image
-  const editImage = (image: GalleryImage) => {
-    setSelectedImage(image);
-    setFormData({
-      title: image.title,
-      description: image.description || "",
-      image_url: image.image_url,
-      category: image.category,
-      featured: image.featured,
-      display_order: image.display_order || 0,
-    });
-    setIsNew(false);
-    setShowModal(true);
-  };
-
-  // Enhanced bulk operations
-  const handleBulkUpdate = async (updates: Partial<GalleryImage>[]) => {
     try {
-      const { supabase } = await import("@/lib/supabase");
+      // Update each selected image
+      const promises = idsArray.map(async (id) => {
+        const image = allImages.find((img) => img.id === id);
+        if (!image) return;
 
-      const promises = updates.map(async (update) => {
-        const { id, ...updateData } = update;
-        return supabase.from("gallery_images").update(updateData).eq("id", id);
+        const updatedImage = { ...image, ...updates };
+        await saveImage(updatedImage);
       });
 
       await Promise.all(promises);
-
-      // Update local state
-      setAllImages((prev) =>
-        prev.map((img) => {
-          const update = updates.find((u) => u.id === img.id);
-          return update ? { ...img, ...update } : img;
-        })
-      );
-
-      setFilteredImages((prev) =>
-        prev.map((img) => {
-          const update = updates.find((u) => u.id === img.id);
-          return update ? { ...img, ...update } : img;
-        })
-      );
-    } catch (error: any) {
-      console.error("Error updating images:", error);
-      throw error;
+      setSelectedIds(new Set()); // Clear selection
+    } catch (err) {
+      console.error("Error in bulk update:", err);
+      throw err;
     }
   };
 
-  const handleBulkDelete = async (ids: string[]) => {
+  // Handle bulk delete
+  const handleBulkDelete = async () => {
+    const idsArray = Array.from(selectedIds);
+    if (idsArray.length === 0) return;
+
     try {
-      const { supabase } = await import("@/lib/supabase");
-
-      const promises = ids.map((id) =>
-        supabase.from("gallery_images").delete().eq("id", id)
-      );
-
+      const promises = idsArray.map((id) => deleteImage(id));
       await Promise.all(promises);
-
-      // Update local state
-      setAllImages((prev) => prev.filter((img) => !ids.includes(img.id)));
-      setFilteredImages((prev) => prev.filter((img) => !ids.includes(img.id)));
       setSelectedIds(new Set());
-    } catch (error: any) {
-      console.error("Error deleting images:", error);
-      throw error;
+    } catch (err) {
+      console.error("Error in bulk delete:", err);
+      throw err;
+    }
+  };
+
+  // Handle bulk export
+  const handleBulkExport = async (imageIds?: string[]) => {
+    const idsToExport = imageIds || Array.from(selectedIds);
+    if (idsToExport.length === 0) return;
+
+    try {
+      const imagesToExport = allImages.filter((img) =>
+        idsToExport.includes(img.id)
+      );
+      const exportData = {
+        images: imagesToExport,
+        exported_at: new Date().toISOString(),
+        total_count: imagesToExport.length,
+      };
+
+      const blob = new Blob([JSON.stringify(exportData, null, 2)], {
+        type: "application/json",
+      });
+
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `gallery-export-${
+        new Date().toISOString().split("T")[0]
+      }.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Error exporting images:", err);
     }
   };
 
   // Handle upload completion
-  const handleUploadComplete = (newImages: GalleryImage[]) => {
-    setAllImages((prev) => [...newImages, ...prev]);
-    setFilteredImages((prev) => [...newImages, ...prev]);
+  const handleUploadComplete = () => {
+    fetchImages(); // Refresh the gallery
     setShowUploader(false);
-    fetchImages(); // Refresh to ensure consistency
   };
 
-  // Handle export functionality
-  const handleBulkExport = (imagesToExport: GalleryImage[]) => {
-    const dataStr = JSON.stringify(imagesToExport, null, 2);
-    const dataBlob = new Blob([dataStr], { type: "application/json" });
-    const url = URL.createObjectURL(dataBlob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `gallery-export-${
-      new Date().toISOString().split("T")[0]
-    }.json`;
-    link.click();
-    URL.revokeObjectURL(url);
-  };
+  // Fetch images on mount
+  useEffect(() => {
+    fetchImages();
+  }, [fetchImages]);
 
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Only handle if not in input field
+      // Only handle shortcuts when not in an input field
       if (
-        e.target &&
-        (e.target as HTMLElement).tagName.match(/INPUT|TEXTAREA|SELECT/)
+        e.target instanceof HTMLInputElement ||
+        e.target instanceof HTMLTextAreaElement
       ) {
         return;
       }
 
       switch (e.key) {
         case "a":
+        case "A":
           if (e.ctrlKey || e.metaKey) {
             e.preventDefault();
-            setSelectedIds(new Set(filteredImages.map((img) => img.id)));
+            const allIds = new Set(filteredImages.map((img) => img.id));
+            setSelectedIds(allIds);
           }
           break;
         case "Delete":
-        case "Backspace":
           if (selectedIds.size > 0) {
             e.preventDefault();
-            handleBulkDelete(Array.from(selectedIds));
+            handleBulkDelete();
           }
           break;
         case "Escape":
-          setSelectedIds(new Set());
-          setShowImagePreview(null);
-          setShowKeyboardHelp(false);
+          if (selectedIds.size > 0) {
+            setSelectedIds(new Set());
+          } else if (showUploader) {
+            setShowUploader(false);
+          } else if (showKeyboardHelp) {
+            setShowKeyboardHelp(false);
+          } else if (showImagePreview) {
+            setShowImagePreview(false);
+            setPreviewImage(null);
+          }
           break;
         case "?":
           if (e.shiftKey) {
@@ -297,6 +245,7 @@ export default function GalleryAdmin() {
           }
           break;
         case "u":
+        case "U":
           if (e.ctrlKey || e.metaKey) {
             e.preventDefault();
             setShowUploader(true);
@@ -307,7 +256,13 @@ export default function GalleryAdmin() {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [filteredImages, selectedIds]);
+  }, [
+    filteredImages,
+    selectedIds,
+    showUploader,
+    showKeyboardHelp,
+    showImagePreview,
+  ]);
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -393,8 +348,12 @@ export default function GalleryAdmin() {
         ) : allImages.length === 0 ? (
           <div className="text-center py-12 mx-6 bg-gray-50 rounded-lg">
             <ImageIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No images yet</h3>
-            <p className="text-gray-500 mb-6">Start building your gallery by uploading some images.</p>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              No images yet
+            </h3>
+            <p className="text-gray-500 mb-6">
+              Start building your gallery by uploading some images.
+            </p>
             <button
               onClick={() => setShowUploader(true)}
               className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2 mx-auto"
@@ -432,10 +391,12 @@ export default function GalleryAdmin() {
                   onUpdate={(updatedImages) => {
                     setFilteredImages(updatedImages);
                     // Also update allImages to keep them in sync
-                    setAllImages(prev => {
+                    setAllImages((prev) => {
                       const updated = [...prev];
-                      updatedImages.forEach(updatedImg => {
-                        const index = updated.findIndex(img => img.id === updatedImg.id);
+                      updatedImages.forEach((updatedImg) => {
+                        const index = updated.findIndex(
+                          (img) => img.id === updatedImg.id
+                        );
                         if (index !== -1) updated[index] = updatedImg;
                       });
                       return updated;
@@ -486,11 +447,15 @@ export default function GalleryAdmin() {
             <div className="space-y-3">
               <div className="flex justify-between">
                 <span className="text-sm">Select all images</span>
-                <kbd className="px-2 py-1 bg-gray-100 rounded text-xs">Ctrl + A</kbd>
+                <kbd className="px-2 py-1 bg-gray-100 rounded text-xs">
+                  Ctrl + A
+                </kbd>
               </div>
               <div className="flex justify-between">
                 <span className="text-sm">Delete selected</span>
-                <kbd className="px-2 py-1 bg-gray-100 rounded text-xs">Delete</kbd>
+                <kbd className="px-2 py-1 bg-gray-100 rounded text-xs">
+                  Delete
+                </kbd>
               </div>
               <div className="flex justify-between">
                 <span className="text-sm">Clear selection</span>
@@ -498,11 +463,15 @@ export default function GalleryAdmin() {
               </div>
               <div className="flex justify-between">
                 <span className="text-sm">Upload images</span>
-                <kbd className="px-2 py-1 bg-gray-100 rounded text-xs">Ctrl + U</kbd>
+                <kbd className="px-2 py-1 bg-gray-100 rounded text-xs">
+                  Ctrl + U
+                </kbd>
               </div>
               <div className="flex justify-between">
                 <span className="text-sm">Show this help</span>
-                <kbd className="px-2 py-1 bg-gray-100 rounded text-xs">Shift + ?</kbd>
+                <kbd className="px-2 py-1 bg-gray-100 rounded text-xs">
+                  Shift + ?
+                </kbd>
               </div>
             </div>
           </div>
@@ -514,34 +483,7 @@ export default function GalleryAdmin() {
           <div className="relative max-w-4xl max-h-[90vh] w-full h-full flex items-center justify-center">
             <img
               src={previewImage.optimized_url || previewImage.url}
-              alt={previewImage.alt_text || 'Image preview'}
-              className="max-w-full max-h-full object-contain"
-            />
-            <button
-              onClick={() => {
-                setShowImagePreview(false);
-                setPreviewImage(null);
-              }}
-              className="absolute top-4 right-4 text-white hover:text-gray-300"
-            >
-              <X className="h-8 w-8" />
-            </button>
-          </div>
-              <div className="flex justify-between">
-                <span className="text-sm">Show this help</span>
-                <kbd className="px-2 py-1 bg-gray-100 rounded text-xs">Shift + ?</kbd>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {showImagePreview && previewImage && (
-        <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50">
-          <div className="relative max-w-4xl max-h-[90vh] w-full h-full flex items-center justify-center">
-            <img
-              src={previewImage.optimized_url || previewImage.url}
-              alt={previewImage.alt_text || 'Image preview'}
+              alt={previewImage.alt_text || "Image preview"}
               className="max-w-full max-h-full object-contain"
             />
             <button
@@ -556,86 +498,6 @@ export default function GalleryAdmin() {
           </div>
         </div>
       )}
-    </div>
-  );
-}
-                          <button
-                            onClick={() => editImage(image)}
-                            className="text-primary-600 hover:text-primary-800"
-                            title="Edit image"
-                            aria-label="Edit image"
-                          >
-                            <Edit className="h-4 w-4" />
-                          </button>
-                          <button
-      {/* Modals */}
-      {showUploader && (
-        <EnhancedImageUploader
-          onUploadComplete={handleUploadComplete}
-          onClose={() => setShowUploader(false)}
-          existingImages={allImages}
-        />
-      )}
-
-      {showKeyboardHelp && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold">Keyboard Shortcuts</h3>
-              <button
-                onClick={() => setShowKeyboardHelp(false)}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-            <div className="space-y-3">
-              <div className="flex justify-between">
-                <span className="text-sm">Select all images</span>
-                <kbd className="px-2 py-1 bg-gray-100 rounded text-xs">Ctrl + A</kbd>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm">Delete selected</span>
-                <kbd className="px-2 py-1 bg-gray-100 rounded text-xs">Delete</kbd>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm">Clear selection</span>
-                <kbd className="px-2 py-1 bg-gray-100 rounded text-xs">Esc</kbd>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm">Upload images</span>
-                <kbd className="px-2 py-1 bg-gray-100 rounded text-xs">Ctrl + U</kbd>
-              </div>
-              <div className="flex justify-between">
-                <span>Show This Help</span>
-                <kbd className="bg-gray-100 px-2 py-1 rounded">Shift + ?</kbd>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Image Preview Modal */}
-      {showImagePreview && (
-        <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50">
-          <button
-            onClick={() => setShowImagePreview(null)}
-            className="absolute top-4 right-4 text-white hover:text-gray-300 z-10"
-          >
-            <X className="h-8 w-8" />
-          </button>
-          <img
-            src={showImagePreview.image_url}
-            alt={showImagePreview.title}
-            className="max-w-[90vw] max-h-[90vh] object-contain"
-          />
-          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black bg-opacity-50 text-white px-4 py-2 rounded">
-            {showImagePreview.title}
-          </div>
-        </div>
-      )}
-
-      </div>
     </div>
   );
 }
