@@ -64,8 +64,9 @@ export default function Hero() {
     };
   }, [galleryImages]);
 
-  const heroTitle: string = cfg?.hero_title || "Studio ";
+  const heroTitle: string = siteSettings?.hero_title || cfg?.hero_title || "Studio ";
   const heroSubtitle: string =
+    siteSettings?.hero_subtitle ||
     cfg?.hero_subtitle ||
     "Capturing your precious moments with artistic excellence and professional craftsmanship";
   // Use slideshow image if available, else fallback to config/default

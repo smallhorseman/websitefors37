@@ -71,6 +71,11 @@ export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState("general");
   const [error, setError] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  // Local-only helpers (not persisted)
+  const [heroPreviewBg, setHeroPreviewBg] = useState<string>(
+    "https://images.unsplash.com/photo-1519682337058-a94d519337bc?q=80&w=1600&auto=format&fit=crop"
+  );
+  const [showHeroPreview, setShowHeroPreview] = useState(true);
 
   // Fetch settings from database
   useEffect(() => {
@@ -718,7 +723,70 @@ export default function SettingsPage() {
                         </span>
                       </label>
                     </div>
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Preview Background URL (not saved)
+                      </label>
+                      <input
+                        type="url"
+                        value={heroPreviewBg}
+                        onChange={(e) => setHeroPreviewBg(e.target.value)}
+                        placeholder="https://.../image.jpg"
+                        className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                      />
+                      <div className="flex items-center justify-between mt-2">
+                        <p className="text-xs text-gray-500">
+                          This preview reflects your changes instantly without saving.
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => setShowHeroPreview((v) => !v)}
+                          className="text-sm px-3 py-1 border rounded-lg hover:bg-gray-50"
+                        >
+                          {showHeroPreview ? "Hide" : "Show"} Preview
+                        </button>
+                      </div>
+                    </div>
                   </div>
+
+                  {showHeroPreview && (
+                    <div className="mt-4 border rounded-xl overflow-hidden bg-gray-900/5">
+                      <div
+                        className="relative w-full"
+                        style={{ height: "320px" }}
+                      >
+                        {/* Background */}
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={heroPreviewBg}
+                          alt="Hero preview"
+                          className="absolute inset-0 w-full h-full object-cover"
+                        />
+                        {/* Overlay */}
+                        <div
+                          className="absolute inset-0"
+                          style={{
+                            background: `linear-gradient(to top, rgba(0,0,0, ${Math.min(Math.max(Number(settings.hero_overlay_opacity ?? 60), 0), 100) / 100}), rgba(0,0,0, ${Math.max((Number(settings.hero_overlay_opacity ?? 60) - 20), 0) / 100}), rgba(0,0,0,0))`,
+                          }}
+                        />
+                        {/* Content */}
+                        <div className="relative z-10 h-full flex flex-col items-center justify-center text-center px-6">
+                          <h3
+                            className="font-serif text-3xl md:text-4xl font-bold mb-2 drop-shadow"
+                            style={{ color: settings.hero_title_color || "#ffffff" }}
+                          >
+                            {settings.hero_title || "Your Stunning Headline"}
+                          </h3>
+                          <p
+                            className="text-base md:text-lg max-w-2xl"
+                            style={{ color: settings.hero_subtitle_color || "#fde68a" }}
+                          >
+                            {settings.hero_subtitle || "A compelling subheading that looks great on any background."}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <div className="pt-6">
