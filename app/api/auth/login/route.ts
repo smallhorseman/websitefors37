@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { supabaseAdmin } from '@/lib/supabaseAdmin'
 import { cookies } from 'next/headers'
 import bcrypt from 'bcryptjs'
 import { getClientIp, rateLimit } from '@/lib/rateLimit'
@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Query admin user from database
-    const { data: user, error } = await supabase
+    const { data: user, error } = await supabaseAdmin
       .from('admin_users')
       .select('*')
       .eq('email', email)
@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
       // Legacy plaintext -> migrate on successful match
       if (password === hash) {
         const newHash = await bcrypt.hash(password, 12)
-        await supabase
+        await supabaseAdmin
           .from('admin_users')
           .update({ password_hash: newHash })
           .eq('id', user.id)

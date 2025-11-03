@@ -1,5 +1,5 @@
 import { randomBytes, createHash } from 'crypto'
-import { supabase } from '@/lib/supabase'
+import { supabaseAdmin } from '@/lib/supabaseAdmin'
 
 export type SessionRecord = {
   id: string
@@ -33,7 +33,7 @@ export async function createSession(params: {
   const { token, hash } = generateSessionToken()
   const expiresAt = new Date(Date.now() + expiresInDays * 24 * 60 * 60 * 1000)
 
-  const { error } = await supabase
+  const { error } = await supabaseAdmin
     .from('admin_sessions')
     .insert({
       user_id: userId,
@@ -54,7 +54,7 @@ export async function createSession(params: {
 export async function revokeSessionByToken(token: string): Promise<boolean> {
   try {
     const tokenHash = hashToken(token)
-    const { error } = await supabase
+    const { error } = await supabaseAdmin
       .from('admin_sessions')
       .update({ revoked: true })
       .eq('token_hash', tokenHash)
