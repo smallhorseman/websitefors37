@@ -75,8 +75,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Create a strong session token stored server-side (hashed)
-    const ip = getClientIp(request.headers)
+  // Create a strong session token stored server-side (hashed)
     const userAgent = request.headers.get('user-agent') || undefined
     const session = await createSession({ userId: user.id, ip, userAgent })
     if (!session) {
