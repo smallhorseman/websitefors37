@@ -117,18 +117,25 @@ export default function AdminGalleryPage() {
     }
   };
 
-  // Handle bulk operations
-  const handleBulkUpdate = async (updates: Partial<GalleryImage>) => {
+  // Handle bulk operations - accept array of partial updates to align with props
+  const handleBulkUpdate = async (
+    updatesArray: Partial<GalleryImage>[]
+  ) => {
     const idsArray = Array.from(selectedIds);
     if (idsArray.length === 0) return;
 
     try {
+      // Merge all provided partial updates into one
+      const mergedUpdates = updatesArray.reduce<Partial<GalleryImage>>(
+        (acc, cur) => ({ ...acc, ...cur }),
+        {}
+      );
       // Update each selected image
       const promises = idsArray.map(async (id) => {
         const image = allImages.find((img) => img.id === id);
         if (!image) return;
 
-        const updatedImage = { ...image, ...updates };
+        const updatedImage = { ...image, ...mergedUpdates };
         await saveImage(updatedImage);
       });
 
