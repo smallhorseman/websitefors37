@@ -1,30 +1,39 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
-export function middleware(request: NextRequest) {
-  // Create response
-  const response = NextResponse.next()
+// Lightweight security middleware
+export function middleware(req: NextRequest) {
+  const { pathname } = req.nextUrl
 
-  // Only add essential headers
-  response.headers.set('X-DNS-Prefetch-Control', 'on')
-  response.headers.set('Access-Control-Allow-Origin', '*')
-  response.headers.set('Access-Control-Allow-Methods', 'GET, OPTIONS')
-  response.headers.set('X-Content-Type-Options', 'nosniff')
-  response.headers.set('Referrer-Policy', 'origin-when-cross-origin')
-  response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()')
+  // Protect admin routes (except login and setup)
+  if (
+    pathname.startsWith('/admin') &&
+    pathname !== '/admin/login' &&
+    pathname !== '/setup-admin'
+  ) {
+    const hasSession = req.cookies.has('admin_session')
+    if (!hasSession) {
+      const loginUrl = new URL('/login', req.url)
+      // Preserve original destination to return after login
+      loginUrl.searchParams.set('next', pathname)
+      return NextResponse.redirect(loginUrl)
+    }
+  }
 
-  return response
+  // Default pass-through with essential security headers only (CORS handled per-route)
+  const res = NextResponse.next()
+  res.headers.set('X-DNS-Prefetch-Control', 'on')
+  res.headers.set('X-Content-Type-Options', 'nosniff')
+  res.headers.set('Referrer-Policy', 'origin-when-cross-origin')
+  res.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()')
+  return res
 }
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - api (API routes)
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     */
-    '/((?!api|_next/static|_next/image|favicon.ico).*)',
+    // Apply to all routes for headers
+    '/((?!_next/static|_next/image|favicon.ico).*)',
+    // Ensure admin protection runs
+    '/admin/:path*',
   ],
 }

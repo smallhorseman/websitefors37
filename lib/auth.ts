@@ -1,5 +1,6 @@
 import { cookies } from 'next/headers'
 import { supabase } from './supabase'
+import { hashToken } from './authSession'
 
 export interface AdminUser {
   id: string
@@ -21,16 +22,27 @@ export async function getAdminUser(): Promise<AdminUser | null> {
       return null
     }
 
-    // Verify session token against admin_users table
-    const { data: user, error } = await supabase
-      .from('admin_users')
-      .select('id, email, role, created_at')
-      .eq('id', sessionToken)
+    // Verify session token via admin_sessions -> admin_users
+    const tokenHash = hashToken(sessionToken)
+
+    const { data, error } = await supabase
+      .from('admin_sessions')
+      .select('expires_at, revoked, user:admin_users(id, email, role, created_at)')
+      .eq('token_hash', tokenHash)
       .single()
 
-    if (error || !user) {
+    if (error || !data || data.revoked) {
       return null
     }
+
+    const now = new Date()
+    const expiresAt = new Date(data.expires_at)
+    if (expiresAt < now) {
+      return null
+    }
+
+    const user = (data as any).user
+    if (!user) return null
 
     return {
       id: user.id,
