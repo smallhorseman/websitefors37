@@ -7,6 +7,7 @@ import Image from 'next/image'
 import { supabase } from '@/lib/supabase'
 
 export default function Navigation() {
+  const [isMounted, setIsMounted] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const [logoUrl, setLogoUrl] = useState<string | null>(null)
@@ -14,17 +15,27 @@ export default function Navigation() {
   const DEFAULT_LOGO_LIGHT = '/brand/studio37-badge-light.svg'
   const DEFAULT_LOGO_DARK = '/brand/studio37-badge-dark.svg'
   
+  // Avoid hydration mismatch by only rendering after mount
   useEffect(() => {
+    setIsMounted(true)
+  }, [])
+
+  useEffect(() => {
+    if (!isMounted) return
     const handleScroll = () => {
       setScrolled(window.scrollY > 20)
     }
     
+    // Set initial scroll state
+    handleScroll()
+    
     window.addEventListener('scroll', handleScroll)
     return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
+  }, [isMounted])
 
   // Fetch logo URL from settings (client-side via Supabase)
   useEffect(() => {
+    if (!isMounted) return
     let mounted = true
     const fetchLogo = async () => {
       try {
@@ -49,7 +60,7 @@ export default function Navigation() {
     }
     fetchLogo()
     return () => { mounted = false }
-  }, [scrolled]) // Re-run when scroll state changes
+  }, [scrolled, isMounted]) // Re-run when scroll state changes
 
   return (
     <nav 
@@ -58,6 +69,7 @@ export default function Navigation() {
       }`}
       role="navigation"
       aria-label="Main navigation"
+      suppressHydrationWarning
     >
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center h-16">
@@ -67,7 +79,7 @@ export default function Navigation() {
             aria-label="Studio 37 Photography - Home"
           >
             {logoUrl ? (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2" suppressHydrationWarning>
                 {/* Watermarked logo with responsive sizing */}
                 <div className={`relative transition-all duration-300 ${scrolled ? 'h-8' : 'h-10'} w-auto`} style={{ minWidth: scrolled ? 120 : 140 }}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -93,7 +105,7 @@ export default function Navigation() {
             )}
           </Link>
 
-          <div className="hidden md:flex items-center space-x-8">
+          <div className="hidden md:flex items-center space-x-8" suppressHydrationWarning>
             <Link 
               href="/" 
               className={`hover:text-amber-600 focus:text-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-600 focus:ring-offset-2 transition-colors font-medium px-2 py-1 rounded ${scrolled ? 'text-amber-900' : 'text-white'}`}
