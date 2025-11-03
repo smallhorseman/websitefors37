@@ -3,6 +3,7 @@ import { supabase } from '@/lib/supabase'
 import { cookies } from 'next/headers'
 import bcrypt from 'bcryptjs'
 import { getClientIp, rateLimit } from '@/lib/rateLimit'
+import { createSession } from '@/lib/authSession'
 
 export async function POST(request: NextRequest) {
   try {
@@ -74,13 +75,21 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Create session by setting secure HTTP-only cookie
+    // Create a strong session token stored server-side (hashed)
+    const ip = getClientIp(request.headers)
+    const userAgent = request.headers.get('user-agent') || undefined
+    const session = await createSession({ userId: user.id, ip, userAgent })
+    if (!session) {
+      return NextResponse.json({ error: 'Failed to create session' }, { status: 500 })
+    }
+
+    // Set HTTP-only cookie with the opaque token
     const cookieStore = await cookies()
-    cookieStore.set('admin_session', user.id, {
+    cookieStore.set('admin_session', session.token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
-      maxAge: 60 * 60 * 24 * 7, // 7 days
+      maxAge: Math.floor((session.expiresAt.getTime() - Date.now()) / 1000),
       path: '/'
     })
 
