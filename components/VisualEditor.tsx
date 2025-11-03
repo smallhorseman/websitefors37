@@ -319,7 +319,11 @@ interface LogoComponent extends BaseComponent {
     color?: string;
     accentColor?: string;
     imageUrl?: string;
-    size?: "sm" | "md" | "lg";
+    size?: "sm" | "md" | "lg" | "xl" | "2xl";
+    // For image mode: explicit pixel height for better control
+    imageHeightPx?: number;
+    // For SVG wordmark: optional custom font size override (px)
+    fontSizePx?: number;
     alignment?: "left" | "center" | "right";
     link?: string;
     animation?: "none" | "fade-in" | "slide-up" | "zoom";
@@ -916,7 +920,8 @@ export default function VisualEditor({
           color: "#111827",
           accentColor: "#b46e14",
           imageUrl: "",
-          size: "md",
+          size: "xl",
+          imageHeightPx: 64,
           alignment: "left",
           link: "/",
           animation: "none",
@@ -4242,6 +4247,8 @@ function LogoRenderer({ data }: { data: LogoComponent["data"] }) {
     sm: "text-xl",
     md: "text-2xl md:text-3xl",
     lg: "text-4xl md:text-5xl",
+    xl: "text-5xl md:text-6xl",
+    "2xl": "text-6xl md:text-7xl",
   };
   const alignMap: Record<string, string> = {
     left: "justify-start text-left",
@@ -4264,7 +4271,8 @@ function LogoRenderer({ data }: { data: LogoComponent["data"] }) {
         <img
           src={data.imageUrl}
           alt={data.text || "Logo"}
-          className="h-10 w-auto object-contain"
+          className="w-auto object-contain"
+          style={{ height: data.imageHeightPx ? `${data.imageHeightPx}px` : undefined }}
         />
       ) : (
         <div className="flex items-center gap-2">
@@ -4282,7 +4290,7 @@ function LogoRenderer({ data }: { data: LogoComponent["data"] }) {
           <div>
             <div
               className="font-serif font-bold leading-none"
-              style={{ color: data.color || "#111827" }}
+              style={{ color: data.color || "#111827", fontSize: data.fontSizePx ? `${data.fontSizePx}px` : undefined }}
             >
               {data.text || "Studio 37"}
             </div>
@@ -5128,6 +5136,8 @@ function LogoProperties({
             <option value="sm">Small</option>
             <option value="md">Medium</option>
             <option value="lg">Large</option>
+            <option value="xl">XL</option>
+            <option value="2xl">2XL</option>
           </select>
         </div>
       </div>
@@ -5159,6 +5169,19 @@ function LogoProperties({
           <p className="text-xs text-gray-500 mt-1">
             Upload to Cloudinary and paste the URL here.
           </p>
+          <div className="grid grid-cols-2 gap-3 mt-3">
+            <div>
+              <label className="block text-sm font-medium mb-1">Image Height (px)</label>
+              <input
+                type="number"
+                min={16}
+                max={256}
+                value={Number(data.imageHeightPx ?? 64)}
+                onChange={(e) => onUpdate({ imageHeightPx: Number(e.target.value) })}
+                className="w-full border rounded px-3 py-2"
+              />
+            </div>
+          </div>
         </div>
       ) : (
         <>
@@ -5208,6 +5231,18 @@ function LogoProperties({
                 placeholder="#b46e14"
               />
             </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Font Size (px)</label>
+            <input
+              type="number"
+              min={16}
+              max={128}
+              value={Number(data.fontSizePx ?? 0)}
+              onChange={(e) => onUpdate({ fontSizePx: Number(e.target.value) || undefined })}
+              className="w-full border rounded px-3 py-2"
+              placeholder="Leave empty to use size preset"
+            />
           </div>
           <div className="flex items-center gap-2">
             <input

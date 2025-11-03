@@ -20,6 +20,8 @@ export function LogoBlock({
   accentColor = '#b46e14',
   imageUrl,
   size = 'md',
+  imageHeightPx,
+  fontSizePx,
   alignment = 'left',
   link,
   animation = 'none',
@@ -31,12 +33,20 @@ export function LogoBlock({
   color?: string
   accentColor?: string
   imageUrl?: string
-  size?: 'sm' | 'md' | 'lg' | string
+  size?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | string
+  imageHeightPx?: number | string
+  fontSizePx?: number | string
   alignment?: 'left' | 'center' | 'right' | string
   link?: string
   animation?: string
 }) {
-  const sizeMap: Record<string, string> = { sm: 'text-xl', md: 'text-2xl md:text-3xl', lg: 'text-4xl md:text-5xl' }
+  const sizeMap: Record<string, string> = {
+    sm: 'text-xl',
+    md: 'text-2xl md:text-3xl',
+    lg: 'text-4xl md:text-5xl',
+    xl: 'text-5xl md:text-6xl',
+    '2xl': 'text-6xl md:text-7xl'
+  }
   const alignMap: Record<string, string> = { left: 'justify-start text-left', center: 'justify-center text-center', right: 'justify-end text-right' }
   const animClass = animation === 'fade-in' ? 'animate-fadeIn' : animation === 'slide-up' ? 'animate-slideUp' : animation === 'zoom' ? 'animate-zoom' : ''
   const showCam = String(showCamera) !== 'false'
@@ -47,14 +57,14 @@ export function LogoBlock({
         <div className={`flex items-center gap-3 ${sizeMap[String(size)] || sizeMap.md}`}>
           {String(mode) === 'image' && imageUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={imageUrl} alt={text || 'Logo'} className="h-10 w-auto object-contain" />
+            <img src={imageUrl} alt={text || 'Logo'} className="w-auto object-contain" style={{ height: imageHeightPx ? `${Number(imageHeightPx)}px` : undefined }} />
           ) : (
             <div className="flex items-center gap-2">
               {showCam && (
                 <svg className="h-8 w-8" viewBox="0 0 24 24" fill={accentColor || '#b46e14'} aria-hidden="true"><path d="M9 3l2 2h2l2-2h3a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h4z"/><circle cx="12" cy="13" r="4" fill="currentColor"/></svg>
               )}
               <div>
-                <div className="font-serif font-bold leading-none" style={{ color: color || '#111827' }} dangerouslySetInnerHTML={{ __html: text || '' }} />
+                <div className="font-serif font-bold leading-none" style={{ color: color || '#111827', fontSize: fontSizePx ? `${Number(fontSizePx)}px` : undefined }} dangerouslySetInnerHTML={{ __html: text || '' }} />
                 {subtext && <div className="text-sm tracking-wide" style={{ color: accentColor || '#b46e14' }}>{subtext}</div>}
               </div>
             </div>
