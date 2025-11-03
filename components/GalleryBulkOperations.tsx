@@ -114,7 +114,8 @@ export default function BulkOperations({
           const currentImage = images.find((img) => img.id === id);
           // Merge with existing tags (no duplicates)
           const existingTags = currentImage?.tags || [];
-          update.tags = [...new Set([...existingTags, ...newTags])];
+          // Avoid spread over Set to keep compatibility with ES5 target (no downlevelIteration)
+          update.tags = Array.from(new Set<string>([...existingTags, ...newTags]));
         }
 
         if (bulkFeatured !== "no-change") {
