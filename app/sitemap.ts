@@ -2,6 +2,9 @@ import { createClient } from '@supabase/supabase-js'
 import { MetadataRoute } from 'next'
 import { businessInfo } from '@/lib/seo-config'
 
+// Cache sitemap generation for 1 hour to reduce Supabase reads and speed responses
+export const revalidate = 3600
+
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co'
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-key'
 const baseUrl = businessInfo.contact.website

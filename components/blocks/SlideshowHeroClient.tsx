@@ -57,7 +57,16 @@ export default function SlideshowHeroClient({
       {/* Slides */}
       <div className="absolute inset-0">
         {hasSlides && (
-          <Image src={current!.image} alt={current?.title || 'Slideshow'} fill className="object-cover transition-opacity duration-700" />
+          <Image
+            src={current!.image}
+            alt={current?.title || 'Slideshow'}
+            fill
+            priority={index === 0}
+            fetchPriority={index === 0 ? 'high' : 'auto'}
+            sizes="100vw"
+            quality={85}
+            className="object-cover transition-opacity duration-700"
+          />
         )}
       </div>
 

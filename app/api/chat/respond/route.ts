@@ -1,17 +1,45 @@
 import { NextResponse } from "next/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { supabase } from "@/lib/supabase";
+import { z } from "zod";
+import { getClientIp, rateLimit } from "@/lib/rateLimit";
+
+const BodySchema = z.object({
+  message: z.string().min(1, "message is required").max(2000),
+  context: z.string().max(4000).optional(),
+  leadData: z.record(z.any()).optional(),
+});
 
 export async function POST(req: Request) {
   try {
-    const { message, context, leadData } = await req.json();
+    // Rate limit by IP: up to 20 requests per 60s
+    const ip = getClientIp(req.headers as any);
+    const rl = rateLimit(`chat:${ip}`, { limit: 20, windowMs: 60 * 1000 });
+    if (!rl.allowed) {
+      const retryAfter = Math.max(1, Math.ceil((rl.resetAt - Date.now()) / 1000));
+      return new NextResponse(
+        JSON.stringify({ error: "Too many requests. Please slow down." }),
+        {
+          status: 429,
+          headers: {
+            "Content-Type": "application/json",
+            "Retry-After": String(retryAfter),
+          },
+        }
+      );
+    }
 
-    if (!message) {
+    const json = await req.json();
+    const parsed = BodySchema.safeParse(json);
+    if (!parsed.success) {
       return NextResponse.json(
-        { error: "Message is required" },
+        { error: "Invalid request body", details: parsed.error.flatten() },
         { status: 400 }
       );
     }
+    const { message, context, leadData } = parsed.data;
+
+    // message presence already enforced by zod
 
     // Check if AI is enabled in settings
     try {
@@ -95,7 +123,7 @@ Customer says: "${message}"
 
 Respond naturally in 2-3 sentences using the ${personality} personality and ${tone} tone. Use the training examples above as reference for similar questions. Don't repeat information already discussed. Be helpful and conversational.`;
 
-    const result = await model.generateContent(prompt);
+  const result = await model.generateContent(prompt);
     const response = result.response.text().trim();
 
     // Try to detect if user provided important information

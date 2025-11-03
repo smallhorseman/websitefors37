@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import Image from 'next/image'
+import OptimizedImage from '@/components/OptimizedImage'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, ChevronLeft, ChevronRight, Star } from 'lucide-react'
 import { useSearchParams } from 'next/navigation'
@@ -105,13 +106,23 @@ export default function GalleryClient({ initialImages, categories }: GalleryProp
             >
               <div className="relative overflow-hidden rounded-lg shadow-md hover:shadow-2xl transition-shadow duration-300">
                 <div className="relative aspect-[4/3] bg-gray-100">
-                  <Image
-                    src={image.image_url}
-                    alt={image.title}
-                    fill
-                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                    className="object-cover transition-transform duration-700 group-hover:scale-110"
-                  />
+                  {image.image_url.includes('res.cloudinary.com') ? (
+                    <OptimizedImage
+                      src={image.image_url}
+                      alt={image.title}
+                      fill
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                      imgClassName="object-cover transition-transform duration-700 group-hover:scale-110"
+                    />
+                  ) : (
+                    <Image
+                      src={image.image_url}
+                      alt={image.title}
+                      fill
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                      className="object-cover transition-transform duration-700 group-hover:scale-110"
+                    />
+                  )}
                 </div>
                 
                 {/* Featured Badge */}
@@ -196,15 +207,26 @@ export default function GalleryClient({ initialImages, categories }: GalleryProp
               className="max-w-7xl w-full max-h-[90vh] flex flex-col"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="relative flex-1 mb-4">
-                <Image
-                  src={selectedImage.image_url}
-                  alt={selectedImage.title}
-                  fill
-                  sizes="90vw"
-                  className="object-contain"
-                  priority
-                />
+              <div className="relative mb-4 h-[60vh] md:h-[70vh] lg:h-[80vh]">
+                {selectedImage.image_url.includes('res.cloudinary.com') ? (
+                  <OptimizedImage
+                    src={selectedImage.image_url}
+                    alt={selectedImage.title}
+                    fill
+                    sizes="(max-width: 768px) 90vw, 80vw"
+                    imgClassName="object-contain"
+                    priority
+                  />
+                ) : (
+                  <Image
+                    src={selectedImage.image_url}
+                    alt={selectedImage.title}
+                    fill
+                    sizes="(max-width: 768px) 90vw, 80vw"
+                    className="object-contain"
+                    priority
+                  />
+                )}
               </div>
               
               {/* Image Info */}

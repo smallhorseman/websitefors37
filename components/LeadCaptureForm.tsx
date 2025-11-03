@@ -34,13 +34,16 @@ export default function LeadCaptureForm() {
     setIsSubmitting(true)
     
     try {
-      const { supabase } = await import('@/lib/supabase')
-      
-      const { error } = await supabase
-        .from('leads')
-        .insert([{ ...data, status: 'new' }])
+      const res = await fetch('/api/leads', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...data, source: 'web-form' })
+      })
 
-      if (error) throw error
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}))
+        throw new Error(body?.error || 'Submission failed')
+      }
 
       toast.success('Thank you! We\'ll be in touch soon.')
       reset()
@@ -79,6 +82,7 @@ export default function LeadCaptureForm() {
             </label>
             <input
               {...register('name')}
+              aria-invalid={!!errors.name || undefined}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               placeholder="Your full name"
             />
@@ -94,6 +98,7 @@ export default function LeadCaptureForm() {
             <input
               {...register('email')}
               type="email"
+              aria-invalid={!!errors.email || undefined}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               placeholder="your@email.com"
             />
@@ -122,6 +127,7 @@ export default function LeadCaptureForm() {
             </label>
             <select
               {...register('service_interest')}
+              aria-invalid={!!errors.service_interest || undefined}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
             >
               <option value="">Select a service</option>
@@ -174,6 +180,7 @@ export default function LeadCaptureForm() {
           <textarea
             {...register('message')}
             rows={4}
+            aria-invalid={!!errors.message || undefined}
             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
             placeholder="Tell us about your photography needs..."
           />
@@ -185,6 +192,7 @@ export default function LeadCaptureForm() {
         <button
           type="submit"
           disabled={isSubmitting}
+          aria-busy={isSubmitting || undefined}
           className="w-full btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isSubmitting ? 'Sending...' : 'Get Your Quote'}
