@@ -1,6 +1,6 @@
 import React from 'react'
-import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
+// Use anon supabase client to enable ISR/caching (avoid cookies())
+import { supabase } from '@/lib/supabase'
 import { notFound } from 'next/navigation'
 import { ContentPage } from '@/lib/supabase'
 import { MDXRemote } from 'next-mdx-remote/rsc'
@@ -19,7 +19,6 @@ const isValidSlug = (s: string) => /^[a-z0-9-]{1,64}$/.test(s)
 
 // Generate metadata dynamically based on page content
 export async function generateMetadata({ params }: { params: { slug: string } }) {
-  const supabase = createServerComponentClient({ cookies })
   // If the slug is not valid, don't hit the DB; return a generic 404-like metadata
   if (!isValidSlug(params.slug)) {
     return {
@@ -48,9 +47,11 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   }
 }
 
+// Revalidate CMS-driven pages every 10 minutes
+export const revalidate = 600
+
 // Renamed function to avoid naming conflict with the imported ContentPage type
 export default async function DynamicPage({ params }: { params: { slug: string } }) {
-  const supabase = createServerComponentClient({ cookies })
   // Short-circuit static asset-like requests or invalid slugs
   if (!isValidSlug(params.slug)) {
     notFound()

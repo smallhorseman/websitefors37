@@ -19,8 +19,12 @@ export const metadata = generateSEOMetadata({
     'engagement photography Pinehurst',
     'wedding photos Montgomery County'
   ],
-  canonicalUrl: 'https://studio37.cc/services/wedding-photography'
+  canonicalUrl: 'https://studio37.cc/services/wedding-photography',
+  pageType: 'service'
 })
+
+// Static marketing page; revalidate daily
+export const revalidate = 86400
 
 export default function WeddingPhotographyPage() {
   const serviceSchema = generateServiceSchema(

@@ -19,8 +19,12 @@ export const metadata = generateSEOMetadata({
     'professional commercial photography Montgomery County',
     'brand photography Houston area'
   ],
-  canonicalUrl: 'https://studio37.cc/services/commercial-photography'
+  canonicalUrl: 'https://studio37.cc/services/commercial-photography',
+  pageType: 'service'
 })
+
+// Static marketing page; revalidate daily
+export const revalidate = 86400
 
 export default function CommercialPhotographyPage() {
   const serviceSchema = generateServiceSchema(

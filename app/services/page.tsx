@@ -23,6 +23,9 @@ export const metadata = generateSEOMetadata({
   pageType: 'service'
 })
 
+// Static marketing page; revalidate daily
+export const revalidate = 86400
+
 export default function ServicesPage() {
   const serviceSchema = generateServiceSchema(
     'Photography Services',

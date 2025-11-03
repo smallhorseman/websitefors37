@@ -7,11 +7,12 @@ interface Metric {
   name: string
   value: number
   rating: 'good' | 'needs-improvement' | 'poor'
+  delta?: number
 }
 
 export default function WebVitals() {
   useEffect(() => {
-    function sendToAnalytics(metric: Metric) {
+    async function sendToAnalytics(metric: Metric) {
       // Log to console in development
       if (process.env.NODE_ENV === 'development') {
         console.log('Web Vital:', metric)
@@ -39,6 +40,32 @@ export default function WebVitals() {
           rating: metric.rating,
         })
       }
+
+      // Optionally send to backend for persistence/alerting (best-effort)
+      try {
+        // Only send a small subset to reduce noise
+        if (['LCP', 'INP', 'CLS', 'TTFB'].includes(metric.name)) {
+          await fetch('/api/vitals', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            keepalive: true,
+            body: JSON.stringify({
+              id: metric.id,
+              name: metric.name,
+              value: metric.value,
+              rating: metric.rating,
+              delta: metric.delta,
+              navigationType: (performance.getEntriesByType('navigation')[0] as any)?.type,
+              url: typeof window !== 'undefined' ? window.location.href : undefined,
+              path: typeof window !== 'undefined' ? window.location.pathname : undefined,
+              userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : undefined,
+              ts: Date.now(),
+            }),
+          })
+        }
+      } catch (e) {
+        // Swallow errors; observability should not impact UX
+      }
     }
 
     // Import and measure Core Web Vitals dynamically
@@ -46,11 +73,11 @@ export default function WebVitals() {
       try {
         const webVitals = await import('web-vitals')
         
-        if (webVitals.onCLS) webVitals.onCLS(sendToAnalytics)
-        if (webVitals.onINP) webVitals.onINP(sendToAnalytics) // INP replaced FID
-        if (webVitals.onFCP) webVitals.onFCP(sendToAnalytics)
-        if (webVitals.onLCP) webVitals.onLCP(sendToAnalytics)
-        if (webVitals.onTTFB) webVitals.onTTFB(sendToAnalytics)
+  if (webVitals.onCLS) webVitals.onCLS(sendToAnalytics)
+  if (webVitals.onINP) webVitals.onINP(sendToAnalytics) // INP replaced FID
+  if (webVitals.onFCP) webVitals.onFCP(sendToAnalytics)
+  if (webVitals.onLCP) webVitals.onLCP(sendToAnalytics)
+  if (webVitals.onTTFB) webVitals.onTTFB(sendToAnalytics)
       } catch (error) {
         console.warn('Web Vitals not available:', error)
       }

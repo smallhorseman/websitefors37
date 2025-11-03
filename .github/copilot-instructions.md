@@ -15,7 +15,8 @@ This is a Next.js 14 App Router project (TypeScript + Tailwind) deployed on Netl
 
 ## Architecture & data flow
 - App Router under `app/` with server components by default; client components start with `"use client"`.
-- Server data access: use `createServerComponentClient({ cookies })` from `@supabase/auth-helpers-nextjs` inside server components (examples: `app/page.tsx`, `app/[slug]/page.tsx`).
+- Server data access: use `createServerComponentClient({ cookies })` from `@supabase/auth-helpers-nextjs` inside server components that depend on auth/session.
+- Public, read-mostly pages: prefer the anon client from `lib/supabase.ts` in RSC and export `revalidate` (ISR) to enable caching (see `app/blog/page.tsx` and `app/[slug]/page.tsx`).
 - Client data access: use the singleton client from `lib/supabase.ts` (ensures one GoTrue client in the browser).
 - Admin auth:
   - Login handler: `app/api/auth/login/route.ts` verifies credentials (bcrypt migration supported), rate-limits via `lib/rateLimit.ts`, creates a DB-backed session (`lib/authSession.ts`), and sets the `admin_session` httpOnly cookie.
@@ -51,6 +52,7 @@ This is a Next.js 14 App Router project (TypeScript + Tailwind) deployed on Netl
 - Use `lib/rateLimit.ts` (`getClientIp`, `rateLimit`) for public-facing endpoints.
 - Use `lib/supabaseAdmin.ts` only here. For user-scoped access, prefer RLS with anon client.
 - Add CORS/headers per route as needed; baseline security headers are added in `middleware.ts`.
+- Observability: `app/api/vitals/route.ts` accepts web-vitals POSTs (zod-validated, rate-limited) and best-effort inserts into `web_vitals` when present.
 
 ## Conventions & gotchas
 - Path alias `@/*` is configured in `tsconfig.json`.

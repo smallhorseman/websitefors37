@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { getClientIp, rateLimit } from "@/lib/rateLimit";
+import { createLogger } from "@/lib/logger";
 
 // Keep it simple and robust to avoid build issues and external API keys
 export const runtime = "edge";
+const log = createLogger("api/chat");
 
 type ConversationState = {
   step: "initial" | "service" | "interest" | "contact" | "collect" | "final";
@@ -39,6 +41,7 @@ export async function POST(req: NextRequest) {
     const rl = rateLimit(`chat-simple:${ip}`, { limit: 60, windowMs: 60 * 1000 });
     if (!rl.allowed) {
       const retryAfter = Math.max(1, Math.ceil((rl.resetAt - Date.now()) / 1000));
+      log.warn("Rate limit exceeded", { ip });
       return new NextResponse(
         JSON.stringify({ message: "Too many requests. Please wait a moment." }),
         { status: 429, headers: { "Content-Type": "application/json", "Retry-After": String(retryAfter) } }
@@ -48,6 +51,7 @@ export async function POST(req: NextRequest) {
     const json = await req.json();
     const parsed = BodySchema.safeParse(json);
     if (!parsed.success) {
+      log.warn("Validation failed", { issues: parsed.error.flatten?.() });
       return NextResponse.json({ message: "Invalid payload" }, { status: 400 });
     }
     const message: string = parsed.data.message.trim();
@@ -107,7 +111,7 @@ export async function POST(req: NextRequest) {
     conversations.set(sessionId, nextState);
     return NextResponse.json({ message: response });
   } catch (err) {
-    console.error("Chat API error:", err);
+    log.error("Chat API error", undefined, err);
     return NextResponse.json(
       {
         message:

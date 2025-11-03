@@ -18,8 +18,12 @@ export const metadata = generateSEOMetadata({
     'professional event photography Montgomery County',
     'event photographer Houston area'
   ],
-  canonicalUrl: 'https://studio37.cc/services/event-photography'
+  canonicalUrl: 'https://studio37.cc/services/event-photography',
+  pageType: 'service'
 })
+
+// Static marketing page; revalidate daily
+export const revalidate = 86400
 
 export default function EventPhotographyPage() {
   const serviceSchema = generateServiceSchema(

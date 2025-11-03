@@ -1,5 +1,5 @@
-import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
+// Use anon supabase client to enable ISR caching (no cookies dependency)
+import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
 import Image from 'next/image'
 import { generateSEOMetadata } from '@/lib/seo-helpers'
@@ -19,9 +19,10 @@ export const metadata = generateSEOMetadata({
   canonicalUrl: 'https://studio37.cc/blog'
 })
 
+// Cache this page for 10 minutes; blog posts are read-mostly
+export const revalidate = 600
+
 export default async function BlogPage() {
-  const supabase = createServerComponentClient({ cookies })
-  
   const { data: posts, error } = await supabase
     .from('blog_posts')
     .select('*')

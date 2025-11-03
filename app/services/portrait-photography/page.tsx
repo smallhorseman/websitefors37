@@ -19,8 +19,12 @@ export const metadata = generateSEOMetadata({
     'professional portraits Montgomery County',
     'portrait photographer Houston area'
   ],
-  canonicalUrl: 'https://studio37.cc/services/portrait-photography'
+  canonicalUrl: 'https://studio37.cc/services/portrait-photography',
+  pageType: 'service'
 })
+
+// Static marketing page; revalidate daily
+export const revalidate = 86400
 
 export default function PortraitPhotographyPage() {
   const serviceSchema = generateServiceSchema(

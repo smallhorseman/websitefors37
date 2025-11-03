@@ -97,6 +97,13 @@ export default function RootLayout({
         <link rel="icon" href="/icon.svg" type="image/svg+xml" />
       </head>
       <body className={`${inter.variable} ${playfair.variable} font-sans`}>
+        {/* Accessibility: Skip to content link */}
+        <a
+          href="#main"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:bg-amber-600 focus:text-white focus:px-4 focus:py-2 focus:rounded"
+        >
+          Skip to content
+        </a>
         {/* Google Analytics 4 - Deferred to lazyOnload for better performance */}
         <Script
           id="ga4-src"
@@ -126,7 +133,7 @@ export default function RootLayout({
             <Navigation />
           </ClientErrorBoundary>
           <ClientErrorBoundary label="page">
-            <main className="min-h-screen">{children}</main>
+            <main id="main" className="min-h-screen">{children}</main>
           </ClientErrorBoundary>
           <ClientErrorBoundary label="chatbot">
             <EnhancedChatBot />
