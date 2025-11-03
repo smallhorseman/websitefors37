@@ -155,9 +155,11 @@ export default function AdminGalleryPage() {
     }
   };
 
-  // Handle bulk export
-  const handleBulkExport = async (imageIds?: string[]) => {
-    const idsToExport = imageIds || Array.from(selectedIds);
+  // Handle bulk export - accept images and convert to IDs internally
+  const handleBulkExport = async (images: GalleryImage[]) => {
+    const idsToExport = images && images.length > 0
+      ? images.map((img) => img.id)
+      : Array.from(selectedIds);
     if (idsToExport.length === 0) return;
 
     try {
