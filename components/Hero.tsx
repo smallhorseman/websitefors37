@@ -12,6 +12,7 @@ export default function Hero() {
   const [galleryImages, setGalleryImages] = useState<any[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const [siteSettings, setSiteSettings] = useState<any | null>(null);
 
   // Categories to show in homepage hero
   const homepageCategories = [
@@ -31,6 +32,20 @@ export default function Hero() {
 
   useEffect(() => {
     getPageConfig("home").then((c) => setCfg(c?.data || null));
+  }, []);
+
+  // Fetch site-wide settings to allow hero customization from Admin > Settings
+  useEffect(() => {
+    (async () => {
+      try {
+        const { supabase } = await import("@/lib/supabase");
+        const { data } = await supabase.from("settings").select("*").single();
+        if (data) setSiteSettings(data);
+      } catch (e) {
+        // non-fatal if settings table missing
+        console.warn("Hero: settings not available", e);
+      }
+    })();
   }, []);
 
   // Keep local state in sync for slideshow logic
@@ -60,8 +75,20 @@ export default function Hero() {
       : cfg?.hero_image ||
         "https://res.cloudinary.com/dmjxho2rl/image/upload/v1759639187/A4B03835-ED8B-4FBB-A27E-1F2EE6CA1A18_1_105_c_gstgil_e_gen_restore_e_improve_e_sharpen_l_image_upload_My_Brand_IMG_2115_mtuowt_c_scale_fl_relative_w_0.40_o_80_fl_layer_apply_g_south_x_0.03_y_0.04_yqgycj.jpg";
 
+  // Admin-configurable appearance fallbacks
+  const heroMinHeight: string = siteSettings?.hero_min_height || "70vh"; // reduced from full screen
+  const titleColorCSS: string | undefined = siteSettings?.hero_title_color;
+  const subtitleColorCSS: string | undefined = siteSettings?.hero_subtitle_color;
+  const overlayPct: number = Math.min(
+    Math.max(Number(siteSettings?.hero_overlay_opacity ?? 60), 0),
+    100
+  );
+
   return (
-    <section className="relative h-screen flex items-center justify-center overflow-hidden">
+    <section
+      className="relative flex items-center justify-center overflow-hidden"
+      style={{ minHeight: heroMinHeight }}
+    >
       {/* Background Image (slideshow) - fetchPriority high for LCP optimization */}
       <div className="absolute inset-0 z-0">
         <Image
@@ -83,7 +110,16 @@ export default function Hero() {
       </div>
 
       {/* Overlay with vintage gradient */}
-      <div className="absolute inset-0 bg-gradient-to-t from-amber-900/80 via-amber-800/50 to-transparent z-10"></div>
+      <div
+        className="absolute inset-0 z-10"
+        style={{
+          background: `linear-gradient(to top, rgba(120, 53, 15, ${
+            overlayPct / 100
+          }), rgba(146, 64, 14, ${
+            Math.max(overlayPct - 20, 0) / 100
+          }), rgba(0,0,0,0))`,
+        }}
+      ></div>
 
       {/* Film grain texture overlay - optimized */}
       <div
@@ -97,12 +133,18 @@ export default function Hero() {
             <Camera className="h-16 w-16 text-amber-200" />
           </div>
 
-          <h1 className="font-serif text-5xl md:text-7xl font-bold mb-6 leading-tight text-white drop-shadow-lg">
+          <h1
+            className="font-serif text-4xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight text-white drop-shadow-lg"
+            style={titleColorCSS ? { color: titleColorCSS } : undefined}
+          >
             {heroTitle || "Studio "}
             <span className="text-amber-200">37</span>
           </h1>
 
-          <p className="text-xl md:text-2xl mb-8 text-amber-50 max-w-2xl mx-auto font-light">
+          <p
+            className="text-lg md:text-xl lg:text-2xl mb-8 text-amber-50 max-w-2xl mx-auto font-light"
+            style={subtitleColorCSS ? { color: subtitleColorCSS } : undefined}
+          >
             {heroSubtitle}
           </p>
 

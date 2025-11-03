@@ -54,6 +54,10 @@ export default async function HomePage() {
   // If an editor-managed home page exists in content_pages (slug 'home'), render it.
   // Otherwise, fall back to the static homepage sections below.
   const supabase = createServerComponentClient({ cookies });
+  const { data: siteSettings } = await supabase
+    .from("settings")
+    .select("*")
+    .single();
   const { data: page } = await supabase
     .from("content_pages")
     .select("*")
@@ -65,7 +69,12 @@ export default async function HomePage() {
     return (
       <div className="pt-16 min-h-screen">
         <div className="container mx-auto px-4 py-16">
-          <article className="prose max-w-none">
+          <article
+            className={
+              "prose max-w-none prose-lg md:prose-xl prose-headings:font-serif prose-h1:mb-4 prose-h1:leading-tight prose-h1:text-4xl md:prose-h1:text-6xl prose-h2:text-2xl md:prose-h2:text-3xl " +
+              (siteSettings?.home_prose_invert ? "prose-invert" : "")
+            }
+          >
             <MDXRemote
               source={page.content}
               options={{

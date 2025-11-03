@@ -32,6 +32,12 @@ interface SiteSettings {
   ai_enabled?: boolean;
   ai_model?: string;
   ai_key_ref?: string;
+  // New: homepage/hero customization
+  hero_min_height?: string; // e.g., "60vh", "70vh"
+  hero_title_color?: string; // hex
+  hero_subtitle_color?: string; // hex
+  hero_overlay_opacity?: number; // 0-100
+  home_prose_invert?: boolean; // invert typography on home MDX
 }
 
 export default function SettingsPage() {
@@ -53,6 +59,11 @@ export default function SettingsPage() {
     ai_enabled: false,
     ai_model: "gemini-1.5-pro",
     ai_key_ref: "",
+    hero_min_height: "70vh",
+    hero_title_color: "#ffffff",
+    hero_subtitle_color: "#fde68a", // amber-200-ish
+    hero_overlay_opacity: 60,
+    home_prose_invert: true,
   });
 
   const [loading, setLoading] = useState(true);
@@ -601,6 +612,111 @@ export default function SettingsPage() {
                           }}
                         ></div>
                       </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-6">
+                  <h2 className="text-lg font-medium border-b pb-2">
+                    Homepage Hero
+                  </h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Min Height (e.g., 60vh, 70vh)
+                      </label>
+                      <input
+                        type="text"
+                        name="hero_min_height"
+                        value={settings.hero_min_height || ""}
+                        onChange={handleChange}
+                        className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                      />
+                      <p className="mt-1 text-xs text-gray-500">
+                        Controls how tall the homepage hero appears. Use CSS units like vh.
+                      </p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Overlay Opacity ({Number(settings.hero_overlay_opacity ?? 60)}%)
+                      </label>
+                      <input
+                        type="range"
+                        min={0}
+                        max={100}
+                        name="hero_overlay_opacity"
+                        value={Number(settings.hero_overlay_opacity ?? 60)}
+                        onChange={(e) =>
+                          setSettings({
+                            ...settings,
+                            hero_overlay_opacity: Number(e.target.value),
+                          })
+                        }
+                        className="w-full"
+                      />
+                      <p className="mt-1 text-xs text-gray-500">
+                        Darkens the background image to improve text contrast.
+                      </p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Title Color
+                      </label>
+                      <div className="flex">
+                        <input
+                          type="color"
+                          name="hero_title_color"
+                          value={settings.hero_title_color || "#ffffff"}
+                          onChange={handleChange}
+                          className="h-10 w-10 rounded-l border-l border-y p-0"
+                        />
+                        <input
+                          type="text"
+                          name="hero_title_color"
+                          value={settings.hero_title_color || "#ffffff"}
+                          onChange={handleChange}
+                          className="flex-1 px-3 py-2 border-r border-y rounded-r focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Subtitle Color
+                      </label>
+                      <div className="flex">
+                        <input
+                          type="color"
+                          name="hero_subtitle_color"
+                          value={settings.hero_subtitle_color || "#fde68a"}
+                          onChange={handleChange}
+                          className="h-10 w-10 rounded-l border-l border-y p-0"
+                        />
+                        <input
+                          type="text"
+                          name="hero_subtitle_color"
+                          value={settings.hero_subtitle_color || "#fde68a"}
+                          onChange={handleChange}
+                          className="flex-1 px-3 py-2 border-r border-y rounded-r focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        />
+                      </div>
+                    </div>
+                    <div className="md:col-span-2">
+                      <label className="inline-flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          checked={!!settings.home_prose_invert}
+                          onChange={(e) =>
+                            setSettings({
+                              ...settings,
+                              home_prose_invert: e.target.checked,
+                            })
+                          }
+                          className="h-4 w-4"
+                        />
+                        <span className="text-sm">
+                          Invert colors for homepage content (for dark hero backgrounds)
+                        </span>
+                      </label>
                     </div>
                   </div>
                 </div>
