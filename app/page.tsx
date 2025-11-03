@@ -1,11 +1,7 @@
 import React from "react";
 import dynamic from "next/dynamic";
 import Hero from "@/components/Hero";
-import Services from "@/components/Services";
-import CommercialHighlightGallery from "@/components/CommercialHighlightGallery";
-import PortraitHighlightGallery from "@/components/PortraitHighlightGallery";
 import LeadCaptureForm from "@/components/LeadCaptureForm";
-import Testimonials from "@/components/Testimonials";
 import LocalBusinessSchema from "@/components/LocalBusinessSchema";
 import { generateSEOMetadata } from "@/lib/seo-helpers";
 import { createServerComponentClient } from "@supabase/auth-helpers-nextjs";
@@ -13,6 +9,26 @@ import { cookies } from "next/headers";
 import { MDXRemote } from "next-mdx-remote/rsc";
 import rehypeHighlight from "rehype-highlight";
 import { MDXBuilderComponents } from "@/components/BuilderRuntime";
+
+// Lazy load below-the-fold components for better initial page load
+const Services = dynamic(() => import("@/components/Services"), {
+  loading: () => <div className="h-96 bg-gray-50 animate-pulse" />,
+});
+const CommercialHighlightGallery = dynamic(
+  () => import("@/components/CommercialHighlightGallery"),
+  {
+    loading: () => <div className="h-96 bg-white animate-pulse" />,
+  }
+);
+const PortraitHighlightGallery = dynamic(
+  () => import("@/components/PortraitHighlightGallery"),
+  {
+    loading: () => <div className="h-96 bg-gray-50 animate-pulse" />,
+  }
+);
+const Testimonials = dynamic(() => import("@/components/Testimonials"), {
+  loading: () => <div className="h-96 bg-white animate-pulse" />,
+});
 
 // Defer newsletter modal - loads after page is interactive
 const DiscountNewsletterModal = dynamic(

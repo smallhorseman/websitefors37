@@ -35,6 +35,11 @@ const nextConfig = {
   skipTrailingSlashRedirect: false,
   reactStrictMode: true,
   swcMinify: true,
+  // Experimental features for better performance
+  experimental: {
+    optimizeCss: true, // Optimize CSS loading
+    optimizePackageImports: ['lucide-react', 'react-hot-toast'], // Tree-shake large packages
+  },
   async redirects() {
     return [
       {

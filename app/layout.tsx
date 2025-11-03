@@ -93,8 +93,9 @@ export default function RootLayout({
           href="https://fonts.gstatic.com"
           crossOrigin="anonymous"
         />
+        {/* Preconnect to Cloudinary for faster image loading (LCP optimization) */}
+        <link rel="preconnect" href="https://res.cloudinary.com" />
         <link rel="dns-prefetch" href="//images.unsplash.com" />
-        <link rel="dns-prefetch" href="//res.cloudinary.com" />
         {/* Explicit favicon for modern browsers; Next will also use app/icon.svg */}
         <link rel="icon" href="/icon.svg" type="image/svg+xml" />
       </head>
