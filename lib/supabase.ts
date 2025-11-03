@@ -87,6 +87,12 @@ export interface GalleryImage {
   alt_text?: string
   created_at: string
   updated_at: string
+  // New organizational fields (optional)
+  orientation?: 'landscape' | 'portrait' | 'square'
+  collection?: string
+  hero?: boolean
+  color_dominant?: string
+  color_palette?: string[]
 }
 
 export interface Settings {
@@ -142,6 +148,35 @@ export interface Appointment {
   preferred_time?: string
   location?: string
   message?: string
+}
+
+// Highlight sets and items
+export interface GalleryHighlightSet {
+  id: string
+  name: string
+  slug: string
+  description?: string
+  is_active: boolean
+  config?: Record<string, any>
+  slide_duration_ms?: number
+  transition?: string
+  layout?: string
+  created_by?: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface GalleryHighlightItem {
+  id: string
+  set_id: string
+  image_id: string
+  position: number
+  caption_override?: string
+  link_url?: string
+  overlay_color?: string
+  overlay_opacity?: number
+  duration_ms?: number
+  created_at: string
 }
 
 // Utility function for paginated data

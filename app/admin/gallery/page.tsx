@@ -412,8 +412,26 @@ export default function AdminGalleryPage() {
                   <GalleryHighlightsEditor
                     allImages={allImages}
                     onSave={async (config) => {
-                      console.log("Gallery Highlights Config:", config);
-                      // TODO: Save to site settings or page builder config
+                      const name = window.prompt('Name this highlight set (e.g., "Homepage Highlights")')
+                      if (!name) return
+                      const payload = {
+                        name,
+                        description: 'Created from GalleryHighlightsEditor',
+                        config,
+                        is_active: true,
+                        transition: config.animation === 'fade-in' ? 'fade' : config.animation,
+                        slide_duration_ms: 4000,
+                        layout: 'grid'
+                      }
+                      const res = await fetch('/api/gallery/highlights/sets', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                      })
+                      if (!res.ok) {
+                        const data = await res.json().catch(() => ({}))
+                        throw new Error(data.error || 'Failed to save highlight set')
+                      }
                     }}
                   />
                 </div>
