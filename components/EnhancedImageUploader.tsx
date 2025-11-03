@@ -46,9 +46,58 @@ export default function EnhancedImageUploader({
   const [autoGenerateAlt, setAutoGenerateAlt] = useState(true);
   const [autoDetectDuplicates, setAutoDetectDuplicates] = useState(true);
   const [compressionQuality, setCompressionQuality] = useState(85);
+  const [uploadMode, setUploadMode] = useState<'file' | 'url'>('file');
+  const [imageUrl, setImageUrl] = useState('');
+  const [urlLoading, setUrlLoading] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dropZoneRef = useRef<HTMLDivElement>(null);
+
+  // Handle URL upload
+  const handleUrlUpload = async () => {
+    if (!imageUrl.trim()) return;
+
+    setUrlLoading(true);
+
+    try {
+      // Validate URL
+      const url = new URL(imageUrl);
+      
+      // Extract filename from URL or generate one
+      const urlPath = url.pathname.split('/').pop() || 'url-image';
+      const nameWithoutExt = urlPath.replace(/\.[^/.]+$/, '');
+      const title = nameWithoutExt
+        .replace(/[_-]/g, ' ')
+        .replace(/\b\w/g, (l) => l.toUpperCase());
+
+      // Create a placeholder file entry for URL uploads
+      const urlFile: UploadFile = {
+        file: null as any, // Will use URL directly
+        preview: imageUrl, // Use the URL as preview
+        status: 'pending',
+        progress: 0,
+        metadata: {
+          title,
+          category: 'general',
+          tags: [],
+          alt_text: '',
+          featured: false,
+        },
+      };
+
+      // Add special marker for URL uploads
+      (urlFile as any).isUrlUpload = true;
+      (urlFile as any).sourceUrl = imageUrl;
+
+      setFiles((prev) => [...prev, urlFile]);
+      setImageUrl('');
+      setUploadMode('file'); // Switch back to file mode
+    } catch (error) {
+      alert('Invalid URL. Please enter a valid image URL.');
+    } finally {
+      setUrlLoading(false);
+    }
+  };
 
   // Handle file selection
   const handleFiles = useCallback(
@@ -231,50 +280,62 @@ export default function EnhancedImageUploader({
         )
       );
 
-      // Compress image if needed
-      const compressedFile =
-        fileItem.file.size > 1024 * 1024
-          ? await compressImage(fileItem.file, compressionQuality)
-          : fileItem.file;
+      let imageUrl: string;
 
-      setFiles((prev) =>
-        prev.map((f) => (f.file === fileItem.file ? { ...f, progress: 30 } : f))
-      );
+      // Check if this is a URL upload
+      if ((fileItem as any).isUrlUpload) {
+        imageUrl = (fileItem as any).sourceUrl;
+        
+        setFiles((prev) =>
+          prev.map((f) => (f === fileItem ? { ...f, progress: 50 } : f))
+        );
+      } else {
+        // Compress image if needed
+        const compressedFile =
+          fileItem.file.size > 1024 * 1024
+            ? await compressImage(fileItem.file, compressionQuality)
+            : fileItem.file;
 
-      // Upload to Cloudinary
-      const formData = new FormData();
-      formData.append("file", compressedFile);
-      formData.append(
-        "upload_preset",
-        process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || "studio37_gallery"
-      );
-      formData.append("folder", "gallery");
+        setFiles((prev) =>
+          prev.map((f) => (f.file === fileItem.file ? { ...f, progress: 30 } : f))
+        );
 
-      const uploadResponse = await fetch(
-        `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
-        {
-          method: "POST",
-          body: formData,
+        // Upload to Cloudinary
+        const formData = new FormData();
+        formData.append("file", compressedFile);
+        formData.append(
+          "upload_preset",
+          process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || "studio37_gallery"
+        );
+        formData.append("folder", "gallery");
+
+        const uploadResponse = await fetch(
+          `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
+          {
+            method: "POST",
+            body: formData,
+          }
+        );
+
+        if (!uploadResponse.ok) {
+          throw new Error("Upload to Cloudinary failed");
         }
-      );
 
-      if (!uploadResponse.ok) {
-        throw new Error("Upload to Cloudinary failed");
+        const uploadResult = await uploadResponse.json();
+        imageUrl = uploadResult.secure_url;
       }
-
-      const uploadResult = await uploadResponse.json();
 
       setFiles((prev) =>
         prev.map((f) =>
-          f.file === fileItem.file
+          f === fileItem
             ? { ...f, status: "processing", progress: 70 }
             : f
         )
       );
 
-      // Generate AI metadata if enabled
+      // Generate AI metadata if enabled (skip for URL uploads for now)
       let finalMetadata = fileItem.metadata!;
-      if (autoGenerateAlt) {
+      if (autoGenerateAlt && fileItem.file) {
         const aiMetadata = await generateAIMetadata(
           fileItem.file,
           fileItem.metadata!
@@ -285,7 +346,7 @@ export default function EnhancedImageUploader({
       }
 
       setFiles((prev) =>
-        prev.map((f) => (f.file === fileItem.file ? { ...f, progress: 90 } : f))
+        prev.map((f) => (f === fileItem ? { ...f, progress: 90 } : f))
       );
 
       // Save to database
@@ -297,7 +358,7 @@ export default function EnhancedImageUploader({
           {
             title: finalMetadata.title,
             description: "",
-            image_url: uploadResult.secure_url,
+            image_url: imageUrl,
             category: finalMetadata.category,
             featured: finalMetadata.featured,
             alt_text: finalMetadata.alt_text,
@@ -313,7 +374,7 @@ export default function EnhancedImageUploader({
       // Update status to complete
       setFiles((prev) =>
         prev.map((f) =>
-          f.file === fileItem.file
+          f === fileItem
             ? { ...f, status: "complete", progress: 100 }
             : f
         )
@@ -324,7 +385,7 @@ export default function EnhancedImageUploader({
       console.error("Upload failed:", error);
       setFiles((prev) =>
         prev.map((f) =>
-          f.file === fileItem.file
+          f === fileItem
             ? { ...f, status: "error", error: error.message }
             : f
         )
@@ -359,24 +420,24 @@ export default function EnhancedImageUploader({
   };
 
   // Remove a file from the queue
-  const removeFile = (file: File) => {
+  const removeFile = (fileItem: UploadFile) => {
     setFiles((prev) => {
-      const fileToRemove = prev.find((f) => f.file === file);
-      if (fileToRemove) {
+      const fileToRemove = prev.find((f) => f === fileItem);
+      if (fileToRemove && !(fileToRemove as any).isUrlUpload) {
         URL.revokeObjectURL(fileToRemove.preview);
       }
-      return prev.filter((f) => f.file !== file);
+      return prev.filter((f) => f !== fileItem);
     });
   };
 
   // Update file metadata
   const updateFileMetadata = (
-    file: File,
+    fileItem: UploadFile,
     updates: Partial<UploadFile["metadata"]>
   ) => {
     setFiles((prev) =>
       prev.map((f) =>
-        f.file === file ? { ...f, metadata: { ...f.metadata!, ...updates } } : f
+        f === fileItem ? { ...f, metadata: { ...f.metadata!, ...updates } } : f
       )
     );
   };
@@ -431,6 +492,62 @@ export default function EnhancedImageUploader({
 
         {/* Upload Settings */}
         <div className="p-6 border-b border-gray-200 bg-gray-50">
+          {/* Upload Mode Tabs */}
+          <div className="flex gap-2 mb-4">
+            <button
+              onClick={() => setUploadMode('file')}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                uploadMode === 'file'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-white text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              Upload Files
+            </button>
+            <button
+              onClick={() => setUploadMode('url')}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                uploadMode === 'url'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-white text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              Add from URL
+            </button>
+          </div>
+
+          {uploadMode === 'url' && (
+            <div className="mb-4 p-4 bg-white rounded-lg border border-gray-200">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Image URL
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type="url"
+                  value={imageUrl}
+                  onChange={(e) => setImageUrl(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleUrlUpload()}
+                  placeholder="https://example.com/image.jpg"
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <button
+                  onClick={handleUrlUpload}
+                  disabled={!imageUrl.trim() || urlLoading}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+                >
+                  {urlLoading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    'Add URL'
+                  )}
+                </button>
+              </div>
+              <p className="text-xs text-gray-500 mt-1">
+                Enter a direct link to an image (JPG, PNG, WebP)
+              </p>
+            </div>
+          )}
+
           <div className="flex flex-wrap items-center gap-4">
             <label className="flex items-center gap-2">
               <input
@@ -530,7 +647,7 @@ export default function EnhancedImageUploader({
                         type="text"
                         value={fileItem.metadata?.title || ""}
                         onChange={(e) =>
-                          updateFileMetadata(fileItem.file, {
+                          updateFileMetadata(fileItem, {
                             title: e.target.value,
                           })
                         }
@@ -542,7 +659,7 @@ export default function EnhancedImageUploader({
                         <select
                           value={fileItem.metadata?.category || ""}
                           onChange={(e) =>
-                            updateFileMetadata(fileItem.file, {
+                            updateFileMetadata(fileItem, {
                               category: e.target.value,
                             })
                           }
@@ -560,7 +677,7 @@ export default function EnhancedImageUploader({
                             type="checkbox"
                             checked={fileItem.metadata?.featured || false}
                             onChange={(e) =>
-                              updateFileMetadata(fileItem.file, {
+                              updateFileMetadata(fileItem, {
                                 featured: e.target.checked,
                               })
                             }
@@ -574,7 +691,7 @@ export default function EnhancedImageUploader({
                         type="text"
                         value={fileItem.metadata?.tags.join(", ") || ""}
                         onChange={(e) =>
-                          updateFileMetadata(fileItem.file, {
+                          updateFileMetadata(fileItem, {
                             tags: e.target.value
                               .split(",")
                               .map((t) => t.trim())
@@ -584,10 +701,17 @@ export default function EnhancedImageUploader({
                         className="w-full px-2 py-1 text-xs border border-gray-300 rounded mt-2"
                         placeholder="Tags (comma-separated)"
                       />
+                      
+                      {(fileItem as any).isUrlUpload && (
+                        <div className="mt-2 flex items-center gap-1 text-xs text-blue-600">
+                          <ImageIcon className="h-3 w-3" />
+                          <span>URL Upload</span>
+                        </div>
+                      )}
                     </div>
 
                     <button
-                      onClick={() => removeFile(fileItem.file)}
+                      onClick={() => removeFile(fileItem)}
                       className="text-gray-400 hover:text-red-600 transition-colors"
                       disabled={fileItem.status === "uploading"}
                     >
