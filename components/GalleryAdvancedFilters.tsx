@@ -17,7 +17,6 @@ import {
   Download,
 } from "lucide-react";
 import debounce from "lodash.debounce";
-import type { DebouncedFunc } from "lodash.debounce";
 import type { GalleryImage } from "@/lib/supabase";
 
 interface GalleryFiltersProps {
@@ -209,7 +208,7 @@ export default function GalleryFilters({
       setFilters((prev) => ({ ...prev, search: searchTerm }));
     }, 300),
     []
-  ) as DebouncedFunc<(searchTerm: string) => void>;
+  ) as ReturnType<typeof debounce>;
 
   // Cleanup pending debounce on unmount to avoid state updates after unmount
   React.useEffect(() => {
