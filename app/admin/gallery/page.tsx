@@ -117,32 +117,40 @@ export default function AdminGalleryPage() {
     }
   };
 
-  // Handle bulk operations
-  const handleBulkUpdate = async (updates: Partial<GalleryImage>) => {
-    const idsArray = Array.from(selectedIds);
-    if (idsArray.length === 0) return;
-
+  // Handle bulk operations - accept array of per-image updates
+  const handleBulkUpdate = async (updatesArray: Partial<GalleryImage>[]) => {
     try {
-      // Update each selected image
-      const promises = idsArray.map(async (id) => {
-        const image = allImages.find((img) => img.id === id);
-        if (!image) return;
+      // Group updates by image id (ignore entries without id)
+      const updatesById = new Map<string, Partial<GalleryImage>>();
+      for (const u of updatesArray) {
+        if (!u || !u.id) continue;
+        const { id, ...rest } = u as Partial<GalleryImage> & { id: string };
+        updatesById.set(id, { ...(updatesById.get(id) || {}), ...rest });
+      }
 
-        const updatedImage = { ...image, ...updates };
-        await saveImage(updatedImage);
-      });
+      // If none provided (fallback), apply nothing
+      if (updatesById.size === 0) return;
+
+      const promises = Array.from(updatesById.entries()).map(
+        async ([id, update]) => {
+          const image = allImages.find((img) => img.id === id);
+          if (!image) return;
+          const updatedImage = { ...image, ...update };
+          await saveImage(updatedImage);
+        }
+      );
 
       await Promise.all(promises);
-      setSelectedIds(new Set()); // Clear selection
+      setSelectedIds(new Set());
     } catch (err) {
       console.error("Error in bulk update:", err);
       throw err;
     }
   };
 
-  // Handle bulk delete
-  const handleBulkDelete = async () => {
-    const idsArray = Array.from(selectedIds);
+  // Handle bulk delete - accept ids or use current selection
+  const handleBulkDelete = async (ids?: string[]) => {
+    const idsArray = ids && ids.length > 0 ? ids : Array.from(selectedIds);
     if (idsArray.length === 0) return;
 
     try {
