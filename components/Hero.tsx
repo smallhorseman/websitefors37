@@ -137,6 +137,7 @@ export default function Hero() {
           <h1
             className="font-serif text-4xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight text-white drop-shadow-lg"
             style={titleColorCSS ? { color: titleColorCSS } : undefined}
+            suppressHydrationWarning
           >
             {heroTitle || "Studio "}
             <span className="text-amber-200">37</span>
@@ -145,6 +146,7 @@ export default function Hero() {
           <p
             className="text-lg md:text-xl lg:text-2xl mb-8 text-amber-50 max-w-2xl mx-auto font-light"
             style={subtitleColorCSS ? { color: subtitleColorCSS } : undefined}
+            suppressHydrationWarning
           >
             {heroSubtitle}
           </p>

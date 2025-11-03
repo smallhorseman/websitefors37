@@ -48,6 +48,7 @@ const SERVICE_ICONS: Record<string, typeof Camera> = {
 };
 
 export default function EnhancedChatBot() {
+  const [isMounted, setIsMounted] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState("");
@@ -56,6 +57,11 @@ export default function EnhancedChatBot() {
   const [showFAQ, setShowFAQ] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  // Avoid hydration issues by only rendering after client mount
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
@@ -63,6 +69,11 @@ export default function EnhancedChatBot() {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // Don't render until mounted client-side
+  if (!isMounted) {
+    return null;
+  }
 
   const startChat = () => {
     setIsOpen(true);
