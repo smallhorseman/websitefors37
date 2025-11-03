@@ -1,5 +1,5 @@
 import { cookies } from 'next/headers'
-import { supabase } from './supabase'
+import { supabaseAdmin } from './supabaseAdmin'
 import { hashToken } from './authSession'
 
 export interface AdminUser {
@@ -25,7 +25,7 @@ export async function getAdminUser(): Promise<AdminUser | null> {
     // Verify session token via admin_sessions -> admin_users
     const tokenHash = hashToken(sessionToken)
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('admin_sessions')
       .select('expires_at, revoked, user:admin_users(id, email, role, created_at)')
       .eq('token_hash', tokenHash)
