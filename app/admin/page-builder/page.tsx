@@ -486,7 +486,7 @@ export default function PageBuilderPage() {
         }
         case 'logo': {
           md.push(
-            `<LogoBlock mode="${escapeAttr(d.mode || 'svg')}" text="${escapeAttr(d.text || 'Studio 37')}" subtext="${escapeAttr(d.subtext || '')}" showCamera="${(d.showCamera ?? true) ? 'true' : 'false'}" color="${escapeAttr(d.color || '#111827')}" accentColor="${escapeAttr(d.accentColor || '#b46e14')}" imageUrl="${escapeAttr(d.imageUrl || '')}" size="${escapeAttr(d.size || 'md')}" alignment="${escapeAttr(d.alignment || 'left')}" link="${escapeAttr(d.link || '')}" animation="${escapeAttr(d.animation || 'none')}" />`
+            `<LogoBlock mode="${escapeAttr(d.mode || 'svg')}" text="${escapeAttr(d.text || 'Studio 37')}" subtext="${escapeAttr(d.subtext || '')}" showCamera="${(d.showCamera ?? true) ? 'true' : 'false'}" color="${escapeAttr(d.color || '#111827')}" accentColor="${escapeAttr(d.accentColor || '#b46e14')}" imageUrl="${escapeAttr(d.imageUrl || '')}" size="${escapeAttr(d.size || 'xl')}" imageHeightPx="${Number(d.imageHeightPx ?? 64)}" fontSizePx="${Number(d.fontSizePx ?? 0)}" alignment="${escapeAttr(d.alignment || 'left')}" link="${escapeAttr(d.link || '')}" animation="${escapeAttr(d.animation || 'none')}" />`
           )
           break
         }

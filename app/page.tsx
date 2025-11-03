@@ -67,27 +67,18 @@ export default async function HomePage() {
 
   if (page?.content) {
     return (
-      <div className="pt-16 min-h-screen">
-        <div className="container mx-auto px-4 py-16">
-          <article
-            className={
-              "prose max-w-none prose-lg md:prose-xl prose-headings:font-serif prose-h1:mb-4 prose-h1:leading-tight prose-h1:text-4xl md:prose-h1:text-6xl prose-h2:text-2xl md:prose-h2:text-3xl " +
-              (siteSettings?.home_prose_invert ? "prose-invert" : "")
-            }
-          >
-            <MDXRemote
-              source={page.content}
-              options={{
-                mdxOptions: {
-                  rehypePlugins: rehypeRaw
-                    ? [rehypeRaw as any, [rehypeHighlight, {}] as any]
-                    : [[rehypeHighlight, {}] as any],
-                },
-              }}
-              components={MDXBuilderComponents as any}
-            />
-          </article>
-        </div>
+      <div className="min-h-screen">
+        <MDXRemote
+          source={page.content}
+          options={{
+            mdxOptions: {
+              rehypePlugins: rehypeRaw
+                ? [rehypeRaw as any, [rehypeHighlight, {}] as any]
+                : [[rehypeHighlight, {}] as any],
+            },
+          }}
+          components={MDXBuilderComponents as any}
+        />
       </div>
     );
   }
