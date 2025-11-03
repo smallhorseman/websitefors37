@@ -11,6 +11,7 @@ export default function Navigation() {
   const [isOpen, setIsOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const [logoUrl, setLogoUrl] = useState<string | null>(null)
+  const [dbLogoUrl, setDbLogoUrl] = useState<string | null>(null)
   // Badge concept (light/dark) as default fallbacks
   const DEFAULT_LOGO_LIGHT = '/brand/studio37-badge-light.svg'
   const DEFAULT_LOGO_DARK = '/brand/studio37-badge-dark.svg'
@@ -33,34 +34,32 @@ export default function Navigation() {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [isMounted])
 
-  // Fetch logo URL from settings (client-side via Supabase)
+  // Fetch logo URL from settings once (client-side via Supabase)
   useEffect(() => {
     if (!isMounted) return
     let mounted = true
-    const fetchLogo = async () => {
+    ;(async () => {
       try {
-        const { data, error } = await supabase.from('settings').select('logo_url').single()
+        const { data } = await supabase.from('settings').select('logo_url').single()
         if (!mounted) return
-        if (!error && data && data.logo_url) {
-          // If existing setting points to an old Studio37 logo asset, prefer new badge defaults
-          const url = String(data.logo_url)
-          if (/(studio37-logo)/i.test(url)) {
-            setLogoUrl(scrolled ? DEFAULT_LOGO_LIGHT : DEFAULT_LOGO_DARK)
-          } else {
-            setLogoUrl(url)
-          }
-        } else {
-          // Use badge logo based on scroll state (light for scrolled backgrounds)
-          setLogoUrl(scrolled ? DEFAULT_LOGO_LIGHT : DEFAULT_LOGO_DARK)
-        }
+        setDbLogoUrl((data && data.logo_url) ? String(data.logo_url) : null)
       } catch {
-        // Fallback on error - use badge logo
-        if (mounted) setLogoUrl(scrolled ? DEFAULT_LOGO_LIGHT : DEFAULT_LOGO_DARK)
+        if (mounted) setDbLogoUrl(null)
       }
-    }
-    fetchLogo()
+    })()
     return () => { mounted = false }
-  }, [scrolled, isMounted]) // Re-run when scroll state changes
+  }, [isMounted])
+
+  // Derive which logo to show based on scroll and DB value without refetching
+  useEffect(() => {
+    // If DB provided a custom logo, prefer it unless it matches an outdated asset pattern
+    if (dbLogoUrl && !/(studio37-logo)/i.test(dbLogoUrl)) {
+      setLogoUrl(dbLogoUrl)
+      return
+    }
+    // Fallback to badge variants depending on scroll state for contrast
+    setLogoUrl(scrolled ? DEFAULT_LOGO_LIGHT : DEFAULT_LOGO_DARK)
+  }, [dbLogoUrl, scrolled])
 
   return (
     <nav 
