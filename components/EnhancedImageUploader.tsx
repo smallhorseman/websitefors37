@@ -151,7 +151,7 @@ export default function EnhancedImageUploader({
 
   // Compress image before upload
   const compressImage = (file: File, quality: number): Promise<Blob> => {
-    return new Promise((resolve) => {
+    return new Promise<Blob>((resolve, reject) => {
       const canvas = document.createElement("canvas");
       const ctx = canvas.getContext("2d")!;
       const img = new Image();
@@ -172,7 +172,13 @@ export default function EnhancedImageUploader({
 
         // Draw and compress
         ctx.drawImage(img, 0, 0, width, height);
-        canvas.toBlob(resolve, "image/jpeg", quality / 100);
+        canvas.toBlob((blob) => {
+          if (!blob) {
+            reject(new Error("Image compression failed: canvas produced no blob."));
+            return;
+          }
+          resolve(blob);
+        }, "image/jpeg", quality / 100);
       };
 
       img.src = URL.createObjectURL(file);
