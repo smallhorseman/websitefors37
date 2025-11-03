@@ -2398,7 +2398,7 @@ function buildHomepageTemplate(): PageComponent[] {
     `component-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
   const components: PageComponent[] = [];
 
-  // Hero with dual CTAs - matching live site design
+  // Hero with dual CTAs - matching live site design with real background
   components.push({
     id: id(),
     type: "hero",
@@ -2407,7 +2407,7 @@ function buildHomepageTemplate(): PageComponent[] {
       subtitle:
         "Capturing your precious moments with artistic excellence and professional craftsmanship",
       backgroundImage:
-        "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?q=80&w=2000&auto=format&fit=crop",
+        "https://res.cloudinary.com/dmjxho2rl/image/upload/v1759639187/A4B03835-ED8B-4FBB-A27E-1F2EE6CA1A18_1_105_c_gstgil_e_gen_restore_e_improve_e_sharpen_l_image_upload_My_Brand_IMG_2115_mtuowt_c_scale_fl_relative_w_0.40_o_80_fl_layer_apply_g_south_x_0.03_y_0.04_yqgycj.jpg",
       buttonText: "Book Your Session",
       buttonLink: "/book-a-session",
       secondaryButtonText: "View Portfolio",
@@ -2415,7 +2415,7 @@ function buildHomepageTemplate(): PageComponent[] {
       alignment: "center",
       overlay: 50,
       titleColor: "text-white",
-      subtitleColor: "text-white",
+      subtitleColor: "text-amber-50",
       buttonStyle: "primary",
       animation: "fade-in",
       buttonAnimation: "hover-zoom",
@@ -2427,37 +2427,188 @@ function buildHomepageTemplate(): PageComponent[] {
   components.push({
     id: id(),
     type: "spacer",
-    data: { height: "lg" },
+    data: { height: "md" },
   } as SpacerComponent);
 
-  // Services overview (as Columns)
+  // Services Grid - Full service offering matching live site
   components.push({
     id: id(),
-    type: "columns",
+    type: "servicesGrid",
     data: {
-      animation: "fade-in",
-      columns: [
+      heading: "Our Photography Services",
+      subheading:
+        "From intimate portraits to grand celebrations, we offer comprehensive photography services tailored to your unique needs.",
+      services: [
         {
-          content:
-            '<h3 class="text-xl font-bold mb-2">Professional Portraits</h3><p>Refined images for personal and business branding.</p>',
+          image:
+            "https://images.unsplash.com/photo-1519741497674-611481863552?w=600&h=400&fit=crop",
+          title: "Wedding Photography",
+          description:
+            "Capture your special day with romantic and timeless images that tell your love story.",
+          features: [
+            "Full day coverage",
+            "Engagement session",
+            "Digital gallery",
+            "Print options",
+          ],
+          link: "/services/wedding-photography",
         },
         {
-          content:
-            '<h3 class="text-xl font-bold mb-2">Creative Portraits</h3><p>Artistic sessions tailored to your unique story.</p>',
+          image:
+            "https://images.unsplash.com/photo-1511895426328-dc8714191300?w=600&h=400&fit=crop",
+          title: "Portrait Sessions",
+          description:
+            "Professional headshots, family portraits, and individual sessions in studio or on location.",
+          features: [
+            "Studio or outdoor",
+            "Multiple outfits",
+            "Retouched images",
+            "Same day preview",
+          ],
+          link: "/services/portrait-photography",
         },
         {
-          content:
-            '<h3 class="text-xl font-bold mb-2">Commercial & Product</h3><p>Clean, striking visuals that elevate your brand.</p>',
+          image:
+            "https://images.unsplash.com/photo-1505236858219-8359eb29e329?w=600&h=400&fit=crop",
+          title: "Event Photography",
+          description:
+            "Document your corporate events, parties, and celebrations with candid and posed shots.",
+          features: [
+            "Event coverage",
+            "Candid moments",
+            "Group photos",
+            "Quick turnaround",
+          ],
+          link: "/services/event-photography",
+        },
+        {
+          image:
+            "https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=600&h=400&fit=crop",
+          title: "Commercial Photography",
+          description:
+            "Product photography, business headshots, and marketing materials for your brand.",
+          features: [
+            "Product shots",
+            "Brand imagery",
+            "Marketing content",
+            "Commercial rights",
+          ],
+          link: "/services/commercial-photography",
         },
       ],
+      columns: 2,
+      animation: "fade-in",
     },
-  } as ColumnsComponent);
+  } as ServicesGridComponent);
 
   // Spacer
   components.push({
     id: id(),
     type: "spacer",
-    data: { height: "md" },
+    data: { height: "lg" },
+  } as SpacerComponent);
+
+  // Commercial Photography Showcase Section
+  components.push({
+    id: id(),
+    type: "text",
+    data: {
+      content:
+        '<h2 class="text-3xl md:text-4xl font-bold mb-4">Commercial Photography Showcase</h2><p class="text-lg text-gray-600">Professional photography solutions that elevate your brand, showcase your products, and tell your business story with compelling visual content.</p>',
+      alignment: "center",
+      size: "lg",
+      animation: "fade-in",
+    },
+  } as TextComponent);
+
+  // Stats Block - Business credibility
+  components.push({
+    id: id(),
+    type: "stats",
+    data: {
+      heading: "",
+      stats: [
+        {
+          icon: "👥",
+          number: "150",
+          label: "Business Clients",
+          suffix: "+",
+        },
+        {
+          icon: "📸",
+          number: "800",
+          label: "Projects Completed",
+          suffix: "+",
+        },
+        {
+          icon: "⭐",
+          number: "95",
+          label: "Client Retention",
+          suffix: "%",
+        },
+      ],
+      columns: 3,
+      style: "cards",
+      animation: "fade-in",
+    },
+  } as StatsComponent);
+
+  // Gallery Highlights - Commercial categories
+  components.push({
+    id: id(),
+    type: "galleryHighlights",
+    data: {
+      categories: [
+        "product photography",
+        "brand photography",
+        "corporate headshots",
+        "real estate",
+      ],
+      collections: [],
+      tags: [],
+      group: "",
+      featuredOnly: true,
+      limit: 8,
+      limitPerCategory: 2,
+      sortBy: "display_order",
+      sortDir: "asc",
+      animation: "fade-in",
+    },
+  } as GalleryHighlightsComponent);
+
+  // Spacer
+  components.push({
+    id: id(),
+    type: "spacer",
+    data: { height: "lg" },
+  } as SpacerComponent);
+
+  // CTA Banner - Business focus
+  components.push({
+    id: id(),
+    type: "ctaBanner",
+    data: {
+      heading: "Ready to Elevate Your Business Visuals?",
+      subheading:
+        "From product photography to corporate events, we help businesses create compelling visual content that drives results and enhances your brand image.",
+      primaryButtonText: "View Commercial Services",
+      primaryButtonLink: "/services/commercial-photography",
+      secondaryButtonText: "Request Quote",
+      secondaryButtonLink: "/contact",
+      backgroundImage: "",
+      backgroundColor: "#0f172a",
+      overlay: 60,
+      textColor: "text-white",
+      fullBleed: true,
+      animation: "fade-in",
+    },
+  } as CTABannerComponent);
+
+  // Spacer
+  components.push({
+    id: id(),
+    type: "spacer",
+    data: { height: "lg" },
   } as SpacerComponent);
 
   // Lead capture prompt + button
@@ -2518,13 +2669,13 @@ function buildHomepageTemplate(): PageComponent[] {
     },
   } as NewsletterComponent);
 
-  // Optional SEO footer starter
+  // Optional SEO footer - Complete contact info
   components.push({
     id: id(),
     type: "seoFooter",
     data: {
       content:
-        '<h3 class="text-lg font-bold mb-2">About Studio37</h3><p class="text-sm">Professional photography serving Pinehurst, Tomball, Magnolia, The Woodlands, Conroe, Spring, and surrounding areas within 50 miles.</p><h3 class="text-lg font-bold mt-4 mb-2">Contact</h3><p class="text-sm">Studio37 • 832-713-9944 • sales@studio37.cc</p>',
+        '<h3 class="text-lg font-bold mb-2">About Studio37</h3><p class="text-sm">Professional photography serving Pinehurst, Tomball, Magnolia, The Woodlands, Conroe, Spring, and surrounding areas within 50 miles. Specializing in portraits, weddings, events, and commercial photography.</p><h3 class="text-lg font-bold mt-4 mb-2">Contact</h3><p class="text-sm">Studio37 • 832-713-9944 • sales@studio37.cc • 1701 Goodson Loop, TRLR 80, Pinehurst, TX 77362</p>',
       includeSchema: true,
     },
   } as SEOFooterComponent);
