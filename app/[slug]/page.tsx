@@ -72,16 +72,45 @@ export default async function DynamicPage({ params }: { params: { slug: string }
   console.log(`Rendering page: ${params.slug}`)
   console.log('Content preview:', page.content?.substring(0, 200))
   
+  // Detect if content uses builder blocks (contains custom JSX components)
+  // vs traditional markdown/prose content
+  const isBuilderPage = page.content?.includes('Block') || false
+  
+  if (isBuilderPage) {
+    // Builder-managed page: render full-width with no constraints
+    return (
+      <div className="min-h-screen">
+        {page.content ? (
+          <MDXRemote 
+            source={page.content}
+            options={{
+              mdxOptions: {
+                rehypePlugins: rehypeRaw 
+                  ? [rehypeRaw as any, [rehypeHighlight, {}] as any]
+                  : [[rehypeHighlight, {}] as any]
+              }
+            }}
+            components={MDXBuilderComponents as any}
+          />
+        ) : (
+          <div className="container mx-auto px-4 py-16">
+            <div className="text-gray-600">This page has no content yet.</div>
+          </div>
+        )}
+      </div>
+    )
+  }
+  
+  // Traditional CMS/article page: use prose wrapper for nice typography
   return (
     <div className="pt-16 min-h-screen">
       <div className="container mx-auto px-4 py-16">
-        <article className="prose max-w-none">
+        <article className="prose prose-lg md:prose-xl max-w-4xl mx-auto prose-headings:font-serif prose-headings:text-amber-900 prose-a:text-amber-700 hover:prose-a:text-amber-800">
           {page.content ? (
             <MDXRemote 
               source={page.content}
               options={{
                 mdxOptions: {
-                  // Use rehype-raw if available, otherwise just highlight
                   rehypePlugins: rehypeRaw 
                     ? [rehypeRaw as any, [rehypeHighlight, {}] as any]
                     : [[rehypeHighlight, {}] as any]
