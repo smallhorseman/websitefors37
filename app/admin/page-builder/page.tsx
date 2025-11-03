@@ -647,7 +647,6 @@ export default function PageBuilderPage() {
             title: derivedTitle,
             content: mdx,
             meta_description: derivedMeta,
-            meta_keywords: keywords || null,
             published: true,
             updated_at: new Date().toISOString(),
           },
