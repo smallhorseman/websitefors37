@@ -5112,6 +5112,7 @@ function LogoProperties({
   data: LogoComponent["data"];
   onUpdate: (d: any) => void;
 }) {
+  const [logoPreviewBg, setLogoPreviewBg] = React.useState<string>("#0f172a");
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-3">
@@ -5282,6 +5283,45 @@ function LogoProperties({
           <option value="slide-up">Slide Up</option>
           <option value="zoom">Zoom</option>
         </select>
+      </div>
+
+      {/* Live Preview (not saved) */}
+      <div className="pt-2">
+        <div className="flex items-center justify-between mb-2">
+          <h4 className="text-sm font-medium">Preview (not saved)</h4>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              className="px-2 py-1 text-xs border rounded hover:bg-gray-50"
+              onClick={() => setLogoPreviewBg("#0f172a")}
+              title="Dark preset"
+            >
+              Dark
+            </button>
+            <button
+              type="button"
+              className="px-2 py-1 text-xs border rounded hover:bg-gray-50"
+              onClick={() => setLogoPreviewBg("#ffffff")}
+              title="Light preset"
+            >
+              Light
+            </button>
+            <label className="inline-flex items-center gap-2 text-xs">
+              <span>Bg</span>
+              <input
+                type="color"
+                value={logoPreviewBg}
+                onChange={(e) => setLogoPreviewBg(e.target.value)}
+              />
+            </label>
+          </div>
+        </div>
+        <div className="border rounded-lg overflow-hidden">
+          <div className="px-4 py-6" style={{ background: logoPreviewBg }}>
+            {/* Reuse the editor renderer to guarantee parity */}
+            <LogoRenderer data={data} />
+          </div>
+        </div>
       </div>
     </div>
   );
