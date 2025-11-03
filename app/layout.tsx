@@ -7,6 +7,7 @@ import QueryProvider from "@/components/QueryProvider";
 import { businessInfo, generateLocalBusinessSchema } from "@/lib/seo-config";
 import Script from "next/script";
 import Analytics from "@/components/Analytics";
+import ClientErrorBoundary from "@/components/ClientErrorBoundary";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -73,6 +74,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        <meta name="referrer" content="strict-origin-when-cross-origin" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -120,9 +122,17 @@ export default function RootLayout({
             <Analytics />
           </Suspense>
           <WebVitals />
-          <Navigation />
-          <main className="min-h-screen">{children}</main>
-          <EnhancedChatBot />
+          {/* Wrap dynamic/client sections in an error boundary to avoid hard crashes from runtime errors */}
+          {/** Using a dynamic import here would not help with errors during render; instead, use a client error boundary. */}
+          <ClientErrorBoundary label="navigation">
+            <Navigation />
+          </ClientErrorBoundary>
+          <ClientErrorBoundary label="page">
+            <main className="min-h-screen">{children}</main>
+          </ClientErrorBoundary>
+          <ClientErrorBoundary label="chatbot">
+            <EnhancedChatBot />
+          </ClientErrorBoundary>
           <Toaster position="top-right" />
         </QueryProvider>
       </body>
