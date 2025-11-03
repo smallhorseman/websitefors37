@@ -117,6 +117,14 @@ export interface Settings {
   seo_default_description?: string
   theme_primary_color?: string
   theme_secondary_color?: string
+  // Homepage hero customization
+  hero_min_height?: string
+  hero_title_color?: string
+  hero_subtitle_color?: string
+  hero_overlay_opacity?: number
+  home_prose_invert?: boolean
+  hero_title?: string | null
+  hero_subtitle?: string | null
 }
 
 export interface PageConfig {

@@ -38,6 +38,8 @@ interface SiteSettings {
   hero_subtitle_color?: string; // hex
   hero_overlay_opacity?: number; // 0-100
   home_prose_invert?: boolean; // invert typography on home MDX
+  hero_title?: string | null;
+  hero_subtitle?: string | null;
 }
 
 export default function SettingsPage() {
@@ -64,6 +66,8 @@ export default function SettingsPage() {
     hero_subtitle_color: "#fde68a", // amber-200-ish
     hero_overlay_opacity: 60,
     home_prose_invert: true,
+    hero_title: "Your Stunning Headline",
+    hero_subtitle: "A compelling subheading that looks great on any background.",
   });
 
   const [loading, setLoading] = useState(true);
