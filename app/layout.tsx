@@ -8,6 +8,7 @@ import { businessInfo, generateLocalBusinessSchema } from "@/lib/seo-config";
 import Script from "next/script";
 import Analytics from "@/components/Analytics";
 import ClientErrorBoundary from "@/components/ClientErrorBoundary";
+import ToasterClient from "@/components/ToasterClient";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -65,10 +66,6 @@ export default function RootLayout({
     ssr: false,
     loading: () => null,
   });
-  const Toaster = dynamic(
-    () => import("react-hot-toast").then((mod) => mod.Toaster),
-    { ssr: false, loading: () => null }
-  );
   const localBusinessSchema = generateLocalBusinessSchema();
 
   return (
@@ -134,7 +131,7 @@ export default function RootLayout({
           <ClientErrorBoundary label="chatbot">
             <EnhancedChatBot />
           </ClientErrorBoundary>
-          <Toaster position="top-right" />
+          <ToasterClient />
         </QueryProvider>
       </body>
     </html>

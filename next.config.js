@@ -37,7 +37,7 @@ const nextConfig = {
   swcMinify: true,
   // Experimental features for better performance
   experimental: {
-    optimizeCss: true, // Optimize CSS loading
+    // optimizeCss: true, // Disabled - requires 'critters' package
     optimizePackageImports: ['lucide-react', 'react-hot-toast'], // Tree-shake large packages
   },
   async redirects() {
