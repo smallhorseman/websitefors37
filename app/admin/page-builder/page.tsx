@@ -15,6 +15,12 @@ export default function PageBuilderPage() {
   const [slug, setSlug] = useState('new-landing-page')
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
   const [lastPublishedSlug, setLastPublishedSlug] = useState<string | null>(null)
+  const [showSEOModal, setShowSEOModal] = useState(false)
+  const [seoSuggestions, setSeoSuggestions] = useState<any>(null)
+  const [generatingSEO, setGeneratingSEO] = useState(false)
+  const [pageTitle, setPageTitle] = useState('')
+  const [metaDescription, setMetaDescription] = useState('')
+  const [keywords, setKeywords] = useState('')
 
   useEffect(() => {
     // Initialize slug from query string if provided
@@ -620,12 +626,18 @@ export default function PageBuilderPage() {
       // Log MDX for debugging
       console.log('Generated MDX:', mdx)
 
-      // Derive title and meta from components
-      let derivedTitle = cleanSlug.replace(/-/g, ' ')
-      const hero = components.find((c) => c.type === 'hero')
-      if (hero?.data?.title) derivedTitle = String(hero.data.title)
-      const firstText = components.find((c) => c.type === 'text' && c.data?.content)
-      const metaDescription = firstText ? firstText.data.content.replace(/<[^>]*>/g, '').slice(0, 160) : ''
+      // Use AI-generated or manually entered SEO data if available
+      const derivedTitle = pageTitle || (function() {
+        let t = cleanSlug.replace(/-/g, ' ')
+        const hero = components.find((c) => c.type === 'hero')
+        if (hero?.data?.title) t = String(hero.data.title)
+        return t
+      })()
+
+      const derivedMeta = metaDescription || (function() {
+        const firstText = components.find((c) => c.type === 'text' && c.data?.content)
+        return firstText ? firstText.data.content.replace(/<[^>]*>/g, '').slice(0, 160) : ''
+      })()
 
       const { error } = await supabase
         .from('content_pages')
@@ -634,7 +646,8 @@ export default function PageBuilderPage() {
             slug: cleanSlug,
             title: derivedTitle,
             content: mdx,
-            meta_description: metaDescription,
+            meta_description: derivedMeta,
+            meta_keywords: keywords || null,
             published: true,
             updated_at: new Date().toISOString(),
           },
@@ -643,13 +656,51 @@ export default function PageBuilderPage() {
 
       if (error) throw error
 
-  setMessage({ type: 'success', text: `Published to /${cleanSlug}.` })
-  setLastPublishedSlug(cleanSlug)
+      setMessage({ type: 'success', text: `Published to /${cleanSlug}.` })
+      setLastPublishedSlug(cleanSlug)
     } catch (e) {
       console.error('Failed to publish:', e)
       setMessage({ type: 'error', text: 'Failed to publish page. Please check the slug and try again.' })
     } finally {
       setSaving(false)
+    }
+  }
+
+  const handleGenerateSEO = async () => {
+    setGeneratingSEO(true)
+    setSeoSuggestions(null)
+    try {
+      // Extract text content from components
+      const mdx = componentsToMDX(components)
+      
+      if (!mdx || mdx.trim().length < 50) {
+        alert('Please add some content to your page before generating SEO suggestions.')
+        return
+      }
+
+      const response = await fetch('/api/ai/generate-seo', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          content: mdx,
+          currentTitle: pageTitle,
+          currentMeta: metaDescription,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to generate SEO suggestions')
+      }
+
+      setSeoSuggestions(data.suggestions)
+      setShowSEOModal(true)
+    } catch (error: any) {
+      console.error('SEO Generation Error:', error)
+      alert(error.message || 'Failed to generate SEO suggestions. Please try again.')
+    } finally {
+      setGeneratingSEO(false)
     }
   }
 
@@ -689,10 +740,159 @@ export default function PageBuilderPage() {
                 aria-label="Page URL slug"
               />
             </div>
+            <button
+              onClick={handleGenerateSEO}
+              disabled={generatingSEO || components.length === 0}
+              className="ml-2 px-3 py-1.5 text-sm border rounded hover:bg-gray-50 disabled:opacity-50 flex items-center gap-2"
+              title="Generate SEO with AI"
+            >
+              {generatingSEO ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-gray-300 border-t-primary-600 rounded-full animate-spin" />
+                  <span>Generating...</span>
+                </>
+              ) : (
+                <>
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                  <span>Generate SEO</span>
+                </>
+              )}
+            </button>
           </div>
         </div>
         <div className="w-32" /> {/* Spacer for centering */}
       </div>
+
+      {/* SEO Suggestions Modal */}
+      {showSEOModal && seoSuggestions && (
+        <div className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4" onClick={() => setShowSEOModal(false)}>
+          <div className="bg-white rounded-lg max-w-3xl w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            <div className="p-6 border-b sticky top-0 bg-white z-10">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-bold">AI SEO Suggestions</h2>
+                <button onClick={() => setShowSEOModal(false)} className="p-2 hover:bg-gray-100 rounded">
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              <p className="text-sm text-gray-600 mt-1">Click on any suggestion to use it, or customize below.</p>
+            </div>
+
+            <div className="p-6 space-y-6">
+              {/* Title Suggestions */}
+              <div>
+                <label className="block text-sm font-medium mb-2">Page Title (pick one or customize)</label>
+                <div className="space-y-2">
+                  {seoSuggestions.titles.map((title: string, idx: number) => (
+                    <button
+                      key={idx}
+                      onClick={() => setPageTitle(title)}
+                      className={`w-full text-left p-3 border rounded hover:border-primary-500 hover:bg-primary-50 transition ${pageTitle === title ? 'border-primary-500 bg-primary-50' : ''}`}
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <span className="flex-1">{title}</span>
+                        <span className="text-xs text-gray-500">{title.length} chars</span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+                <input
+                  type="text"
+                  value={pageTitle}
+                  onChange={(e) => setPageTitle(e.target.value)}
+                  placeholder="Or type your own title..."
+                  className="w-full mt-2 px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-primary-500"
+                />
+                <p className="text-xs text-gray-500 mt-1">{pageTitle.length}/60 characters (optimal: 50-60)</p>
+              </div>
+
+              {/* Meta Description */}
+              <div>
+                <label className="block text-sm font-medium mb-2">Meta Description</label>
+                <div
+                  onClick={() => setMetaDescription(seoSuggestions.metaDescription)}
+                  className={`p-3 border rounded cursor-pointer hover:border-primary-500 hover:bg-primary-50 transition ${metaDescription === seoSuggestions.metaDescription ? 'border-primary-500 bg-primary-50' : ''}`}
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <span className="flex-1 text-sm">{seoSuggestions.metaDescription}</span>
+                    <span className="text-xs text-gray-500">{seoSuggestions.metaDescription.length} chars</span>
+                  </div>
+                </div>
+                <textarea
+                  value={metaDescription}
+                  onChange={(e) => setMetaDescription(e.target.value)}
+                  placeholder="Or type your own meta description..."
+                  rows={3}
+                  className="w-full mt-2 px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-primary-500"
+                />
+                <p className="text-xs text-gray-500 mt-1">{metaDescription.length}/160 characters (optimal: 150-160)</p>
+              </div>
+
+              {/* Keywords */}
+              <div>
+                <label className="block text-sm font-medium mb-2">Keywords</label>
+                <div className="flex flex-wrap gap-2 mb-3">
+                  {seoSuggestions.keywords.map((keyword: string, idx: number) => (
+                    <button
+                      key={idx}
+                      onClick={() => {
+                        const current = keywords.split(',').map(k => k.trim()).filter(Boolean)
+                        if (!current.includes(keyword)) {
+                          setKeywords([...current, keyword].join(', '))
+                        }
+                      }}
+                      className="px-3 py-1 text-sm border rounded hover:border-primary-500 hover:bg-primary-50 transition"
+                    >
+                      {keyword}
+                    </button>
+                  ))}
+                </div>
+                <textarea
+                  value={keywords}
+                  onChange={(e) => setKeywords(e.target.value)}
+                  placeholder="Comma-separated keywords..."
+                  rows={2}
+                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-primary-500"
+                />
+                <p className="text-xs text-gray-500 mt-1">Click keywords above to add them, or type your own</p>
+              </div>
+            </div>
+
+            <div className="p-6 border-t bg-gray-50 flex justify-between items-center">
+              <button
+                onClick={() => {
+                  setPageTitle('')
+                  setMetaDescription('')
+                  setKeywords('')
+                }}
+                className="px-4 py-2 text-sm text-gray-600 hover:text-gray-900"
+              >
+                Clear All
+              </button>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setShowSEOModal(false)}
+                  className="px-4 py-2 border rounded hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    setShowSEOModal(false)
+                    setMessage({ type: 'success', text: 'SEO data saved. Remember to publish your changes!' })
+                  }}
+                  className="px-4 py-2 bg-primary-600 text-white rounded hover:bg-primary-700"
+                >
+                  Apply SEO Data
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Editor Container */}
       <div className="flex-1 relative">
