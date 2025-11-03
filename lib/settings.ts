@@ -84,30 +84,13 @@ export async function updateSettings(
 
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // First check if settings exist
-    const { data: existing } = await supabase
+    // Enforce single-row semantics via upsert on id=1
+    const payload = { id: 1, ...settings }
+    const result = await supabase
       .from("settings")
-      .select("id")
+      .upsert(payload, { onConflict: "id" })
+      .select("*")
       .single();
-
-    let result;
-
-    if (existing) {
-      // Update existing settings
-      result = await supabase
-        .from("settings")
-        .update(settings)
-        .eq("id", existing.id)
-        .select("*")
-        .single();
-    } else {
-      // Insert new settings
-      result = await supabase
-        .from("settings")
-        .insert([settings])
-        .select("*")
-        .single();
-    }
 
     if (result.error) throw result.error;
 

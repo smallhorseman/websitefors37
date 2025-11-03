@@ -132,26 +132,18 @@ export default function SettingsPage() {
 
       const { supabase } = await import("@/lib/supabase");
 
-      // First check if settings exist
-      const { data: existing } = await supabase
+      // Use upsert to handle both insert and update
+      // Assumes settings table has 'id' as primary key with a default value of 1
+      const settingsWithId = {
+        id: 1, // Settings table should only have one row
+        ...settings,
+      };
+
+      const { error } = await supabase
         .from("settings")
-        .select("id")
-        .single();
+        .upsert(settingsWithId, { onConflict: "id" });
 
-      let result;
-
-      if (existing) {
-        // Update existing settings
-        result = await supabase
-          .from("settings")
-          .update(settings)
-          .eq("id", existing.id);
-      } else {
-        // Insert new settings
-        result = await supabase.from("settings").insert([settings]);
-      }
-
-      if (result.error) throw result.error;
+      if (error) throw error;
 
       setSaveSuccess(true);
       // Hide success message after 3 seconds

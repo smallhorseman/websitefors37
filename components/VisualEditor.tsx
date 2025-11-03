@@ -2642,18 +2642,40 @@ function buildHomepageTemplate(): PageComponent[] {
     data: { height: "lg" },
   } as SpacerComponent);
 
-  // Simple testimonials teaser
+  // Testimonials
   components.push({
     id: id(),
-    type: "text",
+    type: "testimonials",
     data: {
-      content:
-        '<h3 class="text-2xl font-bold mb-4 text-center">What Clients Say</h3><p class="text-center italic max-w-3xl mx-auto">“Absolutely stunning photos and a wonderful experience from start to finish.” — A Happy Client</p>',
-      alignment: "center",
-      size: "md",
+      testimonials: [
+        {
+          quote:
+            "Absolutely stunning photos and a wonderful experience from start to finish.",
+          author: "Emily R.",
+          subtext: "Brand Manager, Houston, TX",
+          avatar:
+            "https://images.unsplash.com/photo-1544006659-f0b21884ce1d?q=80&w=256&auto=format&fit=crop",
+        },
+        {
+          quote:
+            "Our team headshots and product images elevated our entire website.",
+          author: "Michael T.",
+          subtext: "Founder, Pinehurst, TX",
+          avatar:
+            "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=256&auto=format&fit=crop",
+        },
+        {
+          quote:
+            "Professional, creative, and fast. The photos captured our brand perfectly.",
+          author: "Sofia L.",
+          subtext: "Marketing Director, The Woodlands, TX",
+          avatar:
+            "https://images.unsplash.com/photo-1547425260-76bcadfb4f2c?q=80&w=256&auto=format&fit=crop",
+        },
+      ],
       animation: "fade-in",
     },
-  } as TextComponent);
+  } as TestimonialsComponent);
 
   // Newsletter signup
   components.push({

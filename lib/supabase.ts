@@ -1,10 +1,21 @@
 
-import { createClient } from '@supabase/supabase-js'
+import { createClient, SupabaseClient } from '@supabase/supabase-js'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+// Ensure a singleton client in the browser (prevents Multiple GoTrueClient warnings in dev)
+declare global {
+  // eslint-disable-next-line no-var
+  var __supabase: SupabaseClient | undefined
+}
+
+export const supabase: SupabaseClient =
+  globalThis.__supabase ?? createClient(supabaseUrl, supabaseAnonKey)
+
+if (typeof window !== 'undefined') {
+  globalThis.__supabase = supabase
+}
 
 // Type definitions
 export interface Lead {
@@ -98,7 +109,7 @@ export interface GalleryImage {
 }
 
 export interface Settings {
-  id: string
+  id: number
   key?: string
   value?: any
   type?: 'string' | 'number' | 'boolean' | 'json'
@@ -117,6 +128,11 @@ export interface Settings {
   seo_default_description?: string
   theme_primary_color?: string
   theme_secondary_color?: string
+  google_analytics_id?: string
+  logo_url?: string
+  ai_enabled?: boolean
+  ai_model?: string
+  ai_key_ref?: string
   // Homepage hero customization
   hero_min_height?: string
   hero_title_color?: string
