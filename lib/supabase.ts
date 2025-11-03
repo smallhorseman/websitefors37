@@ -79,6 +79,8 @@ export interface GalleryImage {
   description?: string
   image_url: string
   thumbnail_url?: string
+  // Optional optimized/cdn-transformed URL for display
+  optimized_url?: string | null
   category: string
   tags?: string[]
   featured: boolean

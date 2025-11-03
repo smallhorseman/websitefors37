@@ -500,7 +500,7 @@ export default function AdminGalleryPage() {
         <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50">
           <div className="relative max-w-4xl max-h-[90vh] w-full h-full flex items-center justify-center">
             <img
-              src={previewImage.optimized_url || previewImage.url}
+              src={previewImage.optimized_url || previewImage.image_url}
               alt={previewImage.alt_text || "Image preview"}
               className="max-w-full max-h-full object-contain"
             />
