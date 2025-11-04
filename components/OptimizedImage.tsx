@@ -37,21 +37,14 @@ export default function OptimizedImage({
         alt={alt}
         {...(fill ? { fill: true } : { width, height })}
         className={`duration-700 ease-in-out ${imgClassName} ${
-          isLoading ? 'scale-110 blur-lg' : 'scale-100 blur-0'
+          isLoading ? 'scale-110 blur-sm' : 'scale-100 blur-0'
         }`}
-        onLoadingComplete={() => setIsLoading(false)}
+        onLoad={() => setIsLoading(false)}
         priority={priority}
         quality={75}
         sizes={sizes}
         loading={priority ? 'eager' : 'lazy'}
-        placeholder={src.includes('res.cloudinary.com') ? 'blur' : undefined}
-        blurDataURL={src.includes('res.cloudinary.com') ? 
-          optimizeCloudinaryUrl(src, { 
-            width: 40, 
-            quality: 20,
-            effect: 'blur:400,pixelate:15'
-          }) : 
-          undefined}
+        unoptimized={process.env.NETLIFY === "true"}
       />
       {isLoading && (
         <div className="absolute inset-0 bg-gradient-to-br from-slate-700 via-slate-900 to-slate-700 animate-pulse" />
