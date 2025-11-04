@@ -126,3 +126,56 @@ export function generateStructuredData(data: object) {
     children: JSON.stringify(data, null, 0)
   }
 }
+
+// Generate Article schema for blog posts
+export function generateArticleSchema(article: {
+  headline: string
+  description: string
+  image: string
+  datePublished: string
+  dateModified?: string
+  author: string
+  url: string
+}) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: article.headline,
+    description: article.description,
+    image: article.image,
+    datePublished: article.datePublished,
+    dateModified: article.dateModified || article.datePublished,
+    author: {
+      '@type': 'Person',
+      name: article.author
+    },
+    publisher: {
+      '@type': 'Organization',
+      name: businessInfo.name,
+      logo: {
+        '@type': 'ImageObject',
+        url: `${businessInfo.contact.website}/logo.png`
+      }
+    },
+    mainEntityOfPage: {
+      '@type': 'WebPage',
+      '@id': article.url
+    }
+  }
+}
+
+// Generate FAQ schema for service pages
+export function generateFAQSchema(faqs: Array<{ question: string; answer: string }>) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: faqs.map(faq => ({
+      '@type': 'Question',
+      name: faq.question,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: faq.answer
+      }
+    }))
+  }
+}

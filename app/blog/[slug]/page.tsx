@@ -1,19 +1,23 @@
 import React from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
+// Use anon client for ISR caching
+import { supabase } from '@/lib/supabase'
 import { notFound } from 'next/navigation'
 import { Calendar, User, Tag, ArrowLeft } from 'lucide-react'
 import { MDXRemote } from 'next-mdx-remote/rsc'
 import rehypeHighlight from 'rehype-highlight'
 import rehypeRaw from 'rehype-raw'
+import { generateSEOMetadata, generateArticleSchema } from '@/lib/seo-helpers'
+import { businessInfo } from '@/lib/seo-config'
 
 const isValidSlug = (s: string) => /^[a-z0-9-]{1,64}$/.test(s)
 
+// Enable ISR caching for blog posts
+export const revalidate = 600
+
 // Generate metadata dynamically based on blog post
 export async function generateMetadata({ params }: { params: { slug: string } }) {
-  const supabase = createServerComponentClient({ cookies })
   if (!isValidSlug(params.slug)) {
     return {
       title: 'Post Not Found',
@@ -23,7 +27,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   
   const { data: post } = await supabase
     .from('blog_posts')
-    .select('title, meta_description, excerpt')
+    .select('title, meta_description, excerpt, meta_keywords')
     .eq('slug', params.slug)
     .eq('published', true)
     .maybeSingle()
@@ -35,14 +39,16 @@ export async function generateMetadata({ params }: { params: { slug: string } })
     }
   }
   
-  return {
-    title: `${post.title} | Studio 37 Blog`,
-    description: post.meta_description || post.excerpt || 'Studio 37 Photography Blog'
-  }
+  return generateSEOMetadata({
+    title: post.title,
+    description: post.meta_description || post.excerpt || 'Studio 37 Photography Blog',
+    keywords: post.meta_keywords || [],
+    canonicalUrl: `${businessInfo.contact.website}/blog/${params.slug}`,
+    pageType: 'article'
+  })
 }
 
 export default async function BlogPostPage({ params }: { params: { slug: string } }) {
-  const supabase = createServerComponentClient({ cookies })
   if (!isValidSlug(params.slug)) {
     notFound()
   }
@@ -66,9 +72,26 @@ export default async function BlogPostPage({ params }: { params: { slug: string 
     .neq('id', post.id)
     .order('published_at', { ascending: false })
     .limit(3)
+
+  // Generate Article schema for SEO
+  const articleSchema = generateArticleSchema({
+    headline: post.title,
+    description: post.meta_description || post.excerpt || '',
+    image: post.featured_image || `${businessInfo.contact.website}/api/og?title=${encodeURIComponent(post.title)}`,
+    datePublished: post.published_at || post.created_at,
+    dateModified: post.updated_at,
+    author: post.author || 'Studio 37',
+    url: `${businessInfo.contact.website}/blog/${post.slug}`
+  })
   
   return (
     <div className="min-h-screen pt-16">
+      {/* Article Schema */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }}
+      />
+
       <div className="bg-gray-50 py-12">
         <div className="container mx-auto px-4">
           <Link href="/blog" className="inline-flex items-center text-primary-600 hover:text-primary-800 mb-6">

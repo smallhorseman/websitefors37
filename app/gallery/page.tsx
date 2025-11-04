@@ -19,13 +19,16 @@ export const metadata = generateSEOMetadata({
   canonicalUrl: 'https://studio37.cc/gallery'
 })
 
+// Enable ISR caching for gallery (revalidate every 5 minutes)
+export const revalidate = 300
+
 export default async function GalleryPage() {
   const supabase = createServerComponentClient({ cookies })
   
   const { data: images } = await supabase
     .from('gallery_images')
     .select('*')
-    .order('created_at', { ascending: false })
+    .order('order_index', { ascending: true })
   
   // Get unique categories
   const categories = images ? 

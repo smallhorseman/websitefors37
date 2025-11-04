@@ -45,14 +45,17 @@ This is a Next.js 14 App Router project (TypeScript + Tailwind) deployed on Netl
 ## SEO & platform files
 - Per-page metadata: use `generateSEOMetadata` from `lib/seo-helpers.ts` and `businessInfo` from `lib/seo-config.ts`.
 - `app/robots.ts` and `app/sitemap.ts` are server functions; sitemap queries Supabase for published pages/posts and is cached for 1h via `export const revalidate = 3600`.
-- Structured data: `generateLocalBusinessSchema()` and helpers in `lib/seo-config.ts`.
+- Structured data: `generateLocalBusinessSchema()`, `generateServiceSchema()`, `generateArticleSchema()`, and `generateFAQSchema()` helpers in `lib/seo-helpers.ts` and `lib/seo-config.ts`.
+- Blog posts and content pages include Article/FAQ schemas where appropriate.
 
 ## API route patterns
 - Route handlers live under `app/api/**/route.ts` and use `NextRequest/NextResponse`.
 - Use `lib/rateLimit.ts` (`getClientIp`, `rateLimit`) for public-facing endpoints.
+- Use `lib/logger.ts` (`createLogger`) for structured JSON logging in all API routes.
 - Use `lib/supabaseAdmin.ts` only here. For user-scoped access, prefer RLS with anon client.
 - Add CORS/headers per route as needed; baseline security headers are added in `middleware.ts`.
 - Observability: `app/api/vitals/route.ts` accepts web-vitals POSTs (zod-validated, rate-limited) and best-effort inserts into `web_vitals` when present.
+- On-demand revalidation: `app/api/revalidate/route.ts` accepts bearer-token authenticated requests to revalidate ISR pages/tags; use helpers from `lib/revalidate.ts` in admin actions.
 
 ## Conventions & gotchas
 - Path alias `@/*` is configured in `tsconfig.json`.

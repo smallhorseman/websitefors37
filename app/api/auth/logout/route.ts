@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { revokeSessionByToken } from '@/lib/authSession'
+import { createLogger } from '@/lib/logger'
+
+const log = createLogger('api/auth/logout')
 
 export async function POST(request: NextRequest) {
   try {
@@ -10,6 +13,7 @@ export async function POST(request: NextRequest) {
     if (token) {
       // Revoke the session server-side
       await revokeSessionByToken(token)
+      log.info('Session revoked')
     }
 
     // Clear session cookie client-side
@@ -18,7 +22,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: true })
 
   } catch (error) {
-    console.error('Logout error:', error)
+    log.error('Logout error', undefined, error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

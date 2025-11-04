@@ -4,6 +4,9 @@ import { cookies } from 'next/headers'
 import bcrypt from 'bcryptjs'
 import { getClientIp, rateLimit } from '@/lib/rateLimit'
 import { createSession } from '@/lib/authSession'
+import { createLogger } from '@/lib/logger'
+
+const log = createLogger('api/auth/login')
 
 export async function POST(request: NextRequest) {
   try {
@@ -11,6 +14,7 @@ export async function POST(request: NextRequest) {
 
     // Basic input validation
     if (typeof email !== 'string' || typeof password !== 'string') {
+      log.warn('Invalid payload type')
       return NextResponse.json({ error: 'Invalid payload' }, { status: 400 })
     }
 
@@ -19,6 +23,7 @@ export async function POST(request: NextRequest) {
     const rl = rateLimit(`login:${ip}`, { limit: 5, windowMs: 5 * 60 * 1000 })
     if (!rl.allowed) {
       const retryAfter = Math.max(1, Math.ceil((rl.resetAt - Date.now()) / 1000))
+      log.warn('Login rate limit exceeded', { ip, email })
       return new NextResponse(JSON.stringify({ error: 'Too many attempts. Try again later.' }), {
         status: 429,
         headers: {
@@ -29,6 +34,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (!email || !password) {
+      log.warn('Missing credentials')
       return NextResponse.json(
         { error: 'Email and password required' },
         { status: 400 }
@@ -43,6 +49,7 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (error || !user) {
+      log.warn('Invalid credentials attempt', { email })
       return NextResponse.json(
         { error: 'Invalid credentials' },
         { status: 401 }
@@ -65,10 +72,12 @@ export async function POST(request: NextRequest) {
           .update({ password_hash: newHash })
           .eq('id', user.id)
         passwordMatch = true
+        log.info('Password migrated to bcrypt', { userId: user.id })
       }
     }
 
     if (!passwordMatch) {
+      log.warn('Password mismatch', { email })
       return NextResponse.json(
         { error: 'Invalid credentials' },
         { status: 401 }
@@ -79,6 +88,7 @@ export async function POST(request: NextRequest) {
     const userAgent = request.headers.get('user-agent') || undefined
     const session = await createSession({ userId: user.id, ip, userAgent })
     if (!session) {
+      log.error('Session creation failed', { userId: user.id })
       return NextResponse.json({ error: 'Failed to create session' }, { status: 500 })
     }
 
@@ -92,6 +102,7 @@ export async function POST(request: NextRequest) {
       path: '/'
     })
 
+    log.info('Login successful', { userId: user.id, email })
     return NextResponse.json({
       success: true,
       user: {
@@ -103,7 +114,7 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Login error:', error)
+    log.error('Login error', undefined, error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
