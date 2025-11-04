@@ -165,9 +165,9 @@ export default function EnhancedImageUploader({
       try {
         // Simple duplicate detection based on file size and name similarity
         const potentialDuplicates = existingImages.filter((existing) => {
-          const sizeDiff = Math.abs(
+          const sizeDiff = fileItem.file ? Math.abs(
             fileItem.file.size - (existing as any).file_size || 0
-          );
+          ) : Infinity;
           const nameMatch =
             existing.title
               .toLowerCase()
@@ -290,9 +290,8 @@ export default function EnhancedImageUploader({
           prev.map((f) => (f === fileItem ? { ...f, progress: 50 } : f))
         );
       } else {
-        // Compress image if needed
-        const compressedFile =
-          fileItem.file.size > 1024 * 1024
+        // Compress image if needed (only for file uploads, not URL uploads)
+        const compressedFile = fileItem.file && fileItem.file.size > 1024 * 1024
             ? await compressImage(fileItem.file, compressionQuality)
             : fileItem.file;
 
@@ -628,9 +627,9 @@ export default function EnhancedImageUploader({
         {files.length > 0 && (
           <div className="flex-1 overflow-y-auto p-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {files.map((fileItem) => (
+              {files.map((fileItem, index) => (
                 <div
-                  key={fileItem.file.name}
+                  key={fileItem.file?.name || `url-upload-${index}`}
                   className="border border-gray-200 rounded-lg p-4 space-y-3"
                 >
                   <div className="flex items-start gap-3">
@@ -774,7 +773,7 @@ export default function EnhancedImageUploader({
               <span>
                 Total size:{" "}
                 {(
-                  files.reduce((sum, f) => sum + f.file.size, 0) /
+                  files.reduce((sum, f) => sum + (f.file?.size || 0), 0) /
                   (1024 * 1024)
                 ).toFixed(1)}
                 MB
