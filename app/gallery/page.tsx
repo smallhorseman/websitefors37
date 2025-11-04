@@ -1,4 +1,4 @@
-import React, { Suspense } from 'react'
+import React from 'react'
 import { supabase } from '@/lib/supabase'
 import GalleryWithSuspense from '@/components/GalleryWithSuspense'
 import { generateSEOMetadata } from '@/lib/seo-helpers'
@@ -98,9 +98,7 @@ export default async function GalleryPage() {
       </div>
       
       <div className="container mx-auto px-4 py-16">
-        <Suspense fallback={<div className="py-20 text-center text-gray-500">Loading gallery…</div>}>
-          <GalleryWithSuspense initialImages={images || []} categories={categories} />
-        </Suspense>
+        <GalleryWithSuspense initialImages={images || []} categories={categories} />
       </div>
     </div>
   )
