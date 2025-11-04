@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
+import { revalidateContent } from '@/lib/revalidate'
 
 export default function PageBuilderPage() {
   const [components, setComponents] = useState<any[]>([])
@@ -85,6 +86,13 @@ export default function PageBuilderPage() {
       if (error) throw error
       setMessage({ type: 'success', text: 'Page saved successfully.' })
       setComponents(newComponents)
+
+      // Trigger on-demand revalidation for the landing page
+      try {
+        await revalidateContent(`/${cleanSlug}`);
+      } catch (revalError) {
+        console.warn("Revalidation failed (non-critical):", revalError);
+      }
     } catch (e) {
       console.error('Failed to save:', e)
       setMessage({ type: 'error', text: 'Failed to save page. Please try again.' })

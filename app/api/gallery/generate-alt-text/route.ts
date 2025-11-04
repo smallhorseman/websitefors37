@@ -1,12 +1,16 @@
 import { NextResponse } from "next/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { supabase } from "@/lib/supabase";
+import { createLogger } from "@/lib/logger";
+
+const log = createLogger("api/gallery/generate-alt-text");
 
 export async function POST(req: Request) {
   try {
     const { imageUrl, title, description, category, tags } = await req.json();
 
     if (!imageUrl) {
+      log.warn("Missing image URL");
       return NextResponse.json(
         { error: "Image URL is required" },
         { status: 400 }
@@ -20,6 +24,7 @@ export async function POST(req: Request) {
         .select("ai_enabled")
         .single();
       if (data && data.ai_enabled === false) {
+        log.warn("AI disabled in settings");
         return NextResponse.json(
           { error: "AI is disabled in settings" },
           { status: 403 }
@@ -31,6 +36,7 @@ export async function POST(req: Request) {
 
     const apiKey = process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY;
     if (!apiKey) {
+      log.error("Missing API key", { env: "GOOGLE_API_KEY or GEMINI_API_KEY" });
       return NextResponse.json(
         { error: "Missing GOOGLE_API_KEY" },
         { status: 503 }
@@ -66,12 +72,7 @@ Return ONLY the alt text, no backticks or commentary.`;
 
     return NextResponse.json({ altText: finalAltText });
   } catch (err: any) {
-    console.error("Alt text generation failed:", err);
-    console.error("Error details:", {
-      message: err?.message,
-      stack: err?.stack,
-      name: err?.name,
-    });
+    log.error("Alt text generation failed", undefined, err);
     return NextResponse.json(
       { error: err?.message || "Alt text generation failed" },
       { status: 500 }

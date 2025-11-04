@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import { Loader2, Plus, Trash2, Edit, Settings, X, ExternalLink, FileText } from 'lucide-react'
 import MarkdownEditor from '@/components/MarkdownEditor'
+import { revalidateContent } from '@/lib/revalidate'
 
 interface ContentPage {
   id: string
@@ -188,6 +189,14 @@ export default function ContentManagementPage() {
       // Close modal and reset form
       setShowPageModal(false)
       setSelectedPage(null)
+
+      // Trigger on-demand revalidation for content page
+      const revalidatePath = `/${pageForm.slug}`;
+      try {
+        await revalidateContent(revalidatePath);
+      } catch (revalError) {
+        console.warn("Revalidation failed (non-critical):", revalError);
+      }
     } catch (error: any) {
       console.error('Error saving page:', error)
       const code = error?.code || error?.details || ''

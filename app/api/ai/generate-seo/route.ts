@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { GoogleGenerativeAI } from '@google/generative-ai'
+import { createLogger } from '@/lib/logger'
 
 export const runtime = 'edge'
+
+const log = createLogger('api/ai/generate-seo')
 
 interface SEOSuggestions {
   titles: string[]
@@ -14,6 +17,7 @@ export async function POST(request: NextRequest) {
     const { content, currentTitle, currentMeta } = await request.json()
 
     if (!content || content.trim().length < 50) {
+      log.warn('Content too short', { length: content?.trim().length || 0 });
       return NextResponse.json(
         { error: 'Content must be at least 50 characters' },
         { status: 400 }
@@ -22,6 +26,7 @@ export async function POST(request: NextRequest) {
 
     const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY
     if (!apiKey) {
+      log.error('Missing API key', { env: 'GEMINI_API_KEY or GOOGLE_API_KEY' });
       return NextResponse.json(
         { error: 'Gemini API key not configured. Please set GEMINI_API_KEY or GOOGLE_API_KEY in your environment variables.' },
         { status: 500 }
@@ -97,7 +102,7 @@ Respond ONLY with the JSON object, no other text.`
       suggestions,
     })
   } catch (error: any) {
-    console.error('AI SEO Generation Error:', error)
+    log.error('SEO generation failed', undefined, error);
     return NextResponse.json(
       {
         error: error?.message || 'Failed to generate SEO suggestions',

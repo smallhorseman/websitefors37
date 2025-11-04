@@ -3,6 +3,9 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import { supabase } from "@/lib/supabase";
 import { z } from "zod";
 import { getClientIp, rateLimit } from "@/lib/rateLimit";
+import { createLogger } from "@/lib/logger";
+
+const log = createLogger("api/chat/respond");
 
 const BodySchema = z.object({
   message: z.string().min(1, "message is required").max(2000),
@@ -17,6 +20,7 @@ export async function POST(req: Request) {
     const rl = rateLimit(`chat:${ip}`, { limit: 20, windowMs: 60 * 1000 });
     if (!rl.allowed) {
       const retryAfter = Math.max(1, Math.ceil((rl.resetAt - Date.now()) / 1000));
+      log.warn("Rate limit exceeded", { ip });
       return new NextResponse(
         JSON.stringify({ error: "Too many requests. Please slow down." }),
         {
@@ -32,6 +36,7 @@ export async function POST(req: Request) {
     const json = await req.json();
     const parsed = BodySchema.safeParse(json);
     if (!parsed.success) {
+      log.warn("Validation failed", { issues: parsed.error.flatten() });
       return NextResponse.json(
         { error: "Invalid request body", details: parsed.error.flatten() },
         { status: 400 }
@@ -48,6 +53,7 @@ export async function POST(req: Request) {
         .select("ai_enabled")
         .single();
       if (data && data.ai_enabled === false) {
+        log.warn("AI disabled in settings", { ip });
         return NextResponse.json(
           { error: "AI is disabled in settings" },
           { status: 403 }
@@ -79,6 +85,7 @@ export async function POST(req: Request) {
 
     const apiKey = process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY;
     if (!apiKey) {
+      log.error("Missing API key", { env: "GOOGLE_API_KEY or GEMINI_API_KEY" });
       return NextResponse.json(
         { error: "Missing GOOGLE_API_KEY" },
         { status: 503 }
@@ -165,12 +172,7 @@ Respond naturally in 2-3 sentences using the ${personality} personality and ${to
       detectedInfo: Object.keys(detectedInfo).length > 0 ? detectedInfo : null,
     });
   } catch (err: any) {
-    console.error("Chat response generation failed:", err);
-    console.error("Error details:", {
-      message: err?.message,
-      stack: err?.stack,
-      name: err?.name,
-    });
+    log.error("Chat response generation failed", undefined, err);
     return NextResponse.json(
       { error: err?.message || "Chat response generation failed" },
       { status: 500 }

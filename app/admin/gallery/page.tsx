@@ -18,6 +18,7 @@ import GalleryHighlightsEditor from "@/components/GalleryHighlightsEditor";
 import GalleryAdvancedFilters from "@/components/GalleryAdvancedFilters";
 import GalleryBulkOperations from "@/components/GalleryBulkOperations";
 import EnhancedImageUploader from "@/components/EnhancedImageUploader";
+import { revalidateGallery } from "@/lib/revalidate";
 
 export default function AdminGalleryPage() {
   // Main state
@@ -92,6 +93,13 @@ export default function AdminGalleryPage() {
       setFilteredImages((prev) =>
         prev.map((img) => (img.id === image.id ? { ...image } : img))
       );
+
+      // Trigger on-demand revalidation for gallery
+      try {
+        await revalidateGallery();
+      } catch (revalError) {
+        console.warn("Revalidation failed (non-critical):", revalError);
+      }
     } catch (err) {
       console.error("Error saving image:", err);
       throw err;
@@ -111,6 +119,13 @@ export default function AdminGalleryPage() {
       // Update local state
       setAllImages((prev) => prev.filter((img) => img.id !== imageId));
       setFilteredImages((prev) => prev.filter((img) => img.id !== imageId));
+
+      // Trigger on-demand revalidation for gallery
+      try {
+        await revalidateGallery();
+      } catch (revalError) {
+        console.warn("Revalidation failed (non-critical):", revalError);
+      }
     } catch (err) {
       console.error("Error deleting image:", err);
       throw err;

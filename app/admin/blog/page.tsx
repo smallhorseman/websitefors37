@@ -25,6 +25,7 @@ const MarkdownEditor = dynamic(() => import("@/components/MarkdownEditor"), {
 });
 import { supabase } from "@/lib/supabase";
 import type { BlogPost } from "@/lib/supabase";
+import { revalidateBlog } from "@/lib/revalidate";
 
 export default function BlogManagementPage() {
   const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
@@ -183,6 +184,13 @@ export default function BlogManagementPage() {
       setShowPostModal(false);
       setSelectedPost(null);
       resetForm();
+
+      // Trigger on-demand revalidation for blog pages
+      try {
+        await revalidateBlog();
+      } catch (revalError) {
+        console.warn("Revalidation failed (non-critical):", revalError);
+      }
     } catch (error: any) {
       console.error("Error saving post:", error);
       setError(error.message || "Failed to save post");
