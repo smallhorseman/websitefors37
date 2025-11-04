@@ -1,8 +1,7 @@
 'use client'
 
-import Image, { ImageLoaderProps } from 'next/image'
+import Image from 'next/image'
 import { useState } from 'react'
-import { optimizeCloudinaryUrl } from '@/lib/cloudinary'
 
 interface OptimizedImageProps {
   src: string
@@ -44,7 +43,6 @@ export default function OptimizedImage({
         quality={75}
         sizes={sizes}
         loading={priority ? 'eager' : 'lazy'}
-        unoptimized={process.env.NETLIFY === "true"}
       />
       {isLoading && (
         <div className="absolute inset-0 bg-gradient-to-br from-slate-700 via-slate-900 to-slate-700 animate-pulse" />

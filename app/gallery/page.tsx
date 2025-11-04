@@ -1,5 +1,5 @@
 import React from 'react'
-import { supabase } from '@/lib/supabase'
+import { supabase, type GalleryImage } from '@/lib/supabase'
 import GalleryWithSuspense from '@/components/GalleryWithSuspense'
 import { generateSEOMetadata } from '@/lib/seo-helpers'
 
@@ -22,47 +22,11 @@ export const metadata = generateSEOMetadata({
 export const revalidate = 300
 
 export default async function GalleryPage() {
-  // Try preferred ordering first, then gracefully fall back if column doesn't exist
-  let images: any[] | null = null
-
-  // 1) Try display_order (newer schema)
-  const { data: imagesByDisplay, error: errDisplay } = await supabase
+  // Fetch all images with display_order (primary), fallback to order_index, then created_at
+  const { data: images } = await supabase
     .from('gallery_images')
     .select('*')
-    .order('display_order', { ascending: true })
-
-  if (!errDisplay) {
-    images = imagesByDisplay || []
-    console.log(`[Gallery] Fetched ${images.length} images using display_order`)
-  } else {
-    console.warn('[Gallery] display_order failed:', errDisplay.message)
-    // 2) Try order_index (older schema)
-    const { data: imagesByIndex, error: errIndex } = await supabase
-      .from('gallery_images')
-      .select('*')
-      .order('order_index', { ascending: true })
-
-    if (!errIndex) {
-      images = imagesByIndex || []
-      console.log(`[Gallery] Fetched ${images.length} images using order_index`)
-    } else {
-      console.warn('[Gallery] order_index failed:', errIndex.message)
-      // 3) Fallback to created_at
-      const { data: imagesByCreated } = await supabase
-        .from('gallery_images')
-        .select('*')
-        .order('created_at', { ascending: true })
-      images = imagesByCreated || []
-      console.log(`[Gallery] Fetched ${images.length} images using created_at fallback`)
-    }
-  }
-  
-  // Debug: log first image to verify data shape
-  if (images && images.length > 0) {
-    console.log('[Gallery] First image:', JSON.stringify(images[0], null, 2))
-  } else {
-    console.error('[Gallery] NO IMAGES RETURNED - Check RLS policies in Supabase')
-  }
+    .order('display_order', { ascending: true, nullsFirst: false })
   
   // Get unique categories
   const categories = images ? 

@@ -109,7 +109,7 @@ export default function GalleryClient({ initialImages, categories }: GalleryProp
                   {image.image_url.includes('res.cloudinary.com') ? (
                     <OptimizedImage
                       src={image.image_url}
-                      alt={image.title}
+                      alt={image.alt_text || image.title}
                       fill
                       sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                       imgClassName="object-cover transition-transform duration-700 group-hover:scale-110"
@@ -117,7 +117,7 @@ export default function GalleryClient({ initialImages, categories }: GalleryProp
                   ) : (
                     <Image
                       src={image.image_url}
-                      alt={image.title}
+                      alt={image.alt_text || image.title}
                       fill
                       sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                       className="object-cover transition-transform duration-700 group-hover:scale-110"
@@ -211,7 +211,7 @@ export default function GalleryClient({ initialImages, categories }: GalleryProp
                 {selectedImage.image_url.includes('res.cloudinary.com') ? (
                   <OptimizedImage
                     src={selectedImage.image_url}
-                    alt={selectedImage.title}
+                    alt={selectedImage.alt_text || selectedImage.title}
                     fill
                     sizes="(max-width: 768px) 90vw, 80vw"
                     imgClassName="object-contain"
@@ -220,7 +220,7 @@ export default function GalleryClient({ initialImages, categories }: GalleryProp
                 ) : (
                   <Image
                     src={selectedImage.image_url}
-                    alt={selectedImage.title}
+                    alt={selectedImage.alt_text || selectedImage.title}
                     fill
                     sizes="(max-width: 768px) 90vw, 80vw"
                     className="object-contain"
