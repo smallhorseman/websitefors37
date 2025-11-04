@@ -1,6 +1,5 @@
 import React, { Suspense } from 'react'
-import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
+import { supabase } from '@/lib/supabase'
 import GalleryWithSuspense from '@/components/GalleryWithSuspense'
 import { generateSEOMetadata } from '@/lib/seo-helpers'
 
@@ -23,8 +22,6 @@ export const metadata = generateSEOMetadata({
 export const revalidate = 300
 
 export default async function GalleryPage() {
-  const supabase = createServerComponentClient({ cookies })
-  
   const { data: images } = await supabase
     .from('gallery_images')
     .select('*')
