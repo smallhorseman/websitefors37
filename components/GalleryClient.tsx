@@ -25,6 +25,12 @@ export default function GalleryClient({ initialImages, categories }: GalleryProp
   // Background refresh using React Query; hydrate with server-provided data
   const { data: allImages = initialImages } = useGalleryImages({}, { initialData: initialImages })
 
+  // Debug logging
+  useEffect(() => {
+    console.log('[GalleryClient] Initial images:', initialImages?.length || 0)
+    console.log('[GalleryClient] All images:', allImages?.length || 0)
+  }, [initialImages, allImages])
+
   // Set initial category from URL parameter
   useEffect(() => {
     if (categoryParam && categories.includes(categoryParam)) {

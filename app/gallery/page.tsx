@@ -19,14 +19,18 @@ export const metadata = generateSEOMetadata({
 })
 
 // Enable ISR caching for gallery (revalidate every 5 minutes)
-export const revalidate = 300
+export const revalidate = 0 // Temporarily disable cache to force fresh fetch
 
 export default async function GalleryPage() {
   // Fetch all images with display_order (primary), fallback to order_index, then created_at
-  const { data: images } = await supabase
+  const { data: images, error } = await supabase
     .from('gallery_images')
     .select('*')
     .order('display_order', { ascending: true, nullsFirst: false })
+  
+  if (error) {
+    console.error('[Gallery] Database error:', error)
+  }
   
   // Get unique categories
   const categories = images ? 
