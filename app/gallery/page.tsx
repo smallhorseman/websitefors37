@@ -1,7 +1,6 @@
 import React from 'react'
-import { supabase, type GalleryImage } from '@/lib/supabase'
-import GalleryWithSuspense from '@/components/GalleryWithSuspense'
 import { generateSEOMetadata } from '@/lib/seo-helpers'
+import SimpleGallery from '@/components/SimpleGallery'
 
 export const metadata = generateSEOMetadata({
   title: 'Photography Portfolio Gallery - Studio37 Pinehurst, TX',
@@ -18,25 +17,10 @@ export const metadata = generateSEOMetadata({
   canonicalUrl: 'https://studio37.cc/gallery'
 })
 
-// Enable ISR caching for gallery (revalidate every 5 minutes)
-export const revalidate = 0 // Temporarily disable cache to force fresh fetch
+// Use ISR with a reasonable window; client will fetch fresh data
+export const revalidate = 300
 
-export default async function GalleryPage() {
-  // Fetch all images with display_order (primary), fallback to order_index, then created_at
-  const { data: images, error } = await supabase
-    .from('gallery_images')
-    .select('*')
-    .order('display_order', { ascending: true, nullsFirst: false })
-  
-  if (error) {
-    console.error('[Gallery] Database error:', error)
-  }
-  
-  // Get unique categories
-  const categories = images ? 
-    ['all', ...Array.from(new Set(images.map(img => img.category)))] : 
-    ['all']
-  
+export default function GalleryPage() {
   return (
     <div className="pt-16 min-h-screen bg-gradient-to-b from-gray-50 to-white">
       {/* Hero Header */}
@@ -54,19 +38,12 @@ export default async function GalleryPage() {
           <p className="text-lg md:text-xl text-gray-300 mb-2 max-w-2xl mx-auto leading-relaxed">
             Explore our diverse collection of photography across different styles and occasions.
           </p>
-          <div className="mt-8 flex items-center justify-center gap-2 text-sm text-gray-400">
-            <span className="px-3 py-1 bg-white/10 rounded-full backdrop-blur-sm">
-              {images?.length || 0} Photos
-            </span>
-            <span className="px-3 py-1 bg-white/10 rounded-full backdrop-blur-sm">
-              {categories.length - 1} Categories
-            </span>
-          </div>
+          {/* counts will render in client component below */}
         </div>
       </div>
       
       <div className="container mx-auto px-4 py-16">
-        <GalleryWithSuspense initialImages={images || []} categories={categories} />
+        <SimpleGallery />
       </div>
     </div>
   )
