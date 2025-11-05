@@ -1,0 +1,10 @@
+import { SupabaseClient } from '@supabase/supabase-js';
+import type { AppUser, TenantConfig } from './types';
+export declare function createSupabaseClient(url: string, anonKey: string): SupabaseClient;
+export declare function createSupabaseAdminClient(url: string, serviceKey: string): SupabaseClient;
+export declare function getTenantBySlug(supabase: SupabaseClient, slug: string): Promise<TenantConfig | null>;
+export declare function getTenantById(supabase: SupabaseClient, id: string): Promise<TenantConfig | null>;
+export declare function getUserByEmail(supabase: SupabaseClient, email: string): Promise<AppUser | null>;
+export declare function hasAppAccess(user: AppUser, appName: keyof AppUser['app_access']): boolean;
+export declare function hashToken(token: string): string;
+export declare function generateToken(length?: number): string;
