@@ -119,74 +119,88 @@ export default function SimpleGallery() {
       {/* Lightbox */}
       {selectedImage && (
         <div
-          className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center p-4"
+          className="fixed inset-0 z-50 bg-black/95 p-2 sm:p-4"
           onClick={closeLightbox}
           aria-modal="true"
           role="dialog"
         >
-          {/* Close */}
+          {/* Click zones for navigation */}
           <button
-            className="absolute top-4 right-4 p-2 rounded-full text-white hover:bg-white/10"
-            aria-label="Close"
-            onClick={(e) => { e.stopPropagation(); closeLightbox() }}
-          >
-            <X size={28} />
-          </button>
+            className="absolute inset-y-0 left-0 w-1/2 cursor-[w-resize] outline-none"
+            aria-label="Previous image"
+            onClick={(e) => { e.stopPropagation(); navigate(-1) }}
+            disabled={selectedIndex! <= 0}
+          />
+          <button
+            className="absolute inset-y-0 right-0 w-1/2 cursor-[e-resize] outline-none"
+            aria-label="Next image"
+            onClick={(e) => { e.stopPropagation(); navigate(1) }}
+            disabled={selectedIndex! >= filtered.length - 1}
+          />
 
-          {/* Prev */}
+          {/* Top bar: counter + close */}
+          <div className="absolute top-3 right-3 flex items-center gap-3 text-white">
+            <span className="text-xs sm:text-sm text-gray-300 bg-white/10 rounded-full px-3 py-1">
+              {(selectedIndex! + 1)} / {filtered.length}
+            </span>
+            <button
+              className="p-2 rounded-full hover:bg-white/10"
+              aria-label="Close"
+              onClick={(e) => { e.stopPropagation(); closeLightbox() }}
+            >
+              <X size={24} />
+            </button>
+          </div>
+
+          {/* Image */}
+          <div className="absolute inset-0 flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
+            <div className="relative w-full max-w-6xl h-[70vh]">
+              <OptimizedImage
+                key={selectedImage.id}
+                src={selectedImage.image_url}
+                alt={selectedImage.alt_text || selectedImage.title}
+                fill
+                sizes="(max-width: 1200px) 90vw, 1100px"
+                imgClassName="object-contain"
+                priority
+              />
+            </div>
+          </div>
+
+          {/* Bottom caption */}
+          <div className="absolute left-0 right-0 bottom-0 p-4">
+            <div className="mx-auto max-w-5xl rounded-xl bg-gradient-to-t from-black/70 to-black/30 backdrop-blur-sm text-white p-4 sm:p-5">
+              <h3 className="text-lg sm:text-xl font-semibold">{selectedImage.title}</h3>
+              {selectedImage.description && (
+                <p className="mt-1 text-sm text-gray-200 line-clamp-2">{selectedImage.description}</p>
+              )}
+              {selectedImage.category && (
+                <span className="mt-3 inline-block px-3 py-1 rounded-full text-xs bg-white/15">
+                  {selectedImage.category}
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* Visible arrows */}
           {selectedIndex! > 0 && (
             <button
-              className="absolute left-4 top-1/2 -translate-y-1/2 p-3 rounded-full text-white hover:bg-white/10"
+              className="absolute left-3 top-1/2 -translate-y-1/2 p-3 rounded-full text-white bg-white/10 hover:bg-white/20"
               aria-label="Previous image"
               onClick={(e) => { e.stopPropagation(); navigate(-1) }}
             >
-              <ChevronLeft size={38} />
+              <ChevronLeft size={36} />
             </button>
           )}
-
-          {/* Next */}
           {selectedIndex! < filtered.length - 1 && (
             <button
-              className="absolute right-4 top-1/2 -translate-y-1/2 p-3 rounded-full text-white hover:bg-white/10"
+              className="absolute right-3 top-1/2 -translate-y-1/2 p-3 rounded-full text-white bg-white/10 hover:bg-white/20"
               aria-label="Next image"
               onClick={(e) => { e.stopPropagation(); navigate(1) }}
             >
-              <ChevronRight size={38} />
+              <ChevronRight size={36} />
             </button>
           )}
-
-          <div className="relative w-full max-w-6xl h-[70vh]" onClick={(e) => e.stopPropagation()}>
-            <OptimizedImage
-              src={selectedImage.image_url}
-              alt={selectedImage.alt_text || selectedImage.title}
-              fill
-              sizes="(max-width: 1200px) 90vw, 1100px"
-              imgClassName="object-contain"
-              priority
-            />
-          </div>
-
-          {/* Caption & Counter */}
-          <div className="mt-4 w-full max-w-3xl text-white">
-            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4">
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex-1">
-                  <h3 className="text-xl font-semibold mb-1">{selectedImage.title}</h3>
-                  {selectedImage.description && (
-                    <p className="text-sm text-gray-200">{selectedImage.description}</p>
-                  )}
-                  {selectedImage.category && (
-                    <span className="inline-block mt-2 px-3 py-1 rounded-full text-xs bg-white/20">
-                      {selectedImage.category}
-                    </span>
-                  )}
-                </div>
-                <div className="text-sm text-gray-300 whitespace-nowrap">
-                  {(selectedIndex! + 1)} / {filtered.length}
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
       )}
     </div>
