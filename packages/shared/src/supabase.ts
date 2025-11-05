@@ -65,7 +65,7 @@ export async function getUserByEmail(
   return data as AppUser
 }
 
-export async function hasAppAccess(user: AppUser, appName: keyof AppUser['app_access']): boolean {
+export async function hasAppAccess(user: AppUser, appName: keyof AppUser['app_access']): Promise<boolean> {
   return user.app_access[appName] === true
 }
 

@@ -5,6 +5,6 @@ export declare function createSupabaseAdminClient(url: string, serviceKey: strin
 export declare function getTenantBySlug(supabase: SupabaseClient, slug: string): Promise<TenantConfig | null>;
 export declare function getTenantById(supabase: SupabaseClient, id: string): Promise<TenantConfig | null>;
 export declare function getUserByEmail(supabase: SupabaseClient, email: string): Promise<AppUser | null>;
-export declare function hasAppAccess(user: AppUser, appName: keyof AppUser['app_access']): boolean;
+export declare function hasAppAccess(user: AppUser, appName: keyof AppUser['app_access']): Promise<boolean>;
 export declare function hashToken(token: string): string;
 export declare function generateToken(length?: number): string;
