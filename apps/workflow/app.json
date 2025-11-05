@@ -1,0 +1,54 @@
+{
+  "expo": {
+    "name": "Studio37 Workflow",
+    "slug": "studio37-workflow",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0f172a"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.studio37.workflow",
+      "infoPlist": {
+        "NSCameraUsageDescription": "We need camera access to upload shoot photos",
+        "NSPhotoLibraryUsageDescription": "We need photo library access to select and upload photos",
+        "NSLocationWhenInUseUsageDescription": "We need location access to tag photo locations during shoots"
+      }
+    },
+    "android": {
+      "package": "com.studio37.workflow",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0f172a"
+      },
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-sqlite",
+      "expo-location",
+      "expo-file-system"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "studio37-workflow"
+      }
+    }
+  }
+}
