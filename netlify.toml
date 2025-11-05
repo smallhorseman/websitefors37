@@ -1,8 +1,8 @@
 [build]
-  # Build the web workspace via Turborepo from the repo root
-  command = "npx turbo run build --filter=web"
-  # Publish the Next.js output from apps/web
-  publish = "apps/web/.next"
+  # Monorepo: run builds from the Next.js app directory
+  base = "apps/web"
+  command = "npm run build"
+  publish = ".next"
 
 [build.environment]
   NEXT_PUBLIC_SITE_URL = "https://studio37.cc"

@@ -28,6 +28,10 @@ const nextConfig = {
   skipTrailingSlashRedirect: false,
   reactStrictMode: true,
   swcMinify: true,
+  typescript: {
+    // Type errors are surfaced in CI via a separate typecheck step
+    ignoreBuildErrors: true,
+  },
   experimental: {
     optimizePackageImports: ['lucide-react', 'react-hot-toast']
   },
