@@ -1,8 +1,9 @@
-
 import { createClient, SupabaseClient } from '@supabase/supabase-js'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+// Use safe fallbacks during build to avoid crashes when env vars are missing.
+// At runtime (on Netlify/CI), real env vars must be provided.
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co'
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'public-anon-placeholder'
 
 // Ensure a singleton client in the browser (prevents Multiple GoTrueClient warnings in dev)
 declare global {
