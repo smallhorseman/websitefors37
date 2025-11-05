@@ -165,6 +165,28 @@ export default function SimpleGallery() {
               priority
             />
           </div>
+
+          {/* Caption & Counter */}
+          <div className="mt-4 w-full max-w-3xl text-white">
+            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4">
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex-1">
+                  <h3 className="text-xl font-semibold mb-1">{selectedImage.title}</h3>
+                  {selectedImage.description && (
+                    <p className="text-sm text-gray-200">{selectedImage.description}</p>
+                  )}
+                  {selectedImage.category && (
+                    <span className="inline-block mt-2 px-3 py-1 rounded-full text-xs bg-white/20">
+                      {selectedImage.category}
+                    </span>
+                  )}
+                </div>
+                <div className="text-sm text-gray-300 whitespace-nowrap">
+                  {(selectedIndex! + 1)} / {filtered.length}
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>
