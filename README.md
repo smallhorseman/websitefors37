@@ -28,29 +28,38 @@ A modern, professional photography studio website built with Next.js, featuring 
 ## 📦 Quick Start
 
 1. **Clone the repository**
+
    ```bash
    git clone https://github.com/smallhorseman/studio37-website.git
    cd studio37-website
    ```
 
 2. **Install dependencies**
+
    ```bash
    npm install
    ```
 
 3. **Set up environment variables**
    
-   Create a `.env.local` file in the root directory:
+   Create a `.env.local` file in the root directory (use `.env.example` as a template):
+
    ```bash
    NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
    NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+   # Required for server-only API routes (admin login/session)
+   SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
    ```
 
 4. **Set up Supabase database**
    
-   Run the SQL commands from `supabase/schema.sql` in your Supabase dashboard
+   Apply the schema and core tables in Supabase (via SQL Editor):
+   - `supabase/schema-complete.sql` or run migrations under `supabase/migrations/`
+   - Ensure these tables exist: `admin_users`, `admin_sessions`, `content_pages`, `blog_posts`, `gallery_images`, `settings`, `page_configs`
+   - Optional seeds: `supabase/2025-11-02_settings_hero_fields.sql`, `supabase/create-ceo-user.sql`
 
 5. **Run the development server**
+
    ```bash
    npm run dev
    ```
@@ -73,6 +82,7 @@ A modern, professional photography studio website built with Next.js, featuring 
 
 3. **Set environment variables**
    - Add your Supabase keys in Netlify dashboard
+   - Include `SUPABASE_SERVICE_ROLE_KEY` as an environment variable (server-side only)
 
 ## 📁 Project Structure
 

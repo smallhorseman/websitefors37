@@ -1,52 +1,38 @@
-## Copilot instructions (concise, repo-specific)
 
-**Project:** Multi-app photography business ecosystem (web admin + 4 mobile/PWA apps). See README_ECOSYSTEM.md for full architecture.
+# Copilot Instructions: Studio37 Monorepo (Next.js + Supabase)
 
-Stack and hosting
-- Next.js 14 App Router + TypeScript + Tailwind; deployed on Netlify. Images are unoptimized on Netlify (next.config.js sets images.unoptimized when NETLIFY=true).
-- Data: Supabase (PostgreSQL). Anon client for public reads; service role client only in server API routes.
-- Mono-repo: Turborepo with workspaces (apps/* and packages/shared).
+Purpose: Give AI coding agents the minimum context to be productive in this codebase and avoid common pitfalls.
 
-Dev workflow
-- Scripts: dev, build, start, lint, typecheck, analyze (ANALYZE=true enables bundle analyzer via next.config.js).
-- Required env in .env.local: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY; server-only: SUPABASE_SERVICE_ROLE_KEY; optional: GOOGLE_SITE_VERIFICATION, NEXT_PUBLIC_GA_MEASUREMENT_ID.
+## Architecture & Data Flow
+- Monorepo: apps live in `apps/*` (e.g., `apps/workflow`), shared code in `packages/shared`. Web site/admin is the Next.js app in `app/`.
+- Web stack: Next.js 14 App Router + TypeScript + Tailwind on Netlify. PWA via `@ducanh2912/next-pwa` (disabled in dev).
+- Data: Supabase (PostgreSQL). Public reads use `lib/supabase.ts`. Service role client `lib/supabaseAdmin.ts` is ONLY for server API routes under `app/api/**`.
+- Core tables: `content_pages`, `blog_posts`, `gallery_images`, `settings`, `page_configs`, `admin_users`, `admin_sessions`.
 
-Data access patterns
-- Public RSC pages use the anon client from lib/supabase.ts and ISR via export const revalidate (e.g., app/blog/page.tsx and app/[slug]/page.tsx revalidate=600).
-- When a server component needs session/cookies, use createServerComponentClient({ cookies }) (see GalleryHighlightsBlock in components/BuilderRuntime.tsx).
-- Never import lib/supabaseAdmin.ts outside app/api/**. It bypasses RLS and uses SUPABASE_SERVICE_ROLE_KEY.
-- Multi-app ecosystem uses packages/shared for types and Supabase utilities. Import from @studio37/shared in mobile apps.
+## Dev Workflow
+- Scripts (`package.json`): `dev`, `build`, `start`, `lint`, `typecheck`, `analyze` (set `ANALYZE=true` to enable bundle analyzer in prod builds).
+- Env (`.env.local`): `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`; server-only: `SUPABASE_SERVICE_ROLE_KEY`.
+- Netlify (`netlify.toml`): uses `@netlify/plugin-nextjs` and long-lived caching headers. Images are unoptimized on Netlify when `NETLIFY=true` in `next.config.js`.
+- Path alias: import with `@/*` per `tsconfig.json`.
 
-Admin auth model
-- Login endpoint app/api/auth/login/route.ts: validate payload → rateLimit via lib/rateLimit.ts → fetch admin_users → bcrypt compare/migrate → createSession in lib/authSession.ts (hashed token stored in admin_sessions) → set httpOnly admin_session cookie.
-- middleware.ts protects /admin/** (except /login and /setup-admin) and adds baseline security headers.
-- components/AdminProtected.tsx checks /api/auth/session and client-redirects to /login when unauthenticated.
+## Patterns You’ll Reuse
+- Public pages = anon Supabase + ISR: export `revalidate` for caching. Examples: `app/blog/page.tsx`, `app/[slug]/page.tsx`.
+- MDX pages/blocks: `app/[slug]/page.tsx` renders MDX (next-mdx-remote/rsc). Visual blocks live in `components/BuilderRuntime.tsx`. To add a block, export it there and register in `MDXBuilderComponents`.
+- Admin auth/session: Login API `app/api/auth/login/route.ts` (validate → rateLimit → bcrypt → create session → httpOnly cookie). `middleware.ts` protects `/admin/**` (except `/login`, `/setup-admin`). Client-side guard: `components/AdminProtected.tsx` checks `/api/auth/session`.
+- Server comps needing cookies: use `createServerComponentClient({ cookies })` (see usage in builder/gallery blocks).
+- API routes: Use NextRequest/NextResponse with `lib/rateLimit.ts` and `lib/logger.ts` for consistency.
+- Images: `next.config.js` sets `remotePatterns` (Unsplash, Supabase, Cloudinary), formats (AVIF/WebP), and cache TTL; prefer `next/image` (note: unoptimized on Netlify).
+- SEO/PWA: `app/robots.ts`, `app/sitemap.ts`, `public/manifest.webmanifest`, icons in `public/icons/`.
 
-Content model and rendering
-- CMS tables include content_pages, blog_posts, gallery_images, settings, page_configs, admin_users, admin_sessions.
-- app/[slug]/page.tsx renders content_pages via MDX in RSC using next-mdx-remote/rsc with rehype-highlight and optional rehype-raw.
-- Visual “Builder” blocks live in components/BuilderRuntime.tsx; export new FooBlock and add to MDXBuilderComponents to make it available in MDX.
+## Gotchas (avoid footguns)
+- Never import `lib/supabaseAdmin.ts` outside `app/api/**`.
+- Admin pages often need `force-dynamic` due to cookie/session usage.
+- Don’t expose server-only env to client. Use `rehype-raw` only with sanitized content.
 
-SEO and platform
-- Use generateSEOMetadata from lib/seo-helpers.ts and businessInfo from lib/seo-config.ts for per-page metadata.
-- app/sitemap.ts queries Supabase for published content and is cached for 1h (export const revalidate = 3600).
+## Quick References
+- ISR example: `app/blog/page.tsx`
+- MDX + blocks: `app/[slug]/page.tsx`, `components/BuilderRuntime.tsx`
+- Auth/session: `app/api/auth/login/route.ts`, `app/api/auth/session/route.ts`, `middleware.ts`, `components/AdminProtected.tsx`
+- Config: `next.config.js`, `netlify.toml`, `tailwind.config.js`
 
-UI, images, performance
-- Tailwind (typography plugin); global CSS in app/globals.css. Path alias @/* in tsconfig.json.
-- next.config.js defines remotePatterns (Unsplash, Supabase, Cloudinary) and security/perf headers; redirects /portfolio → /gallery.
-- PWA: Manifest at public/manifest.webmanifest; service worker via @ducanh2912/next-pwa wrapped in next.config.js. Icons live under public/icons/ (see README for generation).
-
-API route conventions
-- app/api/**/route.ts uses NextRequest/NextResponse, lib/rateLimit.ts (getClientIp/rateLimit), and lib/logger.ts for structured JSON logs.
-- Use supabaseAdmin only in API routes; for user-scoped reads, prefer anon client + RLS.
-
-Gotchas
-- Do not leak server-only env to client; anything without NEXT_PUBLIC_ is server-only.
-- Use rehype-raw sparingly; content is expected to be sanitized in content_pages.
-- Admin pages often need force-dynamic due to cookies/session.
-
-Pointers to patterns in code
-- Public ISR page with Supabase: app/blog/page.tsx
-- CMS-driven MDX page: app/[slug]/page.tsx + components/BuilderRuntime.tsx
-- Auth/session flow: app/api/auth/login/route.ts, app/api/auth/session/route.ts, lib/authSession.ts, middleware.ts
-- Config and hosting: next.config.js, netlify.toml
+More context: `README_ECOSYSTEM.md` (mono-repo plan) and `README.md` (site features/quickstart). Apply changes consistent with these patterns.

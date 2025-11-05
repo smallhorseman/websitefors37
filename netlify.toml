@@ -1,5 +1,8 @@
 [build]
-  command = "npm run build"
+  # Build the web workspace (root package named "web") via Turborepo from the repo root
+  command = "npx turbo run build --filter=web"
+  # Publish the Next.js output from the root web package for now
+  # (will switch to apps/web/.next after we move the app into apps/web)
   publish = ".next"
 
 [build.environment]

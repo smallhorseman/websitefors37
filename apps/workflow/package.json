@@ -18,7 +18,7 @@
     "@react-native-async-storage/async-storage": "1.23.1",
   "@react-navigation/native": "^6.1.9",
   "@react-navigation/native-stack": "^6.9.17",
-  "@studio37/shared": "file:../../packages/shared/studio37-shared-1.0.0.tgz",
+  "@studio37/shared": "file:../../packages/shared",
   "@supabase/supabase-js": "^2.39.0",
   "expo": "~50.0.0",
   "expo-file-system": "~16.0.9",

@@ -1,13 +1,15 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Shield, User, Mail, Lock, CheckCircle, AlertCircle } from 'lucide-react'
-import { supabase } from '@/lib/supabase'
 
 export default function AdminSetupPage() {
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState('')
+
+  const email = 'ceo@studio37.cc'
+  const password = '19!Alebest'
 
   const createCEOAccount = async () => {
     setLoading(true)
@@ -15,46 +17,20 @@ export default function AdminSetupPage() {
     setSuccess(false)
 
     try {
-      // Create the auth user
-      const { data, error: signUpError } = await supabase.auth.signUp({
-        email: 'ceo@studio37.cc',
-        password: '19!Alebest',
-        options: {
-          data: {
-            name: 'CEO - Studio37'
-          }
-        }
+      const res = await fetch('/api/setup-admin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password, name: 'CEO - Studio37', role: 'owner' })
       })
 
-      if (signUpError) throw signUpError
-
-      if (data.user) {
-        // The trigger will automatically create the user profile
-        // But let's ensure it has the right role
-        const { error: profileError } = await supabase
-          .from('user_profiles')
-          .upsert({
-            id: data.user.id,
-            name: 'CEO - Studio37',
-            email: 'ceo@studio37.cc',
-            role: 'owner',
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          })
-
-        if (profileError) {
-          console.error('Profile creation error:', profileError)
-          // Don't throw here as the auth user was created successfully
-        }
-
-        setSuccess(true)
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        throw new Error(data?.error || 'Setup failed')
       }
-    } catch (error: any) {
-      if (error.message?.includes('User already registered')) {
-        setError('CEO account already exists. You can log in with the provided credentials.')
-      } else {
-        setError(error.message || 'Failed to create CEO account')
-      }
+
+      setSuccess(true)
+    } catch (err: any) {
+      setError(err.message || 'Failed to create CEO account')
     } finally {
       setLoading(false)
     }
@@ -62,25 +38,26 @@ export default function AdminSetupPage() {
 
   const checkExistingAccount = async () => {
     try {
-      const { data: users } = await supabase
-        .from('user_profiles')
-        .select('*')
-        .eq('email', 'ceo@studio37.cc')
-        .eq('role', 'owner')
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      })
 
-      if (users && users.length > 0) {
+      if (res.ok) {
         setSuccess(true)
-        setError('CEO account already exists and is properly configured.')
+        setError('CEO account already exists. You can log in with the provided credentials.')
       } else {
         setError('CEO account not found. Click "Create CEO Account" to set it up.')
       }
-    } catch (error: any) {
+    } catch {
       setError('Unable to check account status.')
     }
   }
 
-  React.useEffect(() => {
+  useEffect(() => {
     checkExistingAccount()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   return (
@@ -103,7 +80,7 @@ export default function AdminSetupPage() {
             <Mail className="h-5 w-5 text-blue-600" />
             <div>
               <p className="text-sm font-medium text-gray-700">Email</p>
-              <p className="text-sm text-gray-900">ceo@studio37.cc</p>
+              <p className="text-sm text-gray-900">{email}</p>
             </div>
           </div>
           
@@ -111,7 +88,7 @@ export default function AdminSetupPage() {
             <Lock className="h-5 w-5 text-purple-600" />
             <div>
               <p className="text-sm font-medium text-gray-700">Password</p>
-              <p className="text-sm text-gray-900 font-mono">19!Alebest</p>
+              <p className="text-sm text-gray-900 font-mono">{password}</p>
             </div>
           </div>
           
@@ -177,10 +154,10 @@ export default function AdminSetupPage() {
 
           {success && (
             <a
-              href="/admin/login"
+              href="/admin"
               className="w-full bg-green-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-green-700 transition-colors text-center block"
             >
-              Go to Admin Login
+              Go to Admin Dashboard
             </a>
           )}
         </div>
