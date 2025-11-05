@@ -72,6 +72,9 @@ export default function RootLayout({
     <html lang="en">
       <head>
         <meta name="referrer" content="strict-origin-when-cross-origin" />
+        {/* PWA */}
+        <link rel="manifest" href="/manifest.webmanifest" />
+        <meta name="theme-color" content="#b46e14" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -93,7 +96,7 @@ export default function RootLayout({
         {/* Preconnect to Cloudinary for faster image loading (LCP optimization) */}
         <link rel="preconnect" href="https://res.cloudinary.com" />
         <link rel="dns-prefetch" href="//images.unsplash.com" />
-        {/* Explicit favicon for modern browsers; Next will also use app/icon.svg */}
+        {/* Explicit favicon for modern browsers */}
         <link rel="icon" href="/icon.svg" type="image/svg+xml" />
       </head>
       <body className={`${inter.variable} ${playfair.variable} font-sans`}>

@@ -11,6 +11,7 @@
     "analyze": "ANALYZE=true next build"
   },
   "dependencies": {
+    "@ducanh2912/next-pwa": "^10.2.8",
     "bcryptjs": "^2.4.3",
     "@google/generative-ai": "^0.19.0",
   "@tanstack/react-query": "^5.56.2",

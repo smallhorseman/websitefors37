@@ -1,0 +1,29 @@
+{
+  "name": "studio37-ecosystem",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "clean": "turbo run clean && rm -rf node_modules",
+    "web:dev": "turbo run dev --filter=web",
+    "workflow:dev": "turbo run dev --filter=workflow",
+    "companion:dev": "turbo run dev --filter=companion",
+    "portal:dev": "turbo run dev --filter=client-portal",
+    "ai:dev": "turbo run dev --filter=ai-platform"
+  },
+  "devDependencies": {
+    "turbo": "^1.11.2",
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  }
+}
