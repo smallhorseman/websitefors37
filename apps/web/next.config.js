@@ -41,15 +41,22 @@ const nextConfig = {
       { source: "/portfolio/:path*", destination: "/gallery/:path*", permanent: true }
     ];
   },
-  ...(process.env.ANALYZE === "true" && {
-    webpack: (config) => {
-      if (process.env.NODE_ENV === "production") {
-        const { BundleAnalyzerPlugin } = require("webpack-bundle-analyzer");
-        config.plugins.push(new BundleAnalyzerPlugin({ analyzerMode: "static", openAnalyzer: false }));
-      }
-      return config;
+  webpack: (config) => {
+    // Stub Supabase imports during build to avoid env-dependent crashes from legacy handlers
+    const path = require('path')
+    config.resolve = config.resolve || {}
+    config.resolve.alias = {
+      ...(config.resolve.alias || {}),
+      '@/lib/supabase': path.resolve(__dirname, 'lib/supabase'),
+      '@/lib/supabaseAdmin': path.resolve(__dirname, 'lib/supabaseAdmin'),
     }
-  }),
+
+    if (process.env.ANALYZE === 'true' && process.env.NODE_ENV === 'production') {
+      const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer')
+      config.plugins.push(new BundleAnalyzerPlugin({ analyzerMode: 'static', openAnalyzer: false }))
+    }
+    return config
+  },
   async headers() {
     return [
       {
@@ -67,8 +74,9 @@ const nextConfig = {
     ];
   },
   env: {
-    NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
-    NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co',
+    NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'public-anon-placeholder',
+    SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY || 'service-role-placeholder',
   },
 };
 

@@ -12,6 +12,10 @@ jobs:
     defaults:
       run:
         working-directory: .
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: public-anon-placeholder
+      SUPABASE_SERVICE_ROLE_KEY: service-role-placeholder
     steps:
       - name: Checkout
         uses: actions/checkout@v4
