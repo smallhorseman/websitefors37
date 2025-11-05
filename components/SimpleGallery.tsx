@@ -72,7 +72,7 @@ export default function SimpleGallery() {
                 src={image.image_url}
                 alt={image.alt_text || image.title}
                 fill
-                className="w-full h-[260px] md:h-[300px] bg-black"
+                className="w-full h-[260px] md:h-[300px]"
                 imgClassName="object-contain"
               />
               <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
