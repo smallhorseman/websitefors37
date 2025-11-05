@@ -71,12 +71,11 @@ export default function SimpleGallery() {
               <OptimizedImage
                 src={image.image_url}
                 alt={image.alt_text || image.title}
-                width={600}
-                height={400}
-                className="w-full h-[300px]"
-                imgClassName="object-cover transition-transform duration-300 group-hover:scale-105"
+                fill
+                className="w-full h-[260px] md:h-[300px] bg-black"
+                imgClassName="object-contain"
               />
-              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end" />
+              <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
               <div className="pointer-events-none absolute bottom-0 left-0 right-0 p-4 text-white">
                 <h3 className="text-lg font-semibold mb-1">{image.title}</h3>
                 {image.description && (
