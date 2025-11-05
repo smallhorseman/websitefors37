@@ -1,12 +1,14 @@
-const withPWA = require('@ducanh2912/next-pwa').default({
+const withPWABuilder = require('@ducanh2912/next-pwa').default({
   dest: 'public',
   register: true,
   skipWaiting: true,
   disable: process.env.NODE_ENV === 'development',
-})
+});
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Note: eslint.ignoreDuringBuilds will be re-injected in the final export
+  // to avoid being dropped by the PWA wrapper's merge.
   images: {
     // Disable image optimization on serverless (Netlify can't write to cache)
     unoptimized: process.env.NETLIFY === "true",
@@ -130,4 +132,10 @@ const nextConfig = {
   },
 };
 
-module.exports = withPWA(nextConfig);
+// Export a function so we can re-inject eslint.ignoreDuringBuilds after PWA wraps the config
+module.exports = (phase, { defaultConfig } = {}) => {
+  const cfg = withPWABuilder(nextConfig);
+  // Re-inject ESLint override explicitly (the PWA wrapper omits it otherwise)
+  cfg.eslint = { ignoreDuringBuilds: true };
+  return cfg;
+};

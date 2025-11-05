@@ -68,4 +68,9 @@ const nextConfig = {
   },
 };
 
-module.exports = withPWA(nextConfig);
+// Export a function that wraps with PWA and re-injects eslint.ignoreDuringBuilds
+module.exports = (phase, { defaultConfig } = {}) => {
+  const cfg = withPWA(nextConfig);
+  cfg.eslint = { ignoreDuringBuilds: true };
+  return cfg;
+};

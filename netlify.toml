@@ -1,13 +1,13 @@
 [build]
-  # Build the web workspace (root package named "web") via Turborepo from the repo root
+  # Build the web workspace via Turborepo from the repo root
   command = "npx turbo run build --filter=web"
-  # Publish the Next.js output from the root web package for now
-  # (will switch to apps/web/.next after we move the app into apps/web)
-  publish = ".next"
+  # Publish the Next.js output from apps/web
+  publish = "apps/web/.next"
 
 [build.environment]
   NEXT_PUBLIC_SITE_URL = "https://studio37.cc"
   SECRETS_SCAN_SMART_DETECTION_ENABLED = "false"
+  NODE_VERSION = "18"
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"

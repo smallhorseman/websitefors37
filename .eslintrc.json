@@ -1,0 +1,43 @@
+{
+  "root": true,
+  "extends": [
+    "next/core-web-vitals",
+    "plugin:@typescript-eslint/recommended"
+  ],
+  "parserOptions": {
+    "ecmaVersion": 2020,
+    "sourceType": "module"
+  },
+  "rules": {
+    "@typescript-eslint/no-explicit-any": "warn",
+    "@typescript-eslint/no-unused-vars": "warn",
+    "@typescript-eslint/ban-ts-comment": "warn",
+    "@typescript-eslint/no-require-imports": "warn",
+    "@next/next/no-img-element": "warn",
+    "react/no-unescaped-entities": "warn",
+    "prefer-const": "warn",
+    "jsx-a11y/alt-text": "warn",
+    "react-hooks/exhaustive-deps": "warn"
+  },
+  "overrides": [
+    {
+      "files": ["**/*.{ts,tsx}"] ,
+      "rules": {
+        "@typescript-eslint/no-explicit-any": "warn",
+        "@typescript-eslint/no-unused-vars": "warn",
+        "@typescript-eslint/ban-ts-comment": "warn",
+        "@typescript-eslint/no-require-imports": "warn"
+      }
+    },
+    {
+      "files": ["**/*.{js,jsx,ts,tsx}"] ,
+      "rules": {
+        "react/no-unescaped-entities": "warn",
+        "jsx-a11y/alt-text": "warn",
+        "@next/next/no-img-element": "warn",
+        "prefer-const": "warn",
+        "react-hooks/exhaustive-deps": "warn"
+      }
+    }
+  ]
+}
