@@ -8,6 +8,11 @@
     "packages/*"
   ],
   "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit",
     "repo:dev": "turbo run dev --parallel",
     "repo:build": "turbo run build",
     "repo:lint": "turbo run lint",
