@@ -49,6 +49,12 @@ import {
   X,
   Lock,
   Unlock,
+  Lightbulb,
+  Wand2,
+  Download,
+  Upload,
+  RefreshCw,
+  AlertCircle,
 } from "lucide-react";
 import Image from "next/image";
 import ImageUploader from "./ImageUploader";
@@ -79,11 +85,13 @@ type ComponentType =
   | "pricingTable"
   | "teamMembers"
   | "socialFeed"
-  | "dualCTA";
+  | "dualCTA"
+  | "customCss";
 
 interface BaseComponent {
   id: string;
   type: ComponentType;
+  visibility?: { mobile: boolean; tablet: boolean; desktop: boolean };
 }
 
 interface HeroComponent extends BaseComponent {
@@ -164,6 +172,15 @@ interface SEOFooterComponent extends BaseComponent {
   data: {
     content: string;
     includeSchema?: boolean;
+  };
+}
+
+interface CustomCssComponent extends BaseComponent {
+  type: "customCss";
+  data: {
+    css: string;
+    enabled?: boolean;
+    note?: string;
   };
 }
 
@@ -477,7 +494,8 @@ type PageComponent =
   | PricingTableComponent
   | TeamMembersComponent
   | SocialFeedComponent
-  | DualCTAComponent;
+  | DualCTAComponent
+  | CustomCssComponent;
 
 interface VisualEditorProps {
   initialComponents?: PageComponent[];
@@ -524,6 +542,181 @@ export default function VisualEditor({
   const [componentSearchQuery, setComponentSearchQuery] = useState('');
   const [selectedComponents, setSelectedComponents] = useState<string[]>([]);
   const [lockedComponents, setLockedComponents] = useState<string[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [aiSuggestions, setAiSuggestions] = useState<Suggestion[] | null>(null);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiError, setAiError] = useState<string | null>(null);
+  const [useAISource, setUseAISource] = useState(true);
+
+  type Suggestion = {
+    id: string;
+    type: PageComponent["type"];
+    title: string;
+    description: string;
+    rationale: string;
+    insertAfterId?: string | null;
+  };
+
+  const computeSuggestions = React.useCallback((): Suggestion[] => {
+    const result: Suggestion[] = [];
+    const types = components.map((c) => c.type);
+    const has = (t: PageComponent["type"]) => types.includes(t);
+    const findId = (t: PageComponent["type"]) => components.find((c) => c.type === t)?.id || null;
+
+    // CTA after Testimonials
+    if (has("testimonials") && !has("ctaBanner")) {
+      result.push({
+        id: `sugg-${Date.now()}-cta1`,
+        type: "ctaBanner",
+        title: "Add Call-to-Action",
+        description: "Convert social proof into action with a bold CTA banner.",
+        rationale: "Testimonials build trust; a CTA turns trust into clicks.",
+        insertAfterId: findId("testimonials"),
+      });
+    }
+    // Contact form if missing
+    if (!has("contactForm")) {
+      result.push({
+        id: `sugg-${Date.now()}-contact`,
+        type: "contactForm",
+        title: "Add Contact Form",
+        description: "Make it easy for visitors to reach you directly.",
+        rationale: "Every marketing page benefits from a simple contact path.",
+        insertAfterId: null,
+      });
+    }
+    // FAQ if services are present but no FAQ
+    if (has("servicesGrid") && !has("faq")) {
+      result.push({
+        id: `sugg-${Date.now()}-faq`,
+        type: "faq",
+        title: "Add FAQ",
+        description: "Answer common objections and reduce friction.",
+        rationale: "Services pages convert better with concise FAQs.",
+        insertAfterId: findId("servicesGrid"),
+      });
+    }
+    // Newsletter if missing
+    if (!has("newsletterSignup")) {
+      result.push({
+        id: `sugg-${Date.now()}-newsletter`,
+        type: "newsletterSignup",
+        title: "Capture Emails",
+        description: "Build an audience with a lightweight newsletter signup.",
+        rationale: "Email converts higher than social; always offer opt-in.",
+        insertAfterId: null,
+      });
+    }
+    // Social feed after gallery highlights
+    if (has("galleryHighlights") && !has("socialFeed")) {
+      result.push({
+        id: `sugg-${Date.now()}-social`,
+        type: "socialFeed",
+        title: "Show Social Feed",
+        description: "Keep the page fresh with latest posts.",
+        rationale: "After visuals, show recent activity to signal recency.",
+        insertAfterId: findId("galleryHighlights"),
+      });
+    }
+    // Pricing after testimonials (if not present)
+    if (has("testimonials") && !has("pricingTable")) {
+      result.push({
+        id: `sugg-${Date.now()}-pricing`,
+        type: "pricingTable",
+        title: "Clarify Pricing",
+        description: "Help visitors self-qualify with transparent pricing tiers.",
+        rationale: "Trust + pricing transparency increases conversions.",
+        insertAfterId: findId("testimonials"),
+      });
+    }
+    // SEO Footer if page is long and footer missing
+    const longPage = components.length >= 8;
+    if (longPage && !has("seoFooter")) {
+      result.push({
+        id: `sugg-${Date.now()}-seofooter`,
+        type: "seoFooter",
+        title: "Add SEO Footer",
+        description: "Extra internal links and locality signals at the bottom.",
+        rationale: "Long pages benefit from structured footer links.",
+        insertAfterId: null,
+      });
+    }
+    return result;
+  }, [components]);
+
+  const suggestions = React.useMemo(() => computeSuggestions(), [computeSuggestions]);
+
+  // Fetch AI-powered suggestions from server
+  const fetchAISuggestions = React.useCallback(async () => {
+    try {
+      setAiError(null);
+      setAiLoading(true);
+      const res = await fetch('/api/ai/page-suggestions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ components, slug, maxSuggestions: 6 }),
+      });
+      if (!res.ok) {
+        const msg = (await res.json().catch(() => ({}))).error || `Request failed (${res.status})`;
+        throw new Error(msg);
+      }
+      const data = await res.json();
+      const results: Array<{ type: PageComponent["type"]; title: string; description: string; rationale: string; afterType?: PageComponent["type"]; }> = data.suggestions || [];
+      const mapAfterTypeToId = (t?: PageComponent["type"]) => (t ? components.find(c => c.type === t)?.id || null : null);
+      const ai: Suggestion[] = results.map((s, idx) => ({
+        id: `ai-sugg-${Date.now()}-${idx}`,
+        type: s.type,
+        title: s.title || componentMetadata[s.type]?.name || s.type,
+        description: s.description || '',
+        rationale: s.rationale || '',
+        insertAfterId: mapAfterTypeToId(s.afterType),
+      }));
+      setAiSuggestions(ai);
+    } catch (err: any) {
+      console.error('AI suggestions failed:', err);
+      setAiError(err?.message || 'Failed to load AI suggestions');
+      setAiSuggestions(null);
+    } finally {
+      setAiLoading(false);
+    }
+  }, [components, slug]);
+
+  // When opening the drawer, try AI first (fallback to rule-based shown automatically)
+  useEffect(() => {
+    if (showSuggestions) {
+      if (useAISource) fetchAISuggestions();
+    } else {
+      // Reset error/loading states when closing
+      setAiLoading(false);
+      setAiError(null);
+    }
+  }, [showSuggestions, useAISource, fetchAISuggestions]);
+
+  const suggestionsToRender: Suggestion[] = React.useMemo(() => {
+    if (useAISource) {
+      if (aiSuggestions && aiSuggestions.length > 0) return aiSuggestions;
+      // If AI empty or failed, fall back to rule-based
+      return suggestions;
+    }
+    return suggestions;
+  }, [useAISource, aiSuggestions, suggestions]);
+
+  const addSuggestedComponent = (type: PageComponent["type"], afterId?: string | null) => {
+    if (afterId) {
+      const index = components.findIndex((c) => c.id === afterId);
+      if (index >= 0) {
+        const newComp = buildComponent(type);
+        const updated = [...components];
+        updated.splice(index + 1, 0, newComp);
+        notify(updated);
+        setSelectedComponent(newComp.id);
+        return;
+      }
+    }
+    // Fallback: add to end
+    addComponent(type);
+  };
+
 
   // Default to hiding side panels on small screens
   useEffect(() => {
@@ -661,6 +854,7 @@ export default function VisualEditor({
     pricingTable: { name: 'Pricing Table', category: 'marketing', keywords: ['plans', 'packages', 'cost'] },
     widgetEmbed: { name: 'Embed Widget', category: 'advanced', keywords: ['code', 'iframe', 'integration'] },
     seoFooter: { name: 'SEO Footer', category: 'advanced', keywords: ['bottom', 'links', 'seo'] },
+    customCss: { name: 'Custom CSS', category: 'advanced', keywords: ['style', 'css', 'advanced'] },
   };
 
   // Filter components based on search query
@@ -923,6 +1117,12 @@ export default function VisualEditor({
           content:
             '<h3 class="text-lg font-bold mb-2">About Studio37</h3><p class="text-sm">Professional photography serving Pinehurst, Tomball, Magnolia, The Woodlands, Conroe, Spring, and surrounding areas within 50 miles. Specializing in portraits, weddings, events, and commercial photography.</p><h3 class="text-lg font-bold mt-4 mb-2">Contact</h3><p class="text-sm">Studio37 • 832-713-9944 • sales@studio37.cc • 1701 Goodson Loop, TRLR 80, Pinehurst, TX 77362</p>',
           includeSchema: true,
+        };
+      case "customCss":
+        return {
+          css: "/* Page-specific CSS here */\n/* Example: .btn-primary { border-radius: 9999px; } */",
+          enabled: true,
+          note: "Styles apply inside the preview and published page. Use carefully.",
         };
       case "slideshowHero":
         return {
@@ -1416,6 +1616,53 @@ export default function VisualEditor({
   };
 
   const isLocked = (id: string) => lockedComponents.includes(id);
+  // Export/Import functionality
+  const exportPage = () => {
+    const pageData = {
+      components,
+      metadata: {
+        exportedAt: new Date().toISOString(),
+        version: '1.0',
+        slug: slug || 'unnamed-page',
+      }
+    };
+    const json = JSON.stringify(pageData, null, 2);
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${slug || 'page'}-export-${Date.now()}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  const importPage = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const json = e.target?.result as string;
+        const data = JSON.parse(json);
+        if (data.components && Array.isArray(data.components)) {
+          notify(data.components);
+          setSelectedComponent(null);
+          alert(`Successfully imported ${data.components.length} components!`);
+        } else {
+          alert('Invalid page format');
+        }
+      } catch (error) {
+        alert('Error reading file');
+      }
+    };
+    reader.readAsText(file);
+    // Reset input so same file can be imported again
+    event.target.value = '';
+  };
+
 
   // Viewport width is now handled by MobilePreviewToggle
 
@@ -1844,6 +2091,15 @@ export default function VisualEditor({
                     <span>SEO Footer</span>
                   </button>
                   )}
+                  {filterComponents('customCss') && (
+                  <button
+                    onClick={() => addComponent("customCss")}
+                    className="w-full flex items-center gap-2 p-2 bg-white hover:bg-gray-100 rounded transition text-sm"
+                  >
+                    <Code className="h-4 w-4" />
+                    <span>Custom CSS</span>
+                  </button>
+                  )}
                 </div>
               )}
             </div>
@@ -2216,6 +2472,29 @@ export default function VisualEditor({
             >
               <Save className="h-4 w-4" />
               Save Page
+            {/* Export/Import buttons */}
+            <div className="flex items-center gap-2">
+              <button
+                onClick={exportPage}
+                className="px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded flex items-center gap-2 text-sm"
+                title="Export page as JSON"
+              >
+                <Download className="h-4 w-4" />
+                <span className="hidden md:inline">Export</span>
+              </button>
+              
+              <label className="px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded flex items-center gap-2 text-sm cursor-pointer">
+                <Upload className="h-4 w-4" />
+                <span className="hidden md:inline">Import</span>
+                <input
+                  type="file"
+                  accept=".json"
+                  onChange={importPage}
+                  className="hidden"
+                />
+              </label>
+            </div>
+
             </button>
 
             {/* Save Status Indicator */}
@@ -2360,6 +2639,16 @@ export default function VisualEditor({
                                     </div>
                                     <div>
                                       <label className="block text-xs font-medium text-gray-700 mb-1">
+                                      {/* Suggestions */}
+                                      <button
+                                        onClick={() => setShowSuggestions(true)}
+                                        className="px-3 py-2 bg-yellow-50 hover:bg-yellow-100 text-yellow-700 rounded flex items-center gap-2 border border-yellow-200"
+                                        title="AI Suggestions"
+                                      >
+                                        <Lightbulb className="h-4 w-4" />
+                                        <span className="hidden md:inline">Suggestions</span>
+                                      </button>
+
                                         Link URL
                                       </label>
                                       <input
@@ -2621,6 +2910,103 @@ export default function VisualEditor({
                 />
               ) : (
                 <p className="text-sm text-gray-500">Select a component to edit its properties.</p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Suggestions Drawer */}
+      {showSuggestions && (
+        <div className="fixed inset-0 z-50" aria-modal>
+          <div
+            className="absolute inset-0 bg-black/40"
+            onClick={() => setShowSuggestions(false)}
+          />
+          <div className="absolute right-0 top-0 h-full w-[380px] bg-white shadow-xl border-l flex flex-col">
+            <div className="p-4 border-b flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Wand2 className="h-5 w-5 text-primary-600" />
+                <h3 className="font-semibold">Suggestions</h3>
+                <span className={`ml-2 inline-flex items-center rounded px-2 py-0.5 text-[11px] ${useAISource ? 'bg-purple-50 text-purple-700 border border-purple-200' : 'bg-gray-100 text-gray-700'}`}>
+                  {useAISource ? 'AI' : 'Rule-based'}
+                </span>
+              </div>
+              <button
+                className="px-2 py-1 text-sm border rounded"
+                onClick={() => setShowSuggestions(false)}
+              >
+                Close
+              </button>
+            </div>
+            <div className="p-4 overflow-y-auto space-y-3">
+              {/* Header controls */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-xs">
+                  <button
+                    className={`px-2 py-1 rounded border ${useAISource ? 'bg-white' : 'bg-gray-50'} hover:bg-gray-50`}
+                    onClick={() => { setUseAISource(true); fetchAISuggestions(); }}
+                    title="Use AI suggestions"
+                  >
+                    Use AI
+                  </button>
+                  <button
+                    className={`px-2 py-1 rounded border ${!useAISource ? 'bg-white' : 'bg-gray-50'} hover:bg-gray-50`}
+                    onClick={() => setUseAISource(false)}
+                    title="Use built-in suggestions"
+                  >
+                    Use Rule-based
+                  </button>
+                </div>
+                {useAISource && (
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => fetchAISuggestions()}
+                      className="px-2 py-1 text-xs border rounded hover:bg-gray-50 inline-flex items-center gap-1"
+                    >
+                      <RefreshCw className="h-3 w-3" /> Refresh
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Loading / Error states */}
+              {useAISource && aiLoading && (
+                <div className="text-sm text-gray-500 flex items-center gap-2">
+                  <Wand2 className="h-4 w-4 animate-pulse text-primary-500" /> Generating suggestions...
+                </div>
+              )}
+              {useAISource && aiError && (
+                <div className="text-sm text-red-600 flex items-center gap-2">
+                  <AlertCircle className="h-4 w-4" /> {aiError}
+                </div>
+              )}
+
+              {suggestionsToRender.length === 0 ? (
+                <div className="text-sm text-gray-500">
+                  No suggestions right now. Keep building!
+                </div>
+              ) : (
+                suggestionsToRender.map((s) => (
+                  <div key={s.id} className="border rounded p-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <div className="font-medium">{s.title}</div>
+                        <div className="text-xs text-gray-500 mt-0.5">{s.description}</div>
+                        <div className="text-xs text-gray-400 mt-1">{s.rationale}</div>
+                      </div>
+                      <button
+                        onClick={() => addSuggestedComponent(s.type, s.insertAfterId)}
+                        className="px-2 py-1 text-sm bg-primary-600 text-white rounded hover:bg-primary-700 whitespace-nowrap"
+                      >
+                        Add
+                      </button>
+                    </div>
+                    <div className="mt-2 text-[10px] uppercase tracking-wide text-gray-400">
+                      Suggested block: <span className="font-semibold text-gray-500">{componentMetadata[s.type]?.name || s.type}</span>
+                    </div>
+                  </div>
+                ))
               )}
             </div>
           </div>
@@ -3320,6 +3706,10 @@ function ComponentRenderer({ component }: { component: PageComponent }) {
       return <SpacerRenderer data={component.data} />;
     case "seoFooter":
       return <SEOFooterRenderer data={component.data} />;
+    case "customCss":
+      return (component as any).data?.enabled ? (
+        <style dangerouslySetInnerHTML={{ __html: String((component as any).data?.css || '') }} />
+      ) : null;
     default:
       return null;
   }
