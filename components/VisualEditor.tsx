@@ -47,6 +47,8 @@ import {
   ArrowDown,
   Search,
   X,
+  Lock,
+  Unlock,
 } from "lucide-react";
 import Image from "next/image";
 import ImageUploader from "./ImageUploader";
@@ -521,6 +523,7 @@ export default function VisualEditor({
   const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
   const [componentSearchQuery, setComponentSearchQuery] = useState('');
   const [selectedComponents, setSelectedComponents] = useState<string[]>([]);
+  const [lockedComponents, setLockedComponents] = useState<string[]>([]);
 
   // Default to hiding side panels on small screens
   useEffect(() => {
@@ -620,6 +623,7 @@ export default function VisualEditor({
   };
 
   const moveComponent = (id: string, delta: -1 | 1) => {
+    if (lockedComponents.includes(id)) return; // Prevent moving locked components
     const index = components.findIndex((c) => c.id === id);
     if (index < 0) return;
     const newIndex = index + delta;
@@ -819,13 +823,15 @@ export default function VisualEditor({
       // Delete - Delete component
       else if (e.key === "Delete" && selectedComponent) {
         e.preventDefault();
-        deleteComponent(selectedComponent);
+        if (!isLocked(selectedComponent)) {
+          deleteComponent(selectedComponent);
+        }
       }
       // Enter - Enter quick edit mode
       else if (e.key === "Enter" && selectedComponent && !quickEditId) {
         e.preventDefault();
         const component = components.find((c) => c.id === selectedComponent);
-        if (component && ['text', 'button', 'image'].includes(component.type)) {
+        if (component && ['text', 'button', 'image'].includes(component.type) && !isLocked(selectedComponent)) {
           setQuickEditId(selectedComponent);
         }
       }
@@ -833,7 +839,7 @@ export default function VisualEditor({
 
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [components, selectedComponent, history, historyIndex, copiedComponent, quickEditId]);
+  }, [components, selectedComponent, history, historyIndex, copiedComponent, quickEditId, lockedComponents]);
 
   const handleDragEnd = (result: DropResult) => {
     if (!result.destination) return;
@@ -1345,6 +1351,7 @@ export default function VisualEditor({
   };
 
   const updateComponent = (id: string, data: any) => {
+    if (lockedComponents.includes(id)) return; // Prevent editing locked components
     const updated = components.map((c) =>
       c.id === id ? { ...c, data: { ...c.data, ...data } } : c
     );
@@ -1352,6 +1359,7 @@ export default function VisualEditor({
   };
 
   const deleteComponent = (id: string) => {
+    if (lockedComponents.includes(id)) return; // Prevent deleting locked components
     notify(components.filter((c) => c.id !== id));
     if (selectedComponent === id) setSelectedComponent(null);
     setSelectedComponents(prev => prev.filter(cid => cid !== id));
@@ -1376,7 +1384,9 @@ export default function VisualEditor({
 
   const bulkDelete = () => {
     if (selectedComponents.length === 0) return;
-    notify(components.filter((c) => !selectedComponents.includes(c.id)));
+    // Filter out locked components
+    const unlockedSelected = selectedComponents.filter(id => !lockedComponents.includes(id));
+    notify(components.filter((c) => !unlockedSelected.includes(c.id)));
     setSelectedComponents([]);
     setSelectedComponent(null);
   };
@@ -1397,6 +1407,15 @@ export default function VisualEditor({
     notify([...components, ...duplicated]);
     setSelectedComponents([]);
   };
+
+  // Component locking
+  const toggleLock = (id: string) => {
+    setLockedComponents(prev => 
+      prev.includes(id) ? prev.filter(cid => cid !== id) : [...prev, id]
+    );
+  };
+
+  const isLocked = (id: string) => lockedComponents.includes(id);
 
   // Viewport width is now handled by MobilePreviewToggle
 
@@ -2257,7 +2276,7 @@ export default function VisualEditor({
                         key={component.id}
                         draggableId={component.id}
                         index={index}
-                        isDragDisabled={previewMode}
+                        isDragDisabled={previewMode || isLocked(component.id)}
                       >
                         {(provided, snapshot) => (
                           <div
@@ -2268,6 +2287,8 @@ export default function VisualEditor({
                                 ? "ring-2 ring-primary-500"
                                 : selectedComponents.includes(component.id)
                                 ? "ring-2 ring-blue-400 bg-blue-50"
+                                : isLocked(component.id)
+                                ? "ring-2 ring-amber-300 bg-amber-50/30"
                                 : ""
                             } ${snapshot.isDragging ? "opacity-50" : ""}`}
                             onClick={(e) => {
@@ -2277,8 +2298,8 @@ export default function VisualEditor({
                             }}
                             onDoubleClick={(e) => {
                               e.stopPropagation();
-                              // Activate quick edit on double-click for text/button/image
-                              if (['text', 'button', 'image'].includes(component.type) && !previewMode) {
+                              // Activate quick edit on double-click for text/button/image (if not locked)
+                              if (['text', 'button', 'image'].includes(component.type) && !previewMode && !isLocked(component.id)) {
                                 setQuickEditId(component.id);
                               }
                             }}
@@ -2439,10 +2460,18 @@ export default function VisualEditor({
                               <>
                             {!previewMode && (
                               <div className="absolute top-2 right-2 z-10 flex gap-2 md:gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+                                {/* Lock indicator - always visible when locked */}
+                                {isLocked(component.id) && (
+                                  <div className="p-2 sm:p-1 bg-amber-100 rounded shadow border border-amber-300">
+                                    <Lock className="h-5 w-5 text-amber-600" />
+                                  </div>
+                                )}
                                 <div
                                   {...provided.dragHandleProps}
-                                  className="p-2 sm:p-1 bg-white rounded shadow cursor-grab active:cursor-grabbing hover:bg-gray-50"
-                                  title="Drag to reorder"
+                                  className={`p-2 sm:p-1 bg-white rounded shadow hover:bg-gray-50 ${
+                                    isLocked(component.id) ? "cursor-not-allowed opacity-50" : "cursor-grab active:cursor-grabbing"
+                                  }`}
+                                  title={isLocked(component.id) ? "Component is locked" : "Drag to reorder"}
                                   aria-label="Drag to reorder"
                                 >
                                   <GripVertical className="h-5 w-5" />
@@ -2452,11 +2481,11 @@ export default function VisualEditor({
                                     e.stopPropagation();
                                     moveComponent(component.id, -1);
                                   }}
-                                  disabled={index === 0}
+                                  disabled={index === 0 || isLocked(component.id)}
                                   className={`p-2 sm:p-1 bg-white rounded shadow hover:bg-gray-50 ${
-                                    index === 0 ? "opacity-40 cursor-not-allowed" : ""
+                                    (index === 0 || isLocked(component.id)) ? "opacity-40 cursor-not-allowed" : ""
                                   }`}
-                                  title="Move up"
+                                  title={isLocked(component.id) ? "Locked" : "Move up"}
                                   aria-label="Move component up"
                                 >
                                   <ArrowUp className="h-5 w-5" />
@@ -2466,14 +2495,33 @@ export default function VisualEditor({
                                     e.stopPropagation();
                                     moveComponent(component.id, 1);
                                   }}
-                                  disabled={index === components.length - 1}
+                                  disabled={index === components.length - 1 || isLocked(component.id)}
                                   className={`p-2 sm:p-1 bg-white rounded shadow hover:bg-gray-50 ${
-                                    index === components.length - 1 ? "opacity-40 cursor-not-allowed" : ""
+                                    (index === components.length - 1 || isLocked(component.id)) ? "opacity-40 cursor-not-allowed" : ""
                                   }`}
-                                  title="Move down"
+                                  title={isLocked(component.id) ? "Locked" : "Move down"}
                                   aria-label="Move component down"
                                 >
                                   <ArrowDown className="h-5 w-5" />
+                                </button>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    toggleLock(component.id);
+                                  }}
+                                  className={`p-2 sm:p-1 bg-white rounded shadow ${
+                                    isLocked(component.id) 
+                                      ? "hover:bg-green-50 text-amber-600" 
+                                      : "hover:bg-amber-50 text-gray-600"
+                                  }`}
+                                  title={isLocked(component.id) ? "Unlock component" : "Lock component"}
+                                  aria-label={isLocked(component.id) ? "Unlock component" : "Lock component"}
+                                >
+                                  {isLocked(component.id) ? (
+                                    <Lock className="h-5 w-5" />
+                                  ) : (
+                                    <Unlock className="h-5 w-5" />
+                                  )}
                                 </button>
                                 <button
                                   onClick={(e) => {
@@ -2491,8 +2539,13 @@ export default function VisualEditor({
                                     e.stopPropagation();
                                     deleteComponent(component.id);
                                   }}
-                                  className="p-2 sm:p-1 bg-white rounded shadow hover:bg-red-50 text-red-600"
-                                  title="Delete (Del)"
+                                  disabled={isLocked(component.id)}
+                                  className={`p-2 sm:p-1 bg-white rounded shadow ${
+                                    isLocked(component.id)
+                                      ? "opacity-40 cursor-not-allowed"
+                                      : "hover:bg-red-50 text-red-600"
+                                  }`}
+                                  title={isLocked(component.id) ? "Locked" : "Delete (Del)"}
                                   aria-label="Delete component"
                                 >
                                   <Trash2 className="h-5 w-5" />
