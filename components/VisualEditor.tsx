@@ -10798,31 +10798,71 @@ function ComponentProperties({
     case "blogCards":
       return <GenericProperties component={component} onUpdate={onUpdate} fields={['heading', 'displayCount', 'layout', 'columns', 'showExcerpt', 'showDate', 'showAuthor']} />;
     case "categoryNav":
-      return <GenericProperties component={component} onUpdate={onUpdate} fields={['heading', 'layout', 'columns', 'showCounts']} />;
+      return (
+        <CategoryNavProperties
+          data={component.data as CategoryNavComponent['data']}
+          onUpdate={onUpdate}
+        />
+      );
     case "breadcrumbs":
       return <GenericProperties component={component} onUpdate={onUpdate} fields={['separator', 'showHome']} />;
     case "tableOfContents":
-      return <GenericProperties component={component} onUpdate={onUpdate} fields={['heading', 'position', 'sticky']} />;
+      return (
+        <TableOfContentsProperties
+          data={component.data as TableOfContentsComponent['data']}
+          onUpdate={onUpdate}
+        />
+      );
     case "relatedContent":
       return <GenericProperties component={component} onUpdate={onUpdate} fields={['heading', 'contentType', 'displayCount', 'layout', 'algorithm']} />;
     case "mapEmbed":
       return <GenericProperties component={component} onUpdate={onUpdate} fields={['address', 'zoom', 'height', 'showMarker', 'mapType']} />;
     case "quiz":
-      return <GenericProperties component={component} onUpdate={onUpdate} fields={['heading', 'description']} />;
+      return (
+        <QuizProperties
+          data={component.data as QuizComponent['data']}
+          onUpdate={onUpdate}
+        />
+      );
     case "calculator":
-      return <GenericProperties component={component} onUpdate={onUpdate} fields={['heading', 'description', 'basePrice', 'showBreakdown']} />;
+      return (
+        <CalculatorProperties
+          data={component.data as CalculatorComponent['data']}
+          onUpdate={onUpdate}
+        />
+      );
     case "lightbox":
       return <GenericProperties component={component} onUpdate={onUpdate} fields={['triggerText', 'triggerStyle', 'content', 'width']} />;
     case "enhancedTabs":
-      return <GenericProperties component={component} onUpdate={onUpdate} fields={['style', 'showIcons']} />;
+      return (
+        <EnhancedTabsProperties
+          data={component.data as EnhancedTabsComponent['data']}
+          onUpdate={onUpdate}
+        />
+      );
     case "alertBanner":
       return <GenericProperties component={component} onUpdate={onUpdate} fields={['message', 'type', 'dismissible', 'link', 'linkText', 'position']} />;
     case "logoCarousel":
-      return <GenericProperties component={component} onUpdate={onUpdate} fields={['heading', 'autoplay', 'speed', 'grayscale']} />;
+      return (
+        <LogoCarouselProperties
+          data={component.data as LogoCarouselComponent['data']}
+          onUpdate={onUpdate}
+        />
+      );
     case "liveCounter":
-      return <GenericProperties component={component} onUpdate={onUpdate} fields={['duration', 'style']} />;
+      return (
+        <LiveCounterProperties
+          data={component.data as LiveCounterComponent['data']}
+          onUpdate={onUpdate}
+        />
+      );
     case "bookingsTicker":
-      return <GenericProperties component={component} onUpdate={onUpdate} fields={['position', 'displayDuration', 'interval']} />;
+      return (
+        <BookingsTickerProperties
+          data={component.data as BookingsTickerComponent['data']}
+          onUpdate={onUpdate}
+        />
+      );
     
     default:
       return null;
@@ -11270,6 +11310,38 @@ function BeforeAfterProperties({
           <option value="horizontal">Horizontal</option>
           <option value="vertical">Vertical</option>
         </select>
+        {/* Mini orientation preview */}
+        <div className="mt-3">
+          <div className="text-xs text-gray-500 mb-1">Preview</div>
+          <div
+            className={`rounded border bg-gray-100 relative overflow-hidden ${
+              (data.orientation || 'horizontal') === 'horizontal'
+                ? 'h-12'
+                : 'h-24 w-20'
+            }`}
+            style={{ width: (data.orientation || 'horizontal') === 'horizontal' ? '100%' : 'auto' }}
+          >
+            {(data.orientation || 'horizontal') === 'horizontal' ? (
+              <div className="absolute inset-0 flex">
+                <div className="w-1/2 bg-gradient-to-r from-gray-300 to-gray-200 flex items-center justify-center text-[10px] font-medium">
+                  Before
+                </div>
+                <div className="w-1/2 bg-gradient-to-l from-gray-300 to-gray-200 flex items-center justify-center text-[10px] font-medium">
+                  After
+                </div>
+              </div>
+            ) : (
+              <div className="absolute inset-0 flex flex-col">
+                <div className="h-1/2 bg-gradient-to-b from-gray-300 to-gray-200 flex items-center justify-center text-[10px] font-medium">
+                  Before
+                </div>
+                <div className="h-1/2 bg-gradient-to-t from-gray-300 to-gray-200 flex items-center justify-center text-[10px] font-medium">
+                  After
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -11284,20 +11356,27 @@ function TrustBadgesProperties({
   onUpdate: (data: any) => void;
 }) {
   const badges = data.badges || [];
+  const normalized = badges.map((b: any) => ({
+    id: b.id || `badge-${Math.random().toString(36).slice(2, 8)}`,
+    label: b.label || b.title || 'Badge',
+    description: b.description || '',
+    icon: b.icon || '',
+    image: b.image || '',
+    link: b.link || ''
+  }));
+  const commit = (arr: any[]) => onUpdate({ badges: arr });
   const updateBadge = (idx: number, patch: any) => {
-    const next = badges.map((b, i) => (i === idx ? { ...b, ...patch } : b));
-    onUpdate({ badges: next });
+    const next = normalized.map((b, i) => (i === idx ? { ...b, ...patch } : b));
+    commit(next);
   };
-  const addBadge = () => {
-    onUpdate({
-      badges: [
-        ...badges,
-        { id: `b-${Date.now()}`, label: "New Badge", description: "", icon: "⭐" },
-      ],
-    });
-  };
-  const removeBadge = (idx: number) => {
-    onUpdate({ badges: badges.filter((_, i) => i !== idx) });
+  const addBadge = () => commit([...normalized, { id: `b-${Date.now()}`, label: 'New Badge', description: '', icon: '⭐', image: '', link: '' }]);
+  const removeBadge = (idx: number) => commit(normalized.filter((_, i) => i !== idx));
+  const moveBadge = (idx: number, dir: -1 | 1) => {
+    const next = [...normalized];
+    const target = idx + dir;
+    if (target < 0 || target >= next.length) return;
+    [next[idx], next[target]] = [next[target], next[idx]];
+    commit(next);
   };
 
   return (
@@ -11346,47 +11425,70 @@ function TrustBadgesProperties({
           </button>
         </div>
         <div className="space-y-3">
-          {badges.map((b, idx) => (
-            <div key={b.id || idx} className="grid grid-cols-12 gap-2 items-end">
-              <div className="col-span-2">
-                <label className="block text-xs font-medium mb-1">Icon</label>
-                <input
-                  type="text"
-                  value={b.icon || ""}
-                  onChange={(e) => updateBadge(idx, { icon: e.target.value })}
-                  className="w-full border rounded px-2 py-2"
-                  placeholder="⭐ or URL"
-                />
-              </div>
-              <div className="col-span-3">
-                <label className="block text-xs font-medium mb-1">Label</label>
-                <input
-                  type="text"
-                  value={b.label || ""}
-                  onChange={(e) => updateBadge(idx, { label: e.target.value })}
-                  className="w-full border rounded px-2 py-2"
-                />
-              </div>
-              <div className="col-span-5">
-                <label className="block text-xs font-medium mb-1">Description</label>
-                <input
-                  type="text"
-                  value={b.description || ""}
-                  onChange={(e) => updateBadge(idx, { description: e.target.value })}
-                  className="w-full border rounded px-2 py-2"
-                />
-              </div>
-              <div className="col-span-2 flex items-center gap-2">
-                <button
-                  onClick={() => removeBadge(idx)}
-                  className="text-red-600 text-xs border rounded px-2 py-1 hover:bg-red-50"
-                >
-                  Remove
-                </button>
+          {normalized.map((b, idx) => (
+            <div key={b.id} className="border rounded p-2 bg-gray-50">
+              <div className="grid grid-cols-12 gap-2 items-start">
+                <div className="col-span-2">
+                  <label className="block text-xs font-medium mb-1">Icon</label>
+                  <input
+                    type="text"
+                    value={b.icon}
+                    onChange={(e) => updateBadge(idx, { icon: e.target.value, image: '' })}
+                    className="w-full border rounded px-2 py-1 text-xs"
+                    placeholder="⭐"
+                  />
+                  <div className="text-[10px] text-gray-400 mt-1">Emoji / text</div>
+                </div>
+                <div className="col-span-3">
+                  <label className="block text-xs font-medium mb-1">Image (optional)</label>
+                  <div className="flex items-center gap-1">
+                    <input
+                      type="url"
+                      value={b.image}
+                      onChange={(e) => updateBadge(idx, { image: e.target.value })}
+                      className="flex-1 border rounded px-2 py-1 text-xs"
+                      placeholder="https://..."
+                    />
+                    <ImageUploader
+                      onImageUrl={(url) => updateBadge(idx, { image: url })}
+                      buttonLabel="📁"
+                    />
+                  </div>
+                </div>
+                <div className="col-span-3">
+                  <label className="block text-xs font-medium mb-1">Label</label>
+                  <input
+                    type="text"
+                    value={b.label}
+                    onChange={(e) => updateBadge(idx, { label: e.target.value })}
+                    className="w-full border rounded px-2 py-1 text-xs"
+                  />
+                </div>
+                <div className="col-span-2">
+                  <label className="block text-xs font-medium mb-1">Description</label>
+                  <input
+                    type="text"
+                    value={b.description}
+                    onChange={(e) => updateBadge(idx, { description: e.target.value })}
+                    className="w-full border rounded px-2 py-1 text-xs"
+                  />
+                </div>
+                <div className="col-span-2 flex flex-col items-stretch gap-1">
+                  <div className="flex gap-1">
+                    <button onClick={() => moveBadge(idx, -1)} disabled={idx === 0} className="flex-1 text-[10px] border rounded px-1 py-1 disabled:opacity-30">↑</button>
+                    <button onClick={() => moveBadge(idx, 1)} disabled={idx === normalized.length - 1} className="flex-1 text-[10px] border rounded px-1 py-1 disabled:opacity-30">↓</button>
+                  </div>
+                  <button
+                    onClick={() => removeBadge(idx)}
+                    className="text-red-600 text-[10px] border rounded px-1 py-1 hover:bg-red-50"
+                  >
+                    Remove
+                  </button>
+                </div>
               </div>
             </div>
           ))}
-          {badges.length === 0 && (
+          {normalized.length === 0 && (
             <div className="text-xs text-gray-500">No badges yet. Click “Add Badge”.</div>
           )}
         </div>
@@ -11515,17 +11617,66 @@ function ComparisonTableProperties({
   onUpdate: (data: any) => void;
 }) {
   const plans = data.plans || [];
-  const features = data.features || [];
+  const features = (data.features || []).map((f) => ({
+    id: f.id || `feat-${Math.random().toString(36).slice(2, 8)}`,
+    name: f.name || '',
+    values: f.values || plans.map(() => ''),
+    description: (f as any).description || ''
+  }));
 
-  const updatePlan = (idx: number, patch: any) =>
-    onUpdate({ plans: plans.map((p, i) => (i === idx ? { ...p, ...patch } : p)) });
-  const addPlan = () => onUpdate({ plans: [...plans, { name: "New", featured: false }] });
-  const removePlan = (idx: number) => onUpdate({ plans: plans.filter((_, i) => i !== idx) });
+  const commit = (nextPlans: any, nextFeatures: any) => {
+    onUpdate({
+      ...data,
+      plans: nextPlans,
+      features: nextFeatures.map((f: any) => ({ ...f, values: f.values }))
+    });
+  };
 
-  const updateFeature = (idx: number, patch: any) =>
-    onUpdate({ features: features.map((f, i) => (i === idx ? { ...f, ...patch } : f)) });
-  const addFeature = () => onUpdate({ features: [...features, { name: "Feature", values: plans.map(() => "") }] });
-  const removeFeature = (idx: number) => onUpdate({ features: features.filter((_, i) => i !== idx) });
+  const updatePlan = (idx: number, patch: any) => {
+    const nextPlans = plans.map((p, i) => (i === idx ? { ...p, ...patch } : p));
+    // Adjust feature values length
+    const nextFeatures = features.map((f) => {
+      const diff = nextPlans.length - f.values.length;
+      if (diff > 0) return { ...f, values: [...f.values, ...Array(diff).fill('')] };
+      if (diff < 0) return { ...f, values: f.values.slice(0, nextPlans.length) };
+      return f;
+    });
+    commit(nextPlans, nextFeatures);
+  };
+  const addPlan = () => updatePlan(plans.length, { id: `plan-${Date.now()}`, name: 'New Plan', featured: false });
+  const removePlan = (idx: number) => {
+    const nextPlans = plans.filter((_, i) => i !== idx);
+    const nextFeatures = features.map((f) => ({ ...f, values: f.values.filter((_, i) => i !== idx) }));
+    commit(nextPlans, nextFeatures);
+  };
+  const movePlan = (idx: number, dir: -1 | 1) => {
+    const target = idx + dir;
+    if (target < 0 || target >= plans.length) return;
+    const nextPlans = [...plans];
+    [nextPlans[idx], nextPlans[target]] = [nextPlans[target], nextPlans[idx]];
+    const nextFeatures = features.map((f) => {
+      const nextValues = [...f.values];
+      [nextValues[idx], nextValues[target]] = [nextValues[target], nextValues[idx]];
+      return { ...f, values: nextValues };
+    });
+    commit(nextPlans, nextFeatures);
+  };
+
+  const updateFeature = (idx: number, patch: any) => {
+    const nextFeatures = features.map((f, i) => (i === idx ? { ...f, ...patch } : f));
+    commit(plans, nextFeatures);
+  };
+  const addFeature = () => {
+    commit(plans, [...features, { id: `feat-${Date.now()}`, name: 'Feature', values: plans.map(() => '') }]);
+  };
+  const removeFeature = (idx: number) => commit(plans, features.filter((_, i) => i !== idx));
+  const moveFeature = (idx: number, dir: -1 | 1) => {
+    const target = idx + dir;
+    if (target < 0 || target >= features.length) return;
+    const next = [...features];
+    [next[idx], next[target]] = [next[target], next[idx]];
+    commit(plans, next);
+  };
 
   return (
     <div className="space-y-4">
@@ -11538,6 +11689,18 @@ function ComparisonTableProperties({
           className="w-full border rounded px-3 py-2"
         />
       </div>
+      <div>
+        <label className="block text-sm font-medium mb-1">Style</label>
+        <select
+          value={data.style || 'default'}
+          onChange={(e) => onUpdate({ style: e.target.value })}
+          className="w-full border rounded px-3 py-2"
+        >
+          <option value="default">Default</option>
+          <option value="compact">Compact</option>
+          <option value="cards">Cards</option>
+        </select>
+      </div>
 
       <div className="border rounded p-3">
         <div className="flex items-center justify-between mb-2">
@@ -11546,7 +11709,7 @@ function ComparisonTableProperties({
         </div>
         <div className="space-y-2">
           {plans.map((p, idx) => (
-            <div key={idx} className="grid grid-cols-12 gap-2 items-center">
+            <div key={p.id || idx} className="grid grid-cols-12 gap-2 items-center">
               <input
                 className="col-span-6 border rounded px-2 py-2"
                 value={p.name || ""}
@@ -11561,7 +11724,11 @@ function ComparisonTableProperties({
                 />
                 Featured
               </label>
-              <button onClick={() => removePlan(idx)} className="col-span-2 text-xs text-red-600 border rounded px-2 py-1">Remove</button>
+              <div className="col-span-2 flex gap-1">
+                <button onClick={() => movePlan(idx, -1)} disabled={idx===0} className="text-xs border rounded px-2 py-1 disabled:opacity-30">↑</button>
+                <button onClick={() => movePlan(idx, 1)} disabled={idx===plans.length-1} className="text-xs border rounded px-2 py-1 disabled:opacity-30">↓</button>
+                <button onClick={() => removePlan(idx)} className="text-xs text-red-600 border rounded px-2 py-1">✕</button>
+              </div>
             </div>
           ))}
           {plans.length === 0 && <div className="text-xs text-gray-500">Add at least one plan.</div>}
@@ -11575,7 +11742,7 @@ function ComparisonTableProperties({
         </div>
         <div className="space-y-2">
           {features.map((f, idx) => (
-            <div key={idx} className="grid grid-cols-12 gap-2 items-center">
+            <div key={f.id} className="grid grid-cols-12 gap-2 items-center">
               <input
                 className="col-span-4 border rounded px-2 py-2"
                 value={f.name || ""}
@@ -11597,9 +11764,473 @@ function ComparisonTableProperties({
                   />
                 ))}
               </div>
+              <div className="col-span-12 flex gap-1 justify-end mt-1">
+                <button onClick={() => moveFeature(idx, -1)} disabled={idx===0} className="text-[10px] border rounded px-2 py-1 disabled:opacity-30">↑</button>
+                <button onClick={() => moveFeature(idx, 1)} disabled={idx===features.length-1} className="text-[10px] border rounded px-2 py-1 disabled:opacity-30">↓</button>
+                <button onClick={() => removeFeature(idx)} className="text-[10px] text-red-600 border rounded px-2 py-1">Remove</button>
+              </div>
             </div>
           ))}
           {features.length === 0 && <div className="text-xs text-gray-500">Add features to compare plans.</div>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Category Nav Properties
+function CategoryNavProperties({ data, onUpdate }: { data: CategoryNavComponent['data']; onUpdate: (patch: any) => void }) {
+  const categories = data.categories || [];
+  const updateCat = (id: string, patch: any) => {
+    onUpdate({ categories: categories.map(c => c.id === id ? { ...c, ...patch } : c) });
+  };
+  const addCat = () => {
+    onUpdate({ categories: [...categories, { id: `cat-${Date.now()}`, name: 'New Category', link: '#', image: '', count: 0 }] });
+  };
+  const removeCat = (id: string) => onUpdate({ categories: categories.filter(c => c.id !== id) });
+  const moveCat = (idx: number, dir: -1 | 1) => {
+    const target = idx + dir; if (target < 0 || target >= categories.length) return;
+    const next = [...categories]; [next[idx], next[target]] = [next[target], next[idx]]; onUpdate({ categories: next });
+  };
+  return (
+    <div className="space-y-4">
+      <div>
+        <label className="block text-sm font-medium mb-1">Heading</label>
+        <input type="text" value={data.heading || ''} onChange={(e)=>onUpdate({ heading: e.target.value })} className="w-full border rounded px-3 py-2" />
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="block text-sm font-medium mb-1">Layout</label>
+          <select value={data.layout || 'grid'} onChange={(e)=>onUpdate({ layout: e.target.value })} className="w-full border rounded px-3 py-2">
+            <option value="grid">Grid</option>
+            <option value="carousel">Carousel</option>
+            <option value="sidebar">Sidebar</option>
+          </select>
+        </div>
+        <div>
+          <label className="block text-sm font-medium mb-1">Columns</label>
+          <select value={data.columns || 3} onChange={(e)=>onUpdate({ columns: Number(e.target.value) })} className="w-full border rounded px-3 py-2">
+            <option value={2}>2</option>
+            <option value={3}>3</option>
+            <option value={4}>4</option>
+          </select>
+        </div>
+      </div>
+      <label className="flex items-center gap-2 text-sm">
+        <input type="checkbox" checked={!!data.showCounts} onChange={(e)=>onUpdate({ showCounts: e.target.checked })} /> Show Counts
+      </label>
+      <div className="border rounded p-3">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-sm font-medium">Categories</span>
+          <button onClick={addCat} className="text-xs border rounded px-2 py-1">+ Add</button>
+        </div>
+        <div className="space-y-3">
+          {categories.map((c, idx) => (
+            <div key={c.id} className="bg-gray-50 p-2 rounded border space-y-2">
+              <div className="flex gap-2 items-center">
+                <input value={c.name} onChange={(e)=>updateCat(c.id,{ name: e.target.value })} className="flex-1 border rounded px-2 py-1 text-xs" placeholder="Name" />
+                <input value={c.link} onChange={(e)=>updateCat(c.id,{ link: e.target.value })} className="flex-1 border rounded px-2 py-1 text-xs" placeholder="Link / slug" />
+              </div>
+              <div className="flex gap-2 items-center">
+                <input type="url" value={c.image || ''} onChange={(e)=>updateCat(c.id,{ image: e.target.value })} className="flex-1 border rounded px-2 py-1 text-xs" placeholder="Image URL" />
+                <ImageUploader onImageUrl={(url)=>updateCat(c.id,{ image: url })} buttonLabel="Upload" />
+              </div>
+              <div className="flex gap-2 items-center justify-between">
+                <input type="number" value={c.count ?? 0} onChange={(e)=>updateCat(c.id,{ count: Number(e.target.value) })} className="w-24 border rounded px-2 py-1 text-xs" placeholder="Count" />
+                <div className="flex gap-1">
+                  <button onClick={()=>moveCat(idx,-1)} disabled={idx===0} className="text-[10px] border rounded px-2 py-1 disabled:opacity-30">↑</button>
+                  <button onClick={()=>moveCat(idx,1)} disabled={idx===categories.length-1} className="text-[10px] border rounded px-2 py-1 disabled:opacity-30">↓</button>
+                  <button onClick={()=>removeCat(c.id)} className="text-[10px] text-red-600 border rounded px-2 py-1">Remove</button>
+                </div>
+              </div>
+            </div>
+          ))}
+          {categories.length === 0 && <div className="text-xs text-gray-500">No categories yet.</div>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Table of Contents Properties
+function TableOfContentsProperties({ data, onUpdate }: { data: TableOfContentsComponent['data']; onUpdate: (patch: any) => void }) {
+  const items = data.items || [];
+  const updateItem = (id: string, patch: any) => onUpdate({ items: items.map(it => it.id === id ? { ...it, ...patch } : it) });
+  const addItem = () => onUpdate({ items: [...items, { id: `toc-${Date.now()}`, label: 'Section', anchor: 'section', level: 0 }] });
+  const removeItem = (id: string) => onUpdate({ items: items.filter(it => it.id !== id) });
+  const moveItem = (idx: number, dir: -1 | 1) => { const target = idx + dir; if (target < 0 || target >= items.length) return; const next = [...items]; [next[idx], next[target]] = [next[target], next[idx]]; onUpdate({ items: next }); };
+  const changeLevel = (id: string, delta: 1 | -1) => {
+    updateItem(id, { level: Math.min(3, Math.max(0, (items.find(i=>i.id===id)?.level ||0)+ delta)) });
+  };
+  return (
+    <div className="space-y-4">
+      <div>
+        <label className="block text-sm font-medium mb-1">Heading</label>
+        <input type="text" value={data.heading || ''} onChange={(e)=>onUpdate({ heading: e.target.value })} className="w-full border rounded px-3 py-2" />
+      </div>
+      <label className="flex items-center gap-2 text-sm">
+        <input type="checkbox" checked={!!data.sticky} onChange={(e)=>onUpdate({ sticky: e.target.checked })} /> Sticky
+      </label>
+      <div className="border rounded p-3">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-sm font-medium">Items</span>
+          <button onClick={addItem} className="text-xs border rounded px-2 py-1">+ Add</button>
+        </div>
+        <div className="space-y-2">
+          {items.map((it, idx) => (
+            <div key={it.id} className="bg-gray-50 p-2 rounded border">
+              <div className="grid grid-cols-12 gap-2 mb-1 items-center">
+                <input value={it.label} onChange={(e)=>updateItem(it.id,{ label: e.target.value })} className="col-span-4 border rounded px-2 py-1 text-xs" placeholder="Label" />
+                <input value={it.anchor} onChange={(e)=>updateItem(it.id,{ anchor: e.target.value })} className="col-span-4 border rounded px-2 py-1 text-xs" placeholder="Anchor" />
+                <div className="col-span-2 flex items-center gap-1">
+                  <button onClick={()=>changeLevel(it.id,-1)} className="text-[10px] border rounded px-2 py-1">−</button>
+                  <div className="text-[10px] w-6 text-center">L{it.level}</div>
+                  <button onClick={()=>changeLevel(it.id,1)} className="text-[10px] border rounded px-2 py-1">+</button>
+                </div>
+                <div className="col-span-2 flex gap-1">
+                  <button onClick={()=>moveItem(idx,-1)} disabled={idx===0} className="text-[10px] border rounded px-2 py-1 disabled:opacity-30">↑</button>
+                  <button onClick={()=>moveItem(idx,1)} disabled={idx===items.length-1} className="text-[10px] border rounded px-2 py-1 disabled:opacity-30">↓</button>
+                  <button onClick={()=>removeItem(it.id)} className="text-[10px] text-red-600 border rounded px-2 py-1">✕</button>
+                </div>
+              </div>
+            </div>
+          ))}
+          {items.length === 0 && <div className="text-xs text-gray-500">No items yet.</div>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Quiz Properties
+function QuizProperties({ data, onUpdate }: { data: QuizComponent['data']; onUpdate: (patch: any) => void }) {
+  const questions = data.questions || [];
+  const updateQuestion = (id: string, patch: any) => onUpdate({ questions: questions.map(q => q.id === id ? { ...q, ...patch } : q) });
+  const addQuestion = () => onUpdate({ questions: [...questions, { id: `q-${Date.now()}`, question: 'New question', options: [] }] });
+  const removeQuestion = (id: string) => onUpdate({ questions: questions.filter(q => q.id !== id) });
+  const addOption = (qid: string) => updateQuestion(qid, { options: [...(questions.find(q=>q.id===qid)?.options || []), { id: `opt-${Date.now()}`, text: 'Option', value: '' }] });
+  const updateOption = (qid: string, oid: string, patch: any) => updateQuestion(qid, { options: (questions.find(q=>q.id===qid)?.options || []).map(o => o.id === oid ? { ...o, ...patch } : o) });
+  const removeOption = (qid: string, oid: string) => updateQuestion(qid, { options: (questions.find(q=>q.id===qid)?.options || []).filter(o => o.id !== oid) });
+  return (
+    <div className="space-y-4">
+      <div>
+        <label className="block text-sm font-medium mb-1">Heading</label>
+        <input type="text" value={data.heading || ''} onChange={(e)=>onUpdate({ heading: e.target.value })} className="w-full border rounded px-3 py-2" />
+      </div>
+      <div>
+        <label className="block text-sm font-medium mb-1">Description</label>
+        <textarea value={data.description || ''} onChange={(e)=>onUpdate({ description: e.target.value })} rows={2} className="w-full border rounded px-3 py-2" />
+      </div>
+      <div className="border rounded p-3">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-sm font-medium">Questions</span>
+          <button onClick={addQuestion} className="text-xs border rounded px-2 py-1">+ Add</button>
+        </div>
+        <div className="space-y-3">
+          {questions.map(q => (
+            <div key={q.id} className="bg-gray-50 p-2 rounded border">
+              <div className="flex gap-2 mb-2">
+                <input value={q.question} onChange={(e)=>updateQuestion(q.id,{ question: e.target.value })} className="flex-1 border rounded px-2 py-1 text-xs" />
+                <button onClick={()=>removeQuestion(q.id)} className="text-[10px] text-red-600 border rounded px-2 py-1">Remove</button>
+              </div>
+              <div className="space-y-2">
+                {q.options.map(o => (
+                  <div key={o.id} className="flex gap-2 items-center">
+                    <input value={o.text} onChange={(e)=>updateOption(q.id,o.id,{ text: e.target.value })} className="flex-1 border rounded px-2 py-1 text-xs" placeholder="Option" />
+                    <input value={o.value} onChange={(e)=>updateOption(q.id,o.id,{ value: e.target.value })} className="w-32 border rounded px-2 py-1 text-xs" placeholder="Value" />
+                    <button onClick={()=>removeOption(q.id,o.id)} className="text-[10px] text-red-600 border rounded px-2 py-1">✕</button>
+                  </div>
+                ))}
+                <button onClick={()=>addOption(q.id)} className="text-[10px] border rounded px-2 py-1">+ Option</button>
+              </div>
+            </div>
+          ))}
+          {questions.length === 0 && <div className="text-xs text-gray-500">No questions yet.</div>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Calculator Properties
+function CalculatorProperties({ data, onUpdate }: { data: CalculatorComponent['data']; onUpdate: (patch: any) => void }) {
+  const fields = data.fields || [];
+  const updateField = (id: string, patch: any) => onUpdate({ fields: fields.map(f => f.id === id ? { ...f, ...patch } : f) });
+  const addField = () => onUpdate({ fields: [...fields, { id: `field-${Date.now()}`, label: 'Field', type: 'number', multiplier: 1 }] });
+  const removeField = (id: string) => onUpdate({ fields: fields.filter(f => f.id !== id) });
+  const addOption = (fid: string) => {
+    const field = fields.find(f => f.id === fid);
+    if (!field) return;
+    const opts = field.options || [];
+    updateField(fid,{ options: [...opts, { label: 'Option', value: 1 }] });
+  };
+  const updateOption = (fid: string, idx: number, patch: any) => {
+    const field = fields.find(f => f.id === fid); if(!field) return;
+    const opts = (field.options || []).map((o,i)=> i===idx ? { ...o, ...patch } : o);
+    updateField(fid,{ options: opts });
+  };
+  const removeOption = (fid: string, idx: number) => {
+    const field = fields.find(f => f.id === fid); if(!field) return;
+    updateField(fid,{ options: (field.options || []).filter((_,i)=>i!==idx) });
+  };
+  return (
+    <div className="space-y-4">
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="block text-sm font-medium mb-1">Heading</label>
+          <input value={data.heading || ''} onChange={(e)=>onUpdate({ heading: e.target.value })} className="w-full border rounded px-3 py-2" />
+        </div>
+        <div>
+          <label className="block text-sm font-medium mb-1">Base Price</label>
+          <input type="number" value={data.basePrice ?? 0} onChange={(e)=>onUpdate({ basePrice: Number(e.target.value) })} className="w-full border rounded px-3 py-2" />
+        </div>
+      </div>
+      <div>
+        <label className="block text-sm font-medium mb-1">Description</label>
+        <textarea value={data.description || ''} onChange={(e)=>onUpdate({ description: e.target.value })} rows={2} className="w-full border rounded px-3 py-2" />
+      </div>
+      <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={!!data.showBreakdown} onChange={(e)=>onUpdate({ showBreakdown: e.target.checked })} /> Show Breakdown</label>
+      <div className="border rounded p-3">
+        <div className="flex items-center justify-between mb-2"><span className="text-sm font-medium">Fields</span><button onClick={addField} className="text-xs border rounded px-2 py-1">+ Add</button></div>
+        <div className="space-y-3">
+          {fields.map(f => (
+            <div key={f.id} className="bg-gray-50 p-2 rounded border space-y-2">
+              <div className="grid grid-cols-12 gap-2 items-center">
+                <input value={f.label} onChange={(e)=>updateField(f.id,{ label: e.target.value })} className="col-span-4 border rounded px-2 py-1 text-xs" placeholder="Label" />
+                <select value={f.type} onChange={(e)=>updateField(f.id,{ type: e.target.value })} className="col-span-3 border rounded px-2 py-1 text-xs">
+                  <option value="number">Number</option>
+                  <option value="select">Select</option>
+                  <option value="checkbox">Checkbox</option>
+                </select>
+                {f.type === 'number' && (
+                  <input type="number" value={f.multiplier ?? 1} onChange={(e)=>updateField(f.id,{ multiplier: Number(e.target.value) })} className="col-span-3 border rounded px-2 py-1 text-xs" placeholder="Multiplier" />
+                )}
+                <button onClick={()=>removeField(f.id)} className="col-span-2 text-[10px] text-red-600 border rounded px-2 py-1">Remove</button>
+              </div>
+              {f.type === 'select' && (
+                <div className="space-y-2">
+                  {(f.options || []).map((o, idx) => (
+                    <div key={idx} className="flex gap-2 items-center">
+                      <input value={o.label} onChange={(e)=>updateOption(f.id,idx,{ label: e.target.value })} className="flex-1 border rounded px-2 py-1 text-xs" placeholder="Label" />
+                      <input type="number" value={o.value} onChange={(e)=>updateOption(f.id,idx,{ value: Number(e.target.value) })} className="w-24 border rounded px-2 py-1 text-xs" placeholder="Value" />
+                      <button onClick={()=>removeOption(f.id,idx)} className="text-[10px] text-red-600 border rounded px-2 py-1">✕</button>
+                    </div>
+                  ))}
+                  <button onClick={()=>addOption(f.id)} className="text-[10px] border rounded px-2 py-1">+ Option</button>
+                </div>
+              )}
+            </div>
+          ))}
+          {fields.length === 0 && <div className="text-xs text-gray-500">No fields yet.</div>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Enhanced Tabs Properties
+function EnhancedTabsProperties({ data, onUpdate }: { data: EnhancedTabsComponent['data']; onUpdate: (patch: any) => void }) {
+  const tabs = data.tabs || [];
+  const updateTab = (id: string, patch: any) => onUpdate({ tabs: tabs.map(t => t.id === id ? { ...t, ...patch } : t) });
+  const addTab = () => onUpdate({ tabs: [...tabs, { id: `tab-${Date.now()}`, label: 'Tab', icon: '', image: '' }] });
+  const removeTab = (id: string) => onUpdate({ tabs: tabs.filter(t => t.id !== id) });
+  const moveTab = (idx: number, dir: -1 | 1) => { const target = idx + dir; if (target < 0 || target >= tabs.length) return; const next=[...tabs]; [next[idx],next[target]]=[next[target],next[idx]]; onUpdate({ tabs: next }); };
+  return (
+    <div className="space-y-4">
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="block text-sm font-medium mb-1">Style</label>
+          <select value={data.style || 'underline'} onChange={(e)=>onUpdate({ style: e.target.value })} className="w-full border rounded px-3 py-2">
+            <option value="underline">Underline</option>
+            <option value="pills">Pills</option>
+            <option value="boxed">Boxed</option>
+            <option value="vertical">Vertical</option>
+          </select>
+        </div>
+        <div className="flex items-center gap-2 mt-6">
+          <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={!!data.showIcons} onChange={(e)=>onUpdate({ showIcons: e.target.checked })} /> Show Icons</label>
+        </div>
+      </div>
+      <div className="border rounded p-3">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-sm font-medium">Tabs</span>
+          <button onClick={addTab} className="text-xs border rounded px-2 py-1">+ Add</button>
+        </div>
+        <div className="space-y-3">
+          {tabs.map((t, idx) => (
+            <div key={t.id} className="bg-gray-50 p-2 rounded border">
+              <div className="grid grid-cols-12 gap-2 items-center">
+                <input value={t.label} onChange={(e)=>updateTab(t.id,{ label: e.target.value })} className="col-span-4 border rounded px-2 py-1 text-xs" placeholder="Label" />
+                <input value={t.icon || ''} onChange={(e)=>updateTab(t.id,{ icon: e.target.value })} className="col-span-2 border rounded px-2 py-1 text-xs" placeholder="Icon" />
+                <div className="col-span-4 flex items-center gap-1">
+                  <input type="url" value={t.image || ''} onChange={(e)=>updateTab(t.id,{ image: e.target.value })} className="flex-1 border rounded px-2 py-1 text-xs" placeholder="Image URL" />
+                  <ImageUploader onImageUrl={(url)=>updateTab(t.id,{ image: url })} buttonLabel="Upload" />
+                </div>
+                <div className="col-span-2 flex gap-1">
+                  <button onClick={()=>moveTab(idx,-1)} disabled={idx===0} className="text-[10px] border rounded px-2 py-1 disabled:opacity-30">↑</button>
+                  <button onClick={()=>moveTab(idx,1)} disabled={idx===tabs.length-1} className="text-[10px] border rounded px-2 py-1 disabled:opacity-30">↓</button>
+                  <button onClick={()=>removeTab(t.id)} className="text-[10px] text-red-600 border rounded px-2 py-1">✕</button>
+                </div>
+              </div>
+              <label className="flex items-center gap-2 mt-2 text-[10px]">
+                <input type="radio" name="activeTab" checked={data.activeTab === t.id || (!data.activeTab && idx===0)} onChange={()=>onUpdate({ activeTab: t.id })} /> Active
+              </label>
+            </div>
+          ))}
+          {tabs.length === 0 && <div className="text-xs text-gray-500">No tabs yet.</div>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Logo Carousel Properties
+function LogoCarouselProperties({ data, onUpdate }: { data: LogoCarouselComponent['data']; onUpdate: (patch: any) => void }) {
+  const logos = data.logos || [];
+  const updateLogo = (id: string, patch: any) => onUpdate({ logos: logos.map(l => l.id === id ? { ...l, ...patch } : l) });
+  const addLogo = () => onUpdate({ logos: [...logos, { id: `logo-${Date.now()}`, image: '', alt: 'Logo', link: '' }] });
+  const removeLogo = (id: string) => onUpdate({ logos: logos.filter(l => l.id !== id) });
+  const moveLogo = (idx: number, dir: -1 | 1) => { const target = idx + dir; if(target<0||target>=logos.length) return; const next=[...logos]; [next[idx],next[target]]=[next[target],next[idx]]; onUpdate({ logos: next }); };
+  return (
+    <div className="space-y-4">
+      <div>
+        <label className="block text-sm font-medium mb-1">Heading</label>
+        <input value={data.heading || ''} onChange={(e)=>onUpdate({ heading: e.target.value })} className="w-full border rounded px-3 py-2" />
+      </div>
+      <div className="grid grid-cols-3 gap-3">
+        <label className="flex items-center gap-2 text-sm">
+          <input type="checkbox" checked={!!data.autoplay} onChange={(e)=>onUpdate({ autoplay: e.target.checked })} /> Autoplay
+        </label>
+        <div>
+          <label className="block text-sm font-medium mb-1">Speed (ms)</label>
+          <input type="number" value={data.speed ?? 3000} onChange={(e)=>onUpdate({ speed: Number(e.target.value) })} className="w-full border rounded px-2 py-1" />
+        </div>
+        <label className="flex items-center gap-2 text-sm">
+          <input type="checkbox" checked={!!data.grayscale} onChange={(e)=>onUpdate({ grayscale: e.target.checked })} /> Grayscale
+        </label>
+      </div>
+      <div className="border rounded p-3">
+        <div className="flex items-center justify-between mb-2"><span className="text-sm font-medium">Logos</span><button onClick={addLogo} className="text-xs border rounded px-2 py-1">+ Add</button></div>
+        <div className="space-y-3">
+          {logos.map((l, idx) => (
+            <div key={l.id} className="bg-gray-50 p-2 rounded border">
+              <div className="grid grid-cols-12 gap-2 items-center">
+                <div className="col-span-3 flex items-center gap-1">
+                  <input type="url" value={l.image} onChange={(e)=>updateLogo(l.id,{ image: e.target.value })} className="flex-1 border rounded px-2 py-1 text-xs" placeholder="Image URL" />
+                  <ImageUploader onImageUrl={(url)=>updateLogo(l.id,{ image: url })} buttonLabel="Upload" />
+                </div>
+                <input value={l.alt} onChange={(e)=>updateLogo(l.id,{ alt: e.target.value })} className="col-span-3 border rounded px-2 py-1 text-xs" placeholder="Alt" />
+                <input value={l.link || ''} onChange={(e)=>updateLogo(l.id,{ link: e.target.value })} className="col-span-3 border rounded px-2 py-1 text-xs" placeholder="Link" />
+                <div className="col-span-3 flex gap-1">
+                  <button onClick={()=>moveLogo(idx,-1)} disabled={idx===0} className="text-[10px] border rounded px-2 py-1 disabled:opacity-30">↑</button>
+                  <button onClick={()=>moveLogo(idx,1)} disabled={idx===logos.length-1} className="text-[10px] border rounded px-2 py-1 disabled:opacity-30">↓</button>
+                  <button onClick={()=>removeLogo(l.id)} className="text-[10px] text-red-600 border rounded px-2 py-1">✕</button>
+                </div>
+              </div>
+            </div>
+          ))}
+          {logos.length === 0 && <div className="text-xs text-gray-500">No logos yet.</div>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Live Counter Properties
+function LiveCounterProperties({ data, onUpdate }: { data: LiveCounterComponent['data']; onUpdate: (patch: any) => void }) {
+  const counters = data.counters || [];
+  const updateCounter = (id: string, patch: any) => onUpdate({ counters: counters.map(c => c.id === id ? { ...c, ...patch } : c) });
+  const addCounter = () => onUpdate({ counters: [...counters, { id: `ctr-${Date.now()}`, label: 'Metric', targetValue: 100, prefix: '', suffix: '' }] });
+  const removeCounter = (id: string) => onUpdate({ counters: counters.filter(c => c.id !== id) });
+  const moveCounter = (idx: number, dir: -1 | 1) => { const target=idx+dir; if(target<0||target>=counters.length) return; const next=[...counters]; [next[idx],next[target]]=[next[target],next[idx]]; onUpdate({ counters: next }); };
+  return (
+    <div className="space-y-4">
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="block text-sm font-medium mb-1">Duration (ms)</label>
+          <input type="number" value={data.duration ?? 2000} onChange={(e)=>onUpdate({ duration: Number(e.target.value) })} className="w-full border rounded px-3 py-2" />
+        </div>
+        <div>
+          <label className="block text-sm font-medium mb-1">Style</label>
+          <select value={data.style || 'default'} onChange={(e)=>onUpdate({ style: e.target.value })} className="w-full border rounded px-3 py-2">
+            <option value="default">Default</option>
+            <option value="minimal">Minimal</option>
+            <option value="badges">Badges</option>
+          </select>
+        </div>
+      </div>
+      <div className="border rounded p-3">
+        <div className="flex items-center justify-between mb-2"><span className="text-sm font-medium">Counters</span><button onClick={addCounter} className="text-xs border rounded px-2 py-1">+ Add</button></div>
+        <div className="space-y-2">
+          {counters.map((c, idx) => (
+            <div key={c.id} className="bg-gray-50 p-2 rounded border">
+              <div className="grid grid-cols-12 gap-2 items-center">
+                <input value={c.label} onChange={(e)=>updateCounter(c.id,{ label: e.target.value })} className="col-span-3 border rounded px-2 py-1 text-xs" placeholder="Label" />
+                <input type="number" value={c.targetValue} onChange={(e)=>updateCounter(c.id,{ targetValue: Number(e.target.value) })} className="col-span-2 border rounded px-2 py-1 text-xs" placeholder="Target" />
+                <input value={c.prefix || ''} onChange={(e)=>updateCounter(c.id,{ prefix: e.target.value })} className="col-span-2 border rounded px-2 py-1 text-xs" placeholder="Prefix" />
+                <input value={c.suffix || ''} onChange={(e)=>updateCounter(c.id,{ suffix: e.target.value })} className="col-span-2 border rounded px-2 py-1 text-xs" placeholder="Suffix" />
+                <input value={c.icon || ''} onChange={(e)=>updateCounter(c.id,{ icon: e.target.value })} className="col-span-2 border rounded px-2 py-1 text-xs" placeholder="Icon" />
+                <div className="col-span-1 flex flex-col gap-1">
+                  <button onClick={()=>moveCounter(idx,-1)} disabled={idx===0} className="text-[10px] border rounded px-1 py-1 disabled:opacity-30">↑</button>
+                  <button onClick={()=>moveCounter(idx,1)} disabled={idx===counters.length-1} className="text-[10px] border rounded px-1 py-1 disabled:opacity-30">↓</button>
+                  <button onClick={()=>removeCounter(c.id)} className="text-[10px] text-red-600 border rounded px-1 py-1">✕</button>
+                </div>
+              </div>
+            </div>
+          ))}
+          {counters.length === 0 && <div className="text-xs text-gray-500">No counters yet.</div>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Bookings Ticker Properties
+function BookingsTickerProperties({ data, onUpdate }: { data: BookingsTickerComponent['data']; onUpdate: (patch: any) => void }) {
+  const items = data.items || [];
+  const updateItem = (id: string, patch: any) => onUpdate({ items: items.map(i => i.id === id ? { ...i, ...patch } : i) });
+  const addItem = () => onUpdate({ items: [...items, { id: `bk-${Date.now()}`, name: 'Client', location: 'City', service: 'Service', timeAgo: '2m ago' }] });
+  const removeItem = (id: string) => onUpdate({ items: items.filter(i => i.id !== id) });
+  const moveItem = (idx: number, dir: -1 | 1) => { const target=idx+dir; if(target<0||target>=items.length) return; const next=[...items]; [next[idx],next[target]]=[next[target],next[idx]]; onUpdate({ items: next }); };
+  return (
+    <div className="space-y-4">
+      <div className="grid grid-cols-3 gap-3">
+        <div>
+          <label className="block text-sm font-medium mb-1">Position</label>
+          <select value={data.position || 'bottom'} onChange={(e)=>onUpdate({ position: e.target.value })} className="w-full border rounded px-3 py-2">
+            <option value="top">Top</option>
+            <option value="bottom">Bottom</option>
+            <option value="corner">Corner</option>
+          </select>
+        </div>
+        <div>
+          <label className="block text-sm font-medium mb-1">Display Duration (ms)</label>
+          <input type="number" value={data.displayDuration ?? 4000} onChange={(e)=>onUpdate({ displayDuration: Number(e.target.value) })} className="w-full border rounded px-3 py-2" />
+        </div>
+        <div>
+          <label className="block text-sm font-medium mb-1">Interval (ms)</label>
+          <input type="number" value={data.interval ?? 6000} onChange={(e)=>onUpdate({ interval: Number(e.target.value) })} className="w-full border rounded px-3 py-2" />
+        </div>
+      </div>
+      <div className="border rounded p-3">
+        <div className="flex items-center justify-between mb-2"><span className="text-sm font-medium">Bookings</span><button onClick={addItem} className="text-xs border rounded px-2 py-1">+ Add</button></div>
+        <div className="space-y-2">
+          {items.map((i, idx) => (
+            <div key={i.id} className="bg-gray-50 p-2 rounded border">
+              <div className="grid grid-cols-12 gap-2 items-center">
+                <input value={i.name} onChange={(e)=>updateItem(i.id,{ name: e.target.value })} className="col-span-3 border rounded px-2 py-1 text-xs" placeholder="Name" />
+                <input value={i.service || ''} onChange={(e)=>updateItem(i.id,{ service: e.target.value })} className="col-span-3 border rounded px-2 py-1 text-xs" placeholder="Service" />
+                <input value={i.location || ''} onChange={(e)=>updateItem(i.id,{ location: e.target.value })} className="col-span-3 border rounded px-2 py-1 text-xs" placeholder="Location" />
+                <input value={i.timeAgo} onChange={(e)=>updateItem(i.id,{ timeAgo: e.target.value })} className="col-span-2 border rounded px-2 py-1 text-xs" placeholder="Time Ago" />
+                <div className="col-span-1 flex flex-col gap-1">
+                  <button onClick={()=>moveItem(idx,-1)} disabled={idx===0} className="text-[10px] border rounded px-1 py-1 disabled:opacity-30">↑</button>
+                  <button onClick={()=>moveItem(idx,1)} disabled={idx===items.length-1} className="text-[10px] border rounded px-1 py-1 disabled:opacity-30">↓</button>
+                  <button onClick={()=>removeItem(i.id)} className="text-[10px] text-red-600 border rounded px-1 py-1">✕</button>
+                </div>
+              </div>
+            </div>
+          ))}
+          {items.length === 0 && <div className="text-xs text-gray-500">No bookings yet.</div>}
         </div>
       </div>
     </div>
