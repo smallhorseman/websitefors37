@@ -47,11 +47,9 @@
   status = 301
   force = true
 
-[[redirects]]
-  from = "https://www.studio37.cc/*"
-  to = "https://studio37.cc/:splat"
-  status = 301
-  force = true
+## IMPORTANT: Prefer configuring the primary domain in Netlify UI instead of code-level host redirects.
+## Removing www→apex redirect here avoids clashes with Netlify's automatic domain redirect,
+## which can otherwise create a redirect loop if the primary domain is set to www.
 
 # Serve .well-known files for domain verification
 [[headers]]
