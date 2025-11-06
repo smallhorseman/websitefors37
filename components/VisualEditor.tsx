@@ -6706,6 +6706,29 @@ function buildHomepageTemplate(): PageComponent[] {
     },
   } as TestimonialsComponent);
 
+  components.push({
+    id: id(),
+    type: "spacer",
+    data: { height: "md" },
+  } as SpacerComponent);
+
+  // Trust Badges - NEW
+  components.push({
+    id: id(),
+    type: "trustBadges",
+    data: {
+      heading: "Why Choose Studio37?",
+      layout: "horizontal",
+      size: "medium",
+      badges: [
+        { icon: "⭐", label: "5-Star Rated", description: "200+ Reviews" },
+        { icon: "📸", label: "Pro Equipment", description: "Latest Technology" },
+        { icon: "⚡", label: "48hr Delivery", description: "Fast Turnaround" },
+        { icon: "💯", label: "100% Satisfaction", description: "Guaranteed" },
+      ],
+    },
+  } as TrustBadgesComponent);
+
   // Newsletter signup
   components.push({
     id: id(),
@@ -6830,6 +6853,55 @@ function buildAboutTemplate(): PageComponent[] {
     id: id(),
     type: "spacer",
     data: { height: "md" },
+  } as SpacerComponent);
+
+  // Timeline - NEW: Our Story
+  components.push({
+    id: id(),
+    type: "timeline",
+    data: {
+      heading: "Our Journey",
+      orientation: "vertical",
+      style: "modern",
+      animation: "fade-in",
+      items: [
+        { id: "1", date: "2018", icon: "📸", title: "The Beginning", description: "Christian started Studio37 with a camera and a dream" },
+        { id: "2", date: "2019", icon: "💑", title: "Partnership Formed", description: "Caitie joined as co-owner and lead editor" },
+        { id: "3", date: "2021", icon: "🏆", title: "Award Recognition", description: "Won Best Local Photographer in The Woodlands" },
+        { id: "4", date: "2023", icon: "🚀", title: "Business Expansion", description: "Opened commercial photography division" },
+        { id: "5", date: "2025", icon: "⭐", title: "Today", description: "Serving 150+ clients with 5-star rated service" },
+      ],
+    },
+  } as TimelineComponent);
+
+  components.push({
+    id: id(),
+    type: "spacer",
+    data: { height: "lg" },
+  } as SpacerComponent);
+
+  // Logo Carousel - NEW: Clients we've worked with
+  components.push({
+    id: id(),
+    type: "logoCarousel",
+    data: {
+      heading: "Trusted By",
+      autoplay: true,
+      speed: 3000,
+      grayscale: true,
+      logos: [
+        { id: "1", image: "https://via.placeholder.com/150x60?text=Client+1", alt: "Client 1", link: "" },
+        { id: "2", image: "https://via.placeholder.com/150x60?text=Client+2", alt: "Client 2", link: "" },
+        { id: "3", image: "https://via.placeholder.com/150x60?text=Client+3", alt: "Client 3", link: "" },
+        { id: "4", image: "https://via.placeholder.com/150x60?text=Client+4", alt: "Client 4", link: "" },
+      ],
+    },
+  } as LogoCarouselComponent);
+
+  components.push({
+    id: id(),
+    type: "spacer",
+    data: { height: "lg" },
   } as SpacerComponent);
 
   // Contact Form
@@ -6971,6 +7043,25 @@ function buildServicesTemplate(): PageComponent[] {
     data: { height: "lg" },
   } as SpacerComponent);
 
+  // Before/After - NEW: Show editing quality
+  components.push({
+    id: id(),
+    type: "beforeAfter",
+    data: {
+      beforeImage: "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?q=80&w=800&auto=format&fit=crop",
+      afterImage: "https://images.unsplash.com/photo-1542038784456-1ea8e935640e?q=80&w=800&auto=format&fit=crop",
+      beforeLabel: "Before Editing",
+      afterLabel: "After Professional Edit",
+      initialPosition: 50,
+    },
+  } as BeforeAfterComponent);
+
+  components.push({
+    id: id(),
+    type: "spacer",
+    data: { height: "lg" },
+  } as SpacerComponent);
+
   // CTA
   components.push({
     id: id(),
@@ -7079,6 +7170,25 @@ function buildContactTemplate(): PageComponent[] {
       animation: "slide-up",
     },
   } as TextComponent);
+
+  components.push({
+    id: id(),
+    type: "spacer",
+    data: { height: "md" },
+  } as SpacerComponent);
+
+  // Map Embed - NEW
+  components.push({
+    id: id(),
+    type: "mapEmbed",
+    data: {
+      address: "1701 Goodson Loop, TRLR 80, Pinehurst, TX 77362",
+      zoom: 14,
+      height: 400,
+      showMarker: true,
+      mapType: "roadmap",
+    },
+  } as MapEmbedComponent);
 
   components.push({
     id: id(),
@@ -7232,6 +7342,41 @@ function buildServicesPricingTemplate(): PageComponent[] {
     },
   } as PricingTableComponent);
 
+  components.push({
+    id: id(),
+    type: "spacer",
+    data: { height: "md" },
+  } as SpacerComponent);
+
+  // Comparison Table - NEW
+  components.push({
+    id: id(),
+    type: "comparisonTable",
+    data: {
+      heading: "Compare Our Packages",
+      style: "modern",
+      plans: [
+        { name: "Basic", featured: false },
+        { name: "Standard", featured: true },
+        { name: "Premium", featured: false },
+      ],
+      features: [
+        { name: "Session Duration", values: ["30 min", "60 min", "120 min"] },
+        { name: "Edited Photos", values: ["10", "25", "50"] },
+        { name: "Online Gallery", values: ["✅", "✅", "✅"] },
+        { name: "Print Rights", values: ["❌", "✅", "✅"] },
+        { name: "Priority Turnaround", values: ["❌", "❌", "✅"] },
+        { name: "Price", values: ["$199", "$349", "$599"] },
+      ],
+    },
+  } as ComparisonTableComponent);
+
+  components.push({
+    id: id(),
+    type: "spacer",
+    data: { height: "lg" },
+  } as SpacerComponent);
+
   // CTA Banner
   components.push({
     id: id(),
@@ -7308,6 +7453,35 @@ function buildFAQPageTemplate(): PageComponent[] {
       animation: "fade-in",
     },
   } as FAQComponent);
+
+  components.push({
+    id: id(),
+    type: "spacer",
+    data: { height: "md" },
+  } as SpacerComponent);
+
+  // Table of Contents - NEW
+  components.push({
+    id: id(),
+    type: "tableOfContents",
+    data: {
+      heading: "Quick Navigation",
+      position: "left",
+      sticky: true,
+      items: [
+        { id: "1", label: "Booking", url: "#booking", level: 1, children: [] },
+        { id: "2", label: "Pricing", url: "#pricing", level: 1, children: [] },
+        { id: "3", label: "Services", url: "#services", level: 1, children: [] },
+        { id: "4", label: "Turnaround", url: "#turnaround", level: 1, children: [] },
+      ],
+    },
+  } as TableOfContentsComponent);
+
+  components.push({
+    id: id(),
+    type: "spacer",
+    data: { height: "md" },
+  } as SpacerComponent);
 
   // CTA Button
   components.push({
@@ -7439,6 +7613,20 @@ function buildLeadGenTemplate(): PageComponent[] {
       animation: "fade-in",
     },
   } as StatsComponent);
+
+  // Sticky CTA - NEW
+  components.push({
+    id: id(),
+    type: "stickyCTA",
+    data: {
+      text: "Limited spots available this month!",
+      buttonText: "Get Your Quote Now",
+      buttonLink: "#contact",
+      position: "bottom",
+      backgroundColor: "#0f172a",
+      textColor: "#ffffff",
+    },
+  } as StickyCTAComponent);
 
   // CTA Banner
   components.push({
