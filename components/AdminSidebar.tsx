@@ -133,6 +133,11 @@ export default function AdminSidebar() {
       icon: <Settings className="w-5 h-5" />,
     },
     {
+      name: "Block Editor",
+      path: "/admin/block-editor",
+      icon: <LayoutDashboard className="w-5 h-5" />,
+    },
+    {
       name: "Page Builder",
       path: "/admin/page-builder",
       icon: <Camera className="w-5 h-5" />,
