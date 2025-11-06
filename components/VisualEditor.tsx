@@ -55,6 +55,22 @@ import {
   Upload,
   RefreshCw,
   AlertCircle,
+  Video,
+  MapPin,
+  Clock,
+  TrendingUp,
+  Calendar,
+  ThumbsUp,
+  TableProperties,
+  Zap,
+  Target,
+  FileText,
+  List,
+  Navigation,
+  MousePointer,
+  Volume2,
+  Package,
+  Bell,
 } from "lucide-react";
 import Image from "next/image";
 import ImageUploader from "./ImageUploader";
@@ -89,7 +105,38 @@ type ComponentType =
   | "customCss"
   | "container"
   | "accordion"
-  | "tabs";
+  | "tabs"
+  | "videoHero"
+  | "beforeAfter"
+  | "timeline"
+  | "comparisonTable"
+  | "mapEmbed"
+  | "countdown"
+  | "reviews"
+  | "instagramFeed"
+  | "photoGrid"
+  | "clientPortal"
+  | "stickyCTA"
+  | "exitPopup"
+  | "progressSteps"
+  | "calendarWidget"
+  | "trustBadges"
+  | "blogCards"
+  | "categoryNav"
+  | "breadcrumbs"
+  | "tableOfContents"
+  | "relatedContent"
+  | "quiz"
+  | "calculator"
+  | "lightbox"
+  | "enhancedTabs"
+  | "alertBanner"
+  | "audioPlayer"
+  | "viewer360"
+  | "pdfEmbed"
+  | "logoCarousel"
+  | "liveCounter"
+  | "bookingsTicker";
 
 interface BaseComponent {
   id: string;
@@ -509,6 +556,461 @@ interface TabsComponent extends BaseComponent {
   };
 }
 
+// HIGH PRIORITY - Missing Essentials
+interface VideoHeroComponent extends BaseComponent {
+  type: "videoHero";
+  data: {
+    videoUrl: string;
+    posterImage?: string;
+    title?: string;
+    subtitle?: string;
+    buttonText?: string;
+    buttonLink?: string;
+    overlay: number;
+    autoplay?: boolean;
+    loop?: boolean;
+    muted?: boolean;
+    alignment: "left" | "center" | "right";
+    titleColor: string;
+    subtitleColor: string;
+  };
+}
+
+interface BeforeAfterComponent extends BaseComponent {
+  type: "beforeAfter";
+  data: {
+    beforeImage: string;
+    afterImage: string;
+    beforeLabel?: string;
+    afterLabel?: string;
+    initialPosition?: number;
+    orientation?: "horizontal" | "vertical";
+  };
+}
+
+interface TimelineComponent extends BaseComponent {
+  type: "timeline";
+  data: {
+    heading?: string;
+    events: Array<{
+      id: string;
+      date: string;
+      title: string;
+      description: string;
+      icon?: string;
+    }>;
+    orientation?: "vertical" | "horizontal";
+    style?: "default" | "minimal" | "cards";
+    animation?: "none" | "fade-in" | "slide-up";
+  };
+}
+
+interface ComparisonTableComponent extends BaseComponent {
+  type: "comparisonTable";
+  data: {
+    heading?: string;
+    features: Array<{
+      id: string;
+      name: string;
+      description?: string;
+    }>;
+    plans: Array<{
+      id: string;
+      name: string;
+      values: Record<string, boolean | string>;
+      highlight?: boolean;
+    }>;
+    style?: "default" | "compact" | "cards";
+  };
+}
+
+interface MapEmbedComponent extends BaseComponent {
+  type: "mapEmbed";
+  data: {
+    address?: string;
+    lat?: number;
+    lng?: number;
+    zoom?: number;
+    height?: "sm" | "md" | "lg" | "xl";
+    showMarker?: boolean;
+    mapType?: "roadmap" | "satellite" | "hybrid" | "terrain";
+  };
+}
+
+interface CountdownComponent extends BaseComponent {
+  type: "countdown";
+  data: {
+    targetDate: string;
+    heading?: string;
+    subheading?: string;
+    expiredMessage?: string;
+    showLabels?: boolean;
+    style?: "default" | "minimal" | "boxes";
+    size?: "sm" | "md" | "lg";
+  };
+}
+
+// CLIENT ENGAGEMENT
+interface ReviewsComponent extends BaseComponent {
+  type: "reviews";
+  data: {
+    heading?: string;
+    source: "google" | "manual";
+    reviews?: Array<{
+      id: string;
+      author: string;
+      rating: number;
+      text: string;
+      date?: string;
+      avatar?: string;
+    }>;
+    placeId?: string;
+    displayCount?: number;
+    style?: "cards" | "grid" | "carousel";
+    showRating?: boolean;
+  };
+}
+
+interface InstagramFeedComponent extends BaseComponent {
+  type: "instagramFeed";
+  data: {
+    heading?: string;
+    username?: string;
+    accessToken?: string;
+    displayCount: number;
+    columns: 2 | 3 | 4 | 6;
+    showCaptions?: boolean;
+    style?: "grid" | "carousel";
+  };
+}
+
+interface PhotoGridComponent extends BaseComponent {
+  type: "photoGrid";
+  data: {
+    heading?: string;
+    categories?: string[];
+    collections?: string[];
+    tags?: string[];
+    layout: "grid" | "masonry" | "justified";
+    columns: 2 | 3 | 4 | 5;
+    gap?: "sm" | "md" | "lg";
+    showFilters?: boolean;
+    limit?: number;
+  };
+}
+
+interface ClientPortalComponent extends BaseComponent {
+  type: "clientPortal";
+  data: {
+    heading?: string;
+    description?: string;
+    loginUrl?: string;
+    buttonText?: string;
+    style?: "card" | "inline" | "banner";
+  };
+}
+
+// CONVERSION OPTIMIZATION
+interface StickyCTAComponent extends BaseComponent {
+  type: "stickyCTA";
+  data: {
+    text: string;
+    buttonText: string;
+    buttonLink: string;
+    position: "top" | "bottom";
+    backgroundColor?: string;
+    textColor?: string;
+    showOnScroll?: boolean;
+  };
+}
+
+interface ExitPopupComponent extends BaseComponent {
+  type: "exitPopup";
+  data: {
+    heading: string;
+    message: string;
+    buttonText: string;
+    buttonLink: string;
+    dismissible?: boolean;
+    showOnce?: boolean;
+    delay?: number;
+  };
+}
+
+interface ProgressStepsComponent extends BaseComponent {
+  type: "progressSteps";
+  data: {
+    steps: Array<{
+      id: string;
+      title: string;
+      description?: string;
+      icon?: string;
+    }>;
+    currentStep?: number;
+    style?: "horizontal" | "vertical";
+    showNumbers?: boolean;
+  };
+}
+
+interface CalendarWidgetComponent extends BaseComponent {
+  type: "calendarWidget";
+  data: {
+    heading?: string;
+    provider: "calendly" | "google" | "custom";
+    embedUrl?: string;
+    minDate?: string;
+    blockedDates?: string[];
+    style?: "inline" | "button";
+  };
+}
+
+interface TrustBadgesComponent extends BaseComponent {
+  type: "trustBadges";
+  data: {
+    heading?: string;
+    badges: Array<{
+      id: string;
+      image: string;
+      title: string;
+      link?: string;
+    }>;
+    layout: "horizontal" | "grid";
+    size?: "sm" | "md" | "lg";
+  };
+}
+
+// CONTENT/SEO
+interface BlogCardsComponent extends BaseComponent {
+  type: "blogCards";
+  data: {
+    heading?: string;
+    displayCount: number;
+    layout: "grid" | "list" | "carousel";
+    columns?: 2 | 3 | 4;
+    showExcerpt?: boolean;
+    showDate?: boolean;
+    showAuthor?: boolean;
+    featured?: string[];
+  };
+}
+
+interface CategoryNavComponent extends BaseComponent {
+  type: "categoryNav";
+  data: {
+    heading?: string;
+    categories: Array<{
+      id: string;
+      name: string;
+      image?: string;
+      link: string;
+      count?: number;
+    }>;
+    layout: "grid" | "carousel" | "sidebar";
+    columns?: 2 | 3 | 4;
+    showCounts?: boolean;
+  };
+}
+
+interface BreadcrumbsComponent extends BaseComponent {
+  type: "breadcrumbs";
+  data: {
+    items?: Array<{
+      label: string;
+      link: string;
+    }>;
+    separator?: "slash" | "chevron" | "dot";
+    showHome?: boolean;
+  };
+}
+
+interface TableOfContentsComponent extends BaseComponent {
+  type: "tableOfContents";
+  data: {
+    heading?: string;
+    items: Array<{
+      id: string;
+      label: string;
+      anchor: string;
+      level: number;
+    }>;
+    position?: "sidebar" | "top";
+    sticky?: boolean;
+  };
+}
+
+interface RelatedContentComponent extends BaseComponent {
+  type: "relatedContent";
+  data: {
+    heading?: string;
+    contentType: "pages" | "blog" | "gallery" | "services";
+    displayCount: number;
+    layout: "grid" | "list" | "carousel";
+    algorithm?: "recent" | "popular" | "related";
+  };
+}
+
+// INTERACTIVE
+interface QuizComponent extends BaseComponent {
+  type: "quiz";
+  data: {
+    heading: string;
+    description?: string;
+    questions: Array<{
+      id: string;
+      question: string;
+      options: Array<{
+        id: string;
+        text: string;
+        value: string;
+      }>;
+    }>;
+    results: Record<string, {
+      title: string;
+      description: string;
+      image?: string;
+      cta?: { text: string; link: string };
+    }>;
+  };
+}
+
+interface CalculatorComponent extends BaseComponent {
+  type: "calculator";
+  data: {
+    heading: string;
+    description?: string;
+    fields: Array<{
+      id: string;
+      label: string;
+      type: "number" | "select" | "checkbox";
+      options?: Array<{ label: string; value: number }>;
+      multiplier?: number;
+    }>;
+    basePrice?: number;
+    showBreakdown?: boolean;
+  };
+}
+
+interface LightboxComponent extends BaseComponent {
+  type: "lightbox";
+  data: {
+    triggerText: string;
+    triggerStyle?: "button" | "link" | "image";
+    content: string;
+    image?: string;
+    width?: "sm" | "md" | "lg" | "xl" | "full";
+  };
+}
+
+interface EnhancedTabsComponent extends BaseComponent {
+  type: "enhancedTabs";
+  data: {
+    tabs: Array<{
+      id: string;
+      label: string;
+      icon?: string;
+      image?: string;
+    }>;
+    activeTab?: string;
+    style?: "underline" | "pills" | "boxed" | "vertical";
+    showIcons?: boolean;
+  };
+}
+
+interface AlertBannerComponent extends BaseComponent {
+  type: "alertBanner";
+  data: {
+    message: string;
+    type: "info" | "success" | "warning" | "error";
+    dismissible?: boolean;
+    link?: string;
+    linkText?: string;
+    position?: "top" | "bottom" | "inline";
+  };
+}
+
+// MULTIMEDIA
+interface AudioPlayerComponent extends BaseComponent {
+  type: "audioPlayer";
+  data: {
+    audioUrl: string;
+    title?: string;
+    artist?: string;
+    coverImage?: string;
+    autoplay?: boolean;
+    loop?: boolean;
+    style?: "minimal" | "full" | "compact";
+  };
+}
+
+interface Viewer360Component extends BaseComponent {
+  type: "viewer360";
+  data: {
+    imageUrl: string;
+    autoRotate?: boolean;
+    height?: "sm" | "md" | "lg" | "xl";
+    controls?: boolean;
+  };
+}
+
+interface PDFEmbedComponent extends BaseComponent {
+  type: "pdfEmbed";
+  data: {
+    pdfUrl: string;
+    downloadable?: boolean;
+    height?: "sm" | "md" | "lg" | "xl";
+    title?: string;
+  };
+}
+
+// SOCIAL PROOF
+interface LogoCarouselComponent extends BaseComponent {
+  type: "logoCarousel";
+  data: {
+    heading?: string;
+    logos: Array<{
+      id: string;
+      image: string;
+      alt: string;
+      link?: string;
+    }>;
+    autoplay?: boolean;
+    speed?: number;
+    grayscale?: boolean;
+  };
+}
+
+interface LiveCounterComponent extends BaseComponent {
+  type: "liveCounter";
+  data: {
+    counters: Array<{
+      id: string;
+      label: string;
+      targetValue: number;
+      suffix?: string;
+      prefix?: string;
+      icon?: string;
+    }>;
+    duration?: number;
+    style?: "default" | "minimal" | "badges";
+  };
+}
+
+interface BookingsTickerComponent extends BaseComponent {
+  type: "bookingsTicker";
+  data: {
+    items: Array<{
+      id: string;
+      name: string;
+      location?: string;
+      service?: string;
+      timeAgo: string;
+    }>;
+    position: "top" | "bottom" | "corner";
+    displayDuration?: number;
+    interval?: number;
+  };
+}
+
 type PageComponent =
   | HeroComponent
   | TextComponent
@@ -537,7 +1039,38 @@ type PageComponent =
   | CustomCssComponent
   | ContainerComponent
   | AccordionComponent
-  | TabsComponent;
+  | TabsComponent
+  | VideoHeroComponent
+  | BeforeAfterComponent
+  | TimelineComponent
+  | ComparisonTableComponent
+  | MapEmbedComponent
+  | CountdownComponent
+  | ReviewsComponent
+  | InstagramFeedComponent
+  | PhotoGridComponent
+  | ClientPortalComponent
+  | StickyCTAComponent
+  | ExitPopupComponent
+  | ProgressStepsComponent
+  | CalendarWidgetComponent
+  | TrustBadgesComponent
+  | BlogCardsComponent
+  | CategoryNavComponent
+  | BreadcrumbsComponent
+  | TableOfContentsComponent
+  | RelatedContentComponent
+  | QuizComponent
+  | CalculatorComponent
+  | LightboxComponent
+  | EnhancedTabsComponent
+  | AlertBannerComponent
+  | AudioPlayerComponent
+  | Viewer360Component
+  | PDFEmbedComponent
+  | LogoCarouselComponent
+  | LiveCounterComponent
+  | BookingsTickerComponent;
 
 interface VisualEditorProps {
   initialComponents?: PageComponent[];
@@ -937,6 +1470,49 @@ export default function VisualEditor({
     widgetEmbed: { name: 'Embed Widget', category: 'advanced', keywords: ['code', 'iframe', 'integration'] },
     seoFooter: { name: 'SEO Footer', category: 'advanced', keywords: ['bottom', 'links', 'seo'] },
     customCss: { name: 'Custom CSS', category: 'advanced', keywords: ['style', 'css', 'advanced'] },
+    
+    // HIGH PRIORITY - Multimedia
+    videoHero: { name: 'Video Hero', category: 'multimedia', keywords: ['video', 'banner', 'background', 'motion'] },
+    beforeAfter: { name: 'Before/After Slider', category: 'multimedia', keywords: ['comparison', 'slider', 'transform', 'edit'] },
+    photoGrid: { name: 'Photo Grid', category: 'multimedia', keywords: ['masonry', 'gallery', 'portfolio', 'filter'] },
+    audioPlayer: { name: 'Audio Player', category: 'multimedia', keywords: ['music', 'sound', 'podcast', 'testimonial'] },
+    viewer360: { name: '360° Viewer', category: 'multimedia', keywords: ['panorama', 'virtual', 'tour', 'rotate'] },
+    pdfEmbed: { name: 'PDF Embed', category: 'multimedia', keywords: ['document', 'download', 'pdf', 'guide'] },
+    
+    // Client Engagement
+    reviews: { name: 'Reviews', category: 'engagement', keywords: ['testimonials', 'google', 'ratings', 'stars'] },
+    instagramFeed: { name: 'Instagram Feed', category: 'engagement', keywords: ['social', 'photos', 'feed', 'instagram'] },
+    clientPortal: { name: 'Client Portal', category: 'engagement', keywords: ['login', 'access', 'client', 'download'] },
+    
+    // Conversion
+    stickyCTA: { name: 'Sticky CTA Bar', category: 'conversion', keywords: ['floating', 'fixed', 'bar', 'persistent'] },
+    countdown: { name: 'Countdown Timer', category: 'conversion', keywords: ['urgency', 'deadline', 'timer', 'offer'] },
+    progressSteps: { name: 'Progress Steps', category: 'conversion', keywords: ['wizard', 'steps', 'process', 'guide'] },
+    calendarWidget: { name: 'Calendar Widget', category: 'conversion', keywords: ['booking', 'schedule', 'appointment', 'calendly'] },
+    trustBadges: { name: 'Trust Badges', category: 'conversion', keywords: ['certifications', 'awards', 'trust', 'seals'] },
+    exitPopup: { name: 'Exit Popup', category: 'conversion', keywords: ['modal', 'exit intent', 'offer', 'lead capture'] },
+    
+    // Content & SEO
+    timeline: { name: 'Timeline', category: 'contentNav', keywords: ['history', 'process', 'steps', 'journey'] },
+    comparisonTable: { name: 'Comparison Table', category: 'contentNav', keywords: ['compare', 'features', 'packages', 'pricing'] },
+    blogCards: { name: 'Blog Cards', category: 'contentNav', keywords: ['posts', 'articles', 'blog', 'news'] },
+    categoryNav: { name: 'Category Navigation', category: 'contentNav', keywords: ['browse', 'filter', 'categories', 'menu'] },
+    breadcrumbs: { name: 'Breadcrumbs', category: 'contentNav', keywords: ['navigation', 'path', 'seo', 'hierarchy'] },
+    tableOfContents: { name: 'Table of Contents', category: 'contentNav', keywords: ['toc', 'navigation', 'anchor', 'jump'] },
+    relatedContent: { name: 'Related Content', category: 'contentNav', keywords: ['suggestions', 'recommended', 'related', 'similar'] },
+    mapEmbed: { name: 'Map Embed', category: 'contentNav', keywords: ['google maps', 'location', 'address', 'directions'] },
+    
+    // Interactive
+    quiz: { name: 'Quiz/Survey', category: 'interactive', keywords: ['questionnaire', 'form', 'interactive', 'quiz'] },
+    calculator: { name: 'Cost Calculator', category: 'interactive', keywords: ['price', 'estimate', 'quote', 'calculator'] },
+    lightbox: { name: 'Lightbox/Modal', category: 'interactive', keywords: ['popup', 'modal', 'overlay', 'dialog'] },
+    enhancedTabs: { name: 'Enhanced Tabs', category: 'interactive', keywords: ['tabs', 'icons', 'navigation', 'sections'] },
+    alertBanner: { name: 'Alert Banner', category: 'interactive', keywords: ['notification', 'message', 'alert', 'announcement'] },
+    
+    // Social Proof
+    logoCarousel: { name: 'Logo Carousel', category: 'social', keywords: ['clients', 'partners', 'brands', 'carousel'] },
+    liveCounter: { name: 'Live Counter', category: 'social', keywords: ['stats', 'animated', 'numbers', 'metrics'] },
+    bookingsTicker: { name: 'Bookings Ticker', category: 'social', keywords: ['notifications', 'social proof', 'recent', 'activity'] },
   };
 
   // Filter components based on search query
@@ -1663,6 +2239,360 @@ export default function VisualEditor({
           style: "underline",
           animation: "fade-in",
         };
+      
+      // HIGH PRIORITY - Missing Essentials
+      case "videoHero":
+        return {
+          videoUrl: "",
+          posterImage: "",
+          title: "Stunning Video Showcase",
+          subtitle: "Experience the moment",
+          buttonText: "Learn More",
+          buttonLink: "#",
+          overlay: 40,
+          autoplay: true,
+          loop: true,
+          muted: true,
+          alignment: "center",
+          titleColor: "text-white",
+          subtitleColor: "text-white",
+        };
+      
+      case "beforeAfter":
+        return {
+          beforeImage: "",
+          afterImage: "",
+          beforeLabel: "Before",
+          afterLabel: "After",
+          initialPosition: 50,
+          orientation: "horizontal",
+        };
+      
+      case "timeline":
+        return {
+          heading: "Our Journey",
+          events: [
+            { id: `event-1`, date: "2020", title: "Started Studio 37", description: "Founded with a passion for photography", icon: "camera" },
+            { id: `event-2`, date: "2022", title: "Expanded Services", description: "Added commercial photography", icon: "award" },
+          ],
+          orientation: "vertical",
+          style: "default",
+          animation: "fade-in",
+        };
+      
+      case "comparisonTable":
+        return {
+          heading: "Compare Packages",
+          features: [
+            { id: "f1", name: "Edited Photos", description: "High-resolution edited images" },
+            { id: "f2", name: "Shooting Time", description: "Duration of photo session" },
+            { id: "f3", name: "Locations", description: "Number of locations included" },
+          ],
+          plans: [
+            { id: "p1", name: "Basic", values: { f1: "10", f2: "1 hour", f3: "1" } },
+            { id: "p2", name: "Standard", values: { f1: "25", f2: "2 hours", f3: "2" }, highlight: true },
+            { id: "p3", name: "Premium", values: { f1: "50", f2: "4 hours", f3: "3" } },
+          ],
+          style: "default",
+        };
+      
+      case "mapEmbed":
+        return {
+          address: "1701 Goodson Loop, TRLR 80, Pinehurst, TX 77362",
+          zoom: 14,
+          height: "md",
+          showMarker: true,
+          mapType: "roadmap",
+        };
+      
+      case "countdown":
+        return {
+          targetDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+          heading: "Limited Time Offer",
+          subheading: "Book your session before time runs out!",
+          expiredMessage: "Offer has ended",
+          showLabels: true,
+          style: "default",
+          size: "md",
+        };
+      
+      // CLIENT ENGAGEMENT
+      case "reviews":
+        return {
+          heading: "What Our Clients Say",
+          source: "manual",
+          reviews: [
+            { id: "r1", author: "Sarah J.", rating: 5, text: "Amazing photography! Highly recommend.", date: "2024-01-15" },
+            { id: "r2", author: "Mike T.", rating: 5, text: "Professional and creative. Love the results!", date: "2024-01-10" },
+          ],
+          displayCount: 3,
+          style: "cards",
+          showRating: true,
+        };
+      
+      case "instagramFeed":
+        return {
+          heading: "Follow Us on Instagram",
+          username: "@studio37",
+          displayCount: 6,
+          columns: 3,
+          showCaptions: false,
+          style: "grid",
+        };
+      
+      case "photoGrid":
+        return {
+          heading: "Photo Gallery",
+          categories: [],
+          layout: "masonry",
+          columns: 3,
+          gap: "md",
+          showFilters: true,
+          limit: 12,
+        };
+      
+      case "clientPortal":
+        return {
+          heading: "Client Login",
+          description: "Access your photos and downloads",
+          loginUrl: "/client-portal",
+          buttonText: "Access Portal",
+          style: "card",
+        };
+      
+      // CONVERSION OPTIMIZATION
+      case "stickyCTA":
+        return {
+          text: "Ready to book your session?",
+          buttonText: "Book Now",
+          buttonLink: "/book-a-session",
+          position: "bottom",
+          backgroundColor: "#b46e14",
+          textColor: "#ffffff",
+          showOnScroll: true,
+        };
+      
+      case "exitPopup":
+        return {
+          heading: "Wait! Don't Miss Out",
+          message: "Get 10% off your first session when you book today!",
+          buttonText: "Claim Offer",
+          buttonLink: "/book-a-session",
+          dismissible: true,
+          showOnce: true,
+          delay: 0,
+        };
+      
+      case "progressSteps":
+        return {
+          steps: [
+            { id: "s1", title: "Choose Package", description: "Select your photography package", icon: "package" },
+            { id: "s2", title: "Pick Date", description: "Select your preferred date", icon: "calendar" },
+            { id: "s3", title: "Confirm", description: "Complete your booking", icon: "check" },
+          ],
+          currentStep: 0,
+          style: "horizontal",
+          showNumbers: true,
+        };
+      
+      case "calendarWidget":
+        return {
+          heading: "Schedule Your Session",
+          provider: "calendly",
+          embedUrl: "",
+          style: "inline",
+        };
+      
+      case "trustBadges":
+        return {
+          heading: "Trusted & Certified",
+          badges: [
+            { id: "b1", image: "", title: "Professional Photographer Association" },
+            { id: "b2", image: "", title: "Award Winning Studio" },
+          ],
+          layout: "horizontal",
+          size: "md",
+        };
+      
+      // CONTENT/SEO
+      case "blogCards":
+        return {
+          heading: "Latest from Our Blog",
+          displayCount: 3,
+          layout: "grid",
+          columns: 3,
+          showExcerpt: true,
+          showDate: true,
+          showAuthor: false,
+        };
+      
+      case "categoryNav":
+        return {
+          heading: "Browse by Category",
+          categories: [
+            { id: "c1", name: "Portraits", link: "/gallery?category=portraits", count: 45 },
+            { id: "c2", name: "Weddings", link: "/gallery?category=weddings", count: 32 },
+            { id: "c3", name: "Events", link: "/gallery?category=events", count: 28 },
+          ],
+          layout: "grid",
+          columns: 3,
+          showCounts: true,
+        };
+      
+      case "breadcrumbs":
+        return {
+          items: [
+            { label: "Home", link: "/" },
+            { label: "Services", link: "/services" },
+          ],
+          separator: "chevron",
+          showHome: true,
+        };
+      
+      case "tableOfContents":
+        return {
+          heading: "On This Page",
+          items: [],
+          position: "sidebar",
+          sticky: true,
+        };
+      
+      case "relatedContent":
+        return {
+          heading: "You Might Also Like",
+          contentType: "blog",
+          displayCount: 3,
+          layout: "grid",
+          algorithm: "related",
+        };
+      
+      // INTERACTIVE
+      case "quiz":
+        return {
+          heading: "Find Your Perfect Photography Style",
+          description: "Take our quick quiz to discover which photography package suits you best",
+          questions: [
+            {
+              id: "q1",
+              question: "What type of photography are you interested in?",
+              options: [
+                { id: "o1", text: "Portraits", value: "portraits" },
+                { id: "o2", text: "Events", value: "events" },
+                { id: "o3", text: "Commercial", value: "commercial" },
+              ],
+            },
+          ],
+          results: {
+            portraits: { title: "Portrait Package", description: "Perfect for individual and family portraits", cta: { text: "Book Now", link: "/book-a-session" } },
+            events: { title: "Event Package", description: "Ideal for capturing special occasions", cta: { text: "Learn More", link: "/services" } },
+            commercial: { title: "Commercial Package", description: "Professional business photography", cta: { text: "Get Quote", link: "/contact" } },
+          },
+        };
+      
+      case "calculator":
+        return {
+          heading: "Estimate Your Photography Cost",
+          description: "Get an instant quote based on your needs",
+          fields: [
+            { id: "f1", label: "Number of Hours", type: "number", multiplier: 200 },
+            { id: "f2", label: "Number of Locations", type: "select", options: [{ label: "1", value: 0 }, { label: "2", value: 150 }, { label: "3+", value: 300 }] },
+            { id: "f3", label: "Include Editing", type: "checkbox", multiplier: 100 },
+          ],
+          basePrice: 300,
+          showBreakdown: true,
+        };
+      
+      case "lightbox":
+        return {
+          triggerText: "View Details",
+          triggerStyle: "button",
+          content: "Add your content here...",
+          width: "md",
+        };
+      
+      case "enhancedTabs":
+        return {
+          tabs: [
+            { id: "t1", label: "Overview", icon: "eye" },
+            { id: "t2", label: "Details", icon: "info" },
+          ],
+          activeTab: "t1",
+          style: "pills",
+          showIcons: true,
+        };
+      
+      case "alertBanner":
+        return {
+          message: "📸 Special offer: Book your session this month and save 15%!",
+          type: "info",
+          dismissible: true,
+          linkText: "Learn More",
+          link: "/book-a-session",
+          position: "top",
+        };
+      
+      // MULTIMEDIA
+      case "audioPlayer":
+        return {
+          audioUrl: "",
+          title: "Audio Title",
+          artist: "Artist Name",
+          autoplay: false,
+          loop: false,
+          style: "full",
+        };
+      
+      case "viewer360":
+        return {
+          imageUrl: "",
+          autoRotate: false,
+          height: "md",
+          controls: true,
+        };
+      
+      case "pdfEmbed":
+        return {
+          pdfUrl: "",
+          downloadable: true,
+          height: "lg",
+          title: "Document",
+        };
+      
+      // SOCIAL PROOF
+      case "logoCarousel":
+        return {
+          heading: "Trusted By Leading Brands",
+          logos: [
+            { id: "l1", image: "", alt: "Client 1" },
+            { id: "l2", image: "", alt: "Client 2" },
+          ],
+          autoplay: true,
+          speed: 3000,
+          grayscale: true,
+        };
+      
+      case "liveCounter":
+        return {
+          counters: [
+            { id: "c1", label: "Happy Clients", targetValue: 500, suffix: "+" },
+            { id: "c2", label: "Photos Taken", targetValue: 10000, suffix: "+" },
+            { id: "c3", label: "Years Experience", targetValue: 5, suffix: "" },
+          ],
+          duration: 2000,
+          style: "default",
+        };
+      
+      case "bookingsTicker":
+        return {
+          items: [
+            { id: "bt1", name: "Sarah", location: "Houston", service: "Portrait Session", timeAgo: "2 hours ago" },
+            { id: "bt2", name: "Mike", location: "The Woodlands", service: "Wedding Package", timeAgo: "5 hours ago" },
+          ],
+          position: "corner",
+          displayDuration: 5000,
+          interval: 10000,
+        };
+      
       default:
         return {};
     }
@@ -2299,6 +3229,399 @@ export default function VisualEditor({
                   >
                     <Code className="h-4 w-4" />
                     <span>Custom CSS</span>
+                  </button>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* HIGH PRIORITY - Multimedia & Interactive */}
+            <div className="border-b">
+              <button
+                onClick={() => toggleCategory("multimedia")}
+                className="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-50 font-medium text-sm"
+              >
+                <span>Multimedia</span>
+                {expandedCategories.includes("multimedia") ? (
+                  <ChevronDown className="h-4 w-4" />
+                ) : (
+                  <ChevronRight className="h-4 w-4" />
+                )}
+              </button>
+              {expandedCategories.includes("multimedia") && (
+                <div className="p-2 space-y-1 bg-gray-50">
+                  {filterComponents('videoHero') && (
+                  <button
+                    onClick={() => addComponent("videoHero")}
+                    className="w-full flex items-center gap-2 p-2 bg-white hover:bg-gray-100 rounded transition text-sm"
+                  >
+                    <Video className="h-4 w-4" />
+                    <span>Video Hero</span>
+                  </button>
+                  )}
+                  {filterComponents('beforeAfter') && (
+                  <button
+                    onClick={() => addComponent("beforeAfter")}
+                    className="w-full flex items-center gap-2 p-2 bg-white hover:bg-gray-100 rounded transition text-sm"
+                  >
+                    <LayoutGrid className="h-4 w-4" />
+                    <span>Before/After Slider</span>
+                  </button>
+                  )}
+                  {filterComponents('photoGrid') && (
+                  <button
+                    onClick={() => addComponent("photoGrid")}
+                    className="w-full flex items-center gap-2 p-2 bg-white hover:bg-gray-100 rounded transition text-sm"
+                  >
+                    <Camera className="h-4 w-4" />
+                    <span>Photo Grid</span>
+                  </button>
+                  )}
+                  {filterComponents('audioPlayer') && (
+                  <button
+                    onClick={() => addComponent("audioPlayer")}
+                    className="w-full flex items-center gap-2 p-2 bg-white hover:bg-gray-100 rounded transition text-sm"
+                  >
+                    <Volume2 className="h-4 w-4" />
+                    <span>Audio Player</span>
+                  </button>
+                  )}
+                  {filterComponents('viewer360') && (
+                  <button
+                    onClick={() => addComponent("viewer360")}
+                    className="w-full flex items-center gap-2 p-2 bg-white hover:bg-gray-100 rounded transition text-sm"
+                  >
+                    <RefreshCw className="h-4 w-4" />
+                    <span>360° Viewer</span>
+                  </button>
+                  )}
+                  {filterComponents('pdfEmbed') && (
+                  <button
+                    onClick={() => addComponent("pdfEmbed")}
+                    className="w-full flex items-center gap-2 p-2 bg-white hover:bg-gray-100 rounded transition text-sm"
+                  >
+                    <FileText className="h-4 w-4" />
+                    <span>PDF Embed</span>
+                  </button>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Client Engagement */}
+            <div className="border-b">
+              <button
+                onClick={() => toggleCategory("engagement")}
+                className="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-50 font-medium text-sm"
+              >
+                <span>Client Engagement</span>
+                {expandedCategories.includes("engagement") ? (
+                  <ChevronDown className="h-4 w-4" />
+                ) : (
+                  <ChevronRight className="h-4 w-4" />
+                )}
+              </button>
+              {expandedCategories.includes("engagement") && (
+                <div className="p-2 space-y-1 bg-gray-50">
+                  {filterComponents('reviews') && (
+                  <button
+                    onClick={() => addComponent("reviews")}
+                    className="w-full flex items-center gap-2 p-2 bg-white hover:bg-gray-100 rounded transition text-sm"
+                  >
+                    <ThumbsUp className="h-4 w-4" />
+                    <span>Reviews</span>
+                  </button>
+                  )}
+                  {filterComponents('instagramFeed') && (
+                  <button
+                    onClick={() => addComponent("instagramFeed")}
+                    className="w-full flex items-center gap-2 p-2 bg-white hover:bg-gray-100 rounded transition text-sm"
+                  >
+                    <Instagram className="h-4 w-4" />
+                    <span>Instagram Feed</span>
+                  </button>
+                  )}
+                  {filterComponents('clientPortal') && (
+                  <button
+                    onClick={() => addComponent("clientPortal")}
+                    className="w-full flex items-center gap-2 p-2 bg-white hover:bg-gray-100 rounded transition text-sm"
+                  >
+                    <Users className="h-4 w-4" />
+                    <span>Client Portal</span>
+                  </button>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Conversion Tools */}
+            <div className="border-b">
+              <button
+                onClick={() => toggleCategory("conversion")}
+                className="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-50 font-medium text-sm"
+              >
+                <span>Conversion</span>
+                {expandedCategories.includes("conversion") ? (
+                  <ChevronDown className="h-4 w-4" />
+                ) : (
+                  <ChevronRight className="h-4 w-4" />
+                )}
+              </button>
+              {expandedCategories.includes("conversion") && (
+                <div className="p-2 space-y-1 bg-gray-50">
+                  {filterComponents('stickyCTA') && (
+                  <button
+                    onClick={() => addComponent("stickyCTA")}
+                    className="w-full flex items-center gap-2 p-2 bg-white hover:bg-gray-100 rounded transition text-sm"
+                  >
+                    <Target className="h-4 w-4" />
+                    <span>Sticky CTA Bar</span>
+                  </button>
+                  )}
+                  {filterComponents('countdown') && (
+                  <button
+                    onClick={() => addComponent("countdown")}
+                    className="w-full flex items-center gap-2 p-2 bg-white hover:bg-gray-100 rounded transition text-sm"
+                  >
+                    <Clock className="h-4 w-4" />
+                    <span>Countdown Timer</span>
+                  </button>
+                  )}
+                  {filterComponents('progressSteps') && (
+                  <button
+                    onClick={() => addComponent("progressSteps")}
+                    className="w-full flex items-center gap-2 p-2 bg-white hover:bg-gray-100 rounded transition text-sm"
+                  >
+                    <List className="h-4 w-4" />
+                    <span>Progress Steps</span>
+                  </button>
+                  )}
+                  {filterComponents('calendarWidget') && (
+                  <button
+                    onClick={() => addComponent("calendarWidget")}
+                    className="w-full flex items-center gap-2 p-2 bg-white hover:bg-gray-100 rounded transition text-sm"
+                  >
+                    <Calendar className="h-4 w-4" />
+                    <span>Calendar Widget</span>
+                  </button>
+                  )}
+                  {filterComponents('trustBadges') && (
+                  <button
+                    onClick={() => addComponent("trustBadges")}
+                    className="w-full flex items-center gap-2 p-2 bg-white hover:bg-gray-100 rounded transition text-sm"
+                  >
+                    <Award className="h-4 w-4" />
+                    <span>Trust Badges</span>
+                  </button>
+                  )}
+                  {filterComponents('exitPopup') && (
+                  <button
+                    onClick={() => addComponent("exitPopup")}
+                    className="w-full flex items-center gap-2 p-2 bg-white hover:bg-gray-100 rounded transition text-sm"
+                  >
+                    <AlertCircle className="h-4 w-4" />
+                    <span>Exit Popup</span>
+                  </button>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Content & Navigation */}
+            <div className="border-b">
+              <button
+                onClick={() => toggleCategory("contentNav")}
+                className="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-50 font-medium text-sm"
+              >
+                <span>Content & SEO</span>
+                {expandedCategories.includes("contentNav") ? (
+                  <ChevronDown className="h-4 w-4" />
+                ) : (
+                  <ChevronRight className="h-4 w-4" />
+                )}
+              </button>
+              {expandedCategories.includes("contentNav") && (
+                <div className="p-2 space-y-1 bg-gray-50">
+                  {filterComponents('timeline') && (
+                  <button
+                    onClick={() => addComponent("timeline")}
+                    className="w-full flex items-center gap-2 p-2 bg-white hover:bg-gray-100 rounded transition text-sm"
+                  >
+                    <TrendingUp className="h-4 w-4" />
+                    <span>Timeline</span>
+                  </button>
+                  )}
+                  {filterComponents('comparisonTable') && (
+                  <button
+                    onClick={() => addComponent("comparisonTable")}
+                    className="w-full flex items-center gap-2 p-2 bg-white hover:bg-gray-100 rounded transition text-sm"
+                  >
+                    <TableProperties className="h-4 w-4" />
+                    <span>Comparison Table</span>
+                  </button>
+                  )}
+                  {filterComponents('blogCards') && (
+                  <button
+                    onClick={() => addComponent("blogCards")}
+                    className="w-full flex items-center gap-2 p-2 bg-white hover:bg-gray-100 rounded transition text-sm"
+                  >
+                    <FileText className="h-4 w-4" />
+                    <span>Blog Cards</span>
+                  </button>
+                  )}
+                  {filterComponents('categoryNav') && (
+                  <button
+                    onClick={() => addComponent("categoryNav")}
+                    className="w-full flex items-center gap-2 p-2 bg-white hover:bg-gray-100 rounded transition text-sm"
+                  >
+                    <Navigation className="h-4 w-4" />
+                    <span>Category Navigation</span>
+                  </button>
+                  )}
+                  {filterComponents('breadcrumbs') && (
+                  <button
+                    onClick={() => addComponent("breadcrumbs")}
+                    className="w-full flex items-center gap-2 p-2 bg-white hover:bg-gray-100 rounded transition text-sm"
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                    <span>Breadcrumbs</span>
+                  </button>
+                  )}
+                  {filterComponents('tableOfContents') && (
+                  <button
+                    onClick={() => addComponent("tableOfContents")}
+                    className="w-full flex items-center gap-2 p-2 bg-white hover:bg-gray-100 rounded transition text-sm"
+                  >
+                    <List className="h-4 w-4" />
+                    <span>Table of Contents</span>
+                  </button>
+                  )}
+                  {filterComponents('relatedContent') && (
+                  <button
+                    onClick={() => addComponent("relatedContent")}
+                    className="w-full flex items-center gap-2 p-2 bg-white hover:bg-gray-100 rounded transition text-sm"
+                  >
+                    <Link2 className="h-4 w-4" />
+                    <span>Related Content</span>
+                  </button>
+                  )}
+                  {filterComponents('mapEmbed') && (
+                  <button
+                    onClick={() => addComponent("mapEmbed")}
+                    className="w-full flex items-center gap-2 p-2 bg-white hover:bg-gray-100 rounded transition text-sm"
+                  >
+                    <MapPin className="h-4 w-4" />
+                    <span>Map Embed</span>
+                  </button>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Interactive Elements */}
+            <div className="border-b">
+              <button
+                onClick={() => toggleCategory("interactive")}
+                className="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-50 font-medium text-sm"
+              >
+                <span>Interactive</span>
+                {expandedCategories.includes("interactive") ? (
+                  <ChevronDown className="h-4 w-4" />
+                ) : (
+                  <ChevronRight className="h-4 w-4" />
+                )}
+              </button>
+              {expandedCategories.includes("interactive") && (
+                <div className="p-2 space-y-1 bg-gray-50">
+                  {filterComponents('quiz') && (
+                  <button
+                    onClick={() => addComponent("quiz")}
+                    className="w-full flex items-center gap-2 p-2 bg-white hover:bg-gray-100 rounded transition text-sm"
+                  >
+                    <HelpCircle className="h-4 w-4" />
+                    <span>Quiz/Survey</span>
+                  </button>
+                  )}
+                  {filterComponents('calculator') && (
+                  <button
+                    onClick={() => addComponent("calculator")}
+                    className="w-full flex items-center gap-2 p-2 bg-white hover:bg-gray-100 rounded transition text-sm"
+                  >
+                    <DollarSign className="h-4 w-4" />
+                    <span>Cost Calculator</span>
+                  </button>
+                  )}
+                  {filterComponents('lightbox') && (
+                  <button
+                    onClick={() => addComponent("lightbox")}
+                    className="w-full flex items-center gap-2 p-2 bg-white hover:bg-gray-100 rounded transition text-sm"
+                  >
+                    <MousePointer className="h-4 w-4" />
+                    <span>Lightbox/Modal</span>
+                  </button>
+                  )}
+                  {filterComponents('enhancedTabs') && (
+                  <button
+                    onClick={() => addComponent("enhancedTabs")}
+                    className="w-full flex items-center gap-2 p-2 bg-white hover:bg-gray-100 rounded transition text-sm"
+                  >
+                    <Layout className="h-4 w-4" />
+                    <span>Enhanced Tabs</span>
+                  </button>
+                  )}
+                  {filterComponents('alertBanner') && (
+                  <button
+                    onClick={() => addComponent("alertBanner")}
+                    className="w-full flex items-center gap-2 p-2 bg-white hover:bg-gray-100 rounded transition text-sm"
+                  >
+                    <Bell className="h-4 w-4" />
+                    <span>Alert Banner</span>
+                  </button>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Social Proof */}
+            <div className="border-b">
+              <button
+                onClick={() => toggleCategory("social")}
+                className="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-50 font-medium text-sm"
+              >
+                <span>Social Proof</span>
+                {expandedCategories.includes("social") ? (
+                  <ChevronDown className="h-4 w-4" />
+                ) : (
+                  <ChevronRight className="h-4 w-4" />
+                )}
+              </button>
+              {expandedCategories.includes("social") && (
+                <div className="p-2 space-y-1 bg-gray-50">
+                  {filterComponents('logoCarousel') && (
+                  <button
+                    onClick={() => addComponent("logoCarousel")}
+                    className="w-full flex items-center gap-2 p-2 bg-white hover:bg-gray-100 rounded transition text-sm"
+                  >
+                    <Package className="h-4 w-4" />
+                    <span>Logo Carousel</span>
+                  </button>
+                  )}
+                  {filterComponents('liveCounter') && (
+                  <button
+                    onClick={() => addComponent("liveCounter")}
+                    className="w-full flex items-center gap-2 p-2 bg-white hover:bg-gray-100 rounded transition text-sm"
+                  >
+                    <TrendingUp className="h-4 w-4" />
+                    <span>Live Counter</span>
+                  </button>
+                  )}
+                  {filterComponents('bookingsTicker') && (
+                  <button
+                    onClick={() => addComponent("bookingsTicker")}
+                    className="w-full flex items-center gap-2 p-2 bg-white hover:bg-gray-100 rounded transition text-sm"
+                  >
+                    <Zap className="h-4 w-4" />
+                    <span>Bookings Ticker</span>
                   </button>
                   )}
                 </div>
@@ -4137,6 +5460,786 @@ function TabsRenderer({ component }: { component: TabsComponent }) {
   );
 }
 
+// ========== NEW COMPONENT RENDERERS ==========
+
+// MULTIMEDIA COMPONENTS
+function VideoHeroRenderer({ data }: { data: VideoHeroComponent['data'] }) {
+  return (
+    <div className="relative w-full h-96 bg-gray-900 overflow-hidden">
+      {data.videoUrl ? (
+        <video 
+          src={data.videoUrl}
+          poster={data.posterImage}
+          autoPlay={data.autoplay}
+          loop={data.loop}
+          muted={data.muted}
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+      ) : (
+        <div className="absolute inset-0 flex items-center justify-center bg-gray-800">
+          <div className="text-center text-white">
+            <Video className="h-16 w-16 mx-auto mb-2 opacity-50" />
+            <p className="text-sm">Add video URL</p>
+          </div>
+        </div>
+      )}
+      <div className="absolute inset-0 bg-black" style={{ opacity: data.overlay / 100 }} />
+      <div className={`relative h-full flex flex-col justify-center items-${data.alignment} px-8 text-${data.alignment}`}>
+        {data.title && <h1 className={`text-4xl md:text-5xl font-bold mb-4 ${data.titleColor}`}>{data.title}</h1>}
+        {data.subtitle && <p className={`text-xl mb-6 ${data.subtitleColor}`}>{data.subtitle}</p>}
+        {data.buttonText && (
+          <a href={data.buttonLink} className="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition">
+            {data.buttonText}
+          </a>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function BeforeAfterRenderer({ data }: { data: BeforeAfterComponent['data'] }) {
+  const [position, setPosition] = React.useState(data.initialPosition || 50);
+  
+  return (
+    <div className="relative w-full h-96 bg-gray-100 overflow-hidden">
+      {data.beforeImage && data.afterImage ? (
+        <div className="relative h-full">
+          <div className="absolute inset-0">
+            <img src={data.afterImage} alt={data.afterLabel || "After"} className="w-full h-full object-cover" />
+          </div>
+          <div className="absolute inset-0" style={{ clipPath: `inset(0 ${100 - position}% 0 0)` }}>
+            <img src={data.beforeImage} alt={data.beforeLabel || "Before"} className="w-full h-full object-cover" />
+          </div>
+          <input
+            type="range"
+            min="0"
+            max="100"
+            value={position}
+            onChange={(e) => setPosition(Number(e.target.value))}
+            className="absolute top-1/2 left-0 w-full -translate-y-1/2 opacity-0 cursor-ew-resize"
+          />
+          <div className="absolute top-1/2 -translate-y-1/2 w-1 h-full bg-white shadow-lg" style={{ left: `${position}%` }}>
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 bg-white rounded-full shadow-lg flex items-center justify-center">
+              <LayoutGrid className="h-4 w-4" />
+            </div>
+          </div>
+          {data.beforeLabel && <div className="absolute top-4 left-4 bg-black/70 text-white px-3 py-1 rounded">{data.beforeLabel}</div>}
+          {data.afterLabel && <div className="absolute top-4 right-4 bg-black/70 text-white px-3 py-1 rounded">{data.afterLabel}</div>}
+        </div>
+      ) : (
+        <div className="h-full flex items-center justify-center">
+          <div className="text-center text-gray-500">
+            <LayoutGrid className="h-16 w-16 mx-auto mb-2" />
+            <p>Add before and after images</p>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function PhotoGridRenderer({ data }: { data: PhotoGridComponent['data'] }) {
+  const columns = { 2: 'grid-cols-2', 3: 'grid-cols-3', 4: 'grid-cols-4', 5: 'grid-cols-5' }[data.columns];
+  const gap = { sm: 'gap-2', md: 'gap-4', lg: 'gap-6' }[data.gap || 'md'];
+  
+  return (
+    <div className="py-8">
+      {data.heading && <h2 className="text-3xl font-bold mb-6">{data.heading}</h2>}
+      {data.showFilters && (
+        <div className="flex gap-2 mb-6 flex-wrap">
+          <button className="px-4 py-2 bg-primary-600 text-white rounded">All</button>
+          {data.categories?.map((cat, i) => (
+            <button key={i} className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">{cat}</button>
+          ))}
+        </div>
+      )}
+      <div className={`grid ${columns} ${gap}`}>
+        {[1, 2, 3, 4, 5, 6].map(i => (
+          <div key={i} className="aspect-square bg-gray-200 rounded overflow-hidden">
+            <div className="w-full h-full flex items-center justify-center text-gray-400">
+              <Camera className="h-12 w-12" />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function AudioPlayerRenderer({ data }: { data: AudioPlayerComponent['data'] }) {
+  return (
+    <div className="bg-gray-50 rounded-lg p-6 max-w-md mx-auto">
+      {data.coverImage && (
+        <img src={data.coverImage} alt={data.title || 'Audio'} className="w-full aspect-square object-cover rounded-lg mb-4" />
+      )}
+      <div className="text-center mb-4">
+        {data.title && <h3 className="font-bold text-lg">{data.title}</h3>}
+        {data.artist && <p className="text-gray-600">{data.artist}</p>}
+      </div>
+      <audio controls className="w-full" src={data.audioUrl}>
+        Your browser does not support audio playback.
+      </audio>
+    </div>
+  );
+}
+
+function Viewer360Renderer({ data }: { data: Viewer360Component['data'] }) {
+  const height = { sm: 'h-64', md: 'h-96', lg: 'h-[32rem]', xl: 'h-[40rem]' }[data.height || 'md'];
+  
+  return (
+    <div className={`relative ${height} bg-gray-900 rounded-lg overflow-hidden`}>
+      {data.imageUrl ? (
+        <img src={data.imageUrl} alt="360 view" className="w-full h-full object-cover" />
+      ) : (
+        <div className="flex items-center justify-center h-full text-white">
+          <div className="text-center">
+            <RefreshCw className="h-16 w-16 mx-auto mb-2 opacity-50" />
+            <p>Add 360° image</p>
+          </div>
+        </div>
+      )}
+      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/70 text-white px-4 py-2 rounded-full text-sm">
+        Drag to rotate
+      </div>
+    </div>
+  );
+}
+
+function PDFEmbedRenderer({ data }: { data: PDFEmbedComponent['data'] }) {
+  const height = { sm: 'h-96', md: 'h-[32rem]', lg: 'h-[40rem]', xl: 'h-[48rem]' }[data.height || 'lg'];
+  
+  return (
+    <div className="py-4">
+      {data.title && (
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-xl font-bold">{data.title}</h3>
+          {data.downloadable && data.pdfUrl && (
+            <a href={data.pdfUrl} download className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded hover:bg-primary-700">
+              <Download className="h-4 w-4" />
+              Download
+            </a>
+          )}
+        </div>
+      )}
+      <div className={`${height} bg-gray-100 rounded border`}>
+        {data.pdfUrl ? (
+          <iframe src={data.pdfUrl} className="w-full h-full" title={data.title || 'PDF'} />
+        ) : (
+          <div className="flex items-center justify-center h-full text-gray-500">
+            <div className="text-center">
+              <FileText className="h-16 w-16 mx-auto mb-2" />
+              <p>Add PDF URL</p>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// CLIENT ENGAGEMENT
+function ReviewsRenderer({ data }: { data: ReviewsComponent['data'] }) {
+  const reviews = data.reviews || [];
+  
+  return (
+    <div className="py-8">
+      {data.heading && <h2 className="text-3xl font-bold mb-6 text-center">{data.heading}</h2>}
+      <div className="grid md:grid-cols-3 gap-6">
+        {reviews.map(review => (
+          <div key={review.id} className="bg-white p-6 rounded-lg shadow">
+            <div className="flex items-center gap-3 mb-3">
+              {review.avatar && <img src={review.avatar} alt={review.author} className="w-12 h-12 rounded-full" />}
+              <div>
+                <p className="font-bold">{review.author}</p>
+                <div className="flex text-yellow-400">
+                  {[...Array(review.rating)].map((_, i) => <Star key={i} className="h-4 w-4 fill-current" />)}
+                </div>
+              </div>
+            </div>
+            <p className="text-gray-700">{review.text}</p>
+            {review.date && <p className="text-sm text-gray-500 mt-2">{review.date}</p>}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function InstagramFeedRenderer({ data }: { data: InstagramFeedComponent['data'] }) {
+  const columns = { 2: 'grid-cols-2', 3: 'grid-cols-3', 4: 'grid-cols-4', 6: 'grid-cols-6' }[data.columns];
+  
+  return (
+    <div className="py-8">
+      {data.heading && <h2 className="text-3xl font-bold mb-6 text-center">{data.heading}</h2>}
+      <div className={`grid ${columns} gap-4`}>
+        {[...Array(data.displayCount)].map((_, i) => (
+          <div key={i} className="aspect-square bg-gray-200 rounded overflow-hidden">
+            <div className="w-full h-full flex items-center justify-center text-gray-400">
+              <Instagram className="h-12 w-12" />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ClientPortalRenderer({ data }: { data: ClientPortalComponent['data'] }) {
+  return (
+    <div className="max-w-md mx-auto py-8">
+      <div className="bg-white rounded-lg shadow-lg p-8 text-center">
+        <Users className="h-16 w-16 mx-auto mb-4 text-primary-600" />
+        {data.heading && <h2 className="text-2xl font-bold mb-2">{data.heading}</h2>}
+        {data.description && <p className="text-gray-600 mb-6">{data.description}</p>}
+        <a 
+          href={data.loginUrl || '#'} 
+          className="inline-block px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition"
+        >
+          {data.buttonText || 'Access Portal'}
+        </a>
+      </div>
+    </div>
+  );
+}
+
+// CONVERSION
+function StickyCTARenderer({ data }: { data: StickyCTAComponent['data'] }) {
+  return (
+    <div 
+      className={`${data.position === 'top' ? 'top-0' : 'bottom-0'} left-0 right-0 z-40 py-3 px-4 shadow-lg`}
+      style={{ backgroundColor: data.backgroundColor, color: data.textColor }}
+    >
+      <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
+        <p className="font-medium">{data.text}</p>
+        <a 
+          href={data.buttonLink} 
+          className="px-6 py-2 bg-white text-gray-900 rounded-lg hover:bg-gray-100 whitespace-nowrap"
+        >
+          {data.buttonText}
+        </a>
+      </div>
+    </div>
+  );
+}
+
+function CountdownRenderer({ data }: { data: CountdownComponent['data'] }) {
+  const [timeLeft, setTimeLeft] = React.useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+  
+  React.useEffect(() => {
+    const target = new Date(data.targetDate).getTime();
+    const timer = setInterval(() => {
+      const now = Date.now();
+      const diff = target - now;
+      if (diff > 0) {
+        setTimeLeft({
+          days: Math.floor(diff / (1000 * 60 * 60 * 24)),
+          hours: Math.floor((diff / (1000 * 60 * 60)) % 24),
+          minutes: Math.floor((diff / (1000 * 60)) % 60),
+          seconds: Math.floor((diff / 1000) % 60),
+        });
+      }
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [data.targetDate]);
+  
+  const size = { sm: 'text-2xl', md: 'text-4xl', lg: 'text-6xl' }[data.size || 'md'];
+  
+  return (
+    <div className="py-8 text-center">
+      {data.heading && <h2 className="text-3xl font-bold mb-2">{data.heading}</h2>}
+      {data.subheading && <p className="text-gray-600 mb-6">{data.subheading}</p>}
+      <div className="flex justify-center gap-4">
+        {['days', 'hours', 'minutes', 'seconds'].map(unit => (
+          <div key={unit} className="flex flex-col items-center">
+            <div className={`${size} font-bold text-primary-600`}>
+              {timeLeft[unit as keyof typeof timeLeft]}
+            </div>
+            {data.showLabels && <div className="text-sm text-gray-500 capitalize">{unit}</div>}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ProgressStepsRenderer({ data }: { data: ProgressStepsComponent['data'] }) {
+  const current = data.currentStep || 0;
+  
+  return (
+    <div className="py-8">
+      <div className="flex items-center justify-between max-w-4xl mx-auto">
+        {data.steps.map((step, i) => (
+          <React.Fragment key={step.id}>
+            <div className="flex flex-col items-center">
+              <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold ${
+                i <= current ? 'bg-primary-600 text-white' : 'bg-gray-200 text-gray-500'
+              }`}>
+                {data.showNumbers ? i + 1 : <span>✓</span>}
+              </div>
+              <p className="mt-2 text-sm font-medium">{step.title}</p>
+              {step.description && <p className="text-xs text-gray-500">{step.description}</p>}
+            </div>
+            {i < data.steps.length - 1 && (
+              <div className={`flex-1 h-1 mx-4 ${i < current ? 'bg-primary-600' : 'bg-gray-200'}`} />
+            )}
+          </React.Fragment>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function CalendarWidgetRenderer({ data }: { data: CalendarWidgetComponent['data'] }) {
+  return (
+    <div className="py-8">
+      {data.heading && <h2 className="text-3xl font-bold mb-6 text-center">{data.heading}</h2>}
+      <div className="max-w-2xl mx-auto bg-white rounded-lg shadow-lg p-8">
+        <Calendar className="h-16 w-16 mx-auto mb-4 text-primary-600" />
+        <p className="text-center text-gray-600 mb-4">Calendar widget will be embedded here</p>
+        {data.embedUrl && <p className="text-xs text-gray-500 text-center break-all">{data.embedUrl}</p>}
+      </div>
+    </div>
+  );
+}
+
+function TrustBadgesRenderer({ data }: { data: TrustBadgesComponent['data'] }) {
+  const size = { sm: 'h-12', md: 'h-16', lg: 'h-20' }[data.size || 'md'];
+  
+  return (
+    <div className="py-8">
+      {data.heading && <h2 className="text-2xl font-bold mb-6 text-center">{data.heading}</h2>}
+      <div className={`flex ${data.layout === 'grid' ? 'flex-wrap' : ''} items-center justify-center gap-6`}>
+        {data.badges.map(badge => (
+          <div key={badge.id} className="grayscale hover:grayscale-0 transition">
+            {badge.image ? (
+              <img src={badge.image} alt={badge.title} className={size} />
+            ) : (
+              <div className={`${size} w-24 bg-gray-200 rounded flex items-center justify-center`}>
+                <Award className="h-8 w-8 text-gray-400" />
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ExitPopupRenderer({ data }: { data: ExitPopupComponent['data'] }) {
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-lg max-w-md w-full p-8 relative">
+        {data.dismissible && (
+          <button className="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+            <X className="h-6 w-6" />
+          </button>
+        )}
+        <h2 className="text-2xl font-bold mb-4">{data.heading}</h2>
+        <p className="text-gray-600 mb-6">{data.message}</p>
+        <a 
+          href={data.buttonLink} 
+          className="block w-full text-center px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
+        >
+          {data.buttonText}
+        </a>
+      </div>
+    </div>
+  );
+}
+
+// CONTENT/SEO
+function TimelineRenderer({ data }: { data: TimelineComponent['data'] }) {
+  return (
+    <div className="py-8">
+      {data.heading && <h2 className="text-3xl font-bold mb-8 text-center">{data.heading}</h2>}
+      <div className="max-w-4xl mx-auto">
+        {data.events.map((event, i) => (
+          <div key={event.id} className="flex gap-4 mb-6">
+            <div className="flex flex-col items-center">
+              <div className="w-12 h-12 rounded-full bg-primary-600 text-white flex items-center justify-center font-bold">
+                {event.icon ? <TrendingUp className="h-6 w-6" /> : i + 1}
+              </div>
+              {i < data.events.length - 1 && <div className="w-1 flex-1 bg-primary-200 mt-2" />}
+            </div>
+            <div className="flex-1 pb-8">
+              <div className="text-sm text-primary-600 font-bold">{event.date}</div>
+              <h3 className="text-xl font-bold mt-1">{event.title}</h3>
+              <p className="text-gray-600 mt-2">{event.description}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ComparisonTableRenderer({ data }: { data: ComparisonTableComponent['data'] }) {
+  return (
+    <div className="py-8 overflow-x-auto">
+      {data.heading && <h2 className="text-3xl font-bold mb-6 text-center">{data.heading}</h2>}
+      <table className="w-full max-w-5xl mx-auto border-collapse">
+        <thead>
+          <tr className="bg-gray-100">
+            <th className="p-4 text-left border">Feature</th>
+            {data.plans.map(plan => (
+              <th key={plan.id} className={`p-4 text-center border ${plan.highlight ? 'bg-primary-50' : ''}`}>
+                {plan.name}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {data.features.map(feature => (
+            <tr key={feature.id}>
+              <td className="p-4 border font-medium">{feature.name}</td>
+              {data.plans.map(plan => (
+                <td key={plan.id} className={`p-4 border text-center ${plan.highlight ? 'bg-primary-50' : ''}`}>
+                  {typeof plan.values[feature.id] === 'boolean' 
+                    ? (plan.values[feature.id] ? '✓' : '—')
+                    : plan.values[feature.id]}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function BlogCardsRenderer({ data }: { data: BlogCardsComponent['data'] }) {
+  const columns = data.columns ? { 2: 'md:grid-cols-2', 3: 'md:grid-cols-3', 4: 'md:grid-cols-4' }[data.columns] : '';
+  
+  return (
+    <div className="py-8">
+      {data.heading && <h2 className="text-3xl font-bold mb-6">{data.heading}</h2>}
+      <div className={`grid gap-6 ${columns}`}>
+        {[1, 2, 3].map(i => (
+          <div key={i} className="bg-white rounded-lg shadow-lg overflow-hidden">
+            <div className="h-48 bg-gray-200" />
+            <div className="p-6">
+              <h3 className="text-xl font-bold mb-2">Blog Post Title {i}</h3>
+              {data.showExcerpt && <p className="text-gray-600 mb-3">Preview of blog post content...</p>}
+              <div className="flex gap-4 text-sm text-gray-500">
+                {data.showDate && <span>Jan 1, 2025</span>}
+                {data.showAuthor && <span>Author Name</span>}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function CategoryNavRenderer({ data }: { data: CategoryNavComponent['data'] }) {
+  const columns = data.columns ? { 2: 'md:grid-cols-2', 3: 'md:grid-cols-3', 4: 'md:grid-cols-4' }[data.columns] : '';
+  
+  return (
+    <div className="py-8">
+      {data.heading && <h2 className="text-3xl font-bold mb-6 text-center">{data.heading}</h2>}
+      <div className={`grid gap-4 ${columns}`}>
+        {data.categories.map(cat => (
+          <a key={cat.id} href={cat.link} className="relative group overflow-hidden rounded-lg shadow-lg aspect-video">
+            {cat.image ? (
+              <img src={cat.image} alt={cat.name} className="w-full h-full object-cover" />
+            ) : (
+              <div className="w-full h-full bg-gray-300" />
+            )}
+            <div className="absolute inset-0 bg-black/40 group-hover:bg-black/50 transition" />
+            <div className="absolute inset-0 flex flex-col items-center justify-center text-white">
+              <h3 className="text-2xl font-bold">{cat.name}</h3>
+              {data.showCounts && cat.count && <p className="text-sm">{cat.count} items</p>}
+            </div>
+          </a>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function BreadcrumbsRenderer({ data }: { data: BreadcrumbsComponent['data'] }) {
+  const separator = { slash: '/', chevron: '›', dot: '•' }[data.separator || 'chevron'];
+  
+  return (
+    <nav className="py-4">
+      <ol className="flex items-center gap-2 text-sm">
+        {data.showHome && (
+          <>
+            <li><a href="/" className="text-primary-600 hover:underline">Home</a></li>
+            <li className="text-gray-400">{separator}</li>
+          </>
+        )}
+        {data.items?.map((item, i) => (
+          <React.Fragment key={i}>
+            <li>
+              <a href={item.link} className={i === data.items!.length - 1 ? 'text-gray-600' : 'text-primary-600 hover:underline'}>
+                {item.label}
+              </a>
+            </li>
+            {i < data.items!.length - 1 && <li className="text-gray-400">{separator}</li>}
+          </React.Fragment>
+        ))}
+      </ol>
+    </nav>
+  );
+}
+
+function TableOfContentsRenderer({ data }: { data: TableOfContentsComponent['data'] }) {
+  return (
+    <div className="bg-gray-50 rounded-lg p-6 max-w-xs">
+      {data.heading && <h3 className="font-bold text-lg mb-4">{data.heading}</h3>}
+      <nav>
+        <ul className="space-y-2">
+          {data.items.map(item => (
+            <li key={item.id} style={{ paddingLeft: `${item.level * 12}px` }}>
+              <a href={`#${item.anchor}`} className="text-primary-600 hover:underline text-sm">
+                {item.label}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </nav>
+    </div>
+  );
+}
+
+function RelatedContentRenderer({ data }: { data: RelatedContentComponent['data'] }) {
+  return (
+    <div className="py-8">
+      {data.heading && <h2 className="text-2xl font-bold mb-6">{data.heading}</h2>}
+      <div className="grid md:grid-cols-3 gap-6">
+        {[1, 2, 3].map(i => (
+          <div key={i} className="bg-white rounded-lg shadow overflow-hidden">
+            <div className="h-40 bg-gray-200" />
+            <div className="p-4">
+              <h3 className="font-bold mb-2">Related Item {i}</h3>
+              <p className="text-sm text-gray-600">Brief description...</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function MapEmbedRenderer({ data }: { data: MapEmbedComponent['data'] }) {
+  const height = { sm: 'h-64', md: 'h-96', lg: 'h-[32rem]', xl: 'h-[40rem]' }[data.height || 'md'];
+  
+  return (
+    <div className={`${height} bg-gray-200 rounded-lg overflow-hidden`}>
+      <div className="w-full h-full flex items-center justify-center text-gray-500">
+        <div className="text-center">
+          <MapPin className="h-16 w-16 mx-auto mb-2" />
+          <p className="font-medium">Map Embed</p>
+          {data.address && <p className="text-sm">{data.address}</p>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// INTERACTIVE
+function QuizRenderer({ data }: { data: QuizComponent['data'] }) {
+  const [currentQ, setCurrentQ] = React.useState(0);
+  const [answers, setAnswers] = React.useState<Record<string, string>>({});
+  
+  return (
+    <div className="max-w-2xl mx-auto py-8">
+      <div className="bg-white rounded-lg shadow-lg p-8">
+        <h2 className="text-3xl font-bold mb-2">{data.heading}</h2>
+        {data.description && <p className="text-gray-600 mb-6">{data.description}</p>}
+        
+        {currentQ < data.questions.length ? (
+          <div>
+            <p className="text-sm text-gray-500 mb-4">Question {currentQ + 1} of {data.questions.length}</p>
+            <h3 className="text-xl font-bold mb-4">{data.questions[currentQ].question}</h3>
+            <div className="space-y-3">
+              {data.questions[currentQ].options.map(opt => (
+                <button
+                  key={opt.id}
+                  onClick={() => {
+                    setAnswers({...answers, [data.questions[currentQ].id]: opt.value});
+                    setCurrentQ(currentQ + 1);
+                  }}
+                  className="w-full p-4 text-left border-2 rounded-lg hover:border-primary-600 transition"
+                >
+                  {opt.text}
+                </button>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <div className="text-center">
+            <h3 className="text-2xl font-bold mb-4">Quiz Complete!</h3>
+            <p className="text-gray-600">View your results</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function CalculatorRenderer({ data }: { data: CalculatorComponent['data'] }) {
+  const [values, setValues] = React.useState<Record<string, number>>({});
+  const total = (data.basePrice || 0) + data.fields.reduce((sum, field) => {
+    const val = values[field.id] || 0;
+    return sum + (val * (field.multiplier || 0));
+  }, 0);
+  
+  return (
+    <div className="max-w-md mx-auto py-8">
+      <div className="bg-white rounded-lg shadow-lg p-8">
+        <h2 className="text-2xl font-bold mb-2">{data.heading}</h2>
+        {data.description && <p className="text-gray-600 mb-6">{data.description}</p>}
+        
+        <div className="space-y-4 mb-6">
+          {data.fields.map(field => (
+            <div key={field.id}>
+              <label className="block text-sm font-medium mb-2">{field.label}</label>
+              {field.type === 'number' && (
+                <input
+                  type="number"
+                  className="w-full px-4 py-2 border rounded"
+                  onChange={(e) => setValues({...values, [field.id]: Number(e.target.value)})}
+                />
+              )}
+              {field.type === 'select' && (
+                <select
+                  className="w-full px-4 py-2 border rounded"
+                  onChange={(e) => setValues({...values, [field.id]: Number(e.target.value)})}
+                >
+                  {field.options?.map(opt => (
+                    <option key={opt.label} value={opt.value}>{opt.label}</option>
+                  ))}
+                </select>
+              )}
+            </div>
+          ))}
+        </div>
+        
+        <div className="border-t pt-4">
+          <div className="flex justify-between items-center">
+            <span className="text-lg font-bold">Estimated Total:</span>
+            <span className="text-3xl font-bold text-primary-600">${total}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function LightboxRenderer({ data }: { data: LightboxComponent['data'] }) {
+  return (
+    <div className="py-4">
+      <button className="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700">
+        {data.triggerText}
+      </button>
+    </div>
+  );
+}
+
+function EnhancedTabsRenderer({ data }: { data: EnhancedTabsComponent['data'] }) {
+  const [active, setActive] = React.useState(data.activeTab || data.tabs[0]?.id);
+  
+  return (
+    <div className="py-4">
+      <div className="flex gap-2 border-b">
+        {data.tabs.map(tab => (
+          <button
+            key={tab.id}
+            onClick={() => setActive(tab.id)}
+            className={`px-4 py-2 flex items-center gap-2 border-b-2 transition ${
+              active === tab.id ? 'border-primary-600 text-primary-600' : 'border-transparent'
+            }`}
+          >
+            {data.showIcons && tab.icon && <Eye className="h-4 w-4" />}
+            {tab.label}
+          </button>
+        ))}
+      </div>
+      <div className="mt-4 p-4 bg-gray-50 rounded">
+        Tab content for {data.tabs.find(t => t.id === active)?.label}
+      </div>
+    </div>
+  );
+}
+
+function AlertBannerRenderer({ data }: { data: AlertBannerComponent['data'] }) {
+  const colors = {
+    info: 'bg-blue-50 border-blue-200 text-blue-900',
+    success: 'bg-green-50 border-green-200 text-green-900',
+    warning: 'bg-yellow-50 border-yellow-200 text-yellow-900',
+    error: 'bg-red-50 border-red-200 text-red-900',
+  }[data.type];
+  
+  return (
+    <div className={`${colors} border-l-4 p-4 flex items-center justify-between`}>
+      <div className="flex items-center gap-3">
+        <AlertCircle className="h-5 w-5" />
+        <p>{data.message}</p>
+      </div>
+      <div className="flex items-center gap-3">
+        {data.link && <a href={data.link} className="underline font-medium">{data.linkText}</a>}
+        {data.dismissible && <button className="p-1"><X className="h-4 w-4" /></button>}
+      </div>
+    </div>
+  );
+}
+
+// SOCIAL PROOF
+function LogoCarouselRenderer({ data }: { data: LogoCarouselComponent['data'] }) {
+  return (
+    <div className="py-8">
+      {data.heading && <h2 className="text-2xl font-bold mb-6 text-center">{data.heading}</h2>}
+      <div className="flex items-center justify-center gap-8 flex-wrap">
+        {data.logos.map(logo => (
+          <div key={logo.id} className={`h-16 ${data.grayscale ? 'grayscale hover:grayscale-0' : ''} transition`}>
+            {logo.image ? (
+              <img src={logo.image} alt={logo.alt} className="h-full object-contain" />
+            ) : (
+              <div className="h-full w-24 bg-gray-200 rounded flex items-center justify-center">
+                <Package className="h-8 w-8 text-gray-400" />
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function LiveCounterRenderer({ data }: { data: LiveCounterComponent['data'] }) {
+  return (
+    <div className="py-8">
+      <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+        {data.counters.map(counter => (
+          <div key={counter.id} className="text-center">
+            <div className="text-5xl font-bold text-primary-600 mb-2">
+              {counter.prefix}{counter.targetValue}{counter.suffix}
+            </div>
+            <div className="text-gray-600">{counter.label}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function BookingsTickerRenderer({ data }: { data: BookingsTickerComponent['data'] }) {
+  return (
+    <div className="fixed bottom-4 left-4 bg-white rounded-lg shadow-lg p-4 max-w-sm z-50">
+      <div className="flex items-center gap-3">
+        <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+        <div>
+          <p className="font-bold">{data.items[0]?.name} just booked!</p>
+          <p className="text-sm text-gray-600">{data.items[0]?.service} • {data.items[0]?.timeAgo}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // Component Renderer
 function ComponentRenderer({ component }: { component: PageComponent }) {
   switch (component.type) {
@@ -4198,6 +6301,81 @@ function ComponentRenderer({ component }: { component: PageComponent }) {
       return <AccordionRenderer component={component as AccordionComponent} />;
     case "tabs":
       return <TabsRenderer component={component as TabsComponent} />;
+    
+    // MULTIMEDIA COMPONENTS
+    case "videoHero":
+      return <VideoHeroRenderer data={(component as VideoHeroComponent).data} />;
+    case "beforeAfter":
+      return <BeforeAfterRenderer data={(component as BeforeAfterComponent).data} />;
+    case "photoGrid":
+      return <PhotoGridRenderer data={(component as PhotoGridComponent).data} />;
+    case "audioPlayer":
+      return <AudioPlayerRenderer data={(component as AudioPlayerComponent).data} />;
+    case "viewer360":
+      return <Viewer360Renderer data={(component as Viewer360Component).data} />;
+    case "pdfEmbed":
+      return <PDFEmbedRenderer data={(component as PDFEmbedComponent).data} />;
+    
+    // CLIENT ENGAGEMENT
+    case "reviews":
+      return <ReviewsRenderer data={(component as ReviewsComponent).data} />;
+    case "instagramFeed":
+      return <InstagramFeedRenderer data={(component as InstagramFeedComponent).data} />;
+    case "clientPortal":
+      return <ClientPortalRenderer data={(component as ClientPortalComponent).data} />;
+    
+    // CONVERSION
+    case "stickyCTA":
+      return <StickyCTARenderer data={(component as StickyCTAComponent).data} />;
+    case "countdown":
+      return <CountdownRenderer data={(component as CountdownComponent).data} />;
+    case "progressSteps":
+      return <ProgressStepsRenderer data={(component as ProgressStepsComponent).data} />;
+    case "calendarWidget":
+      return <CalendarWidgetRenderer data={(component as CalendarWidgetComponent).data} />;
+    case "trustBadges":
+      return <TrustBadgesRenderer data={(component as TrustBadgesComponent).data} />;
+    case "exitPopup":
+      return <ExitPopupRenderer data={(component as ExitPopupComponent).data} />;
+    
+    // CONTENT/SEO
+    case "timeline":
+      return <TimelineRenderer data={(component as TimelineComponent).data} />;
+    case "comparisonTable":
+      return <ComparisonTableRenderer data={(component as ComparisonTableComponent).data} />;
+    case "blogCards":
+      return <BlogCardsRenderer data={(component as BlogCardsComponent).data} />;
+    case "categoryNav":
+      return <CategoryNavRenderer data={(component as CategoryNavComponent).data} />;
+    case "breadcrumbs":
+      return <BreadcrumbsRenderer data={(component as BreadcrumbsComponent).data} />;
+    case "tableOfContents":
+      return <TableOfContentsRenderer data={(component as TableOfContentsComponent).data} />;
+    case "relatedContent":
+      return <RelatedContentRenderer data={(component as RelatedContentComponent).data} />;
+    case "mapEmbed":
+      return <MapEmbedRenderer data={(component as MapEmbedComponent).data} />;
+    
+    // INTERACTIVE
+    case "quiz":
+      return <QuizRenderer data={(component as QuizComponent).data} />;
+    case "calculator":
+      return <CalculatorRenderer data={(component as CalculatorComponent).data} />;
+    case "lightbox":
+      return <LightboxRenderer data={(component as LightboxComponent).data} />;
+    case "enhancedTabs":
+      return <EnhancedTabsRenderer data={(component as EnhancedTabsComponent).data} />;
+    case "alertBanner":
+      return <AlertBannerRenderer data={(component as AlertBannerComponent).data} />;
+    
+    // SOCIAL PROOF
+    case "logoCarousel":
+      return <LogoCarouselRenderer data={(component as LogoCarouselComponent).data} />;
+    case "liveCounter":
+      return <LiveCounterRenderer data={(component as LiveCounterComponent).data} />;
+    case "bookingsTicker":
+      return <BookingsTickerRenderer data={(component as BookingsTickerComponent).data} />;
+    
     default:
       return null;
   }
@@ -7369,6 +9547,132 @@ function TabsProperties({
   );
 }
 
+// Generic Properties Editor for new components
+function GenericProperties({
+  component,
+  onUpdate,
+  fields,
+}: {
+  component: PageComponent;
+  onUpdate: (data: any) => void;
+  fields: string[];
+}) {
+  const handleFieldUpdate = (field: string, value: any) => {
+    onUpdate({
+      ...component.data,
+      [field]: value,
+    });
+  };
+
+  const renderField = (field: string) => {
+    const value = (component.data as any)[field];
+    const fieldType = typeof value;
+
+    // Render field based on type
+    if (fieldType === 'boolean') {
+      return (
+        <div key={field} className="mb-4">
+          <label className="flex items-center space-x-2">
+            <input
+              type="checkbox"
+              checked={value}
+              onChange={(e) => handleFieldUpdate(field, e.target.checked)}
+              className="rounded border-gray-300"
+            />
+            <span className="text-sm text-gray-700 capitalize">
+              {field.replace(/([A-Z])/g, ' $1').trim()}
+            </span>
+          </label>
+        </div>
+      );
+    }
+
+    if (fieldType === 'number') {
+      return (
+        <div key={field} className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 mb-1 capitalize">
+            {field.replace(/([A-Z])/g, ' $1').trim()}
+          </label>
+          <input
+            type="number"
+            value={value}
+            onChange={(e) => handleFieldUpdate(field, parseFloat(e.target.value) || 0)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md"
+          />
+        </div>
+      );
+    }
+
+    // String fields - check if it's likely a URL/image/color
+    if (field.toLowerCase().includes('url') || field.toLowerCase().includes('image') || field.toLowerCase().includes('link')) {
+      return (
+        <div key={field} className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 mb-1 capitalize">
+            {field.replace(/([A-Z])/g, ' $1').trim()}
+          </label>
+          <input
+            type="url"
+            value={value || ''}
+            onChange={(e) => handleFieldUpdate(field, e.target.value)}
+            placeholder={`Enter ${field.toLowerCase()}`}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md"
+          />
+        </div>
+      );
+    }
+
+    if (field.toLowerCase().includes('color')) {
+      return (
+        <div key={field} className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 mb-1 capitalize">
+            {field.replace(/([A-Z])/g, ' $1').trim()}
+          </label>
+          <div className="flex gap-2">
+            <input
+              type="color"
+              value={value || '#000000'}
+              onChange={(e) => handleFieldUpdate(field, e.target.value)}
+              className="h-10 w-20 border border-gray-300 rounded-md"
+            />
+            <input
+              type="text"
+              value={value || ''}
+              onChange={(e) => handleFieldUpdate(field, e.target.value)}
+              placeholder="#000000"
+              className="flex-1 px-3 py-2 border border-gray-300 rounded-md"
+            />
+          </div>
+        </div>
+      );
+    }
+
+    // Default to text input
+    return (
+      <div key={field} className="mb-4">
+        <label className="block text-sm font-medium text-gray-700 mb-1 capitalize">
+          {field.replace(/([A-Z])/g, ' $1').trim()}
+        </label>
+        <input
+          type="text"
+          value={value || ''}
+          onChange={(e) => handleFieldUpdate(field, e.target.value)}
+          placeholder={`Enter ${field.toLowerCase()}`}
+          className="w-full px-3 py-2 border border-gray-300 rounded-md"
+        />
+      </div>
+    );
+  };
+
+  return (
+    <div className="space-y-2">
+      <div className="text-sm font-medium text-gray-700 mb-2">
+        {component.type.replace(/([A-Z])/g, ' $1').trim()} Settings
+      </div>
+      {fields.map(renderField)}
+    </div>
+  );
+}
+
 // Component Properties Editor
 function ComponentProperties({
   component,
@@ -7567,6 +9871,71 @@ function ComponentProperties({
           onUpdate={onUpdate}
         />
       );
+    
+    // NEW COMPONENTS PROPERTIES
+    case "videoHero":
+      return <GenericProperties component={component} onUpdate={onUpdate} fields={['videoUrl', 'posterImage', 'title', 'subtitle', 'buttonText', 'buttonLink', 'overlay', 'autoplay', 'loop', 'muted']} />;
+    case "beforeAfter":
+      return <GenericProperties component={component} onUpdate={onUpdate} fields={['beforeImage', 'afterImage', 'beforeLabel', 'afterLabel', 'initialPosition']} />;
+    case "photoGrid":
+      return <GenericProperties component={component} onUpdate={onUpdate} fields={['heading', 'layout', 'columns', 'gap', 'showFilters', 'limit']} />;
+    case "audioPlayer":
+      return <GenericProperties component={component} onUpdate={onUpdate} fields={['audioUrl', 'title', 'artist', 'coverImage', 'autoplay', 'loop']} />;
+    case "viewer360":
+      return <GenericProperties component={component} onUpdate={onUpdate} fields={['imageUrl', 'autoRotate', 'height', 'controls']} />;
+    case "pdfEmbed":
+      return <GenericProperties component={component} onUpdate={onUpdate} fields={['pdfUrl', 'downloadable', 'height', 'title']} />;
+    case "reviews":
+      return <GenericProperties component={component} onUpdate={onUpdate} fields={['heading', 'source', 'displayCount', 'style', 'showRating']} />;
+    case "instagramFeed":
+      return <GenericProperties component={component} onUpdate={onUpdate} fields={['heading', 'username', 'displayCount', 'columns', 'showCaptions', 'style']} />;
+    case "clientPortal":
+      return <GenericProperties component={component} onUpdate={onUpdate} fields={['heading', 'description', 'loginUrl', 'buttonText', 'style']} />;
+    case "stickyCTA":
+      return <GenericProperties component={component} onUpdate={onUpdate} fields={['text', 'buttonText', 'buttonLink', 'position', 'backgroundColor', 'textColor']} />;
+    case "countdown":
+      return <GenericProperties component={component} onUpdate={onUpdate} fields={['targetDate', 'heading', 'subheading', 'expiredMessage', 'showLabels', 'style', 'size']} />;
+    case "progressSteps":
+      return <GenericProperties component={component} onUpdate={onUpdate} fields={['currentStep', 'style', 'showNumbers']} />;
+    case "calendarWidget":
+      return <GenericProperties component={component} onUpdate={onUpdate} fields={['heading', 'provider', 'embedUrl', 'style']} />;
+    case "trustBadges":
+      return <GenericProperties component={component} onUpdate={onUpdate} fields={['heading', 'layout', 'size']} />;
+    case "exitPopup":
+      return <GenericProperties component={component} onUpdate={onUpdate} fields={['heading', 'message', 'buttonText', 'buttonLink', 'dismissible', 'showOnce']} />;
+    case "timeline":
+      return <GenericProperties component={component} onUpdate={onUpdate} fields={['heading', 'orientation', 'style', 'animation']} />;
+    case "comparisonTable":
+      return <GenericProperties component={component} onUpdate={onUpdate} fields={['heading', 'style']} />;
+    case "blogCards":
+      return <GenericProperties component={component} onUpdate={onUpdate} fields={['heading', 'displayCount', 'layout', 'columns', 'showExcerpt', 'showDate', 'showAuthor']} />;
+    case "categoryNav":
+      return <GenericProperties component={component} onUpdate={onUpdate} fields={['heading', 'layout', 'columns', 'showCounts']} />;
+    case "breadcrumbs":
+      return <GenericProperties component={component} onUpdate={onUpdate} fields={['separator', 'showHome']} />;
+    case "tableOfContents":
+      return <GenericProperties component={component} onUpdate={onUpdate} fields={['heading', 'position', 'sticky']} />;
+    case "relatedContent":
+      return <GenericProperties component={component} onUpdate={onUpdate} fields={['heading', 'contentType', 'displayCount', 'layout', 'algorithm']} />;
+    case "mapEmbed":
+      return <GenericProperties component={component} onUpdate={onUpdate} fields={['address', 'zoom', 'height', 'showMarker', 'mapType']} />;
+    case "quiz":
+      return <GenericProperties component={component} onUpdate={onUpdate} fields={['heading', 'description']} />;
+    case "calculator":
+      return <GenericProperties component={component} onUpdate={onUpdate} fields={['heading', 'description', 'basePrice', 'showBreakdown']} />;
+    case "lightbox":
+      return <GenericProperties component={component} onUpdate={onUpdate} fields={['triggerText', 'triggerStyle', 'content', 'width']} />;
+    case "enhancedTabs":
+      return <GenericProperties component={component} onUpdate={onUpdate} fields={['style', 'showIcons']} />;
+    case "alertBanner":
+      return <GenericProperties component={component} onUpdate={onUpdate} fields={['message', 'type', 'dismissible', 'link', 'linkText', 'position']} />;
+    case "logoCarousel":
+      return <GenericProperties component={component} onUpdate={onUpdate} fields={['heading', 'autoplay', 'speed', 'grayscale']} />;
+    case "liveCounter":
+      return <GenericProperties component={component} onUpdate={onUpdate} fields={['duration', 'style']} />;
+    case "bookingsTicker":
+      return <GenericProperties component={component} onUpdate={onUpdate} fields={['position', 'displayDuration', 'interval']} />;
+    
     default:
       return null;
   }
