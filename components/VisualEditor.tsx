@@ -520,6 +520,7 @@ export default function VisualEditor({
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
   const [componentSearchQuery, setComponentSearchQuery] = useState('');
+  const [selectedComponents, setSelectedComponents] = useState<string[]>([]);
 
   // Default to hiding side panels on small screens
   useEffect(() => {
@@ -1353,6 +1354,48 @@ export default function VisualEditor({
   const deleteComponent = (id: string) => {
     notify(components.filter((c) => c.id !== id));
     if (selectedComponent === id) setSelectedComponent(null);
+    setSelectedComponents(prev => prev.filter(cid => cid !== id));
+  };
+
+  // Bulk operations
+  const handleComponentClick = (id: string, event: React.MouseEvent) => {
+    const isMod = event.metaKey || event.ctrlKey;
+    
+    if (isMod) {
+      // Multi-select mode
+      event.stopPropagation();
+      setSelectedComponents(prev => 
+        prev.includes(id) ? prev.filter(cid => cid !== id) : [...prev, id]
+      );
+    } else {
+      // Single select mode
+      setSelectedComponent(id);
+      setSelectedComponents([]);
+    }
+  };
+
+  const bulkDelete = () => {
+    if (selectedComponents.length === 0) return;
+    notify(components.filter((c) => !selectedComponents.includes(c.id)));
+    setSelectedComponents([]);
+    setSelectedComponent(null);
+  };
+
+  const bulkDuplicate = () => {
+    if (selectedComponents.length === 0) return;
+    const duplicated: PageComponent[] = [];
+    selectedComponents.forEach(id => {
+      const component = components.find(c => c.id === id);
+      if (component) {
+        duplicated.push({
+          ...component,
+          id: `component-${Date.now()}-${Math.random()}`,
+          data: { ...component.data },
+        } as PageComponent);
+      }
+    });
+    notify([...components, ...duplicated]);
+    setSelectedComponents([]);
   };
 
   // Viewport width is now handled by MobilePreviewToggle
@@ -2053,6 +2096,40 @@ export default function VisualEditor({
             >
               ↷
             </button>
+            
+            {/* Bulk Actions Toolbar (shows when multiple components selected) */}
+            {selectedComponents.length > 0 && (
+              <>
+                <div className="w-px h-6 bg-gray-300 mx-1"></div>
+                <div className="flex items-center gap-2 px-3 py-1 bg-blue-50 border border-blue-300 rounded">
+                  <span className="text-sm font-medium text-blue-700">
+                    {selectedComponents.length} selected
+                  </span>
+                  <button
+                    onClick={bulkDuplicate}
+                    className="p-1.5 hover:bg-blue-100 rounded text-blue-700"
+                    title="Duplicate selected"
+                  >
+                    <Copy className="h-4 w-4" />
+                  </button>
+                  <button
+                    onClick={bulkDelete}
+                    className="p-1.5 hover:bg-red-100 rounded text-red-600"
+                    title="Delete selected"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                  <button
+                    onClick={() => setSelectedComponents([])}
+                    className="p-1.5 hover:bg-gray-100 rounded text-gray-600"
+                    title="Clear selection"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              </>
+            )}
+            
             <div className="w-px h-6 bg-gray-300 mx-1"></div>
             <button
               onClick={() => setViewMode("desktop")}
@@ -2189,11 +2266,15 @@ export default function VisualEditor({
                             className={`relative group ${
                               selectedComponent === component.id
                                 ? "ring-2 ring-primary-500"
+                                : selectedComponents.includes(component.id)
+                                ? "ring-2 ring-blue-400 bg-blue-50"
                                 : ""
                             } ${snapshot.isDragging ? "opacity-50" : ""}`}
-                            onClick={() =>
-                              !previewMode && setSelectedComponent(component.id)
-                            }
+                            onClick={(e) => {
+                              if (!previewMode) {
+                                handleComponentClick(component.id, e);
+                              }
+                            }}
                             onDoubleClick={(e) => {
                               e.stopPropagation();
                               // Activate quick edit on double-click for text/button/image
