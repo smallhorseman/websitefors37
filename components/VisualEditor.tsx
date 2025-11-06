@@ -2841,6 +2841,21 @@ export default function VisualEditor({
                     case "faq":
                       newComponents = buildFAQPageTemplate();
                       break;
+                    case "portfolio":
+                      newComponents = buildPortfolioTemplate();
+                      break;
+                    case "promo":
+                      newComponents = buildPromoLandingTemplate();
+                      break;
+                    case "blog":
+                      newComponents = buildBlogTemplate();
+                      break;
+                    case "quiz":
+                      newComponents = buildQuizTemplate();
+                      break;
+                    case "event":
+                      newComponents = buildEventInfoTemplate();
+                      break;
                   }
 
                   if (newComponents.length > 0) {
@@ -2862,6 +2877,11 @@ export default function VisualEditor({
                 <option value="leadgen">🚀 Lead Gen Landing</option>
                 <option value="servicesPricing">💼 Services + Pricing</option>
                 <option value="faq">❓ FAQ Page Template</option>
+                <option value="portfolio">🎨 Portfolio Showcase</option>
+                <option value="promo">🎁 Promo/Sale Landing</option>
+                <option value="blog">📝 Blog/Content Page</option>
+                <option value="quiz">🎯 Quiz & Calculator</option>
+                <option value="event">💒 Wedding/Event Info</option>
               </select>
             </div>
           </div>
@@ -3726,6 +3746,21 @@ export default function VisualEditor({
                         case "faq":
                           newComponents = buildFAQPageTemplate();
                           break;
+                        case "portfolio":
+                          newComponents = buildPortfolioTemplate();
+                          break;
+                        case "promo":
+                          newComponents = buildPromoLandingTemplate();
+                          break;
+                        case "blog":
+                          newComponents = buildBlogTemplate();
+                          break;
+                        case "quiz":
+                          newComponents = buildQuizTemplate();
+                          break;
+                        case "event":
+                          newComponents = buildEventInfoTemplate();
+                          break;
                       }
 
                       if (newComponents.length > 0) {
@@ -3746,6 +3781,11 @@ export default function VisualEditor({
                     <option value="leadgen">🚀 Lead Gen Landing</option>
                     <option value="servicesPricing">💼 Services + Pricing</option>
                     <option value="faq">❓ FAQ Page Template</option>
+                    <option value="portfolio">🎨 Portfolio Showcase</option>
+                    <option value="promo">🎁 Promo/Sale Landing</option>
+                    <option value="blog">📝 Blog/Content Page</option>
+                    <option value="quiz">🎯 Quiz & Calculator</option>
+                    <option value="event">💒 Wedding/Event Info</option>
                   </select>
                 </div>
               </div>
@@ -7471,6 +7511,617 @@ function buildLeadGenTemplate(): PageComponent[] {
       animation: "fade-in",
     },
   } as NewsletterComponent);
+
+  return components;
+}
+
+// Build Portfolio Showcase Template with new components
+function buildPortfolioTemplate(): PageComponent[] {
+  const id = () =>
+    `component-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  const components: PageComponent[] = [];
+
+  // Video Hero
+  components.push({
+    id: id(),
+    type: "videoHero",
+    data: {
+      videoUrl: "https://example.com/portfolio-video.mp4",
+      posterImage: "https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?q=80&w=2000&auto=format&fit=crop",
+      title: "Portfolio Showcase",
+      subtitle: "See our work come to life",
+      buttonText: "View Full Portfolio",
+      buttonLink: "/gallery",
+      overlay: 40,
+      autoplay: true,
+      loop: true,
+      muted: true,
+    },
+  } as VideoHeroComponent);
+
+  components.push({
+    id: id(),
+    type: "spacer",
+    data: { height: "md" },
+  } as SpacerComponent);
+
+  // Photo Grid
+  components.push({
+    id: id(),
+    type: "photoGrid",
+    data: {
+      heading: "Recent Projects",
+      layout: "masonry",
+      columns: 3,
+      gap: 16,
+      showFilters: true,
+      limit: 12,
+    },
+  } as PhotoGridComponent);
+
+  components.push({
+    id: id(),
+    type: "spacer",
+    data: { height: "lg" },
+  } as SpacerComponent);
+
+  // Before/After
+  components.push({
+    id: id(),
+    type: "beforeAfter",
+    data: {
+      beforeImage: "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?q=80&w=800&auto=format&fit=crop",
+      afterImage: "https://images.unsplash.com/photo-1542038784456-1ea8e935640e?q=80&w=800&auto=format&fit=crop",
+      beforeLabel: "Original",
+      afterLabel: "Edited",
+      initialPosition: 50,
+    },
+  } as BeforeAfterComponent);
+
+  // Instagram Feed
+  components.push({
+    id: id(),
+    type: "instagramFeed",
+    data: {
+      heading: "Follow Our Journey @studio37",
+      username: "studio37photography",
+      displayCount: 8,
+      columns: 4,
+      showCaptions: false,
+      style: "grid",
+    },
+  } as InstagramFeedComponent);
+
+  // CTA
+  components.push({
+    id: id(),
+    type: "ctaBanner",
+    data: {
+      heading: "Love What You See?",
+      subheading: "Let's create something amazing together",
+      primaryButtonText: "Book Your Session",
+      primaryButtonLink: "/book-a-session",
+      secondaryButtonText: "Contact Us",
+      secondaryButtonLink: "/contact",
+      backgroundColor: "#0f172a",
+      textColor: "text-white",
+      fullBleed: true,
+      animation: "fade-in",
+    },
+  } as CTABannerComponent);
+
+  return components;
+}
+
+// Build Promo/Sale Landing Page Template
+function buildPromoLandingTemplate(): PageComponent[] {
+  const id = () =>
+    `component-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  const components: PageComponent[] = [];
+
+  // Alert Banner
+  components.push({
+    id: id(),
+    type: "alertBanner",
+    data: {
+      message: "Limited Time Offer: 20% off all sessions booked this week!",
+      type: "success",
+      dismissible: false,
+      link: "#booking",
+      linkText: "Book Now",
+      position: "top",
+    },
+  } as AlertBannerComponent);
+
+  // Hero with Countdown
+  components.push({
+    id: id(),
+    type: "hero",
+    data: {
+      title: "Spring Photography Sale",
+      subtitle: "Book now and save 20% on all photography sessions",
+      backgroundImage: "https://images.unsplash.com/photo-1452587925148-ce544e77e70d?q=80&w=2000&auto=format&fit=crop",
+      buttonText: "Book Your Session",
+      buttonLink: "#booking",
+      alignment: "center",
+      overlay: 50,
+      titleColor: "text-white",
+      subtitleColor: "text-amber-50",
+      buttonStyle: "primary",
+      animation: "fade-in",
+      fullBleed: true,
+    },
+  } as HeroComponent);
+
+  // Countdown Timer
+  components.push({
+    id: id(),
+    type: "countdown",
+    data: {
+      targetDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+      heading: "Sale Ends In:",
+      subheading: "",
+      expiredMessage: "Sale has ended. Check back for future promotions!",
+      showLabels: true,
+      style: "modern",
+      size: "large",
+    },
+  } as CountdownComponent);
+
+  components.push({
+    id: id(),
+    type: "spacer",
+    data: { height: "lg" },
+  } as SpacerComponent);
+
+  // Trust Badges
+  components.push({
+    id: id(),
+    type: "trustBadges",
+    data: {
+      heading: "Why Choose Studio37?",
+      layout: "horizontal",
+      size: "medium",
+      badges: [
+        { icon: "⭐", label: "5-Star Rated", description: "200+ Reviews" },
+        { icon: "📸", label: "Pro Equipment", description: "Latest Tech" },
+        { icon: "💯", label: "Satisfaction Guaranteed", description: "100% Money Back" },
+        { icon: "⚡", label: "48hr Turnaround", description: "Fast Delivery" },
+      ],
+    },
+  } as TrustBadgesComponent);
+
+  // Pricing
+  components.push({
+    id: id(),
+    type: "pricingTable",
+    data: {
+      heading: "Limited Time Pricing",
+      subheading: "Save 20% when you book this week",
+      plans: [
+        {
+          title: "Mini Session",
+          price: "$159",
+          period: "was $199",
+          features: ["30 min session", "10 edited photos", "Online gallery"],
+          ctaText: "Book Now",
+          ctaLink: "#booking",
+          highlight: false,
+        },
+        {
+          title: "Standard",
+          price: "$279",
+          period: "was $349",
+          features: ["60 min session", "25 edited photos", "Print rights"],
+          ctaText: "Book Now",
+          ctaLink: "#booking",
+          highlight: true,
+        },
+        {
+          title: "Premium",
+          price: "$479",
+          period: "was $599",
+          features: ["120 min session", "50 edited photos", "Priority delivery"],
+          ctaText: "Book Now",
+          ctaLink: "#booking",
+          highlight: false,
+        },
+      ],
+      columns: 3,
+      animation: "fade-in",
+    },
+  } as PricingTableComponent);
+
+  // Live Counter (social proof)
+  components.push({
+    id: id(),
+    type: "liveCounter",
+    data: {
+      counters: [
+        { label: "Sessions Booked This Week", value: 47, prefix: "", suffix: "" },
+        { label: "Spots Remaining", value: 8, prefix: "Only ", suffix: " Left!" },
+      ],
+      duration: 2000,
+      style: "bold",
+    },
+  } as LiveCounterComponent);
+
+  // Exit Intent Popup
+  components.push({
+    id: id(),
+    type: "exitPopup",
+    data: {
+      heading: "Wait! Don't Miss Out",
+      message: "Get an exclusive 25% discount code when you subscribe to our newsletter!",
+      buttonText: "Get My Discount",
+      buttonLink: "#newsletter",
+      dismissible: true,
+      showOnce: true,
+    },
+  } as ExitPopupComponent);
+
+  // Newsletter
+  components.push({
+    id: id(),
+    type: "newsletterSignup",
+    data: {
+      heading: "Get 25% Off + Exclusive Tips",
+      subheading: "Subscribe to receive your discount code and photography tips",
+      style: "card",
+      animation: "fade-in",
+    },
+  } as NewsletterComponent);
+
+  return components;
+}
+
+// Build Blog/Content Page Template
+function buildBlogTemplate(): PageComponent[] {
+  const id = () =>
+    `component-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  const components: PageComponent[] = [];
+
+  // Breadcrumbs
+  components.push({
+    id: id(),
+    type: "breadcrumbs",
+    data: {
+      items: [
+        { label: "Home", url: "/" },
+        { label: "Blog", url: "/blog" },
+      ],
+      separator: "chevron",
+      showHome: true,
+    },
+  } as BreadcrumbsComponent);
+
+  // Hero
+  components.push({
+    id: id(),
+    type: "hero",
+    data: {
+      title: "Photography Blog & Tips",
+      subtitle: "Insights, tutorials, and stories from behind the lens",
+      backgroundImage: "https://images.unsplash.com/photo-1471107340929-a87cd0f5b5f3?q=80&w=2000&auto=format&fit=crop",
+      alignment: "center",
+      overlay: 60,
+      titleColor: "text-white",
+      subtitleColor: "text-amber-50",
+      fullBleed: true,
+    },
+  } as HeroComponent);
+
+  // Category Nav
+  components.push({
+    id: id(),
+    type: "categoryNav",
+    data: {
+      heading: "Browse by Category",
+      layout: "grid",
+      columns: 4,
+      showCounts: true,
+      categories: [
+        { name: "Wedding Tips", slug: "wedding-tips", count: 12, image: "https://images.unsplash.com/photo-1519741497674-611481863552?w=400&h=300&fit=crop" },
+        { name: "Portrait Photography", slug: "portraits", count: 18, image: "https://images.unsplash.com/photo-1511895426328-dc8714191300?w=400&h=300&fit=crop" },
+        { name: "Editing Tutorials", slug: "editing", count: 24, image: "https://images.unsplash.com/photo-1542038784456-1ea8e935640e?w=400&h=300&fit=crop" },
+        { name: "Behind the Scenes", slug: "bts", count: 15, image: "https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?w=400&h=300&fit=crop" },
+      ],
+    },
+  } as CategoryNavComponent);
+
+  // Blog Cards
+  components.push({
+    id: id(),
+    type: "blogCards",
+    data: {
+      heading: "Recent Posts",
+      displayCount: 6,
+      layout: "grid",
+      columns: 3,
+      showExcerpt: true,
+      showDate: true,
+      showAuthor: true,
+      posts: [
+        {
+          title: "5 Tips for Perfect Golden Hour Photos",
+          excerpt: "Learn how to capture stunning images during magic hour with these pro tips...",
+          image: "https://images.unsplash.com/photo-1471107340929-a87cd0f5b5f3?w=600&h=400&fit=crop",
+          date: "2025-11-01",
+          author: "Christian",
+          slug: "golden-hour-tips",
+        },
+        {
+          title: "What to Wear for Your Portrait Session",
+          excerpt: "Choosing the right outfit can make or break your photos. Here's our guide...",
+          image: "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=600&h=400&fit=crop",
+          date: "2025-10-28",
+          author: "Caitie",
+          slug: "what-to-wear",
+        },
+        {
+          title: "Behind the Scenes: Wedding Day Workflow",
+          excerpt: "Ever wonder what a wedding photographer's timeline looks like? Let's dive in...",
+          image: "https://images.unsplash.com/photo-1606216794074-735e91aa2c92?w=600&h=400&fit=crop",
+          date: "2025-10-20",
+          author: "Christian",
+          slug: "wedding-workflow",
+        },
+      ],
+    },
+  } as BlogCardsComponent);
+
+  // Newsletter
+  components.push({
+    id: id(),
+    type: "newsletterSignup",
+    data: {
+      heading: "Get Photography Tips in Your Inbox",
+      subheading: "Weekly tutorials, inspiration, and exclusive offers",
+      style: "card",
+      animation: "fade-in",
+    },
+  } as NewsletterComponent);
+
+  return components;
+}
+
+// Build Interactive Quiz/Calculator Page
+function buildQuizTemplate(): PageComponent[] {
+  const id = () =>
+    `component-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  const components: PageComponent[] = [];
+
+  // Hero
+  components.push({
+    id: id(),
+    type: "hero",
+    data: {
+      title: "Find Your Perfect Photography Package",
+      subtitle: "Answer a few questions to get a personalized recommendation",
+      backgroundImage: "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?q=80&w=2000&auto=format&fit=crop",
+      alignment: "center",
+      overlay: 60,
+      titleColor: "text-white",
+      subtitleColor: "text-amber-50",
+      fullBleed: true,
+    },
+  } as HeroComponent);
+
+  components.push({
+    id: id(),
+    type: "spacer",
+    data: { height: "md" },
+  } as SpacerComponent);
+
+  // Quiz
+  components.push({
+    id: id(),
+    type: "quiz",
+    data: {
+      heading: "Photography Package Quiz",
+      description: "Answer these quick questions to find your ideal package",
+      questions: [
+        {
+          id: "q1",
+          question: "What type of session are you interested in?",
+          options: [
+            { id: "wedding", label: "Wedding Photography" },
+            { id: "portrait", label: "Portrait/Family Session" },
+            { id: "event", label: "Event Coverage" },
+            { id: "commercial", label: "Commercial/Brand Photos" },
+          ],
+        },
+        {
+          id: "q2",
+          question: "How long do you need the photographer?",
+          options: [
+            { id: "30min", label: "30 minutes or less" },
+            { id: "1hr", label: "1 hour" },
+            { id: "2hr", label: "2-3 hours" },
+            { id: "full", label: "Full day (4+ hours)" },
+          ],
+        },
+        {
+          id: "q3",
+          question: "What's your budget range?",
+          options: [
+            { id: "budget", label: "Under $200" },
+            { id: "mid", label: "$200-$500" },
+            { id: "premium", label: "$500-$1000" },
+            { id: "luxury", label: "$1000+" },
+          ],
+        },
+      ],
+    },
+  } as QuizComponent);
+
+  components.push({
+    id: id(),
+    type: "spacer",
+    data: { height: "lg" },
+  } as SpacerComponent);
+
+  // Calculator
+  components.push({
+    id: id(),
+    type: "calculator",
+    data: {
+      heading: "Estimate Your Project Cost",
+      description: "Customize your package to get an instant quote",
+      basePrice: 199,
+      fields: [
+        { id: "hours", label: "Session Length (hours)", type: "number", value: 1, pricePerUnit: 150 },
+        { id: "locations", label: "Number of Locations", type: "number", value: 1, pricePerUnit: 75 },
+        { id: "photos", label: "Edited Photos", type: "number", value: 10, pricePerUnit: 5 },
+        { id: "prints", label: "Include Prints", type: "checkbox", value: false, price: 99 },
+        { id: "rush", label: "Rush Delivery (24hr)", type: "checkbox", value: false, price: 150 },
+      ],
+      showBreakdown: true,
+    },
+  } as CalculatorComponent);
+
+  // CTA
+  components.push({
+    id: id(),
+    type: "ctaBanner",
+    data: {
+      heading: "Ready to Book?",
+      subheading: "Let's discuss your project and finalize the details",
+      primaryButtonText: "Get Started",
+      primaryButtonLink: "/book-a-session",
+      secondaryButtonText: "Contact Us",
+      secondaryButtonLink: "/contact",
+      backgroundColor: "#0f172a",
+      textColor: "text-white",
+      fullBleed: true,
+    },
+  } as CTABannerComponent);
+
+  return components;
+}
+
+// Build Event/Wedding Info Page
+function buildEventInfoTemplate(): PageComponent[] {
+  const id = () =>
+    `component-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  const components: PageComponent[] = [];
+
+  // Hero
+  components.push({
+    id: id(),
+    type: "hero",
+    data: {
+      title: "Wedding & Event Photography",
+      subtitle: "Timeless memories captured with artistic excellence",
+      backgroundImage: "https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=2000&auto=format&fit=crop",
+      buttonText: "Check Availability",
+      buttonLink: "/book-a-session",
+      alignment: "center",
+      overlay: 50,
+      titleColor: "text-white",
+      subtitleColor: "text-amber-50",
+      buttonStyle: "primary",
+      fullBleed: true,
+    },
+  } as HeroComponent);
+
+  // Timeline
+  components.push({
+    id: id(),
+    type: "timeline",
+    data: {
+      heading: "Our Wedding Day Process",
+      orientation: "vertical",
+      style: "modern",
+      animation: "fade-in",
+      items: [
+        { id: "1", date: "6-12 Months Before", icon: "💍", title: "Initial Consultation", description: "We meet to discuss your vision, timeline, and package options." },
+        { id: "2", date: "2-3 Months Before", icon: "📋", title: "Planning Session", description: "Finalize shot list, timeline, and location details." },
+        { id: "3", date: "1 Month Before", icon: "📸", title: "Engagement Shoot", description: "Optional engagement session included in most packages." },
+        { id: "4", date: "Wedding Day", icon: "🎉", title: "Full Coverage", description: "We capture every moment from prep to reception." },
+        { id: "5", date: "48 Hours After", icon: "🖼️", title: "Sneak Peek", description: "Receive a preview of 10-15 favorite shots." },
+        { id: "6", date: "4-6 Weeks After", icon: "📱", title: "Full Gallery", description: "Your complete gallery delivered via online platform." },
+      ],
+    },
+  } as TimelineComponent);
+
+  components.push({
+    id: id(),
+    type: "spacer",
+    data: { height: "lg" },
+  } as SpacerComponent);
+
+  // Comparison Table
+  components.push({
+    id: id(),
+    type: "comparisonTable",
+    data: {
+      heading: "Wedding Package Comparison",
+      style: "modern",
+      plans: [
+        { name: "Essential", featured: false },
+        { name: "Premium", featured: true },
+        { name: "Luxury", featured: false },
+      ],
+      features: [
+        { name: "Coverage Hours", values: ["4 hours", "8 hours", "Full Day"] },
+        { name: "Photographers", values: ["1", "2", "2"] },
+        { name: "Edited Photos", values: ["200+", "400+", "600+"] },
+        { name: "Engagement Session", values: ["❌", "✅", "✅"] },
+        { name: "Second Shooter", values: ["❌", "✅", "✅"] },
+        { name: "Online Gallery", values: ["✅", "✅", "✅"] },
+        { name: "Print Rights", values: ["✅", "✅", "✅"] },
+        { name: "Wedding Album", values: ["❌", "❌", "✅"] },
+        { name: "Price", values: ["$1,499", "$2,999", "$4,999"] },
+      ],
+    },
+  } as ComparisonTableComponent);
+
+  // Reviews
+  components.push({
+    id: id(),
+    type: "reviews",
+    data: {
+      heading: "What Our Couples Say",
+      source: "google",
+      displayCount: 6,
+      style: "card",
+      showRating: true,
+      reviews: [
+        { id: "1", author: "Sarah & Mike", rating: 5, text: "Studio37 captured our wedding day perfectly! Every moment was beautifully documented.", avatar: "", date: "2025-10-15" },
+        { id: "2", author: "Jennifer & Tom", rating: 5, text: "Professional, creative, and so easy to work with. Our photos are absolutely stunning!", avatar: "", date: "2025-09-22" },
+        { id: "3", author: "Maria & James", rating: 5, text: "We couldn't be happier with our wedding photos. Worth every penny!", avatar: "", date: "2025-08-30" },
+      ],
+    },
+  } as ReviewsComponent);
+
+  // Bookings Ticker
+  components.push({
+    id: id(),
+    type: "bookingsTicker",
+    data: {
+      position: "bottom-right",
+      displayDuration: 5000,
+      interval: 15000,
+      bookings: [
+        { name: "Sarah M.", service: "Wedding Photography", location: "Houston, TX", time: "2 hours ago" },
+        { name: "Michael K.", service: "Engagement Session", location: "The Woodlands, TX", time: "5 hours ago" },
+        { name: "Amanda R.", service: "Wedding Photography", location: "Tomball, TX", time: "1 day ago" },
+      ],
+    },
+  } as BookingsTickerComponent);
+
+  // Calendar Widget
+  components.push({
+    id: id(),
+    type: "calendarWidget",
+    data: {
+      heading: "Check Our Availability",
+      provider: "calendly",
+      embedUrl: "https://calendly.com/studio37/wedding-consultation",
+      style: "inline",
+    },
+  } as CalendarWidgetComponent);
 
   return components;
 }
