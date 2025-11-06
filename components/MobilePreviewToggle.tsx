@@ -8,13 +8,31 @@ type DeviceMode = 'desktop' | 'tablet' | 'mobile'
 interface MobilePreviewToggleProps {
   children: React.ReactNode
   defaultMode?: DeviceMode
+  // Controlled mode props (optional). If provided, component becomes controlled.
+  mode?: DeviceMode
+  onModeChange?: (mode: DeviceMode) => void
+  // When false, hides the built-in controls bar and only applies the device frame/constraints.
+  showControls?: boolean
 }
 
 export default function MobilePreviewToggle({ 
   children, 
-  defaultMode = 'desktop' 
+  defaultMode = 'desktop',
+  mode: controlledMode,
+  onModeChange,
+  showControls = true,
 }: MobilePreviewToggleProps) {
-  const [mode, setMode] = useState<DeviceMode>(defaultMode)
+  const [uncontrolledMode, setUncontrolledMode] = useState<DeviceMode>(defaultMode)
+  const mode = controlledMode ?? uncontrolledMode
+
+  const setMode = (next: DeviceMode) => {
+    if (controlledMode !== undefined) {
+      onModeChange?.(next)
+    } else {
+      setUncontrolledMode(next)
+      onModeChange?.(next)
+    }
+  }
 
   const deviceStyles: Record<DeviceMode, { width: string; height: string }> = {
     desktop: { width: '100%', height: 'auto' },
@@ -27,54 +45,56 @@ export default function MobilePreviewToggle({
   return (
     <div className="flex flex-col h-full">
       {/* Device Toggle Bar */}
-      <div className="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between sticky top-0 z-50 shadow-sm">
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-gray-700">Preview:</span>
-          <div className="flex gap-1 bg-gray-100 rounded-lg p-1">
-            <button
-              onClick={() => setMode('desktop')}
-              className={`p-2 rounded transition-all ${
-                mode === 'desktop'
-                  ? 'bg-white shadow-sm text-primary-600'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-              title="Desktop view"
-              aria-label="Desktop view"
-            >
-              <Monitor className="h-5 w-5" />
-            </button>
-            <button
-              onClick={() => setMode('tablet')}
-              className={`p-2 rounded transition-all ${
-                mode === 'tablet'
-                  ? 'bg-white shadow-sm text-primary-600'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-              title="Tablet view (768px)"
-              aria-label="Tablet view"
-            >
-              <Tablet className="h-5 w-5" />
-            </button>
-            <button
-              onClick={() => setMode('mobile')}
-              className={`p-2 rounded transition-all ${
-                mode === 'mobile'
-                  ? 'bg-white shadow-sm text-primary-600'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-              title="Mobile view (375px)"
-              aria-label="Mobile view"
-            >
-              <Smartphone className="h-5 w-5" />
-            </button>
+      {showControls && (
+        <div className="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between sticky top-0 z-50 shadow-sm">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium text-gray-700">Preview:</span>
+            <div className="flex gap-1 bg-gray-100 rounded-lg p-1">
+              <button
+                onClick={() => setMode('desktop')}
+                className={`p-2 rounded transition-all ${
+                  mode === 'desktop'
+                    ? 'bg-white shadow-sm text-primary-600'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+                title="Desktop view"
+                aria-label="Desktop view"
+              >
+                <Monitor className="h-5 w-5" />
+              </button>
+              <button
+                onClick={() => setMode('tablet')}
+                className={`p-2 rounded transition-all ${
+                  mode === 'tablet'
+                    ? 'bg-white shadow-sm text-primary-600'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+                title="Tablet view (768px)"
+                aria-label="Tablet view"
+              >
+                <Tablet className="h-5 w-5" />
+              </button>
+              <button
+                onClick={() => setMode('mobile')}
+                className={`p-2 rounded transition-all ${
+                  mode === 'mobile'
+                    ? 'bg-white shadow-sm text-primary-600'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+                title="Mobile view (375px)"
+                aria-label="Mobile view"
+              >
+                <Smartphone className="h-5 w-5" />
+              </button>
+            </div>
+          </div>
+          <div className="text-xs text-gray-500">
+            {mode === 'desktop' && 'Full width'}
+            {mode === 'tablet' && '768 × 1024px'}
+            {mode === 'mobile' && '375 × 667px'}
           </div>
         </div>
-        <div className="text-xs text-gray-500">
-          {mode === 'desktop' && 'Full width'}
-          {mode === 'tablet' && '768 × 1024px'}
-          {mode === 'mobile' && '375 × 667px'}
-        </div>
-      </div>
+      )}
 
       {/* Preview Container */}
       <div className="flex-1 overflow-auto bg-gray-100 p-4 md:p-8">

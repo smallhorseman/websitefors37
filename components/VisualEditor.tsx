@@ -44,6 +44,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import ImageUploader from "./ImageUploader";
+import MobilePreviewToggle from "./MobilePreviewToggle";
 
 // Component types
 type ComponentType =
@@ -1122,16 +1123,7 @@ export default function VisualEditor({
     if (selectedComponent === id) setSelectedComponent(null);
   };
 
-  const getViewportWidth = () => {
-    switch (viewMode) {
-      case "mobile":
-        return "max-w-sm";
-      case "tablet":
-        return "max-w-2xl";
-      default:
-        return "max-w-7xl";
-    }
-  };
+  // Viewport width is now handled by MobilePreviewToggle
 
   return (
     <div className="flex h-full bg-gray-100">
@@ -1593,10 +1585,8 @@ export default function VisualEditor({
         </div>
 
         {/* Canvas Area */}
-        <div className="flex-1 overflow-y-auto bg-gray-100 p-8">
-          <div
-            className={`mx-auto bg-white shadow-lg transition-all ${getViewportWidth()}`}
-          >
+        <div className="flex-1 min-h-0">
+          <MobilePreviewToggle mode={viewMode} onModeChange={setViewMode} showControls={false}>
             <DragDropContext onDragEnd={handleDragEnd}>
               <Droppable droppableId="page-builder">
                 {(provided) => (
@@ -1635,36 +1625,36 @@ export default function VisualEditor({
                             }
                           >
                             {!previewMode && (
-                              <div className="absolute top-2 right-2 z-10 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <div className="absolute top-2 right-2 z-10 flex gap-2 md:gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                                 <div
                                   {...provided.dragHandleProps}
-                                  className="p-1 bg-white rounded shadow cursor-move hover:bg-gray-50"
+                                  className="p-2 sm:p-1 bg-white rounded shadow cursor-grab active:cursor-grabbing hover:bg-gray-50"
                                   title="Drag to reorder"
                                   aria-label="Drag to reorder"
                                 >
-                                  <GripVertical className="h-4 w-4" />
+                                  <GripVertical className="h-5 w-5" />
                                 </div>
                                 <button
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     duplicateComponent(component.id);
                                   }}
-                                  className="p-1 bg-white rounded shadow hover:bg-blue-50 text-blue-600"
+                                  className="p-2 sm:p-1 bg-white rounded shadow hover:bg-blue-50 text-blue-600"
                                   title="Duplicate (⌘+D)"
                                   aria-label="Duplicate component"
                                 >
-                                  <Copy className="h-4 w-4" />
+                                  <Copy className="h-5 w-5" />
                                 </button>
                                 <button
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     deleteComponent(component.id);
                                   }}
-                                  className="p-1 bg-white rounded shadow hover:bg-red-50 text-red-600"
+                                  className="p-2 sm:p-1 bg-white rounded shadow hover:bg-red-50 text-red-600"
                                   title="Delete (Del)"
                                   aria-label="Delete component"
                                 >
-                                  <Trash2 className="h-4 w-4" />
+                                  <Trash2 className="h-5 w-5" />
                                 </button>
                               </div>
                             )}
@@ -1679,7 +1669,7 @@ export default function VisualEditor({
                 )}
               </Droppable>
             </DragDropContext>
-          </div>
+          </MobilePreviewToggle>
         </div>
       </div>
 
