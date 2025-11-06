@@ -32,6 +32,38 @@ type ComponentType =
   | 'teamMembers'
   | 'socialFeed'
   | 'dualCTA'
+  | 'tabs'
+  | 'videoHero'
+  | 'beforeAfter'
+  | 'photoGrid'
+  | 'audioPlayer'
+  | 'viewer360'
+  | 'pdfEmbed'
+  | 'reviews'
+  | 'instagramFeed'
+  | 'clientPortal'
+  | 'stickyCTA'
+  | 'countdown'
+  | 'progressSteps'
+  | 'calendarWidget'
+  | 'trustBadges'
+  | 'exitPopup'
+  | 'timeline'
+  | 'comparisonTable'
+  | 'blogCards'
+  | 'categoryNav'
+  | 'breadcrumbs'
+  | 'tableOfContents'
+  | 'relatedContent'
+  | 'mapEmbed'
+  | 'quiz'
+  | 'calculator'
+  | 'lightbox'
+  | 'enhancedTabs'
+  | 'alertBanner'
+  | 'logoCarousel'
+  | 'liveCounter'
+  | 'bookingsTicker'
 
 type PageComponent = {
   id: string
@@ -80,7 +112,7 @@ export async function POST(request: NextRequest) {
 
     // Summarize current layout for the model
     const allowedTypes: ComponentType[] = [
-      'hero','text','image','button','columns','spacer','seoFooter','slideshowHero','testimonials','galleryHighlights','widgetEmbed','badges','servicesGrid','stats','ctaBanner','iconFeatures','logo','contactForm','newsletterSignup','faq','pricingTable','teamMembers','socialFeed','dualCTA'
+      'hero','text','image','button','columns','spacer','seoFooter','slideshowHero','testimonials','galleryHighlights','widgetEmbed','badges','servicesGrid','stats','ctaBanner','iconFeatures','logo','contactForm','newsletterSignup','faq','pricingTable','teamMembers','socialFeed','dualCTA','tabs','videoHero','beforeAfter','photoGrid','audioPlayer','viewer360','pdfEmbed','reviews','instagramFeed','clientPortal','stickyCTA','countdown','progressSteps','calendarWidget','trustBadges','exitPopup','timeline','comparisonTable','blogCards','categoryNav','breadcrumbs','tableOfContents','relatedContent','mapEmbed','quiz','calculator','lightbox','enhancedTabs','alertBanner','logoCarousel','liveCounter','bookingsTicker'
     ]
 
     const typeCounts = components.reduce((acc: Record<string, number>, c: PageComponent) => {
