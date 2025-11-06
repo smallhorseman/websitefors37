@@ -45,6 +45,8 @@ import {
   SlidersHorizontal,
   ArrowUp,
   ArrowDown,
+  Search,
+  X,
 } from "lucide-react";
 import Image from "next/image";
 import ImageUploader from "./ImageUploader";
@@ -517,6 +519,7 @@ export default function VisualEditor({
   const [saveStatus, setSaveStatus] = useState<'saved' | 'unsaved' | 'saving'>('saved');
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const [componentSearchQuery, setComponentSearchQuery] = useState('');
 
   // Default to hiding side panels on small screens
   useEffect(() => {
@@ -625,6 +628,65 @@ export default function VisualEditor({
     updated.splice(newIndex, 0, item);
     notify(updated);
     setSelectedComponent(item.id);
+  };
+
+  // Component metadata for search
+  const componentMetadata: Record<string, { name: string; category: string; keywords: string[] }> = {
+    text: { name: 'Text Block', category: 'basic', keywords: ['paragraph', 'content', 'writing'] },
+    image: { name: 'Image', category: 'basic', keywords: ['photo', 'picture', 'media'] },
+    button: { name: 'Button', category: 'basic', keywords: ['cta', 'link', 'action'] },
+    spacer: { name: 'Spacer', category: 'basic', keywords: ['space', 'gap', 'margin'] },
+    hero: { name: 'Hero Section', category: 'layout', keywords: ['banner', 'header', 'intro'] },
+    slideshowHero: { name: 'Slideshow Hero', category: 'layout', keywords: ['carousel', 'slider', 'rotating'] },
+    columns: { name: 'Columns', category: 'layout', keywords: ['grid', 'layout', 'multi'] },
+    ctaBanner: { name: 'CTA Banner', category: 'layout', keywords: ['call to action', 'promo', 'banner'] },
+    dualCTA: { name: 'Dual CTA', category: 'layout', keywords: ['two buttons', 'double', 'split'] },
+    galleryHighlights: { name: 'Gallery Highlights', category: 'content', keywords: ['photos', 'portfolio', 'showcase'] },
+    teamMembers: { name: 'Team Members', category: 'content', keywords: ['staff', 'people', 'about'] },
+    socialFeed: { name: 'Social Feed', category: 'content', keywords: ['instagram', 'posts', 'social media'] },
+    testimonials: { name: 'Testimonials', category: 'content', keywords: ['reviews', 'feedback', 'quotes'] },
+    faq: { name: 'FAQ', category: 'content', keywords: ['questions', 'help', 'answers'] },
+    iconFeatures: { name: 'Icon Features', category: 'content', keywords: ['services', 'benefits', 'features'] },
+    logo: { name: 'Logo', category: 'content', keywords: ['brand', 'identity', 'mark'] },
+    contactForm: { name: 'Contact Form', category: 'forms', keywords: ['email', 'message', 'inquiry'] },
+    newsletterSignup: { name: 'Newsletter Signup', category: 'forms', keywords: ['subscribe', 'email list', 'updates'] },
+    badges: { name: 'Badges', category: 'marketing', keywords: ['awards', 'trust', 'credentials'] },
+    servicesGrid: { name: 'Services Grid', category: 'marketing', keywords: ['offerings', 'packages', 'products'] },
+    stats: { name: 'Stats/Numbers', category: 'marketing', keywords: ['metrics', 'achievements', 'counters'] },
+    pricingTable: { name: 'Pricing Table', category: 'marketing', keywords: ['plans', 'packages', 'cost'] },
+    widgetEmbed: { name: 'Embed Widget', category: 'advanced', keywords: ['code', 'iframe', 'integration'] },
+    seoFooter: { name: 'SEO Footer', category: 'advanced', keywords: ['bottom', 'links', 'seo'] },
+  };
+
+  // Filter components based on search query
+  const filterComponents = (type: string): boolean => {
+    if (!componentSearchQuery.trim()) return true;
+    
+    const query = componentSearchQuery.toLowerCase();
+    const meta = componentMetadata[type];
+    if (!meta) return false;
+    
+    return (
+      meta.name.toLowerCase().includes(query) ||
+      meta.category.toLowerCase().includes(query) ||
+      meta.keywords.some(keyword => keyword.toLowerCase().includes(query))
+    );
+  };
+
+  // Auto-expand categories when searching
+  React.useEffect(() => {
+    if (componentSearchQuery.trim()) {
+      // Expand all categories to show search results
+      setExpandedCategories(['basic', 'layout', 'content', 'forms', 'marketing', 'advanced']);
+    }
+  }, [componentSearchQuery]);
+
+  // Check if category has any matching components
+  const categoryHasResults = (category: string): boolean => {
+    if (!componentSearchQuery.trim()) return true;
+    return Object.keys(componentMetadata).some(
+      type => componentMetadata[type].category === category && filterComponents(type)
+    );
   };
 
   const toggleCategory = (category: string) => {
@@ -1302,6 +1364,28 @@ export default function VisualEditor({
         <div className="hidden md:block w-64 bg-white border-r overflow-y-auto">
           <div className="p-4 border-b">
             <h2 className="font-bold text-lg">Components</h2>
+            
+            {/* Search bar */}
+            <div className="mt-3 relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search components..."
+                value={componentSearchQuery}
+                onChange={(e) => setComponentSearchQuery(e.target.value)}
+                className="w-full pl-9 pr-8 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+              />
+              {componentSearchQuery && (
+                <button
+                  onClick={() => setComponentSearchQuery('')}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1 hover:bg-gray-100 rounded"
+                  title="Clear search"
+                >
+                  <X className="h-3 w-3 text-gray-400" />
+                </button>
+              )}
+            </div>
+            
             {!!onImportFromPublished && !!slug && (
               <button
                 onClick={() => onImportFromPublished?.()}
@@ -1385,6 +1469,7 @@ export default function VisualEditor({
               </button>
               {expandedCategories.includes("basic") && (
                 <div className="p-2 space-y-1 bg-gray-50">
+                  {filterComponents('text') && (
                   <button
                     onClick={() => addComponent("text")}
                     className="w-full flex items-center gap-2 p-2 bg-white hover:bg-gray-100 rounded transition text-sm"
@@ -1392,6 +1477,8 @@ export default function VisualEditor({
                     <Type className="h-4 w-4" />
                     <span>Text Block</span>
                   </button>
+                  )}
+                  {filterComponents('image') && (
                   <button
                     onClick={() => addComponent("image")}
                     className="w-full flex items-center gap-2 p-2 bg-white hover:bg-gray-100 rounded transition text-sm"
@@ -1399,6 +1486,8 @@ export default function VisualEditor({
                     <ImageIcon className="h-4 w-4" />
                     <span>Image</span>
                   </button>
+                  )}
+                  {filterComponents('button') && (
                   <button
                     onClick={() => addComponent("button")}
                     className="w-full flex items-center gap-2 p-2 bg-white hover:bg-gray-100 rounded transition text-sm"
@@ -1406,6 +1495,8 @@ export default function VisualEditor({
                     <Square className="h-4 w-4" />
                     <span>Button</span>
                   </button>
+                  )}
+                  {filterComponents('spacer') && (
                   <button
                     onClick={() => addComponent("spacer")}
                     className="w-full flex items-center gap-2 p-2 bg-white hover:bg-gray-100 rounded transition text-sm"
@@ -1415,6 +1506,7 @@ export default function VisualEditor({
                     </span>
                     <span>Spacer</span>
                   </button>
+                  )}
                 </div>
               )}
             </div>
@@ -1434,6 +1526,7 @@ export default function VisualEditor({
               </button>
               {expandedCategories.includes("layout") && (
                 <div className="p-2 space-y-1 bg-gray-50">
+                  {filterComponents('hero') && (
                   <button
                     onClick={() => addComponent("hero")}
                     className="w-full flex items-center gap-2 p-2 bg-white hover:bg-gray-100 rounded transition text-sm"
@@ -1441,6 +1534,8 @@ export default function VisualEditor({
                     <Sparkles className="h-4 w-4" />
                     <span>Hero Section</span>
                   </button>
+                  )}
+                  {filterComponents('slideshowHero') && (
                   <button
                     onClick={() => addComponent("slideshowHero")}
                     className="w-full flex items-center gap-2 p-2 bg-white hover:bg-gray-100 rounded transition text-sm"
@@ -1448,6 +1543,8 @@ export default function VisualEditor({
                     <Play className="h-4 w-4" />
                     <span>Slideshow Hero</span>
                   </button>
+                  )}
+                  {filterComponents('columns') && (
                   <button
                     onClick={() => addComponent("columns")}
                     className="w-full flex items-center gap-2 p-2 bg-white hover:bg-gray-100 rounded transition text-sm"
@@ -1455,6 +1552,8 @@ export default function VisualEditor({
                     <Columns className="h-4 w-4" />
                     <span>Columns</span>
                   </button>
+                  )}
+                  {filterComponents('ctaBanner') && (
                   <button
                     onClick={() => addComponent("ctaBanner")}
                     className="w-full flex items-center gap-2 p-2 bg-white hover:bg-gray-100 rounded transition text-sm"
@@ -1462,6 +1561,8 @@ export default function VisualEditor({
                     <Megaphone className="h-4 w-4" />
                     <span>CTA Banner</span>
                   </button>
+                  )}
+                  {filterComponents('dualCTA') && (
                   <button
                     onClick={() => addComponent("dualCTA")}
                     className="w-full flex items-center gap-2 p-2 bg-white hover:bg-gray-100 rounded transition text-sm"
@@ -1469,6 +1570,7 @@ export default function VisualEditor({
                     <Link2 className="h-4 w-4" />
                     <span>Dual CTA</span>
                   </button>
+                  )}
                 </div>
               )}
             </div>
@@ -1488,6 +1590,7 @@ export default function VisualEditor({
               </button>
               {expandedCategories.includes("content") && (
                 <div className="p-2 space-y-1 bg-gray-50">
+                  {filterComponents('galleryHighlights') && (
                   <button
                     onClick={() => addComponent("galleryHighlights")}
                     className="w-full flex items-center gap-2 p-2 bg-white hover:bg-gray-100 rounded transition text-sm"
@@ -1495,6 +1598,8 @@ export default function VisualEditor({
                     <Camera className="h-4 w-4" />
                     <span>Gallery Highlights</span>
                   </button>
+                  )}
+                  {filterComponents('teamMembers') && (
                   <button
                     onClick={() => addComponent("teamMembers")}
                     className="w-full flex items-center gap-2 p-2 bg-white hover:bg-gray-100 rounded transition text-sm"
@@ -1502,6 +1607,8 @@ export default function VisualEditor({
                     <Users className="h-4 w-4" />
                     <span>Team Members</span>
                   </button>
+                  )}
+                  {filterComponents('socialFeed') && (
                   <button
                     onClick={() => addComponent("socialFeed")}
                     className="w-full flex items-center gap-2 p-2 bg-white hover:bg-gray-100 rounded transition text-sm"
@@ -1509,6 +1616,8 @@ export default function VisualEditor({
                     <Instagram className="h-4 w-4" />
                     <span>Social Feed</span>
                   </button>
+                  )}
+                  {filterComponents('testimonials') && (
                   <button
                     onClick={() => addComponent("testimonials")}
                     className="w-full flex items-center gap-2 p-2 bg-white hover:bg-gray-100 rounded transition text-sm"
@@ -1516,6 +1625,8 @@ export default function VisualEditor({
                     <MessageSquare className="h-4 w-4" />
                     <span>Testimonials</span>
                   </button>
+                  )}
+                  {filterComponents('faq') && (
                   <button
                     onClick={() => addComponent("faq")}
                     className="w-full flex items-center gap-2 p-2 bg-white hover:bg-gray-100 rounded transition text-sm"
@@ -1523,6 +1634,8 @@ export default function VisualEditor({
                     <HelpCircle className="h-4 w-4" />
                     <span>FAQ</span>
                   </button>
+                  )}
+                  {filterComponents('iconFeatures') && (
                   <button
                     onClick={() => addComponent("iconFeatures")}
                     className="w-full flex items-center gap-2 p-2 bg-white hover:bg-gray-100 rounded transition text-sm"
@@ -1530,6 +1643,8 @@ export default function VisualEditor({
                     <Grid3x3 className="h-4 w-4" />
                     <span>Icon Features</span>
                   </button>
+                  )}
+                  {filterComponents('logo') && (
                   <button
                     onClick={() => addComponent("logo")}
                     className="w-full flex items-center gap-2 p-2 bg-white hover:bg-gray-100 rounded transition text-sm"
@@ -1537,6 +1652,7 @@ export default function VisualEditor({
                     <BringToFront className="h-4 w-4" />
                     <span>Logo</span>
                   </button>
+                  )}
                 </div>
               )}
             </div>
@@ -1556,6 +1672,7 @@ export default function VisualEditor({
               </button>
               {expandedCategories.includes("forms") && (
                 <div className="p-2 space-y-1 bg-gray-50">
+                  {filterComponents('contactForm') && (
                   <button
                     onClick={() => addComponent("contactForm")}
                     className="w-full flex items-center gap-2 p-2 bg-white hover:bg-gray-100 rounded transition text-sm"
@@ -1563,6 +1680,8 @@ export default function VisualEditor({
                     <Mail className="h-4 w-4" />
                     <span>Contact Form</span>
                   </button>
+                  )}
+                  {filterComponents('newsletterSignup') && (
                   <button
                     onClick={() => addComponent("newsletterSignup")}
                     className="w-full flex items-center gap-2 p-2 bg-white hover:bg-gray-100 rounded transition text-sm"
@@ -1570,6 +1689,7 @@ export default function VisualEditor({
                     <Mail className="h-4 w-4" />
                     <span>Newsletter Signup</span>
                   </button>
+                  )}
                 </div>
               )}
             </div>
@@ -1589,6 +1709,7 @@ export default function VisualEditor({
               </button>
               {expandedCategories.includes("marketing") && (
                 <div className="p-2 space-y-1 bg-gray-50">
+                  {filterComponents('badges') && (
                   <button
                     onClick={() => addComponent("badges")}
                     className="w-full flex items-center gap-2 p-2 bg-white hover:bg-gray-100 rounded transition text-sm"
@@ -1596,6 +1717,8 @@ export default function VisualEditor({
                     <Award className="h-4 w-4" />
                     <span>Badges</span>
                   </button>
+                  )}
+                  {filterComponents('servicesGrid') && (
                   <button
                     onClick={() => addComponent("servicesGrid")}
                     className="w-full flex items-center gap-2 p-2 bg-white hover:bg-gray-100 rounded transition text-sm"
@@ -1603,6 +1726,8 @@ export default function VisualEditor({
                     <Grid3x3 className="h-4 w-4" />
                     <span>Services Grid</span>
                   </button>
+                  )}
+                  {filterComponents('stats') && (
                   <button
                     onClick={() => addComponent("stats")}
                     className="w-full flex items-center gap-2 p-2 bg-white hover:bg-gray-100 rounded transition text-sm"
@@ -1610,6 +1735,8 @@ export default function VisualEditor({
                     <BarChart3 className="h-4 w-4" />
                     <span>Stats/Numbers</span>
                   </button>
+                  )}
+                  {filterComponents('pricingTable') && (
                   <button
                     onClick={() => addComponent("pricingTable")}
                     className="w-full flex items-center gap-2 p-2 bg-white hover:bg-gray-100 rounded transition text-sm"
@@ -1617,6 +1744,7 @@ export default function VisualEditor({
                     <DollarSign className="h-4 w-4" />
                     <span>Pricing Table</span>
                   </button>
+                  )}
                 </div>
               )}
             </div>
@@ -1636,6 +1764,7 @@ export default function VisualEditor({
               </button>
               {expandedCategories.includes("advanced") && (
                 <div className="p-2 space-y-1 bg-gray-50">
+                  {filterComponents('widgetEmbed') && (
                   <button
                     onClick={() => addComponent("widgetEmbed")}
                     className="w-full flex items-center gap-2 p-2 bg-white hover:bg-gray-100 rounded transition text-sm"
@@ -1643,6 +1772,8 @@ export default function VisualEditor({
                     <Code className="h-4 w-4" />
                     <span>Embed Widget</span>
                   </button>
+                  )}
+                  {filterComponents('seoFooter') && (
                   <button
                     onClick={() => addComponent("seoFooter")}
                     className="w-full flex items-center gap-2 p-2 bg-white hover:bg-gray-100 rounded transition text-sm"
@@ -1650,6 +1781,7 @@ export default function VisualEditor({
                     <Layout className="h-4 w-4" />
                     <span>SEO Footer</span>
                   </button>
+                  )}
                 </div>
               )}
             </div>
@@ -1690,6 +1822,27 @@ export default function VisualEditor({
             <div className="overflow-y-auto h-[calc(100%-56px)]">
               {/* Replicate component library content */}
               <div className="p-4 border-b">
+                {/* Search bar for mobile */}
+                <div className="mb-3 relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder="Search components..."
+                    value={componentSearchQuery}
+                    onChange={(e) => setComponentSearchQuery(e.target.value)}
+                    className="w-full pl-9 pr-8 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  />
+                  {componentSearchQuery && (
+                    <button
+                      onClick={() => setComponentSearchQuery('')}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 p-1 hover:bg-gray-100 rounded"
+                      title="Clear search"
+                    >
+                      <X className="h-3 w-3 text-gray-400" />
+                    </button>
+                  )}
+                </div>
+                
                 {!!onImportFromPublished && !!slug && (
                   <button
                     onClick={() => onImportFromPublished?.()}
