@@ -62,6 +62,17 @@ export default function EnhancedChatBot() {
     setIsMounted(true);
   }, []);
 
+  // Hide chatbot entirely on admin pages (e.g., page builder)
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const path = window.location.pathname || "";
+      if (path.startsWith("/admin")) {
+        // Ensure chat is closed if previously opened
+        setIsOpen(false);
+      }
+    }
+  }, []);
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
@@ -72,6 +83,11 @@ export default function EnhancedChatBot() {
 
   // Don't render until mounted client-side
   if (!isMounted) {
+    return null;
+  }
+
+  // Do not render on admin routes
+  if (typeof window !== "undefined" && window.location.pathname.startsWith("/admin")) {
     return null;
   }
 

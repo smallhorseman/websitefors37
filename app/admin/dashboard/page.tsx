@@ -364,13 +364,13 @@ export default function AdminDashboard() {
                   </div>
                 </Link>
 
-                <Link href="/admin/block-editor" className="block w-full text-left p-4 rounded-lg border-2 border-dashed border-gray-200 hover:border-amber-300 hover:bg-amber-50 transition-colors group">
+                <Link href="/admin/page-builder" className="block w-full text-left p-4 rounded-lg border-2 border-dashed border-gray-200 hover:border-amber-300 hover:bg-amber-50 transition-colors group">
                   <div className="flex items-center gap-3">
                     <div className="bg-amber-100 group-hover:bg-amber-200 p-2 rounded-lg">
                       <Sparkles className="h-5 w-5 text-amber-600" />
                     </div>
                     <div>
-                      <p className="font-medium text-gray-900">Block Editor</p>
+                      <p className="font-medium text-gray-900">Page Builder</p>
                       <p className="text-sm text-gray-600">Build pages visually</p>
                     </div>
                   </div>

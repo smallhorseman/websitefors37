@@ -132,11 +132,8 @@ export default function AdminSidebar() {
       path: "/admin/site-editor",
       icon: <Settings className="w-5 h-5" />,
     },
-    {
-      name: "Block Editor",
-      path: "/admin/block-editor",
-      icon: <LayoutDashboard className="w-5 h-5" />,
-    },
+    // Removed legacy Block Editor entry; use Page Builder instead
+
     {
       name: "Page Builder",
       path: "/admin/page-builder",

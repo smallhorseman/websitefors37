@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   DragDropContext,
   Droppable,
@@ -41,6 +41,8 @@ import {
   Users,
   Instagram,
   Link2,
+  LayoutGrid,
+  SlidersHorizontal,
 } from "lucide-react";
 import Image from "next/image";
 import ImageUploader from "./ImageUploader";
@@ -506,6 +508,19 @@ export default function VisualEditor({
     "forms",
     "marketing",
   ]);
+  const [showLeftDrawer, setShowLeftDrawer] = useState(false);
+  const [showRightDrawer, setShowRightDrawer] = useState(false);
+
+  // Default to hiding side panels on small screens
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const isSmall = window.matchMedia("(max-width: 767px)").matches;
+      if (isSmall) {
+        setShowLeftDrawer(false);
+        setShowRightDrawer(false);
+      }
+    }
+  }, []);
 
   const applyHomepageTemplate = () => {
     const tpl = buildHomepageTemplate();
@@ -1127,9 +1142,9 @@ export default function VisualEditor({
 
   return (
     <div className="flex h-full bg-gray-100">
-      {/* Sidebar - Component Library */}
+      {/* Sidebar - Component Library (desktop) */}
       {!previewMode && (
-        <div className="w-64 bg-white border-r overflow-y-auto">
+        <div className="hidden md:block w-64 bg-white border-r overflow-y-auto">
           <div className="p-4 border-b">
             <h2 className="font-bold text-lg">Components</h2>
             {!!onImportFromPublished && !!slug && (
@@ -1487,11 +1502,225 @@ export default function VisualEditor({
         </div>
       )}
 
+      {/* Left Drawer (mobile) */}
+      {!previewMode && (
+        <div
+          className={`md:hidden fixed inset-0 z-50 ${
+            showLeftDrawer ? "" : "pointer-events-none"
+          }`}
+          aria-hidden={!showLeftDrawer}
+        >
+          {/* Backdrop */}
+          <div
+            className={`absolute inset-0 bg-black/40 transition-opacity ${
+              showLeftDrawer ? "opacity-100" : "opacity-0"
+            }`}
+            onClick={() => setShowLeftDrawer(false)}
+          />
+          {/* Panel */}
+          <div
+            className={`absolute left-0 top-0 h-full w-72 bg-white border-r shadow-xl transform transition-transform ${
+              showLeftDrawer ? "translate-x-0" : "-translate-x-full"
+            }`}
+          >
+            <div className="p-4 border-b flex items-center justify-between">
+              <h2 className="font-bold text-lg">Components</h2>
+              <button
+                className="px-2 py-1 text-sm border rounded"
+                onClick={() => setShowLeftDrawer(false)}
+              >
+                Close
+              </button>
+            </div>
+            <div className="overflow-y-auto h-[calc(100%-56px)]">
+              {/* Replicate component library content */}
+              <div className="p-4 border-b">
+                {!!onImportFromPublished && !!slug && (
+                  <button
+                    onClick={() => onImportFromPublished?.()}
+                    className="w-full px-3 py-2 bg-primary-600 text-white rounded hover:bg-primary-700 text-sm"
+                    title={`Import published /${slug} into builder`}
+                  >
+                    Import from published
+                  </button>
+                )}
+                <div className="mt-3">
+                  <label className="block text-xs font-medium text-gray-600 mb-1">
+                    Quick Start Templates
+                  </label>
+                  <select
+                    onChange={(e) => {
+                      const template = e.target.value;
+                      if (!template) return;
+
+                      let newComponents: PageComponent[] = [];
+                      switch (template) {
+                        case "home":
+                          newComponents = buildHomepageTemplate();
+                          break;
+                        case "about":
+                          newComponents = buildAboutTemplate();
+                          break;
+                        case "services":
+                          newComponents = buildServicesTemplate();
+                          break;
+                        case "contact":
+                          newComponents = buildContactTemplate();
+                          break;
+                        case "leadgen":
+                          newComponents = buildLeadGenTemplate();
+                          break;
+                        case "servicesPricing":
+                          newComponents = buildServicesPricingTemplate();
+                          break;
+                        case "faq":
+                          newComponents = buildFAQPageTemplate();
+                          break;
+                      }
+
+                      if (newComponents.length > 0) {
+                        setComponents(newComponents);
+                        setSelectedComponent(null);
+                        onChange?.(newComponents);
+                        e.target.value = "";
+                      }
+                    }}
+                    className="w-full px-3 py-2 border rounded text-sm bg-white hover:bg-gray-50"
+                    defaultValue=""
+                  >
+                    <option value="">Choose a template...</option>
+                    <option value="home">📱 Homepage Template</option>
+                    <option value="about">👥 About Page Template</option>
+                    <option value="services">📸 Services Page Template</option>
+                    <option value="contact">📧 Contact Page Template</option>
+                    <option value="leadgen">🚀 Lead Gen Landing</option>
+                    <option value="servicesPricing">💼 Services + Pricing</option>
+                    <option value="faq">❓ FAQ Page Template</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Reuse the same categories UI */}
+              <div className="overflow-y-auto">
+                {/* We reuse the exact same sections from the desktop sidebar by
+                    calling the same JSX as below. To avoid duplication, in a larger refactor we would extract a component.
+                    For now, mirror the minimal buttons most used on mobile. */}
+                <div className="border-b">
+                  <button
+                    onClick={() => toggleCategory("basic")}
+                    className="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-50 font-medium text-sm"
+                  >
+                    <span>Basic</span>
+                    {expandedCategories.includes("basic") ? (
+                      <ChevronDown className="h-4 w-4" />
+                    ) : (
+                      <ChevronRight className="h-4 w-4" />
+                    )}
+                  </button>
+                  {expandedCategories.includes("basic") && (
+                    <div className="p-2 space-y-1 bg-gray-50">
+                      <button
+                        onClick={() => addComponent("text")}
+                        className="w-full flex items-center gap-2 p-2 bg-white hover:bg-gray-100 rounded transition text-sm"
+                      >
+                        <Type className="h-4 w-4" />
+                        <span>Text Block</span>
+                      </button>
+                      <button
+                        onClick={() => addComponent("image")}
+                        className="w-full flex items-center gap-2 p-2 bg-white hover:bg-gray-100 rounded transition text-sm"
+                      >
+                        <ImageIcon className="h-4 w-4" />
+                        <span>Image</span>
+                      </button>
+                      <button
+                        onClick={() => addComponent("button")}
+                        className="w-full flex items-center gap-2 p-2 bg-white hover:bg-gray-100 rounded transition text-sm"
+                      >
+                        <Square className="h-4 w-4" />
+                        <span>Button</span>
+                      </button>
+                      <button
+                        onClick={() => addComponent("spacer")}
+                        className="w-full flex items-center gap-2 p-2 bg-white hover:bg-gray-100 rounded transition text-sm"
+                      >
+                        <span className="h-4 w-4 flex items-center justify-center text-xs">
+                          ⬍
+                        </span>
+                        <span>Spacer</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+                <div className="border-b">
+                  <button
+                    onClick={() => toggleCategory("layout")}
+                    className="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-50 font-medium text-sm"
+                  >
+                    <span>Layout</span>
+                    {expandedCategories.includes("layout") ? (
+                      <ChevronDown className="h-4 w-4" />
+                    ) : (
+                      <ChevronRight className="h-4 w-4" />
+                    )}
+                  </button>
+                  {expandedCategories.includes("layout") && (
+                    <div className="p-2 space-y-1 bg-gray-50">
+                      <button
+                        onClick={() => addComponent("hero")}
+                        className="w-full flex items-center gap-2 p-2 bg-white hover:bg-gray-100 rounded transition text-sm"
+                      >
+                        <Sparkles className="h-4 w-4" />
+                        <span>Hero Section</span>
+                      </button>
+                      <button
+                        onClick={() => addComponent("columns")}
+                        className="w-full flex items-center gap-2 p-2 bg-white hover:bg-gray-100 rounded transition text-sm"
+                      >
+                        <Columns className="h-4 w-4" />
+                        <span>Columns</span>
+                      </button>
+                      <button
+                        onClick={() => addComponent("ctaBanner")}
+                        className="w-full flex items-center gap-2 p-2 bg-white hover:bg-gray-100 rounded transition text-sm"
+                      >
+                        <Megaphone className="h-4 w-4" />
+                        <span>CTA Banner</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Main Canvas */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Top Toolbar */}
         <div className="bg-white border-b p-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
+            {/* Mobile toggles to open side panels */}
+            <div className="md:hidden flex items-center gap-1 mr-1">
+              <button
+                onClick={() => setShowLeftDrawer(true)}
+                className="p-2 rounded hover:bg-gray-100"
+                title="Open components"
+              >
+                <LayoutGrid className="h-5 w-5" />
+              </button>
+              <button
+                onClick={() => setShowRightDrawer(true)}
+                disabled={!selectedComponent}
+                className={`p-2 rounded ${
+                  selectedComponent ? "hover:bg-gray-100" : "opacity-30 cursor-not-allowed"
+                }`}
+                title="Open properties"
+              >
+                <SlidersHorizontal className="h-5 w-5" />
+              </button>
+            </div>
             <button
               onClick={handleUndo}
               disabled={historyIndex === 0}
@@ -1673,9 +1902,9 @@ export default function VisualEditor({
         </div>
       </div>
 
-      {/* Right Sidebar - Properties */}
+      {/* Right Sidebar - Properties (desktop) */}
       {!previewMode && selectedComponent && (
-        <div className="w-80 bg-white border-l overflow-y-auto">
+        <div className="hidden md:block w-80 bg-white border-l overflow-y-auto">
           <div className="p-4 border-b">
             <h2 className="font-bold text-lg">Properties</h2>
           </div>
@@ -1685,6 +1914,48 @@ export default function VisualEditor({
               component={components.find((c) => c.id === selectedComponent)!}
               onUpdate={(data) => updateComponent(selectedComponent, data)}
             />
+          </div>
+        </div>
+      )}
+
+      {/* Right Drawer (mobile) */}
+      {!previewMode && (
+        <div
+          className={`md:hidden fixed inset-0 z-50 ${
+            showRightDrawer ? "" : "pointer-events-none"
+          }`}
+          aria-hidden={!showRightDrawer}
+        >
+          <div
+            className={`absolute inset-0 bg-black/40 transition-opacity ${
+              showRightDrawer ? "opacity-100" : "opacity-0"
+            }`}
+            onClick={() => setShowRightDrawer(false)}
+          />
+          <div
+            className={`absolute right-0 top-0 h-full w-80 bg-white border-l shadow-xl transform transition-transform ${
+              showRightDrawer ? "translate-x-0" : "translate-x-full"
+            }`}
+          >
+            <div className="p-4 border-b flex items-center justify-between">
+              <h2 className="font-bold text-lg">Properties</h2>
+              <button
+                className="px-2 py-1 text-sm border rounded"
+                onClick={() => setShowRightDrawer(false)}
+              >
+                Close
+              </button>
+            </div>
+            <div className="p-4 overflow-y-auto h-[calc(100%-56px)]">
+              {selectedComponent ? (
+                <ComponentProperties
+                  component={components.find((c) => c.id === selectedComponent)!}
+                  onUpdate={(data) => updateComponent(selectedComponent, data)}
+                />
+              ) : (
+                <p className="text-sm text-gray-500">Select a component to edit its properties.</p>
+              )}
+            </div>
           </div>
         </div>
       )}
