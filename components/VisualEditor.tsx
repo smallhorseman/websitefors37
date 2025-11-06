@@ -609,16 +609,18 @@ interface ComparisonTableComponent extends BaseComponent {
   type: "comparisonTable";
   data: {
     heading?: string;
+    // Features hold per-plan values (indexed by plan order)
     features: Array<{
-      id: string;
+      id?: string;
       name: string;
       description?: string;
+      values?: Array<string | boolean>;
     }>;
+    // Plans define columns; "featured" highlights a plan
     plans: Array<{
-      id: string;
+      id?: string;
       name: string;
-      values: Record<string, boolean | string>;
-      highlight?: boolean;
+      featured?: boolean;
     }>;
     style?: "default" | "compact" | "cards";
   };
@@ -634,6 +636,21 @@ interface MapEmbedComponent extends BaseComponent {
     height?: "sm" | "md" | "lg" | "xl";
     showMarker?: boolean;
     mapType?: "roadmap" | "satellite" | "hybrid" | "terrain";
+  };
+}
+
+interface TrustBadgesComponent extends BaseComponent {
+  type: "trustBadges";
+  data: {
+    heading?: string;
+    badges: Array<{
+      id?: string;
+      label: string;
+      description?: string;
+      icon?: string; // emoji, text, or URL
+    }>;
+    layout?: "horizontal" | "grid";
+    size?: "sm" | "md" | "lg";
   };
 }
 
@@ -5804,11 +5821,12 @@ function CountdownRenderer({ data }: { data: CountdownComponent['data'] }) {
 
 function ProgressStepsRenderer({ data }: { data: ProgressStepsComponent['data'] }) {
   const current = data.currentStep || 0;
+  const steps = data.steps || [];
   
   return (
     <div className="py-8">
       <div className="flex items-center justify-between max-w-4xl mx-auto">
-        {data.steps.map((step, i) => (
+        {steps.map((step, i) => (
           <React.Fragment key={step.id}>
             <div className="flex flex-col items-center">
               <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold ${
@@ -5819,7 +5837,7 @@ function ProgressStepsRenderer({ data }: { data: ProgressStepsComponent['data'] 
               <p className="mt-2 text-sm font-medium">{step.title}</p>
               {step.description && <p className="text-xs text-gray-500">{step.description}</p>}
             </div>
-            {i < data.steps.length - 1 && (
+            {i < steps.length - 1 && (
               <div className={`flex-1 h-1 mx-4 ${i < current ? 'bg-primary-600' : 'bg-gray-200'}`} />
             )}
           </React.Fragment>
@@ -5844,12 +5862,13 @@ function CalendarWidgetRenderer({ data }: { data: CalendarWidgetComponent['data'
 
 function TrustBadgesRenderer({ data }: { data: TrustBadgesComponent['data'] }) {
   const size = { sm: 'h-12', md: 'h-16', lg: 'h-20' }[data.size || 'md'];
+  const badges = data.badges || [];
   
   return (
     <div className="py-8">
       {data.heading && <h2 className="text-2xl font-bold mb-6 text-center">{data.heading}</h2>}
       <div className={`flex ${data.layout === 'grid' ? 'flex-wrap' : ''} items-center justify-center gap-6`}>
-        {data.badges.map(badge => (
+        {badges.map(badge => (
           <div key={badge.id} className="grayscale hover:grayscale-0 transition">
             {badge.image ? (
               <img src={badge.image} alt={badge.title} className={size} />
@@ -5889,17 +5908,18 @@ function ExitPopupRenderer({ data }: { data: ExitPopupComponent['data'] }) {
 
 // CONTENT/SEO
 function TimelineRenderer({ data }: { data: TimelineComponent['data'] }) {
+  const events = data.events || [];
   return (
     <div className="py-8">
       {data.heading && <h2 className="text-3xl font-bold mb-8 text-center">{data.heading}</h2>}
       <div className="max-w-4xl mx-auto">
-        {data.events.map((event, i) => (
+        {events.map((event, i) => (
           <div key={event.id} className="flex gap-4 mb-6">
             <div className="flex flex-col items-center">
               <div className="w-12 h-12 rounded-full bg-primary-600 text-white flex items-center justify-center font-bold">
                 {event.icon ? <TrendingUp className="h-6 w-6" /> : i + 1}
               </div>
-              {i < data.events.length - 1 && <div className="w-1 flex-1 bg-primary-200 mt-2" />}
+              {i < events.length - 1 && <div className="w-1 flex-1 bg-primary-200 mt-2" />}
             </div>
             <div className="flex-1 pb-8">
               <div className="text-sm text-primary-600 font-bold">{event.date}</div>
@@ -5914,6 +5934,9 @@ function TimelineRenderer({ data }: { data: TimelineComponent['data'] }) {
 }
 
 function ComparisonTableRenderer({ data }: { data: ComparisonTableComponent['data'] }) {
+  const plans = data.plans || [];
+  const features = data.features || [];
+  
   return (
     <div className="py-8 overflow-x-auto">
       {data.heading && <h2 className="text-3xl font-bold mb-6 text-center">{data.heading}</h2>}
@@ -5921,22 +5944,20 @@ function ComparisonTableRenderer({ data }: { data: ComparisonTableComponent['dat
         <thead>
           <tr className="bg-gray-100">
             <th className="p-4 text-left border">Feature</th>
-            {data.plans.map(plan => (
-              <th key={plan.id} className={`p-4 text-center border ${plan.highlight ? 'bg-primary-50' : ''}`}>
+            {plans.map(plan => (
+              <th key={plan.name} className={`p-4 text-center border ${plan.featured ? 'bg-primary-50' : ''}`}>
                 {plan.name}
               </th>
             ))}
           </tr>
         </thead>
         <tbody>
-          {data.features.map(feature => (
-            <tr key={feature.id}>
+          {features.map((feature, i) => (
+            <tr key={i}>
               <td className="p-4 border font-medium">{feature.name}</td>
-              {data.plans.map(plan => (
-                <td key={plan.id} className={`p-4 border text-center ${plan.highlight ? 'bg-primary-50' : ''}`}>
-                  {typeof plan.values[feature.id] === 'boolean' 
-                    ? (plan.values[feature.id] ? '✓' : '—')
-                    : plan.values[feature.id]}
+              {feature.values?.map((value, j) => (
+                <td key={j} className={`p-4 border text-center ${plans[j]?.featured ? 'bg-primary-50' : ''}`}>
+                  {value}
                 </td>
               ))}
             </tr>
@@ -5974,12 +5995,13 @@ function BlogCardsRenderer({ data }: { data: BlogCardsComponent['data'] }) {
 
 function CategoryNavRenderer({ data }: { data: CategoryNavComponent['data'] }) {
   const columns = data.columns ? { 2: 'md:grid-cols-2', 3: 'md:grid-cols-3', 4: 'md:grid-cols-4' }[data.columns] : '';
+  const categories = data.categories || [];
   
   return (
     <div className="py-8">
       {data.heading && <h2 className="text-3xl font-bold mb-6 text-center">{data.heading}</h2>}
       <div className={`grid gap-4 ${columns}`}>
-        {data.categories.map(cat => (
+        {categories.map(cat => (
           <a key={cat.id} href={cat.link} className="relative group overflow-hidden rounded-lg shadow-lg aspect-video">
             {cat.image ? (
               <img src={cat.image} alt={cat.name} className="w-full h-full object-cover" />
@@ -6026,12 +6048,14 @@ function BreadcrumbsRenderer({ data }: { data: BreadcrumbsComponent['data'] }) {
 }
 
 function TableOfContentsRenderer({ data }: { data: TableOfContentsComponent['data'] }) {
+  const items = data.items || [];
+  
   return (
     <div className="bg-gray-50 rounded-lg p-6 max-w-xs">
       {data.heading && <h3 className="font-bold text-lg mb-4">{data.heading}</h3>}
       <nav>
         <ul className="space-y-2">
-          {data.items.map(item => (
+          {items.map(item => (
             <li key={item.id} style={{ paddingLeft: `${item.level * 12}px` }}>
               <a href={`#${item.anchor}`} className="text-primary-600 hover:underline text-sm">
                 {item.label}
@@ -6083,6 +6107,7 @@ function MapEmbedRenderer({ data }: { data: MapEmbedComponent['data'] }) {
 function QuizRenderer({ data }: { data: QuizComponent['data'] }) {
   const [currentQ, setCurrentQ] = React.useState(0);
   const [answers, setAnswers] = React.useState<Record<string, string>>({});
+  const questions = data.questions || [];
   
   return (
     <div className="max-w-2xl mx-auto py-8">
@@ -6090,12 +6115,12 @@ function QuizRenderer({ data }: { data: QuizComponent['data'] }) {
         <h2 className="text-3xl font-bold mb-2">{data.heading}</h2>
         {data.description && <p className="text-gray-600 mb-6">{data.description}</p>}
         
-        {currentQ < data.questions.length ? (
+        {currentQ < questions.length ? (
           <div>
-            <p className="text-sm text-gray-500 mb-4">Question {currentQ + 1} of {data.questions.length}</p>
-            <h3 className="text-xl font-bold mb-4">{data.questions[currentQ].question}</h3>
+            <p className="text-sm text-gray-500 mb-4">Question {currentQ + 1} of {questions.length}</p>
+            <h3 className="text-xl font-bold mb-4">{questions[currentQ].question}</h3>
             <div className="space-y-3">
-              {data.questions[currentQ].options.map(opt => (
+              {(questions[currentQ].options || []).map(opt => (
                 <button
                   key={opt.id}
                   onClick={() => {
@@ -6122,7 +6147,8 @@ function QuizRenderer({ data }: { data: QuizComponent['data'] }) {
 
 function CalculatorRenderer({ data }: { data: CalculatorComponent['data'] }) {
   const [values, setValues] = React.useState<Record<string, number>>({});
-  const total = (data.basePrice || 0) + data.fields.reduce((sum, field) => {
+  const fields = data.fields || [];
+  const total = (data.basePrice || 0) + fields.reduce((sum, field) => {
     const val = values[field.id] || 0;
     return sum + (val * (field.multiplier || 0));
   }, 0);
@@ -6134,7 +6160,7 @@ function CalculatorRenderer({ data }: { data: CalculatorComponent['data'] }) {
         {data.description && <p className="text-gray-600 mb-6">{data.description}</p>}
         
         <div className="space-y-4 mb-6">
-          {data.fields.map(field => (
+          {fields.map(field => (
             <div key={field.id}>
               <label className="block text-sm font-medium mb-2">{field.label}</label>
               {field.type === 'number' && (
@@ -6149,7 +6175,7 @@ function CalculatorRenderer({ data }: { data: CalculatorComponent['data'] }) {
                   className="w-full px-4 py-2 border rounded"
                   onChange={(e) => setValues({...values, [field.id]: Number(e.target.value)})}
                 >
-                  {field.options?.map(opt => (
+                  {(field.options || []).map(opt => (
                     <option key={opt.label} value={opt.value}>{opt.label}</option>
                   ))}
                 </select>
@@ -6180,12 +6206,13 @@ function LightboxRenderer({ data }: { data: LightboxComponent['data'] }) {
 }
 
 function EnhancedTabsRenderer({ data }: { data: EnhancedTabsComponent['data'] }) {
-  const [active, setActive] = React.useState(data.activeTab || data.tabs[0]?.id);
+  const tabs = data.tabs || [];
+  const [active, setActive] = React.useState(data.activeTab || tabs[0]?.id);
   
   return (
     <div className="py-4">
       <div className="flex gap-2 border-b">
-        {data.tabs.map(tab => (
+        {tabs.map(tab => (
           <button
             key={tab.id}
             onClick={() => setActive(tab.id)}
@@ -6229,11 +6256,13 @@ function AlertBannerRenderer({ data }: { data: AlertBannerComponent['data'] }) {
 
 // SOCIAL PROOF
 function LogoCarouselRenderer({ data }: { data: LogoCarouselComponent['data'] }) {
+  const logos = data.logos || [];
+  
   return (
     <div className="py-8">
       {data.heading && <h2 className="text-2xl font-bold mb-6 text-center">{data.heading}</h2>}
       <div className="flex items-center justify-center gap-8 flex-wrap">
-        {data.logos.map(logo => (
+        {logos.map(logo => (
           <div key={logo.id} className={`h-16 ${data.grayscale ? 'grayscale hover:grayscale-0' : ''} transition`}>
             {logo.image ? (
               <img src={logo.image} alt={logo.alt} className="h-full object-contain" />
@@ -6719,12 +6748,12 @@ function buildHomepageTemplate(): PageComponent[] {
     data: {
       heading: "Why Choose Studio37?",
       layout: "horizontal",
-      size: "medium",
+      size: "md",
       badges: [
-        { icon: "⭐", label: "5-Star Rated", description: "200+ Reviews" },
-        { icon: "📸", label: "Pro Equipment", description: "Latest Technology" },
-        { icon: "⚡", label: "48hr Delivery", description: "Fast Turnaround" },
-        { icon: "💯", label: "100% Satisfaction", description: "Guaranteed" },
+        { id: id(), icon: "⭐", label: "5-Star Rated", description: "200+ Reviews" },
+        { id: id(), icon: "📸", label: "Pro Equipment", description: "Latest Technology" },
+        { id: id(), icon: "⚡", label: "48hr Delivery", description: "Fast Turnaround" },
+        { id: id(), icon: "💯", label: "100% Satisfaction", description: "Guaranteed" },
       ],
     },
   } as TrustBadgesComponent);
@@ -7354,19 +7383,19 @@ function buildServicesPricingTemplate(): PageComponent[] {
     type: "comparisonTable",
     data: {
       heading: "Compare Our Packages",
-      style: "modern",
+      style: "default",
       plans: [
-        { name: "Basic", featured: false },
-        { name: "Standard", featured: true },
-        { name: "Premium", featured: false },
+        { id: id(), name: "Basic", featured: false },
+        { id: id(), name: "Standard", featured: true },
+        { id: id(), name: "Premium", featured: false },
       ],
       features: [
-        { name: "Session Duration", values: ["30 min", "60 min", "120 min"] },
-        { name: "Edited Photos", values: ["10", "25", "50"] },
-        { name: "Online Gallery", values: ["✅", "✅", "✅"] },
-        { name: "Print Rights", values: ["❌", "✅", "✅"] },
-        { name: "Priority Turnaround", values: ["❌", "❌", "✅"] },
-        { name: "Price", values: ["$199", "$349", "$599"] },
+        { id: id(), name: "Session Duration", values: ["30 min", "60 min", "120 min"] },
+        { id: id(), name: "Edited Photos", values: ["10", "25", "50"] },
+        { id: id(), name: "Online Gallery", values: ["✅", "✅", "✅"] },
+        { id: id(), name: "Print Rights", values: ["❌", "✅", "✅"] },
+        { id: id(), name: "Priority Turnaround", values: ["❌", "❌", "✅"] },
+        { id: id(), name: "Price", values: ["$199", "$349", "$599"] },
       ],
     },
   } as ComparisonTableComponent);
@@ -7869,12 +7898,12 @@ function buildPromoLandingTemplate(): PageComponent[] {
     data: {
       heading: "Why Choose Studio37?",
       layout: "horizontal",
-      size: "medium",
+      size: "md",
       badges: [
-        { icon: "⭐", label: "5-Star Rated", description: "200+ Reviews" },
-        { icon: "📸", label: "Pro Equipment", description: "Latest Tech" },
-        { icon: "💯", label: "Satisfaction Guaranteed", description: "100% Money Back" },
-        { icon: "⚡", label: "48hr Turnaround", description: "Fast Delivery" },
+        { id: id(), icon: "⭐", label: "5-Star Rated", description: "200+ Reviews" },
+        { id: id(), icon: "📸", label: "Pro Equipment", description: "Latest Tech" },
+        { id: id(), icon: "💯", label: "Satisfaction Guaranteed", description: "100% Money Back" },
+        { id: id(), icon: "⚡", label: "48hr Turnaround", description: "Fast Delivery" },
       ],
     },
   } as TrustBadgesComponent);
@@ -8220,15 +8249,15 @@ function buildEventInfoTemplate(): PageComponent[] {
     data: {
       heading: "Our Wedding Day Process",
       orientation: "vertical",
-      style: "modern",
+      style: "default",
       animation: "fade-in",
-      items: [
-        { id: "1", date: "6-12 Months Before", icon: "💍", title: "Initial Consultation", description: "We meet to discuss your vision, timeline, and package options." },
-        { id: "2", date: "2-3 Months Before", icon: "📋", title: "Planning Session", description: "Finalize shot list, timeline, and location details." },
-        { id: "3", date: "1 Month Before", icon: "📸", title: "Engagement Shoot", description: "Optional engagement session included in most packages." },
-        { id: "4", date: "Wedding Day", icon: "🎉", title: "Full Coverage", description: "We capture every moment from prep to reception." },
-        { id: "5", date: "48 Hours After", icon: "🖼️", title: "Sneak Peek", description: "Receive a preview of 10-15 favorite shots." },
-        { id: "6", date: "4-6 Weeks After", icon: "📱", title: "Full Gallery", description: "Your complete gallery delivered via online platform." },
+      events: [
+        { id: id(), date: "6-12 Months Before", icon: "💍", title: "Initial Consultation", description: "We meet to discuss your vision, timeline, and package options." },
+        { id: id(), date: "2-3 Months Before", icon: "📋", title: "Planning Session", description: "Finalize shot list, timeline, and location details." },
+        { id: id(), date: "1 Month Before", icon: "📸", title: "Engagement Shoot", description: "Optional engagement session included in most packages." },
+        { id: id(), date: "Wedding Day", icon: "🎉", title: "Full Coverage", description: "We capture every moment from prep to reception." },
+        { id: id(), date: "48 Hours After", icon: "🖼️", title: "Sneak Peek", description: "Receive a preview of 10-15 favorite shots." },
+        { id: id(), date: "4-6 Weeks After", icon: "📱", title: "Full Gallery", description: "Your complete gallery delivered via online platform." },
       ],
     },
   } as TimelineComponent);
@@ -8245,22 +8274,22 @@ function buildEventInfoTemplate(): PageComponent[] {
     type: "comparisonTable",
     data: {
       heading: "Wedding Package Comparison",
-      style: "modern",
+      style: "default",
       plans: [
-        { name: "Essential", featured: false },
-        { name: "Premium", featured: true },
-        { name: "Luxury", featured: false },
+        { id: id(), name: "Essential", featured: false },
+        { id: id(), name: "Premium", featured: true },
+        { id: id(), name: "Luxury", featured: false },
       ],
       features: [
-        { name: "Coverage Hours", values: ["4 hours", "8 hours", "Full Day"] },
-        { name: "Photographers", values: ["1", "2", "2"] },
-        { name: "Edited Photos", values: ["200+", "400+", "600+"] },
-        { name: "Engagement Session", values: ["❌", "✅", "✅"] },
-        { name: "Second Shooter", values: ["❌", "✅", "✅"] },
-        { name: "Online Gallery", values: ["✅", "✅", "✅"] },
-        { name: "Print Rights", values: ["✅", "✅", "✅"] },
-        { name: "Wedding Album", values: ["❌", "❌", "✅"] },
-        { name: "Price", values: ["$1,499", "$2,999", "$4,999"] },
+        { id: id(), name: "Coverage Hours", values: ["4 hours", "8 hours", "Full Day"] },
+        { id: id(), name: "Photographers", values: ["1", "2", "2"] },
+        { id: id(), name: "Edited Photos", values: ["200+", "400+", "600+"] },
+        { id: id(), name: "Engagement Session", values: ["❌", "✅", "✅"] },
+        { id: id(), name: "Second Shooter", values: ["❌", "✅", "✅"] },
+        { id: id(), name: "Online Gallery", values: ["✅", "✅", "✅"] },
+        { id: id(), name: "Print Rights", values: ["✅", "✅", "✅"] },
+        { id: id(), name: "Wedding Album", values: ["❌", "❌", "✅"] },
+        { id: id(), name: "Price", values: ["$1,499", "$2,999", "$4,999"] },
       ],
     },
   } as ComparisonTableComponent);
@@ -10715,7 +10744,12 @@ function ComponentProperties({
     case "videoHero":
       return <GenericProperties component={component} onUpdate={onUpdate} fields={['videoUrl', 'posterImage', 'title', 'subtitle', 'buttonText', 'buttonLink', 'overlay', 'autoplay', 'loop', 'muted']} />;
     case "beforeAfter":
-      return <GenericProperties component={component} onUpdate={onUpdate} fields={['beforeImage', 'afterImage', 'beforeLabel', 'afterLabel', 'initialPosition']} />;
+      return (
+        <BeforeAfterProperties
+          data={component.data as BeforeAfterComponent["data"]}
+          onUpdate={onUpdate}
+        />
+      );
     case "photoGrid":
       return <GenericProperties component={component} onUpdate={onUpdate} fields={['heading', 'layout', 'columns', 'gap', 'showFilters', 'limit']} />;
     case "audioPlayer":
@@ -10739,13 +10773,28 @@ function ComponentProperties({
     case "calendarWidget":
       return <GenericProperties component={component} onUpdate={onUpdate} fields={['heading', 'provider', 'embedUrl', 'style']} />;
     case "trustBadges":
-      return <GenericProperties component={component} onUpdate={onUpdate} fields={['heading', 'layout', 'size']} />;
+      return (
+        <TrustBadgesProperties
+          data={component.data as TrustBadgesComponent["data"]}
+          onUpdate={onUpdate}
+        />
+      );
     case "exitPopup":
       return <GenericProperties component={component} onUpdate={onUpdate} fields={['heading', 'message', 'buttonText', 'buttonLink', 'dismissible', 'showOnce']} />;
     case "timeline":
-      return <GenericProperties component={component} onUpdate={onUpdate} fields={['heading', 'orientation', 'style', 'animation']} />;
+      return (
+        <TimelineProperties
+          data={component.data as TimelineComponent["data"]}
+          onUpdate={onUpdate}
+        />
+      );
     case "comparisonTable":
-      return <GenericProperties component={component} onUpdate={onUpdate} fields={['heading', 'style']} />;
+      return (
+        <ComparisonTableProperties
+          data={component.data as ComparisonTableComponent["data"]}
+          onUpdate={onUpdate}
+        />
+      );
     case "blogCards":
       return <GenericProperties component={component} onUpdate={onUpdate} fields={['heading', 'displayCount', 'layout', 'columns', 'showExcerpt', 'showDate', 'showAuthor']} />;
     case "categoryNav":
@@ -11129,6 +11178,429 @@ function HeroProperties({
           title="Overlay darkness percentage"
           aria-label="Overlay darkness percentage"
         />
+      </div>
+    </div>
+  );
+}
+
+// Before/After Properties
+function BeforeAfterProperties({
+  data,
+  onUpdate,
+}: {
+  data: BeforeAfterComponent["data"];
+  onUpdate: (data: any) => void;
+}) {
+  return (
+    <div className="space-y-4">
+      <div>
+        <label className="block text-sm font-medium mb-1">Before Image</label>
+        <div className="flex items-center gap-2">
+          <input
+            type="url"
+            value={data.beforeImage || ""}
+            onChange={(e) => onUpdate({ beforeImage: e.target.value })}
+            placeholder="https://..."
+            className="flex-1 border rounded px-3 py-2"
+          />
+          <ImageUploader
+            onImageUrl={(url) => onUpdate({ beforeImage: url })}
+            buttonLabel="Upload"
+          />
+        </div>
+      </div>
+      <div>
+        <label className="block text-sm font-medium mb-1">After Image</label>
+        <div className="flex items-center gap-2">
+          <input
+            type="url"
+            value={data.afterImage || ""}
+            onChange={(e) => onUpdate({ afterImage: e.target.value })}
+            placeholder="https://..."
+            className="flex-1 border rounded px-3 py-2"
+          />
+          <ImageUploader
+            onImageUrl={(url) => onUpdate({ afterImage: url })}
+            buttonLabel="Upload"
+          />
+        </div>
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="block text-sm font-medium mb-1">Before Label</label>
+          <input
+            type="text"
+            value={data.beforeLabel || ""}
+            onChange={(e) => onUpdate({ beforeLabel: e.target.value })}
+            className="w-full border rounded px-3 py-2"
+            placeholder="Before"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium mb-1">After Label</label>
+          <input
+            type="text"
+            value={data.afterLabel || ""}
+            onChange={(e) => onUpdate({ afterLabel: e.target.value })}
+            className="w-full border rounded px-3 py-2"
+            placeholder="After"
+          />
+        </div>
+      </div>
+      <div>
+        <label className="block text-sm font-medium mb-1">Initial Position</label>
+        <input
+          type="range"
+          min={0}
+          max={100}
+          step={1}
+          value={data.initialPosition ?? 50}
+          onChange={(e) => onUpdate({ initialPosition: Number(e.target.value) })}
+          className="w-full"
+        />
+        <div className="text-xs text-gray-500 mt-1">{data.initialPosition ?? 50}%</div>
+      </div>
+      <div>
+        <label className="block text-sm font-medium mb-1">Orientation</label>
+        <select
+          value={data.orientation || "horizontal"}
+          onChange={(e) => onUpdate({ orientation: e.target.value })}
+          className="w-full border rounded px-3 py-2"
+        >
+          <option value="horizontal">Horizontal</option>
+          <option value="vertical">Vertical</option>
+        </select>
+      </div>
+    </div>
+  );
+}
+
+// Trust Badges Properties
+function TrustBadgesProperties({
+  data,
+  onUpdate,
+}: {
+  data: TrustBadgesComponent["data"];
+  onUpdate: (data: any) => void;
+}) {
+  const badges = data.badges || [];
+  const updateBadge = (idx: number, patch: any) => {
+    const next = badges.map((b, i) => (i === idx ? { ...b, ...patch } : b));
+    onUpdate({ badges: next });
+  };
+  const addBadge = () => {
+    onUpdate({
+      badges: [
+        ...badges,
+        { id: `b-${Date.now()}`, label: "New Badge", description: "", icon: "⭐" },
+      ],
+    });
+  };
+  const removeBadge = (idx: number) => {
+    onUpdate({ badges: badges.filter((_, i) => i !== idx) });
+  };
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <label className="block text-sm font-medium mb-1">Heading</label>
+        <input
+          type="text"
+          value={data.heading || ""}
+          onChange={(e) => onUpdate({ heading: e.target.value })}
+          className="w-full border rounded px-3 py-2"
+          placeholder="Why Choose Us?"
+        />
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="block text-sm font-medium mb-1">Layout</label>
+          <select
+            value={data.layout || "horizontal"}
+            onChange={(e) => onUpdate({ layout: e.target.value })}
+            className="w-full border rounded px-3 py-2"
+          >
+            <option value="horizontal">Horizontal</option>
+            <option value="grid">Grid</option>
+          </select>
+        </div>
+        <div>
+          <label className="block text-sm font-medium mb-1">Size</label>
+          <select
+            value={data.size || "md"}
+            onChange={(e) => onUpdate({ size: e.target.value })}
+            className="w-full border rounded px-3 py-2"
+          >
+            <option value="sm">Small</option>
+            <option value="md">Medium</option>
+            <option value="lg">Large</option>
+          </select>
+        </div>
+      </div>
+
+      <div className="border rounded p-3">
+        <div className="flex items-center justify-between mb-2">
+          <div className="font-medium text-sm">Badges</div>
+          <button onClick={addBadge} className="text-xs px-2 py-1 border rounded hover:bg-gray-50">
+            + Add Badge
+          </button>
+        </div>
+        <div className="space-y-3">
+          {badges.map((b, idx) => (
+            <div key={b.id || idx} className="grid grid-cols-12 gap-2 items-end">
+              <div className="col-span-2">
+                <label className="block text-xs font-medium mb-1">Icon</label>
+                <input
+                  type="text"
+                  value={b.icon || ""}
+                  onChange={(e) => updateBadge(idx, { icon: e.target.value })}
+                  className="w-full border rounded px-2 py-2"
+                  placeholder="⭐ or URL"
+                />
+              </div>
+              <div className="col-span-3">
+                <label className="block text-xs font-medium mb-1">Label</label>
+                <input
+                  type="text"
+                  value={b.label || ""}
+                  onChange={(e) => updateBadge(idx, { label: e.target.value })}
+                  className="w-full border rounded px-2 py-2"
+                />
+              </div>
+              <div className="col-span-5">
+                <label className="block text-xs font-medium mb-1">Description</label>
+                <input
+                  type="text"
+                  value={b.description || ""}
+                  onChange={(e) => updateBadge(idx, { description: e.target.value })}
+                  className="w-full border rounded px-2 py-2"
+                />
+              </div>
+              <div className="col-span-2 flex items-center gap-2">
+                <button
+                  onClick={() => removeBadge(idx)}
+                  className="text-red-600 text-xs border rounded px-2 py-1 hover:bg-red-50"
+                >
+                  Remove
+                </button>
+              </div>
+            </div>
+          ))}
+          {badges.length === 0 && (
+            <div className="text-xs text-gray-500">No badges yet. Click “Add Badge”.</div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Timeline Properties (basic list editor)
+function TimelineProperties({
+  data,
+  onUpdate,
+}: {
+  data: TimelineComponent["data"];
+  onUpdate: (data: any) => void;
+}) {
+  const events = data.events || [];
+  const updateEvent = (idx: number, patch: any) => {
+    const next = events.map((e, i) => (i === idx ? { ...e, ...patch } : e));
+    onUpdate({ events: next });
+  };
+  const addEvent = () => {
+    onUpdate({
+      events: [
+        ...events,
+        { id: `ev-${Date.now()}`, date: "", title: "", description: "" },
+      ],
+    });
+  };
+  const removeEvent = (idx: number) => onUpdate({ events: events.filter((_, i) => i !== idx) });
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <label className="block text-sm font-medium mb-1">Heading</label>
+        <input
+          type="text"
+          value={data.heading || ""}
+          onChange={(e) => onUpdate({ heading: e.target.value })}
+          className="w-full border rounded px-3 py-2"
+        />
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="block text-sm font-medium mb-1">Orientation</label>
+          <select
+            value={data.orientation || "vertical"}
+            onChange={(e) => onUpdate({ orientation: e.target.value })}
+            className="w-full border rounded px-3 py-2"
+          >
+            <option value="vertical">Vertical</option>
+            <option value="horizontal">Horizontal</option>
+          </select>
+        </div>
+        <div>
+          <label className="block text-sm font-medium mb-1">Style</label>
+          <select
+            value={data.style || "default"}
+            onChange={(e) => onUpdate({ style: e.target.value })}
+            className="w-full border rounded px-3 py-2"
+          >
+            <option value="default">Default</option>
+            <option value="minimal">Minimal</option>
+            <option value="cards">Cards</option>
+          </select>
+        </div>
+      </div>
+
+      <div className="border rounded p-3">
+        <div className="flex items-center justify-between mb-2">
+          <div className="font-medium text-sm">Events</div>
+          <button onClick={addEvent} className="text-xs px-2 py-1 border rounded hover:bg-gray-50">
+            + Add Event
+          </button>
+        </div>
+        <div className="space-y-3">
+          {events.map((ev, idx) => (
+            <div key={ev.id || idx} className="grid grid-cols-12 gap-2">
+              <div className="col-span-2">
+                <label className="block text-xs font-medium mb-1">Date</label>
+                <input
+                  type="text"
+                  value={ev.date || ""}
+                  onChange={(e) => updateEvent(idx, { date: e.target.value })}
+                  className="w-full border rounded px-2 py-2"
+                />
+              </div>
+              <div className="col-span-4">
+                <label className="block text-xs font-medium mb-1">Title</label>
+                <input
+                  type="text"
+                  value={ev.title || ""}
+                  onChange={(e) => updateEvent(idx, { title: e.target.value })}
+                  className="w-full border rounded px-2 py-2"
+                />
+              </div>
+              <div className="col-span-5">
+                <label className="block text-xs font-medium mb-1">Description</label>
+                <input
+                  type="text"
+                  value={ev.description || ""}
+                  onChange={(e) => updateEvent(idx, { description: e.target.value })}
+                  className="w-full border rounded px-2 py-2"
+                />
+              </div>
+              <div className="col-span-1 flex items-end">
+                <button onClick={() => removeEvent(idx)} className="text-red-600 text-xs border rounded px-2 py-1 hover:bg-red-50">Remove</button>
+              </div>
+            </div>
+          ))}
+          {events.length === 0 && (
+            <div className="text-xs text-gray-500">No events yet. Click “Add Event”.</div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Comparison Table Properties (simple editor)
+function ComparisonTableProperties({
+  data,
+  onUpdate,
+}: {
+  data: ComparisonTableComponent["data"];
+  onUpdate: (data: any) => void;
+}) {
+  const plans = data.plans || [];
+  const features = data.features || [];
+
+  const updatePlan = (idx: number, patch: any) =>
+    onUpdate({ plans: plans.map((p, i) => (i === idx ? { ...p, ...patch } : p)) });
+  const addPlan = () => onUpdate({ plans: [...plans, { name: "New", featured: false }] });
+  const removePlan = (idx: number) => onUpdate({ plans: plans.filter((_, i) => i !== idx) });
+
+  const updateFeature = (idx: number, patch: any) =>
+    onUpdate({ features: features.map((f, i) => (i === idx ? { ...f, ...patch } : f)) });
+  const addFeature = () => onUpdate({ features: [...features, { name: "Feature", values: plans.map(() => "") }] });
+  const removeFeature = (idx: number) => onUpdate({ features: features.filter((_, i) => i !== idx) });
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <label className="block text-sm font-medium mb-1">Heading</label>
+        <input
+          type="text"
+          value={data.heading || ""}
+          onChange={(e) => onUpdate({ heading: e.target.value })}
+          className="w-full border rounded px-3 py-2"
+        />
+      </div>
+
+      <div className="border rounded p-3">
+        <div className="flex items-center justify-between mb-2">
+          <div className="font-medium text-sm">Plans</div>
+          <button onClick={addPlan} className="text-xs px-2 py-1 border rounded hover:bg-gray-50">+ Add Plan</button>
+        </div>
+        <div className="space-y-2">
+          {plans.map((p, idx) => (
+            <div key={idx} className="grid grid-cols-12 gap-2 items-center">
+              <input
+                className="col-span-6 border rounded px-2 py-2"
+                value={p.name || ""}
+                onChange={(e) => updatePlan(idx, { name: e.target.value })}
+                placeholder="Plan name"
+              />
+              <label className="col-span-4 inline-flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={!!p.featured}
+                  onChange={(e) => updatePlan(idx, { featured: e.target.checked })}
+                />
+                Featured
+              </label>
+              <button onClick={() => removePlan(idx)} className="col-span-2 text-xs text-red-600 border rounded px-2 py-1">Remove</button>
+            </div>
+          ))}
+          {plans.length === 0 && <div className="text-xs text-gray-500">Add at least one plan.</div>}
+        </div>
+      </div>
+
+      <div className="border rounded p-3">
+        <div className="flex items-center justify-between mb-2">
+          <div className="font-medium text-sm">Features</div>
+          <button onClick={addFeature} className="text-xs px-2 py-1 border rounded hover:bg-gray-50">+ Add Feature</button>
+        </div>
+        <div className="space-y-2">
+          {features.map((f, idx) => (
+            <div key={idx} className="grid grid-cols-12 gap-2 items-center">
+              <input
+                className="col-span-4 border rounded px-2 py-2"
+                value={f.name || ""}
+                onChange={(e) => updateFeature(idx, { name: e.target.value })}
+                placeholder="Feature name"
+              />
+              <div className="col-span-8 grid grid-cols-3 gap-2">
+                {(f.values || plans.map(() => "")).map((val: any, i: number) => (
+                  <input
+                    key={i}
+                    className="border rounded px-2 py-2"
+                    value={val}
+                    onChange={(e) => {
+                      const next = [...(f.values || plans.map(() => ""))];
+                      next[i] = e.target.value;
+                      updateFeature(idx, { values: next });
+                    }}
+                    placeholder={plans[i]?.name || `Plan ${i + 1}`}
+                  />
+                ))}
+              </div>
+            </div>
+          ))}
+          {features.length === 0 && <div className="text-xs text-gray-500">Add features to compare plans.</div>}
+        </div>
       </div>
     </div>
   );
