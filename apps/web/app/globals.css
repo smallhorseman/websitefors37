@@ -1,0 +1,22 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-primary: 180, 126, 40;
+  --color-primary-light: 217, 182, 115;
+  --color-primary-dark: 120, 83, 25;
+  --color-secondary: 161, 98, 7;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    font-family: var(--font-inter), system-ui, sans-serif;
+  }
+
+  body {
+    @apply bg-amber-50 text-amber-950;
+    font-family: var(--font-inter), system-ui, sans-serif;
+  }
+}
