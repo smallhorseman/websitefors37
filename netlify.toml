@@ -1,17 +1,13 @@
 [build]
-  # Install from the monorepo root so npm workspaces resolve correctly,
-  # but build the Next.js app in apps/web.
-  command = "npm run -w web build"
-  publish = "apps/web/.next"
+  # Build the primary Next.js app at the repository root (full website)
+  command = "npx next build"
+  publish = ".next"
 
 [build.environment]
   NEXT_PUBLIC_SITE_URL = "https://studio37.cc"
   SECRETS_SCAN_SMART_DETECTION_ENABLED = "false"
   NODE_VERSION = "18"
-  # Override Netlify's default NPM workspace flags when base was set to a subdir.
-  # Keeping this explicit ensures installs happen from the repo root and avoid
-  # "web in filter set, but no workspace folder present" warnings.
-  NPM_FLAGS = "--workspaces --include-workspace-root --filter=web"
+  # Install happens at the repo root. No workspace filtering so the root app builds with shared packages.
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
