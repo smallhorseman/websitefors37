@@ -2655,6 +2655,13 @@ export default function VisualEditor({
             >
               Versions
             </button>
+            <button
+              onClick={() => setShowSuggestions(true)}
+              className="p-2 rounded hover:bg-gray-100"
+              title="AI Suggestions"
+            >
+              <Sparkles className="h-5 w-5" />
+            </button>
           </div>
 
           <div className="flex items-center gap-2">
@@ -2674,6 +2681,27 @@ export default function VisualEditor({
               {previewMode ? "Edit" : "Preview"}
             </button>
 
+            {/* Export/Import buttons */}
+            <button
+              onClick={exportPage}
+              className="px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded flex items-center gap-2 text-sm"
+              title="Export page as JSON"
+            >
+              <Download className="h-4 w-4" />
+              <span className="hidden md:inline">Export</span>
+            </button>
+            
+            <label className="px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded flex items-center gap-2 text-sm cursor-pointer">
+              <Upload className="h-4 w-4" />
+              <span className="hidden md:inline">Import</span>
+              <input
+                type="file"
+                accept=".json"
+                onChange={importPage}
+                className="hidden"
+              />
+            </label>
+
             <button
               onClick={() => {
                 setSaveStatus('saving');
@@ -2688,29 +2716,6 @@ export default function VisualEditor({
             >
               <Save className="h-4 w-4" />
               Save Page
-            {/* Export/Import buttons */}
-            <div className="flex items-center gap-2">
-              <button
-                onClick={exportPage}
-                className="px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded flex items-center gap-2 text-sm"
-                title="Export page as JSON"
-              >
-                <Download className="h-4 w-4" />
-                <span className="hidden md:inline">Export</span>
-              </button>
-              
-              <label className="px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded flex items-center gap-2 text-sm cursor-pointer">
-                <Upload className="h-4 w-4" />
-                <span className="hidden md:inline">Import</span>
-                <input
-                  type="file"
-                  accept=".json"
-                  onChange={importPage}
-                  className="hidden"
-                />
-              </label>
-            </div>
-
             </button>
 
             {/* Save Status Indicator */}
@@ -2858,16 +2863,6 @@ export default function VisualEditor({
                                     </div>
                                     <div>
                                       <label className="block text-xs font-medium text-gray-700 mb-1">
-                                      {/* Suggestions */}
-                                      <button
-                                        onClick={() => setShowSuggestions(true)}
-                                        className="px-3 py-2 bg-yellow-50 hover:bg-yellow-100 text-yellow-700 rounded flex items-center gap-2 border border-yellow-200"
-                                        title="AI Suggestions"
-                                      >
-                                        <Lightbulb className="h-4 w-4" />
-                                        <span className="hidden md:inline">Suggestions</span>
-                                      </button>
-
                                         Link URL
                                       </label>
                                       <input
