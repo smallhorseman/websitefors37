@@ -86,12 +86,16 @@ type ComponentType =
   | "teamMembers"
   | "socialFeed"
   | "dualCTA"
-  | "customCss";
+  | "customCss"
+  | "container"
+  | "accordion"
+  | "tabs";
 
 interface BaseComponent {
   id: string;
   type: ComponentType;
   visibility?: { mobile: boolean; tablet: boolean; desktop: boolean };
+  children?: PageComponent[];
 }
 
 interface HeroComponent extends BaseComponent {
@@ -470,6 +474,41 @@ interface DualCTAComponent extends BaseComponent {
   };
 }
 
+interface ContainerComponent extends BaseComponent {
+  type: "container";
+  data: {
+    backgroundColor?: string;
+    padding?: "none" | "sm" | "md" | "lg";
+    maxWidth?: "full" | "container" | "narrow";
+  };
+}
+
+interface AccordionComponent extends BaseComponent {
+  type: "accordion";
+  data: {
+    items: Array<{
+      id: string;
+      title: string;
+      isOpen?: boolean;
+    }>;
+    allowMultiple?: boolean;
+    animation?: "none" | "fade-in" | "slide-up" | "zoom";
+  };
+}
+
+interface TabsComponent extends BaseComponent {
+  type: "tabs";
+  data: {
+    tabs: Array<{
+      id: string;
+      label: string;
+    }>;
+    activeTab?: string;
+    style?: "underline" | "pills" | "boxed";
+    animation?: "none" | "fade-in" | "slide-up" | "zoom";
+  };
+}
+
 type PageComponent =
   | HeroComponent
   | TextComponent
@@ -495,7 +534,10 @@ type PageComponent =
   | TeamMembersComponent
   | SocialFeedComponent
   | DualCTAComponent
-  | CustomCssComponent;
+  | CustomCssComponent
+  | ContainerComponent
+  | AccordionComponent
+  | TabsComponent;
 
 interface VisualEditorProps {
   initialComponents?: PageComponent[];
@@ -547,6 +589,8 @@ export default function VisualEditor({
   const [aiLoading, setAiLoading] = useState(false);
   const [aiError, setAiError] = useState<string | null>(null);
   const [useAISource, setUseAISource] = useState(true);
+  const [showGrid, setShowGrid] = useState(false);
+  const [showVersions, setShowVersions] = useState(false);
 
   type Suggestion = {
     id: string;
@@ -750,6 +794,41 @@ export default function VisualEditor({
     scheduleAutoSave(next);
   };
 
+  // Version History (snapshots)
+  type Snapshot = { id: string; createdAt: number; label?: string; components: PageComponent[] };
+  const storageKey = `ve:snapshots:${slug || 'default'}`;
+  const [snapshots, setSnapshots] = useState<Snapshot[]>(() => {
+    if (typeof window === 'undefined') return [] as Snapshot[];
+    try {
+      const raw = localStorage.getItem(storageKey);
+      return raw ? (JSON.parse(raw) as Snapshot[]) : [];
+    } catch {
+      return [] as Snapshot[];
+    }
+  });
+  const createSnapshot = (label?: string) => {
+    const snap: Snapshot = {
+      id: `snap-${Date.now()}`,
+      createdAt: Date.now(),
+      label,
+      components: JSON.parse(JSON.stringify(components)),
+    };
+    setSnapshots((prev) => [snap, ...prev].slice(0, 50));
+  };
+  const restoreSnapshot = (id: string) => {
+    const snap = snapshots.find((s) => s.id === id);
+    if (!snap) return;
+    notify(JSON.parse(JSON.stringify(snap.components)));
+  };
+  const deleteSnapshot = (id: string) => {
+    setSnapshots((prev) => prev.filter((s) => s.id !== id));
+  };
+  useEffect(() => {
+    try {
+      localStorage.setItem(storageKey, JSON.stringify(snapshots));
+    } catch {}
+  }, [storageKey, snapshots]);
+
   const scheduleAutoSave = (components: PageComponent[]) => {
     if (autoSaveTimerRef.current) {
       clearTimeout(autoSaveTimerRef.current);
@@ -839,6 +918,9 @@ export default function VisualEditor({
     columns: { name: 'Columns', category: 'layout', keywords: ['grid', 'layout', 'multi'] },
     ctaBanner: { name: 'CTA Banner', category: 'layout', keywords: ['call to action', 'promo', 'banner'] },
     dualCTA: { name: 'Dual CTA', category: 'layout', keywords: ['two buttons', 'double', 'split'] },
+    container: { name: 'Container', category: 'layout', keywords: ['wrapper', 'section', 'group', 'nesting'] },
+    accordion: { name: 'Accordion', category: 'layout', keywords: ['collapse', 'expandable', 'faq', 'nesting'] },
+    tabs: { name: 'Tabs', category: 'layout', keywords: ['tabbed', 'sections', 'panels', 'nesting'] },
     galleryHighlights: { name: 'Gallery Highlights', category: 'content', keywords: ['photos', 'portfolio', 'showcase'] },
     teamMembers: { name: 'Team Members', category: 'content', keywords: ['staff', 'people', 'about'] },
     socialFeed: { name: 'Social Feed', category: 'content', keywords: ['instagram', 'posts', 'social media'] },
@@ -894,6 +976,15 @@ export default function VisualEditor({
         ? prev.filter((c) => c !== category)
         : [...prev, category]
     );
+  };
+
+  // Visibility helper
+  const isVisibleInCurrentView = (comp: PageComponent) => {
+    const v = (comp as any).visibility;
+    if (!v) return true;
+    if (viewMode === 'mobile') return v.mobile !== false;
+    if (viewMode === 'tablet') return v.tablet !== false;
+    return v.desktop !== false;
   };
 
   // Keyboard shortcuts
@@ -1050,11 +1141,13 @@ export default function VisualEditor({
       id: `component-${Date.now()}`,
       type,
       data: getDefaultData(type),
+      visibility: { mobile: true, tablet: true, desktop: true },
     } as PageComponent;
 
     notify([...components, newComponent]);
     setSelectedComponent(newComponent.id);
   };
+
 
   const getDefaultData = (type: ComponentType): any => {
     switch (type) {
@@ -1545,6 +1638,31 @@ export default function VisualEditor({
           textColor: "text-gray-900",
           animation: "fade-in",
         };
+      case "container":
+        return {
+          backgroundColor: "",
+          padding: "md",
+          maxWidth: "container",
+        };
+      case "accordion":
+        return {
+          items: [
+            { id: `acc-item-${Date.now()}-1`, title: "First Item", isOpen: true },
+            { id: `acc-item-${Date.now()}-2`, title: "Second Item", isOpen: false },
+          ],
+          allowMultiple: false,
+          animation: "fade-in",
+        };
+      case "tabs":
+        return {
+          tabs: [
+            { id: `tab-${Date.now()}-1`, label: "Tab 1" },
+            { id: `tab-${Date.now()}-2`, label: "Tab 2" },
+          ],
+          activeTab: `tab-${Date.now()}-1`,
+          style: "underline",
+          animation: "fade-in",
+        };
       default:
         return {};
     }
@@ -1556,6 +1674,62 @@ export default function VisualEditor({
       c.id === id ? { ...c, data: { ...c.data, ...data } } : c
     );
     notify(updated);
+  };
+
+  const updateComponentVisibility = (
+    id: string,
+    change: Partial<{ mobile: boolean; tablet: boolean; desktop: boolean }>
+  ) => {
+    const updated = components.map((c) => {
+      if (c.id !== id) return c;
+      const nextVis = {
+        mobile: true,
+        tablet: true,
+        desktop: true,
+        ...(c as any).visibility,
+        ...change,
+      };
+      return { ...(c as any), visibility: nextVis } as PageComponent;
+    });
+    notify(updated);
+  };
+
+  // Helper: Add a child component to a container
+  const addChildToContainer = (parentId: string, childComponent: PageComponent, itemId?: string, tabId?: string) => {
+    const updated = components.map((c) => {
+      if (c.id !== parentId) return c;
+      
+      // Annotate child with parent context if needed
+      const annotatedChild = itemId 
+        ? { ...childComponent, parentItemId: itemId } as any
+        : tabId
+        ? { ...childComponent, parentTabId: tabId } as any
+        : childComponent;
+      
+      return {
+        ...c,
+        children: [...(c.children || []), annotatedChild],
+      } as PageComponent;
+    });
+    notify(updated);
+    return annotatedChild.id;
+  };
+
+  // Helper: Remove a child from a container
+  const removeChildFromContainer = (parentId: string, childId: string) => {
+    const updated = components.map((c) => {
+      if (c.id !== parentId) return c;
+      return {
+        ...c,
+        children: (c.children || []).filter((ch) => ch.id !== childId),
+      } as PageComponent;
+    });
+    notify(updated);
+  };
+
+  // Helper: Find if a component has nested children
+  const hasChildren = (comp: PageComponent): boolean => {
+    return ['container', 'accordion', 'tabs'].includes(comp.type);
   };
 
   const deleteComponent = (id: string) => {
@@ -1878,6 +2052,33 @@ export default function VisualEditor({
                   >
                     <Link2 className="h-4 w-4" />
                     <span>Dual CTA</span>
+                  </button>
+                  )}
+                  {filterComponents('container') && (
+                  <button
+                    onClick={() => addComponent("container")}
+                    className="w-full flex items-center gap-2 p-2 bg-white hover:bg-gray-100 rounded transition text-sm"
+                  >
+                    <Square className="h-4 w-4" />
+                    <span>Container</span>
+                  </button>
+                  )}
+                  {filterComponents('accordion') && (
+                  <button
+                    onClick={() => addComponent("accordion")}
+                    className="w-full flex items-center gap-2 p-2 bg-white hover:bg-gray-100 rounded transition text-sm"
+                  >
+                    <ChevronDown className="h-4 w-4" />
+                    <span>Accordion</span>
+                  </button>
+                  )}
+                  {filterComponents('tabs') && (
+                  <button
+                    onClick={() => addComponent("tabs")}
+                    className="w-full flex items-center gap-2 p-2 bg-white hover:bg-gray-100 rounded transition text-sm"
+                  >
+                    <Layout className="h-4 w-4" />
+                    <span>Tabs</span>
                   </button>
                   )}
                 </div>
@@ -2439,6 +2640,21 @@ export default function VisualEditor({
             >
               <Smartphone className="h-5 w-5" />
             </button>
+            <div className="w-px h-6 bg-gray-300 mx-1"></div>
+            <button
+              onClick={() => setShowGrid((g) => !g)}
+              className={`p-2 rounded ${showGrid ? "bg-primary-100 text-primary-600" : "hover:bg-gray-100"}`}
+              title="Toggle grid overlay"
+            >
+              <Grid3x3 className="h-5 w-5" />
+            </button>
+            <button
+              onClick={() => setShowVersions(true)}
+              className="p-2 rounded hover:bg-gray-100"
+              title="Versions"
+            >
+              Versions
+            </button>
           </div>
 
           <div className="flex items-center gap-2">
@@ -2539,8 +2755,11 @@ export default function VisualEditor({
                   <div
                     {...provided.droppableProps}
                     ref={provided.innerRef}
-                    className="min-h-[600px]"
+                    className="min-h-[600px] relative"
                   >
+                    {showGrid && (
+                      <div className="pointer-events-none absolute inset-0 [background-image:repeating-linear-gradient(0deg,rgba(0,0,0,0.06)_0,rgba(0,0,0,0.06)_1px,transparent_1px,transparent_20px),repeating-linear-gradient(90deg,rgba(0,0,0,0.06)_0,rgba(0,0,0,0.06)_1px,transparent_1px,transparent_20px)]"></div>
+                    )}
                     {components.length === 0 && (
                       <div className="flex items-center justify-center h-96 text-gray-400">
                         <div className="text-center">
@@ -2765,6 +2984,40 @@ export default function VisualEditor({
                                 >
                                   <GripVertical className="h-5 w-5" />
                                 </div>
+                                {/* Visibility quick toggles */}
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    updateComponentVisibility(component.id, { desktop: !(((component as any).visibility?.desktop) ?? true) });
+                                  }}
+                                  className={`p-2 sm:p-1 bg-white rounded shadow hover:bg-gray-50 ${(((component as any).visibility?.desktop) ?? true) ? 'text-gray-700' : 'opacity-40'}`}
+                                  title={(((component as any).visibility?.desktop) ?? true) ? 'Visible on Desktop' : 'Hidden on Desktop'}
+                                  aria-label="Toggle desktop visibility"
+                                >
+                                  <Monitor className="h-5 w-5" />
+                                </button>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    updateComponentVisibility(component.id, { tablet: !(((component as any).visibility?.tablet) ?? true) });
+                                  }}
+                                  className={`p-2 sm:p-1 bg-white rounded shadow hover:bg-gray-50 ${(((component as any).visibility?.tablet) ?? true) ? 'text-gray-700' : 'opacity-40'}`}
+                                  title={(((component as any).visibility?.tablet) ?? true) ? 'Visible on Tablet' : 'Hidden on Tablet'}
+                                  aria-label="Toggle tablet visibility"
+                                >
+                                  <Tablet className="h-5 w-5" />
+                                </button>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    updateComponentVisibility(component.id, { mobile: !(((component as any).visibility?.mobile) ?? true) });
+                                  }}
+                                  className={`p-2 sm:p-1 bg-white rounded shadow hover:bg-gray-50 ${(((component as any).visibility?.mobile) ?? true) ? 'text-gray-700' : 'opacity-40'}`}
+                                  title={(((component as any).visibility?.mobile) ?? true) ? 'Visible on Mobile' : 'Hidden on Mobile'}
+                                  aria-label="Toggle mobile visibility"
+                                >
+                                  <Smartphone className="h-5 w-5" />
+                                </button>
                                 <button
                                   onClick={(e) => {
                                     e.stopPropagation();
@@ -2842,7 +3095,13 @@ export default function VisualEditor({
                               </div>
                             )}
 
-                            <ComponentRenderer component={component} />
+                            {isVisibleInCurrentView(component) ? (
+                              <ComponentRenderer component={component} />
+                            ) : (
+                              <div className="p-4 border-2 border-dashed border-gray-300 bg-gray-50 text-gray-500 text-sm rounded">
+                                Hidden on {viewMode} (toggle visibility to show)
+                              </div>
+                            )}
                               </>
                             )}
                           </div>
@@ -2866,6 +3125,34 @@ export default function VisualEditor({
           </div>
 
           <div className="p-4">
+            {/* Per-device visibility controls */}
+            <div className="mb-4 p-3 border rounded bg-gray-50">
+              <div className="text-sm font-medium mb-2">Visibility</div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => updateComponentVisibility(selectedComponent!, { desktop: !((components.find((c) => c.id === selectedComponent) as any)?.visibility?.desktop ?? true) })}
+                  className={`px-2 py-1 rounded border ${((components.find((c) => c.id === selectedComponent) as any)?.visibility?.desktop ?? true) ? 'bg-white' : 'bg-gray-100 opacity-70'}`}
+                  title="Toggle desktop visibility"
+                >
+                  <span className="inline-flex items-center gap-1 text-sm"><Monitor className="h-4 w-4" /> Desktop</span>
+                </button>
+                <button
+                  onClick={() => updateComponentVisibility(selectedComponent!, { tablet: !((components.find((c) => c.id === selectedComponent) as any)?.visibility?.tablet ?? true) })}
+                  className={`px-2 py-1 rounded border ${((components.find((c) => c.id === selectedComponent) as any)?.visibility?.tablet ?? true) ? 'bg-white' : 'bg-gray-100 opacity-70'}`}
+                  title="Toggle tablet visibility"
+                >
+                  <span className="inline-flex items-center gap-1 text-sm"><Tablet className="h-4 w-4" /> Tablet</span>
+                </button>
+                <button
+                  onClick={() => updateComponentVisibility(selectedComponent!, { mobile: !((components.find((c) => c.id === selectedComponent) as any)?.visibility?.mobile ?? true) })}
+                  className={`px-2 py-1 rounded border ${((components.find((c) => c.id === selectedComponent) as any)?.visibility?.mobile ?? true) ? 'bg-white' : 'bg-gray-100 opacity-70'}`}
+                  title="Toggle mobile visibility"
+                >
+                  <span className="inline-flex items-center gap-1 text-sm"><Smartphone className="h-4 w-4" /> Mobile</span>
+                </button>
+              </div>
+            </div>
+
             <ComponentProperties
               component={components.find((c) => c.id === selectedComponent)!}
               onUpdate={(data) => updateComponent(selectedComponent, data)}
@@ -3004,6 +3291,59 @@ export default function VisualEditor({
                     </div>
                     <div className="mt-2 text-[10px] uppercase tracking-wide text-gray-400">
                       Suggested block: <span className="font-semibold text-gray-500">{componentMetadata[s.type]?.name || s.type}</span>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Versions Drawer */}
+      {showVersions && (
+        <div className="fixed inset-0 z-50" aria-modal>
+          <div className="absolute inset-0 bg-black/40" onClick={() => setShowVersions(false)} />
+          <div className="absolute right-0 top-0 h-full w-[420px] bg-white shadow-xl border-l flex flex-col">
+            <div className="p-4 border-b flex items-center justify-between">
+              <h3 className="font-semibold">Versions</h3>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => createSnapshot()}
+                  className="px-3 py-1.5 text-sm bg-primary-600 text-white rounded hover:bg-primary-700"
+                >
+                  Create Snapshot
+                </button>
+                <button className="px-2 py-1 text-sm border rounded" onClick={() => setShowVersions(false)}>
+                  Close
+                </button>
+              </div>
+            </div>
+            <div className="p-4 overflow-y-auto space-y-3">
+              {snapshots.length === 0 ? (
+                <div className="text-sm text-gray-500">No snapshots yet. Click "Create Snapshot" to save the current page state locally.</div>
+              ) : (
+                snapshots.map((s) => (
+                  <div key={s.id} className="border rounded p-3">
+                    <div className="flex items-center justify-between">
+                      <div className="text-sm">
+                        <div className="font-medium">{s.label || new Date(s.createdAt).toLocaleString()}</div>
+                        <div className="text-xs text-gray-500">{new Date(s.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => restoreSnapshot(s.id)}
+                          className="px-2 py-1 text-sm bg-green-600 text-white rounded hover:bg-green-700"
+                        >
+                          Restore
+                        </button>
+                        <button
+                          onClick={() => deleteSnapshot(s.id)}
+                          className="px-2 py-1 text-sm bg-red-600 text-white rounded hover:bg-red-700"
+                        >
+                          Delete
+                        </button>
+                      </div>
                     </div>
                   </div>
                 ))
@@ -3655,6 +3995,153 @@ function DualCTAProperties({
   );
 }
 
+// Container Renderer
+function ContainerRenderer({ component }: { component: ContainerComponent }) {
+  const { data, children = [] } = component;
+  const paddingClass = {
+    none: "p-0",
+    sm: "p-4",
+    md: "p-8",
+    lg: "p-12",
+  }[data.padding || "md"];
+  
+  const maxWidthClass = {
+    full: "max-w-full",
+    container: "max-w-7xl mx-auto",
+    narrow: "max-w-4xl mx-auto",
+  }[data.maxWidth || "container"];
+
+  return (
+    <div 
+      className={`${paddingClass} ${maxWidthClass}`}
+      style={{ backgroundColor: data.backgroundColor || "transparent" }}
+    >
+      {children.length === 0 ? (
+        <div className="border-2 border-dashed border-gray-300 rounded p-8 text-center text-gray-500 text-sm">
+          Drop components here
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {children.map(child => (
+            <ComponentRenderer key={child.id} component={child} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Accordion Renderer
+function AccordionRenderer({ component }: { component: AccordionComponent }) {
+  const { data, children = [] } = component;
+  const [openItems, setOpenItems] = React.useState<string[]>(
+    data.items?.filter(i => i.isOpen).map(i => i.id) || []
+  );
+
+  const toggleItem = (id: string) => {
+    if (data.allowMultiple) {
+      setOpenItems(prev => 
+        prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+      );
+    } else {
+      setOpenItems(prev => prev.includes(id) ? [] : [id]);
+    }
+  };
+
+  return (
+    <div className="space-y-2">
+      {data.items?.map((item, idx) => {
+        const isOpen = openItems.includes(item.id);
+        const itemChildren = children.filter(c => (c as any).parentItemId === item.id);
+        
+        return (
+          <div key={item.id} className="border rounded overflow-hidden">
+            <button
+              onClick={() => toggleItem(item.id)}
+              className="w-full px-4 py-3 flex items-center justify-between bg-gray-50 hover:bg-gray-100 text-left"
+            >
+              <span className="font-medium">{item.title}</span>
+              <ChevronDown className={`h-5 w-5 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+            </button>
+            {isOpen && (
+              <div className="p-4 bg-white">
+                {itemChildren.length === 0 ? (
+                  <div className="border-2 border-dashed border-gray-300 rounded p-4 text-center text-gray-500 text-sm">
+                    Drop components here
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {itemChildren.map(child => (
+                      <ComponentRenderer key={child.id} component={child} />
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// Tabs Renderer
+function TabsRenderer({ component }: { component: TabsComponent }) {
+  const { data, children = [] } = component;
+  const [activeTab, setActiveTab] = React.useState(data.activeTab || data.tabs?.[0]?.id || '');
+
+  const styleClasses = {
+    underline: "border-b-2 border-primary-600",
+    pills: "bg-primary-100 text-primary-700 rounded-full",
+    boxed: "border border-gray-300 rounded bg-white",
+  }[data.style || "underline"];
+
+  return (
+    <div>
+      <div className="flex gap-2 border-b border-gray-200">
+        {data.tabs?.map(tab => {
+          const isActive = activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`px-4 py-2 font-medium transition ${
+                isActive 
+                  ? styleClasses 
+                  : "text-gray-600 hover:text-gray-900"
+              }`}
+            >
+              {tab.label}
+            </button>
+          );
+        })}
+      </div>
+      <div className="mt-4">
+        {data.tabs?.map(tab => {
+          if (tab.id !== activeTab) return null;
+          const tabChildren = children.filter(c => (c as any).parentTabId === tab.id);
+          
+          return (
+            <div key={tab.id}>
+              {tabChildren.length === 0 ? (
+                <div className="border-2 border-dashed border-gray-300 rounded p-8 text-center text-gray-500 text-sm">
+                  Drop components here
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {tabChildren.map(child => (
+                    <ComponentRenderer key={child.id} component={child} />
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 // Component Renderer
 function ComponentRenderer({ component }: { component: PageComponent }) {
   switch (component.type) {
@@ -3710,6 +4197,12 @@ function ComponentRenderer({ component }: { component: PageComponent }) {
       return (component as any).data?.enabled ? (
         <style dangerouslySetInnerHTML={{ __html: String((component as any).data?.css || '') }} />
       ) : null;
+    case "container":
+      return <ContainerRenderer component={component as ContainerComponent} />;
+    case "accordion":
+      return <AccordionRenderer component={component as AccordionComponent} />;
+    case "tabs":
+      return <TabsRenderer component={component as TabsComponent} />;
     default:
       return null;
   }
@@ -6644,6 +7137,243 @@ function LogoProperties({
     </div>
   );
 }
+
+// Container Properties
+function ContainerProperties({
+  data,
+  onUpdate,
+}: {
+  data: ContainerComponent["data"];
+  onUpdate: (data: any) => void;
+}) {
+  return (
+    <div className="space-y-4">
+      <div>
+        <label className="block text-sm font-medium mb-1">Background Color</label>
+        <input
+          type="color"
+          value={data.backgroundColor || "#ffffff"}
+          onChange={(e) => onUpdate({ backgroundColor: e.target.value })}
+          className="w-full border rounded px-3 py-2 h-10"
+        />
+      </div>
+      <div>
+        <label className="block text-sm font-medium mb-1">Padding</label>
+        <select
+          value={data.padding || "md"}
+          onChange={(e) => onUpdate({ padding: e.target.value })}
+          className="w-full border rounded px-3 py-2"
+        >
+          <option value="none">None</option>
+          <option value="sm">Small</option>
+          <option value="md">Medium</option>
+          <option value="lg">Large</option>
+        </select>
+      </div>
+      <div>
+        <label className="block text-sm font-medium mb-1">Max Width</label>
+        <select
+          value={data.maxWidth || "container"}
+          onChange={(e) => onUpdate({ maxWidth: e.target.value })}
+          className="w-full border rounded px-3 py-2"
+        >
+          <option value="full">Full Width</option>
+          <option value="container">Container (1280px)</option>
+          <option value="narrow">Narrow (896px)</option>
+        </select>
+      </div>
+      <div className="p-3 bg-blue-50 border border-blue-200 rounded text-sm text-blue-700">
+        <strong>Note:</strong> This container can hold nested components. Drag components into the container drop zone.
+      </div>
+    </div>
+  );
+}
+
+// Accordion Properties
+function AccordionProperties({
+  data,
+  onUpdate,
+}: {
+  data: AccordionComponent["data"];
+  onUpdate: (data: any) => void;
+}) {
+  const addItem = () => {
+    const newItem = {
+      id: `acc-item-${Date.now()}`,
+      title: "New Item",
+      isOpen: false,
+    };
+    onUpdate({ items: [...(data.items || []), newItem] });
+  };
+
+  const removeItem = (id: string) => {
+    onUpdate({ items: (data.items || []).filter(i => i.id !== id) });
+  };
+
+  const updateItem = (id: string, updates: any) => {
+    onUpdate({
+      items: (data.items || []).map(i => i.id === id ? { ...i, ...updates } : i),
+    });
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center gap-2">
+        <input
+          type="checkbox"
+          id="allow-multiple"
+          checked={data.allowMultiple || false}
+          onChange={(e) => onUpdate({ allowMultiple: e.target.checked })}
+          className="h-4 w-4"
+        />
+        <label htmlFor="allow-multiple" className="text-sm">
+          Allow multiple items open
+        </label>
+      </div>
+      <div>
+        <label className="block text-sm font-medium mb-1">Animation</label>
+        <select
+          value={data.animation || "fade-in"}
+          onChange={(e) => onUpdate({ animation: e.target.value })}
+          className="w-full border rounded px-3 py-2"
+        >
+          <option value="none">None</option>
+          <option value="fade-in">Fade In</option>
+          <option value="slide-up">Slide Up</option>
+          <option value="zoom">Zoom</option>
+        </select>
+      </div>
+      <div className="border-t pt-4">
+        <div className="flex items-center justify-between mb-2">
+          <label className="text-sm font-medium">Items</label>
+          <button
+            onClick={addItem}
+            className="px-3 py-1.5 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
+          >
+            Add Item
+          </button>
+        </div>
+        <div className="space-y-2">
+          {(data.items || []).map(item => (
+            <div key={item.id} className="border rounded p-3 bg-gray-50">
+              <div className="flex items-center justify-between mb-2">
+                <input
+                  type="text"
+                  value={item.title}
+                  onChange={(e) => updateItem(item.id, { title: e.target.value })}
+                  className="flex-1 border rounded px-2 py-1 text-sm"
+                  placeholder="Item title"
+                />
+                <button
+                  onClick={() => removeItem(item.id)}
+                  className="ml-2 text-red-600 text-xs hover:underline"
+                >
+                  Remove
+                </button>
+              </div>
+              <div className="text-xs text-gray-500">
+                Drag components into this item's drop zone to add content
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Tabs Properties
+function TabsProperties({
+  data,
+  onUpdate,
+}: {
+  data: TabsComponent["data"];
+  onUpdate: (data: any) => void;
+}) {
+  const addTab = () => {
+    const newTab = {
+      id: `tab-${Date.now()}`,
+      label: "New Tab",
+    };
+    onUpdate({ tabs: [...(data.tabs || []), newTab] });
+  };
+
+  const removeTab = (id: string) => {
+    onUpdate({ tabs: (data.tabs || []).filter(t => t.id !== id) });
+  };
+
+  const updateTab = (id: string, updates: any) => {
+    onUpdate({
+      tabs: (data.tabs || []).map(t => t.id === id ? { ...t, ...updates } : t),
+    });
+  };
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <label className="block text-sm font-medium mb-1">Tab Style</label>
+        <select
+          value={data.style || "underline"}
+          onChange={(e) => onUpdate({ style: e.target.value })}
+          className="w-full border rounded px-3 py-2"
+        >
+          <option value="underline">Underline</option>
+          <option value="pills">Pills</option>
+          <option value="boxed">Boxed</option>
+        </select>
+      </div>
+      <div>
+        <label className="block text-sm font-medium mb-1">Animation</label>
+        <select
+          value={data.animation || "fade-in"}
+          onChange={(e) => onUpdate({ animation: e.target.value })}
+          className="w-full border rounded px-3 py-2"
+        >
+          <option value="none">None</option>
+          <option value="fade-in">Fade In</option>
+          <option value="slide-up">Slide Up</option>
+          <option value="zoom">Zoom</option>
+        </select>
+      </div>
+      <div className="border-t pt-4">
+        <div className="flex items-center justify-between mb-2">
+          <label className="text-sm font-medium">Tabs</label>
+          <button
+            onClick={addTab}
+            className="px-3 py-1.5 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
+          >
+            Add Tab
+          </button>
+        </div>
+        <div className="space-y-2">
+          {(data.tabs || []).map(tab => (
+            <div key={tab.id} className="border rounded p-3 bg-gray-50">
+              <div className="flex items-center justify-between mb-2">
+                <input
+                  type="text"
+                  value={tab.label}
+                  onChange={(e) => updateTab(tab.id, { label: e.target.value })}
+                  className="flex-1 border rounded px-2 py-1 text-sm"
+                  placeholder="Tab label"
+                />
+                <button
+                  onClick={() => removeTab(tab.id)}
+                  className="ml-2 text-red-600 text-xs hover:underline"
+                >
+                  Remove
+                </button>
+              </div>
+              <div className="text-xs text-gray-500">
+                Drag components into this tab's drop zone to add content
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // Component Properties Editor
 function ComponentProperties({
   component,
@@ -6818,6 +7548,27 @@ function ComponentProperties({
       return (
         <IconFeaturesProperties
           data={component.data as IconFeaturesComponent["data"]}
+          onUpdate={onUpdate}
+        />
+      );
+    case "container":
+      return (
+        <ContainerProperties
+          data={component.data as ContainerComponent["data"]}
+          onUpdate={onUpdate}
+        />
+      );
+    case "accordion":
+      return (
+        <AccordionProperties
+          data={component.data as AccordionComponent["data"]}
+          onUpdate={onUpdate}
+        />
+      );
+    case "tabs":
+      return (
+        <TabsProperties
+          data={component.data as TabsComponent["data"]}
           onUpdate={onUpdate}
         />
       );
