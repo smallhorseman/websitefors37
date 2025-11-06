@@ -43,6 +43,8 @@ import {
   Link2,
   LayoutGrid,
   SlidersHorizontal,
+  ArrowUp,
+  ArrowDown,
 } from "lucide-react";
 import Image from "next/image";
 import ImageUploader from "./ImageUploader";
@@ -572,6 +574,18 @@ export default function VisualEditor({
     updated.splice(index + 1, 0, duplicated);
     notify(updated);
     setSelectedComponent(duplicated.id);
+  };
+
+  const moveComponent = (id: string, delta: -1 | 1) => {
+    const index = components.findIndex((c) => c.id === id);
+    if (index < 0) return;
+    const newIndex = index + delta;
+    if (newIndex < 0 || newIndex >= components.length) return;
+    const updated = [...components];
+    const [item] = updated.splice(index, 1);
+    updated.splice(newIndex, 0, item);
+    notify(updated);
+    setSelectedComponent(item.id);
   };
 
   const toggleCategory = (category: string) => {
@@ -1863,6 +1877,34 @@ export default function VisualEditor({
                                 >
                                   <GripVertical className="h-5 w-5" />
                                 </div>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    moveComponent(component.id, -1);
+                                  }}
+                                  disabled={index === 0}
+                                  className={`p-2 sm:p-1 bg-white rounded shadow hover:bg-gray-50 ${
+                                    index === 0 ? "opacity-40 cursor-not-allowed" : ""
+                                  }`}
+                                  title="Move up"
+                                  aria-label="Move component up"
+                                >
+                                  <ArrowUp className="h-5 w-5" />
+                                </button>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    moveComponent(component.id, 1);
+                                  }}
+                                  disabled={index === components.length - 1}
+                                  className={`p-2 sm:p-1 bg-white rounded shadow hover:bg-gray-50 ${
+                                    index === components.length - 1 ? "opacity-40 cursor-not-allowed" : ""
+                                  }`}
+                                  title="Move down"
+                                  aria-label="Move component down"
+                                >
+                                  <ArrowDown className="h-5 w-5" />
+                                </button>
                                 <button
                                   onClick={(e) => {
                                     e.stopPropagation();
