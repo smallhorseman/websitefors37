@@ -512,6 +512,11 @@ export default function VisualEditor({
   ]);
   const [showLeftDrawer, setShowLeftDrawer] = useState(false);
   const [showRightDrawer, setShowRightDrawer] = useState(false);
+  const [quickEditId, setQuickEditId] = useState<string | null>(null);
+  const [copiedComponent, setCopiedComponent] = useState<PageComponent | null>(null);
+  const [saveStatus, setSaveStatus] = useState<'saved' | 'unsaved' | 'saving'>('saved');
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Default to hiding side panels on small screens
   useEffect(() => {
@@ -539,7 +544,41 @@ export default function VisualEditor({
     newHistory.push(next);
     setHistory(newHistory);
     setHistoryIndex(newHistory.length - 1);
+
+    // Mark as unsaved and trigger auto-save
+    setSaveStatus('unsaved');
+    scheduleAutoSave(next);
   };
+
+  const scheduleAutoSave = (components: PageComponent[]) => {
+    if (autoSaveTimerRef.current) {
+      clearTimeout(autoSaveTimerRef.current);
+    }
+    autoSaveTimerRef.current = setTimeout(() => {
+      handleAutoSave(components);
+    }, 30000); // 30 seconds
+  };
+
+  const handleAutoSave = async (componentsToSave: PageComponent[]) => {
+    setSaveStatus('saving');
+    try {
+      await onSave(componentsToSave);
+      setSaveStatus('saved');
+      setLastSaved(new Date());
+    } catch (error) {
+      console.error('Auto-save failed:', error);
+      setSaveStatus('unsaved');
+    }
+  };
+
+  // Cleanup auto-save timer on unmount
+  useEffect(() => {
+    return () => {
+      if (autoSaveTimerRef.current) {
+        clearTimeout(autoSaveTimerRef.current);
+      }
+    };
+  }, []);
 
   const handleUndo = () => {
     if (historyIndex > 0) {
@@ -602,34 +641,136 @@ export default function VisualEditor({
       // Only handle shortcuts when not typing in an input
       if (
         (e.target as HTMLElement).tagName === "INPUT" ||
-        (e.target as HTMLElement).tagName === "TEXTAREA"
+        (e.target as HTMLElement).tagName === "TEXTAREA" ||
+        (e.target as HTMLElement).contentEditable === "true"
       ) {
         return;
       }
 
-      if (e.metaKey || e.ctrlKey) {
-        if (e.key === "z" && !e.shiftKey) {
-          e.preventDefault();
-          handleUndo();
-        } else if ((e.key === "z" && e.shiftKey) || e.key === "y") {
-          e.preventDefault();
-          handleRedo();
-        } else if (e.key === "d" && selectedComponent) {
-          e.preventDefault();
-          duplicateComponent(selectedComponent);
-        } else if (e.key === "s") {
-          e.preventDefault();
-          onSave(components);
+      const isMod = e.metaKey || e.ctrlKey;
+
+      // Cmd/Ctrl+Z - Undo
+      if (isMod && e.key === "z" && !e.shiftKey) {
+        e.preventDefault();
+        handleUndo();
+      } 
+      // Cmd/Ctrl+Shift+Z or Cmd/Ctrl+Y - Redo
+      else if (isMod && ((e.key === "z" && e.shiftKey) || e.key === "y")) {
+        e.preventDefault();
+        handleRedo();
+      } 
+      // Cmd/Ctrl+D - Duplicate
+      else if (isMod && e.key === "d" && selectedComponent) {
+        e.preventDefault();
+        duplicateComponent(selectedComponent);
+      } 
+      // Cmd/Ctrl+S - Save
+      else if (isMod && e.key === "s") {
+        e.preventDefault();
+        setSaveStatus('saving');
+        onSave(components).then(() => {
+          setSaveStatus('saved');
+          setLastSaved(new Date());
+        }).catch(() => setSaveStatus('unsaved'));
+      }
+      // Cmd/Ctrl+C - Copy
+      else if (isMod && e.key === "c" && selectedComponent) {
+        e.preventDefault();
+        const component = components.find((c) => c.id === selectedComponent);
+        if (component) {
+          setCopiedComponent(component);
         }
-      } else if (e.key === "Delete" && selectedComponent) {
+      }
+      // Cmd/Ctrl+V - Paste
+      else if (isMod && e.key === "v" && copiedComponent) {
+        e.preventDefault();
+        const duplicated: PageComponent = {
+          ...copiedComponent,
+          id: `component-${Date.now()}`,
+          data: { ...copiedComponent.data },
+        } as PageComponent;
+        
+        const index = selectedComponent 
+          ? components.findIndex((c) => c.id === selectedComponent)
+          : components.length - 1;
+        
+        const updated = [...components];
+        updated.splice(index + 1, 0, duplicated);
+        notify(updated);
+        setSelectedComponent(duplicated.id);
+      }
+      // Cmd/Ctrl+Shift+Up - Move component up
+      else if (isMod && e.shiftKey && e.key === "ArrowUp" && selectedComponent) {
+        e.preventDefault();
+        moveComponent(selectedComponent, -1);
+      }
+      // Cmd/Ctrl+Shift+Down - Move component down
+      else if (isMod && e.shiftKey && e.key === "ArrowDown" && selectedComponent) {
+        e.preventDefault();
+        moveComponent(selectedComponent, 1);
+      }
+      // Arrow Up - Select previous component
+      else if (e.key === "ArrowUp" && !isMod && selectedComponent) {
+        e.preventDefault();
+        const index = components.findIndex((c) => c.id === selectedComponent);
+        if (index > 0) {
+          setSelectedComponent(components[index - 1].id);
+        }
+      }
+      // Arrow Down - Select next component
+      else if (e.key === "ArrowDown" && !isMod && selectedComponent) {
+        e.preventDefault();
+        const index = components.findIndex((c) => c.id === selectedComponent);
+        if (index < components.length - 1) {
+          setSelectedComponent(components[index + 1].id);
+        }
+      }
+      // Tab - Select next component
+      else if (e.key === "Tab" && !e.shiftKey && !isMod) {
+        e.preventDefault();
+        if (!selectedComponent && components.length > 0) {
+          setSelectedComponent(components[0].id);
+        } else if (selectedComponent) {
+          const index = components.findIndex((c) => c.id === selectedComponent);
+          if (index < components.length - 1) {
+            setSelectedComponent(components[index + 1].id);
+          }
+        }
+      }
+      // Shift+Tab - Select previous component
+      else if (e.key === "Tab" && e.shiftKey && !isMod) {
+        e.preventDefault();
+        if (selectedComponent) {
+          const index = components.findIndex((c) => c.id === selectedComponent);
+          if (index > 0) {
+            setSelectedComponent(components[index - 1].id);
+          }
+        }
+      }
+      // Escape - Deselect
+      else if (e.key === "Escape") {
+        e.preventDefault();
+        setSelectedComponent(null);
+        setQuickEditId(null);
+      }
+      // Delete - Delete component
+      else if (e.key === "Delete" && selectedComponent) {
         e.preventDefault();
         deleteComponent(selectedComponent);
+      }
+      // Enter - Enter quick edit mode
+      else if (e.key === "Enter" && selectedComponent && !quickEditId) {
+        e.preventDefault();
+        const component = components.find((c) => c.id === selectedComponent);
+        if (component && ['text', 'button', 'image'].includes(component.type)) {
+          setQuickEditId(selectedComponent);
+        }
       }
     };
 
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [components, selectedComponent, history, historyIndex]);
+  }, [components, selectedComponent, history, historyIndex, copiedComponent, quickEditId]);
 
   const handleDragEnd = (result: DropResult) => {
     if (!result.destination) return;
@@ -1813,13 +1954,47 @@ export default function VisualEditor({
             </button>
 
             <button
-              onClick={() => onSave(components)}
+              onClick={() => {
+                setSaveStatus('saving');
+                onSave(components).then(() => {
+                  setSaveStatus('saved');
+                  setLastSaved(new Date());
+                }).catch(() => setSaveStatus('unsaved'));
+              }}
               className="px-4 py-2 bg-primary-600 text-white rounded hover:bg-primary-700 flex items-center gap-2"
               title="Save (⌘+S)"
+              disabled={saveStatus === 'saving'}
             >
               <Save className="h-4 w-4" />
               Save Page
             </button>
+
+            {/* Save Status Indicator */}
+            <div className="flex items-center gap-2 px-3 py-2 bg-gray-50 rounded text-sm border border-gray-200">
+              {saveStatus === 'saved' && (
+                <>
+                  <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                  <span className="text-green-700 font-medium">Saved</span>
+                  {lastSaved && (
+                    <span className="text-gray-500 text-xs">
+                      {new Date(lastSaved).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                  )}
+                </>
+              )}
+              {saveStatus === 'unsaved' && (
+                <>
+                  <span className="w-2 h-2 bg-amber-500 rounded-full animate-pulse"></span>
+                  <span className="text-amber-700 font-medium">Unsaved</span>
+                </>
+              )}
+              {saveStatus === 'saving' && (
+                <>
+                  <span className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></span>
+                  <span className="text-blue-700 font-medium">Saving...</span>
+                </>
+              )}
+            </div>
 
             <div className="ml-2 px-3 py-2 bg-gray-100 rounded text-sm text-gray-600">
               {components.length} component{components.length !== 1 ? "s" : ""}
@@ -1866,7 +2041,168 @@ export default function VisualEditor({
                             onClick={() =>
                               !previewMode && setSelectedComponent(component.id)
                             }
+                            onDoubleClick={(e) => {
+                              e.stopPropagation();
+                              // Activate quick edit on double-click for text/button/image
+                              if (['text', 'button', 'image'].includes(component.type) && !previewMode) {
+                                setQuickEditId(component.id);
+                              }
+                            }}
                           >
+                            {/* Quick Edit Mode */}
+                            {quickEditId === component.id && !previewMode ? (
+                              <div className="p-4 bg-blue-50 border-2 border-blue-400 rounded">
+                                {component.type === 'text' && (
+                                  <div>
+                                    <div
+                                      contentEditable
+                                      suppressContentEditableWarning
+                                      className="min-h-[100px] p-2 bg-white border border-blue-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                      onBlur={(e) => {
+                                        updateComponent(component.id, {
+                                          content: e.currentTarget.textContent || '',
+                                        });
+                                        setQuickEditId(null);
+                                      }}
+                                      onKeyDown={(e) => {
+                                        if (e.key === 'Escape') {
+                                          setQuickEditId(null);
+                                          e.preventDefault();
+                                        }
+                                      }}
+                                      dangerouslySetInnerHTML={{ __html: component.data.content || '' }}
+                                    />
+                                    <div className="mt-2 text-xs text-gray-600">
+                                      Press <kbd className="px-1 py-0.5 bg-gray-200 rounded">Esc</kbd> or click outside to finish editing
+                                    </div>
+                                  </div>
+                                )}
+                                {component.type === 'button' && (
+                                  <div className="space-y-3">
+                                    <div>
+                                      <label className="block text-xs font-medium text-gray-700 mb-1">
+                                        Button Text
+                                      </label>
+                                      <input
+                                        type="text"
+                                        defaultValue={component.data.text}
+                                        className="w-full px-3 py-2 border border-blue-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        onBlur={(e) => {
+                                          updateComponent(component.id, {
+                                            text: e.target.value,
+                                          });
+                                        }}
+                                        onKeyDown={(e) => {
+                                          if (e.key === 'Escape') {
+                                            setQuickEditId(null);
+                                            e.preventDefault();
+                                          } else if (e.key === 'Enter') {
+                                            e.currentTarget.blur();
+                                          }
+                                        }}
+                                        autoFocus
+                                      />
+                                    </div>
+                                    <div>
+                                      <label className="block text-xs font-medium text-gray-700 mb-1">
+                                        Link URL
+                                      </label>
+                                      <input
+                                        type="url"
+                                        defaultValue={component.data.link}
+                                        className="w-full px-3 py-2 border border-blue-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        onBlur={(e) => {
+                                          updateComponent(component.id, {
+                                            link: e.target.value,
+                                          });
+                                        }}
+                                        onKeyDown={(e) => {
+                                          if (e.key === 'Escape') {
+                                            setQuickEditId(null);
+                                            e.preventDefault();
+                                          } else if (e.key === 'Enter') {
+                                            e.currentTarget.blur();
+                                          }
+                                        }}
+                                      />
+                                    </div>
+                                    <button
+                                      onClick={() => setQuickEditId(null)}
+                                      className="w-full px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm"
+                                    >
+                                      Done Editing
+                                    </button>
+                                  </div>
+                                )}
+                                {component.type === 'image' && (
+                                  <div className="space-y-3">
+                                    <div>
+                                      <label className="block text-xs font-medium text-gray-700 mb-1">
+                                        Image URL
+                                      </label>
+                                      <input
+                                        type="url"
+                                        defaultValue={component.data.src}
+                                        className="w-full px-3 py-2 border border-blue-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        onBlur={(e) => {
+                                          updateComponent(component.id, {
+                                            src: e.target.value,
+                                          });
+                                        }}
+                                        onKeyDown={(e) => {
+                                          if (e.key === 'Escape') {
+                                            setQuickEditId(null);
+                                            e.preventDefault();
+                                          } else if (e.key === 'Enter') {
+                                            e.currentTarget.blur();
+                                          }
+                                        }}
+                                        autoFocus
+                                      />
+                                    </div>
+                                    <div>
+                                      <label className="block text-xs font-medium text-gray-700 mb-1">
+                                        Alt Text
+                                      </label>
+                                      <input
+                                        type="text"
+                                        defaultValue={component.data.alt}
+                                        className="w-full px-3 py-2 border border-blue-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        onBlur={(e) => {
+                                          updateComponent(component.id, {
+                                            alt: e.target.value,
+                                          });
+                                        }}
+                                        onKeyDown={(e) => {
+                                          if (e.key === 'Escape') {
+                                            setQuickEditId(null);
+                                            e.preventDefault();
+                                          } else if (e.key === 'Enter') {
+                                            e.currentTarget.blur();
+                                          }
+                                        }}
+                                      />
+                                    </div>
+                                    {component.data.src && (
+                                      <div className="border border-gray-200 rounded overflow-hidden">
+                                        <img
+                                          src={component.data.src}
+                                          alt={component.data.alt || 'Preview'}
+                                          className="w-full h-auto"
+                                        />
+                                      </div>
+                                    )}
+                                    <button
+                                      onClick={() => setQuickEditId(null)}
+                                      className="w-full px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm"
+                                    >
+                                      Done Editing
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
+                            ) : (
+                              <>
                             {!previewMode && (
                               <div className="absolute top-2 right-2 z-10 flex gap-2 md:gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                                 <div
@@ -1931,6 +2267,8 @@ export default function VisualEditor({
                             )}
 
                             <ComponentRenderer component={component} />
+                              </>
+                            )}
                           </div>
                         )}
                       </Draggable>
