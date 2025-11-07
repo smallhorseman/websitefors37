@@ -2,108 +2,49 @@
 
 import React, { useState, useEffect } from 'react'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
-import { Loader2, Eye, EyeOff, Save, AlertTriangle, RotateCcw, FileEdit, Globe } from 'lucide-react'
+import { Loader2, Eye, EyeOff, Save, AlertTriangle, RotateCcw, FileEdit, Globe, Menu } from 'lucide-react'
 import VisualEditor from '@/components/VisualEditor'
 import type { PageComponent } from '@/types/page-builder'
+import { revalidateContent } from '@/lib/revalidate'
 
-interface ContentPage {
-  id: number
+interface PageConfig {
   slug: string
-  title: string
-  content: string
-  published: boolean
-  updated_at: string
-}
-
-// Parse MDX to extract components (reuse from page-builder)
-function mdxToComponents(mdx: string): PageComponent[] {
-  const components: PageComponent[] = []
-  const componentRegex = /<(\w+)\s+([^>]*)\/>/g
-  const blockRegex = /<(\w+)\s+([^>]*)>(.*?)<\/\1>/gs
-  
-  let match
-  while ((match = componentRegex.exec(mdx)) !== null) {
-    const [, type, attrsStr] = match
-    const attrs = parseAttrs(attrsStr)
-    components.push({
-      id: `component-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-      type: type.toLowerCase() as any,
-      data: attrs,
-    })
+  data: {
+    components?: PageComponent[]
+    navigation?: any
+    [key: string]: any
   }
-  
-  while ((match = blockRegex.exec(mdx)) !== null) {
-    const [, type, attrsStr, content] = match
-    const attrs = parseAttrs(attrsStr)
-    components.push({
-      id: `component-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-      type: type.toLowerCase() as any,
-      data: { ...attrs, content: content?.trim() },
-    })
-  }
-  
-  return components
-}
-
-function parseAttrs(str: string): Record<string, any> {
-  const attrs: Record<string, any> = {}
-  const regex = /(\w+)=(?:{([^}]*)}|"([^"]*)")/g
-  let m
-  while ((m = regex.exec(str)) !== null) {
-    const key = m[1]
-    const jsonValue = m[2]
-    const stringValue = m[3]
-    if (jsonValue !== undefined) {
-      try {
-        attrs[key] = JSON.parse(jsonValue)
-      } catch {
-        attrs[key] = jsonValue
-      }
-    } else {
-      attrs[key] = stringValue
-    }
-  }
-  return attrs
-}
-
-// Convert components back to MDX
-function componentsToMdx(components: PageComponent[]): string {
-  let mdx = ''
-  
-  for (const comp of components) {
-    const { type, data } = comp
-    const attrs = Object.entries(data)
-      .map(([key, val]) => {
-        if (typeof val === 'object') {
-          const json = JSON.stringify(val).replace(/"/g, '\\"')
-          return `${key}={${json}}`
-        }
-        return `${key}="${val}"`
-      })
-      .join(' ')
-    
-    if (data.content) {
-      mdx += `<${type} ${attrs}>\n${data.content}\n</${type}>\n\n`
-    } else {
-      mdx += `<${type} ${attrs} />\n\n`
-    }
-  }
-  
-  return mdx
+  created_at?: string
+  updated_at?: string
 }
 
 export default function LiveEditorPage() {
-  const [pages, setPages] = useState<ContentPage[]>([])
+  const [pages, setPages] = useState<PageConfig[]>([])
   const [selectedSlug, setSelectedSlug] = useState<string>('')
   const [components, setComponents] = useState<PageComponent[]>([])
   const [originalComponents, setOriginalComponents] = useState<PageComponent[]>([])
+  const [navigation, setNavigation] = useState<any>(null)
+  const [originalNavigation, setOriginalNavigation] = useState<any>(null)
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [showPreview, setShowPreview] = useState(false)
+  const [showNavEditor, setShowNavEditor] = useState(false)
   const [message, setMessage] = useState<{ type: 'success' | 'error' | 'warning'; text: string } | null>(null)
   const [hasChanges, setHasChanges] = useState(false)
+  const [pageTitle, setPageTitle] = useState('')
   
   const supabase = createClientComponentClient()
+
+  // List of core pages that should be available
+  const CORE_PAGES = [
+    { slug: 'home', title: 'Homepage' },
+    { slug: 'about', title: 'About Us' },
+    { slug: 'services', title: 'Services' },
+    { slug: 'gallery', title: 'Gallery' },
+    { slug: 'blog', title: 'Blog' },
+    { slug: 'contact', title: 'Contact' },
+    { slug: 'book-a-session', title: 'Book a Session' },
+  ]
 
   useEffect(() => {
     loadPages()
@@ -116,24 +57,35 @@ export default function LiveEditorPage() {
   }, [selectedSlug])
 
   useEffect(() => {
-    // Detect changes
-    const changed = JSON.stringify(components) !== JSON.stringify(originalComponents)
-    setHasChanges(changed)
-  }, [components, originalComponents])
+    // Detect changes in components or navigation
+    const componentsChanged = JSON.stringify(components) !== JSON.stringify(originalComponents)
+    const navChanged = JSON.stringify(navigation) !== JSON.stringify(originalNavigation)
+    setHasChanges(componentsChanged || navChanged)
+  }, [components, originalComponents, navigation, originalNavigation])
 
   const loadPages = async () => {
     setLoading(true)
     try {
       const { data, error } = await supabase
-        .from('content_pages')
-        .select('id, slug, title, published, updated_at')
-        .eq('published', true)
+        .from('page_configs')
+        .select('slug, data, created_at, updated_at')
         .order('slug', { ascending: true })
 
       if (error) throw error
-      setPages(data || [])
-      if (data && data.length > 0 && !selectedSlug) {
-        setSelectedSlug(data[0].slug)
+
+      // Combine existing pages with core pages that might not exist yet
+      const existingSlugs = new Set((data || []).map(p => p.slug))
+      const allPages: PageConfig[] = [
+        ...(data || []),
+        ...CORE_PAGES.filter(cp => !existingSlugs.has(cp.slug)).map(cp => ({
+          slug: cp.slug,
+          data: { components: [] }
+        }))
+      ]
+
+      setPages(allPages)
+      if (allPages.length > 0 && !selectedSlug) {
+        setSelectedSlug(allPages[0].slug)
       }
     } catch (e) {
       console.error('Load pages error:', e)
@@ -148,26 +100,35 @@ export default function LiveEditorPage() {
     setMessage(null)
     try {
       const { data, error } = await supabase
-        .from('content_pages')
-        .select('content')
+        .from('page_configs')
+        .select('*')
         .eq('slug', slug)
-        .eq('published', true)
         .maybeSingle()
 
-      if (error) throw error
-      if (!data) {
-        setMessage({ type: 'warning', text: 'Page not found' })
-        setComponents([])
-        setOriginalComponents([])
-        return
+      if (error && error.code !== 'PGRST116') {
+        throw error
       }
 
-      const parsed = mdxToComponents(data.content || '')
-      setComponents(parsed)
-      setOriginalComponents(parsed)
+      // Load existing data or start with empty
+      const pageData = data?.data || { components: [] }
+      const comps = pageData.components || []
+      const nav = pageData.navigation || null
+      
+      setComponents(comps)
+      setOriginalComponents(JSON.parse(JSON.stringify(comps)))
+      setNavigation(nav)
+      setOriginalNavigation(JSON.parse(JSON.stringify(nav)))
+      
+      // Set page title from CORE_PAGES or use slug
+      const corePageInfo = CORE_PAGES.find(p => p.slug === slug)
+      setPageTitle(corePageInfo?.title || slug)
     } catch (e) {
       console.error('Load page content error:', e)
       setMessage({ type: 'error', text: 'Failed to load page content' })
+      setComponents([])
+      setOriginalComponents([])
+      setNavigation(null)
+      setOriginalNavigation(null)
     } finally {
       setLoading(false)
     }
@@ -180,48 +141,43 @@ export default function LiveEditorPage() {
 
     try {
       // Create backup before saving
-      const { data: currentData, error: fetchError } = await supabase
-        .from('content_pages')
-        .select('*')
-        .eq('slug', selectedSlug)
-        .eq('published', true)
-        .maybeSingle()
-
-      if (fetchError) throw fetchError
-      if (!currentData) throw new Error('Page not found')
-
-      // Store backup in localStorage for quick revert
+      const backupKey = `backup_${selectedSlug}_${Date.now()}`
       localStorage.setItem(
-        `backup_${selectedSlug}_${Date.now()}`,
+        backupKey,
         JSON.stringify({
           slug: selectedSlug,
-          content: currentData.content,
+          components: originalComponents,
+          navigation: originalNavigation,
           timestamp: new Date().toISOString(),
         })
       )
 
-      // Convert components to MDX
-      const newMdx = componentsToMdx(components)
+      // Keep only last 10 backups per page
+      const allBackupKeys = Object.keys(localStorage).filter(k => k.startsWith(`backup_${selectedSlug}_`))
+      if (allBackupKeys.length > 10) {
+        allBackupKeys.sort().slice(0, -10).forEach(k => localStorage.removeItem(k))
+      }
 
       // Save to database
       const { error: updateError } = await supabase
-        .from('content_pages')
-        .update({ content: newMdx })
-        .eq('slug', selectedSlug)
-        .eq('published', true)
+        .from('page_configs')
+        .upsert({
+          slug: selectedSlug,
+          data: {
+            components,
+            navigation,
+          }
+        }, { onConflict: 'slug' })
 
       if (updateError) throw updateError
 
-      setOriginalComponents([...components])
+      setOriginalComponents(JSON.parse(JSON.stringify(components)))
+      setOriginalNavigation(JSON.parse(JSON.stringify(navigation)))
       setMessage({ type: 'success', text: 'Changes saved successfully!' })
 
       // Trigger revalidation
       try {
-        await fetch('/api/revalidate', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ slug: selectedSlug }),
-        })
+        await revalidateContent(selectedSlug === 'home' ? '/' : `/${selectedSlug}`)
       } catch (revalError) {
         console.warn('Revalidation failed:', revalError)
       }
@@ -234,7 +190,8 @@ export default function LiveEditorPage() {
   }
 
   const revertChanges = () => {
-    setComponents([...originalComponents])
+    setComponents(JSON.parse(JSON.stringify(originalComponents)))
+    setNavigation(JSON.parse(JSON.stringify(originalNavigation)))
     setMessage({ type: 'success', text: 'Changes reverted' })
   }
 
@@ -253,30 +210,33 @@ export default function LiveEditorPage() {
     }
 
     const latest = backups[0]
-    const parsed = mdxToComponents(latest.content)
-    setComponents(parsed)
+    setComponents(JSON.parse(JSON.stringify(latest.components || [])))
+    setNavigation(JSON.parse(JSON.stringify(latest.navigation || null)))
     setMessage({
       type: 'success',
       text: `Restored backup from ${new Date(latest.timestamp).toLocaleString()}`,
     })
   }
 
-  const selectedPage = pages.find(p => p.slug === selectedSlug)
+  const getPageDisplayName = (slug: string) => {
+    const corePageInfo = CORE_PAGES.find(p => p.slug === slug)
+    return corePageInfo?.title || slug
+  }
 
   return (
     <div className="h-screen flex flex-col bg-gray-50">
       {/* Header */}
-      <div className="bg-white border-b px-6 py-4 flex items-center justify-between">
+      <div className="bg-white border-b px-6 py-4 flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2">
             <Globe className="h-6 w-6 text-primary-600" />
             Live Page Editor
           </h1>
           <p className="text-sm text-gray-600 mt-1">
-            Edit published pages directly (changes are reflected immediately after save)
+            Edit your site pages with the visual builder
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
           <select
             value={selectedSlug}
             onChange={(e) => setSelectedSlug(e.target.value)}
@@ -285,11 +245,22 @@ export default function LiveEditorPage() {
           >
             <option value="">Select a page...</option>
             {pages.map(page => (
-              <option key={page.id} value={page.slug}>
-                /{page.slug} - {page.title}
+              <option key={page.slug} value={page.slug}>
+                /{page.slug === 'home' ? '' : page.slug} - {getPageDisplayName(page.slug)}
               </option>
             ))}
           </select>
+
+          {selectedSlug && (
+            <button
+              onClick={() => setShowNavEditor(!showNavEditor)}
+              className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-50 flex items-center gap-2"
+              title="Edit navigation menu"
+            >
+              <Menu className="h-4 w-4" />
+              Navigation
+            </button>
+          )}
 
           {hasChanges && (
             <button
@@ -331,12 +302,11 @@ export default function LiveEditorPage() {
       </div>
 
       {/* Warning Banner */}
-      {selectedSlug && (
+      {selectedSlug && hasChanges && (
         <div className="bg-amber-50 border-b border-amber-200 px-6 py-3 flex items-center gap-2">
           <AlertTriangle className="h-5 w-5 text-amber-600 flex-shrink-0" />
           <p className="text-sm text-amber-800">
-            <strong>Warning:</strong> You are editing a live published page. Changes will be visible to users after saving and revalidation.
-            {hasChanges && ' You have unsaved changes.'}
+            <strong>Warning:</strong> You have unsaved changes. Click "Save Changes" to apply them.
           </p>
         </div>
       )}
@@ -366,7 +336,29 @@ export default function LiveEditorPage() {
           <div className="flex-1 flex items-center justify-center text-gray-500">
             <div className="text-center">
               <FileEdit className="h-12 w-12 mx-auto mb-3 text-gray-400" />
-              <p>Select a page to start editing</p>
+              <p className="font-medium">Select a page to start editing</p>
+              <p className="text-sm mt-2">Choose from your existing pages or core site pages</p>
+            </div>
+          </div>
+        ) : showNavEditor ? (
+          <div className="flex-1 overflow-auto p-6">
+            <div className="max-w-4xl mx-auto bg-white rounded-lg shadow p-6">
+              <h2 className="text-xl font-bold mb-4">Navigation Editor</h2>
+              <p className="text-gray-600 mb-4">
+                Edit site navigation menu items (coming soon - for now, edit via Settings)
+              </p>
+              <div className="border rounded p-4 bg-gray-50">
+                <p className="text-sm text-gray-600">
+                  Navigation structure is currently managed via the Settings page.
+                  This feature will allow you to visually edit menu items, links, and structure.
+                </p>
+              </div>
+              <button
+                onClick={() => setShowNavEditor(false)}
+                className="mt-4 px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+              >
+                Back to Page Editor
+              </button>
             </div>
           </div>
         ) : (
@@ -377,7 +369,7 @@ export default function LiveEditorPage() {
                 components={components}
                 onChange={setComponents}
                 slug={selectedSlug}
-                title={selectedPage?.title || ''}
+                title={pageTitle}
               />
             </div>
 
@@ -387,14 +379,15 @@ export default function LiveEditorPage() {
                 <div className="px-4 py-3 border-b bg-gray-50">
                   <h3 className="font-medium text-sm">Live Preview</h3>
                   <p className="text-xs text-gray-600 mt-1">
-                    Preview shows how the page will look (refresh after save to see latest)
+                    Shows current published version (save and wait a moment for updates)
                   </p>
                 </div>
                 <div className="flex-1 overflow-auto">
                   <iframe
-                    src={`/${selectedSlug}`}
+                    src={selectedSlug === 'home' ? '/' : `/${selectedSlug}`}
                     className="w-full h-full border-0"
                     title="Page Preview"
+                    key={selectedSlug} // Force reload on page change
                   />
                 </div>
               </div>
