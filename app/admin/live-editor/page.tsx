@@ -32,6 +32,7 @@ export default function LiveEditorPage() {
   const [message, setMessage] = useState<{ type: 'success' | 'error' | 'warning'; text: string } | null>(null)
   const [hasChanges, setHasChanges] = useState(false)
   const [pageTitle, setPageTitle] = useState('')
+  const [importing, setImporting] = useState(false)
   
   const supabase = createClientComponentClient()
 
@@ -233,6 +234,247 @@ export default function LiveEditorPage() {
     })
   }
 
+  // Import from published MDX content
+  const unescapeHtml = (s: string) =>
+    String(s)
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'")
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&amp;/g, '&')
+
+  const parseAttrs = (tag: string) => {
+    const attrs: Record<string, string> = {}
+    const attrRe = /(\w+)="([^"]*)"/g
+    let m: RegExpExecArray | null
+    while ((m = attrRe.exec(tag))) {
+      attrs[m[1]] = unescapeHtml(m[2])
+    }
+    return attrs
+  }
+
+  const mdxToComponents = (mdx: string): PageComponent[] => {
+    const comps: PageComponent[] = []
+    const lines = mdx.split(/\n+/).map(l => l.trim()).filter(Boolean)
+    
+    for (const line of lines) {
+      const id = `component-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+      
+      if (line.startsWith('<HeroBlock')) {
+        const a = parseAttrs(line)
+        comps.push({
+          id,
+          type: 'hero',
+          data: {
+            title: a.title || '',
+            subtitle: a.subtitle || '',
+            backgroundImage: a.backgroundImage || '',
+            buttonText: a.buttonText || '',
+            buttonLink: a.buttonLink || '',
+            secondaryButtonText: a.secondaryButtonText || '',
+            secondaryButtonLink: a.secondaryButtonLink || '',
+            alignment: a.alignment || 'center',
+            overlay: Number(a.overlay) || 50,
+            titleColor: a.titleColor || 'text-white',
+            subtitleColor: a.subtitleColor || 'text-amber-50',
+            buttonStyle: a.buttonStyle || 'primary',
+            animation: a.animation || 'none',
+            buttonAnimation: a.buttonAnimation || 'none',
+            fullBleed: String(a.fullBleed) !== 'false',
+          }
+        })
+      } else if (line.startsWith('<TextBlock')) {
+        const a = parseAttrs(line)
+        let content = ''
+        try {
+          content = a.contentB64 ? decodeURIComponent(escape(atob(a.contentB64))) : ''
+        } catch { content = '' }
+        comps.push({
+          id,
+          type: 'text',
+          data: {
+            content,
+            alignment: a.alignment || 'left',
+            size: a.size || 'md',
+            animation: a.animation || 'none',
+          }
+        })
+      } else if (line.startsWith('<ImageBlock')) {
+        const a = parseAttrs(line)
+        comps.push({
+          id,
+          type: 'image',
+          data: {
+            url: a.url || '',
+            alt: a.alt || '',
+            caption: a.caption || '',
+            width: a.width || 'full',
+            link: a.link || '',
+            animation: a.animation || 'none',
+          }
+        })
+      } else if (line.startsWith('<GalleryHighlightsBlock')) {
+        const a = parseAttrs(line)
+        let categories: string[] = []
+        let collections: string[] = []
+        let tags: string[] = []
+        try {
+          categories = a.categoriesB64 ? JSON.parse(decodeURIComponent(escape(atob(a.categoriesB64)))) : []
+        } catch { categories = [] }
+        try {
+          collections = a.collectionsB64 ? JSON.parse(decodeURIComponent(escape(atob(a.collectionsB64)))) : []
+        } catch { collections = [] }
+        try {
+          tags = a.tagsB64 ? JSON.parse(decodeURIComponent(escape(atob(a.tagsB64)))) : []
+        } catch { tags = [] }
+        comps.push({
+          id,
+          type: 'galleryHighlights',
+          data: {
+            categories,
+            collections,
+            tags,
+            group: a.group || '',
+            featuredOnly: String(a.featuredOnly) !== 'false',
+            limit: Number(a.limit || 6),
+            limitPerCategory: Number(a.limitPerCategory || 0) || undefined,
+            sortBy: a.sortBy || 'display_order',
+            sortDir: a.sortDir || 'asc',
+            animation: a.animation || 'fade-in',
+          }
+        })
+      } else if (line.startsWith('<FAQBlock')) {
+        const a = parseAttrs(line)
+        let items: any[] = []
+        try {
+          items = a.itemsB64 ? JSON.parse(decodeURIComponent(escape(atob(a.itemsB64)))) : []
+        } catch { items = [] }
+        comps.push({
+          id,
+          type: 'faq',
+          data: {
+            heading: a.heading || '',
+            items,
+            columns: Number(a.columns) || 1,
+            animation: a.animation || 'fade-in',
+          }
+        })
+      } else if (line.startsWith('<PricingTableBlock')) {
+        const a = parseAttrs(line)
+        let plans: any[] = []
+        try {
+          plans = a.plansB64 ? JSON.parse(decodeURIComponent(escape(atob(a.plansB64)))) : []
+        } catch { plans = [] }
+        comps.push({
+          id,
+          type: 'pricingTable',
+          data: {
+            heading: a.heading || '',
+            subheading: a.subheading || '',
+            plans,
+            columns: Number(a.columns) || 3,
+            animation: a.animation || 'fade-in',
+            style: a.style || 'light',
+            variant: a.variant || 'card',
+            showFeatureChecks: String(a.showFeatureChecks) !== 'false',
+          }
+        })
+      } else if (line.startsWith('<CTABannerBlock')) {
+        const a = parseAttrs(line)
+        comps.push({
+          id,
+          type: 'ctaBanner',
+          data: {
+            heading: a.heading || '',
+            subheading: a.subheading || '',
+            primaryButtonText: a.primaryButtonText || '',
+            primaryButtonLink: a.primaryButtonLink || '',
+            secondaryButtonText: a.secondaryButtonText || '',
+            secondaryButtonLink: a.secondaryButtonLink || '',
+            backgroundImage: a.backgroundImage || '',
+            backgroundColor: a.backgroundColor || '#0f172a',
+            overlay: Number(a.overlay) || 60,
+            textColor: a.textColor || 'text-white',
+            fullBleed: String(a.fullBleed) !== 'false',
+            animation: a.animation || 'fade-in',
+          }
+        })
+      } else if (line.startsWith('<ContactFormBlock')) {
+        const a = parseAttrs(line)
+        comps.push({
+          id,
+          type: 'contactForm',
+          data: {
+            heading: a.heading || '',
+            subheading: a.subheading || '',
+            animation: a.animation || 'fade-in',
+          }
+        })
+      } else if (line.startsWith('<NewsletterBlock')) {
+        const a = parseAttrs(line)
+        comps.push({
+          id,
+          type: 'newsletterSignup',
+          data: {
+            heading: a.heading || '',
+            subheading: a.subheading || '',
+            disclaimer: a.disclaimer || '',
+            style: a.style || 'card',
+            animation: a.animation || 'fade-in',
+          }
+        })
+      }
+      // Add more block types as needed
+    }
+    
+    return comps
+  }
+
+  const importFromPublished = async () => {
+    if (!selectedSlug) return
+    
+    setImporting(true)
+    setMessage(null)
+    
+    try {
+      const { data, error } = await supabase
+        .from('content_pages')
+        .select('content')
+        .eq('slug', selectedSlug)
+        .eq('published', true)
+        .maybeSingle()
+
+      if (error) throw error
+      if (!data?.content) {
+        setMessage({ type: 'warning', text: 'No published content found for this page' })
+        return
+      }
+
+      const imported = mdxToComponents(data.content)
+      if (imported.length === 0) {
+        setMessage({ type: 'warning', text: 'Could not parse any components from published content' })
+        return
+      }
+
+      // Ask for confirmation
+      if (!confirm(`Import ${imported.length} component${imported.length === 1 ? '' : 's'} from published page? This will replace your current unsaved changes.`)) {
+        return
+      }
+
+      setComponents(imported)
+      setOriginalComponents(JSON.parse(JSON.stringify(imported)))
+      setMessage({ 
+        type: 'success', 
+        text: `Imported ${imported.length} component${imported.length === 1 ? '' : 's'} from published page. Click Save to persist these changes.` 
+      })
+    } catch (e: any) {
+      console.error('Import error:', e)
+      setMessage({ type: 'error', text: e?.message || 'Failed to import from published content' })
+    } finally {
+      setImporting(false)
+    }
+  }
+
   const getPageDisplayName = (slug: string) => {
     const corePageInfo = CORE_PAGES.find(p => p.slug === slug)
     return corePageInfo?.title || slug
@@ -299,16 +541,13 @@ export default function LiveEditorPage() {
 
           {selectedSlug && components.length === 0 && (
             <button
-              onClick={() => {
-                if (confirm(`No components found for ${selectedSlug}. Would you like to load the published version if it exists?`)) {
-                  // This will be handled by the parent page-builder's import logic
-                  setMessage({ type: 'warning', text: 'Import from published not yet implemented in Live Editor. Use Page Builder\'s import feature instead.' })
-                }
-              }}
-              className="px-4 py-2 border border-blue-300 bg-blue-50 text-blue-700 rounded hover:bg-blue-100 flex items-center gap-2"
+              onClick={importFromPublished}
+              disabled={importing}
+              className="px-4 py-2 border border-blue-300 bg-blue-50 text-blue-700 rounded hover:bg-blue-100 flex items-center gap-2 disabled:opacity-50"
               title="Import from published page"
             >
-              Import Published
+              {importing ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileEdit className="h-4 w-4" />}
+              {importing ? 'Importing...' : 'Import Published'}
             </button>
           )}
 
