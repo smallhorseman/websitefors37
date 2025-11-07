@@ -446,11 +446,14 @@ export default function PageBuilderPage() {
         alert('Could not parse any components from the published content.')
         return
       }
+      // Confirm with user before overwriting draft
+      const ok = window.confirm(`Import ${imported.length} component${imported.length === 1 ? '' : 's'} from published /${cleanSlug}? This will overwrite the current draft.`)
+      if (!ok) return
       // Save as draft for this slug
       await supabase
         .from('page_configs')
         .upsert({ slug: cleanSlug, data: { components: imported } }, { onConflict: 'slug' })
-      setMessage({ type: 'success', text: 'Imported from published content and saved as draft.' })
+      setMessage({ type: 'success', text: `Imported ${imported.length} component${imported.length === 1 ? '' : 's'} from published and saved as draft.` })
     } catch (e: any) {
       console.error('Import failed:', e)
       setMessage({ type: 'error', text: e?.message || 'Failed to import from published content.' })

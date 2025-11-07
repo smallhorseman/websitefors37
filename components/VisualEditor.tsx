@@ -1141,6 +1141,20 @@ export default function VisualEditor({
   const [useAISource, setUseAISource] = useState(true);
   const [showGrid, setShowGrid] = useState(false);
   const [showVersions, setShowVersions] = useState(false);
+  const [propertiesExpanded, setPropertiesExpanded] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    try {
+      const raw = localStorage.getItem('ve:propertiesExpanded');
+      return raw ? JSON.parse(raw) : false;
+    } catch {
+      return false;
+    }
+  });
+  useEffect(() => {
+    try {
+      localStorage.setItem('ve:propertiesExpanded', JSON.stringify(propertiesExpanded));
+    } catch {}
+  }, [propertiesExpanded]);
 
   type Suggestion = {
     id: string;
@@ -4494,9 +4508,16 @@ export default function VisualEditor({
 
       {/* Right Sidebar - Properties (desktop) */}
       {!previewMode && selectedComponent && (
-        <div className="hidden md:block w-80 bg-white border-l overflow-y-auto">
-          <div className="p-4 border-b">
+        <div className={`hidden md:block ${propertiesExpanded ? 'w-[28rem]' : 'w-80'} bg-white border-l overflow-y-auto`}>
+          <div className="p-4 border-b flex items-center justify-between">
             <h2 className="font-bold text-lg">Properties</h2>
+            <button
+              className="px-2 py-1 text-xs border rounded"
+              onClick={() => setPropertiesExpanded((v) => !v)}
+              title={propertiesExpanded ? 'Shrink properties panel' : 'Expand properties panel'}
+            >
+              {propertiesExpanded ? 'Shrink' : 'Expand'}
+            </button>
           </div>
 
           <div className="p-4">
@@ -5917,7 +5938,11 @@ function TimelineRenderer({ data }: { data: TimelineComponent['data'] }) {
           <div key={event.id} className="flex gap-4 mb-6">
             <div className="flex flex-col items-center">
               <div className="w-12 h-12 rounded-full bg-primary-600 text-white flex items-center justify-center font-bold">
-                {event.icon ? <TrendingUp className="h-6 w-6" /> : i + 1}
+                {event.icon && String(event.icon).trim().length > 0 ? (
+                  <span className="text-xl leading-none">{event.icon}</span>
+                ) : (
+                  i + 1
+                )}
               </div>
               {i < events.length - 1 && <div className="w-1 flex-1 bg-primary-200 mt-2" />}
             </div>
@@ -11497,7 +11522,7 @@ function TrustBadgesProperties({
   );
 }
 
-// Timeline Properties (basic list editor)
+// Timeline Properties (DnD + icon support)
 function TimelineProperties({
   data,
   onUpdate,
@@ -11505,20 +11530,57 @@ function TimelineProperties({
   data: TimelineComponent["data"];
   onUpdate: (data: any) => void;
 }) {
-  const events = data.events || [];
+  // Normalize legacy data (items -> events)
+  const events = React.useMemo(() => {
+    const evts = (data as any).events as any[] | undefined;
+    if (evts && evts.length) return evts;
+    const items = (data as any).items as any[] | undefined;
+    if (items && items.length) {
+      return items.map((it) => ({
+        id: it.id || `ev-${Math.random().toString(36).slice(2, 8)}`,
+        date: it.date || '',
+        title: it.title || it.heading || '',
+        description: it.description || it.text || '',
+        icon: (it as any).icon || '',
+      }));
+    }
+    return [] as any[];
+  }, [data]);
+
+  const commit = (next: any[]) => onUpdate({ events: next });
+
   const updateEvent = (idx: number, patch: any) => {
     const next = events.map((e, i) => (i === idx ? { ...e, ...patch } : e));
-    onUpdate({ events: next });
+    commit(next);
   };
   const addEvent = () => {
-    onUpdate({
-      events: [
-        ...events,
-        { id: `ev-${Date.now()}`, date: "", title: "", description: "" },
-      ],
-    });
+    commit([
+      ...events,
+      { id: `ev-${Date.now()}`, date: "", title: "", description: "", icon: '' },
+    ]);
   };
-  const removeEvent = (idx: number) => onUpdate({ events: events.filter((_, i) => i !== idx) });
+  const removeEvent = (idx: number) => commit(events.filter((_, i) => i !== idx));
+
+  // Simple HTML5 Drag and Drop reorder
+  const dragIndexRef = React.useRef<number | null>(null);
+  const handleDragStart = (idx: number) => (e: React.DragEvent<HTMLDivElement>) => {
+    dragIndexRef.current = idx;
+    e.dataTransfer.effectAllowed = 'move';
+  };
+  const handleDragOver = (idx: number) => (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+  const handleDrop = (idx: number) => (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    const from = dragIndexRef.current;
+    dragIndexRef.current = null;
+    if (from == null || from === idx) return;
+    const next = [...events];
+    const [moved] = next.splice(from, 1);
+    next.splice(idx, 0, moved);
+    commit(next);
+  };
 
   return (
     <div className="space-y-4">
@@ -11566,36 +11628,59 @@ function TimelineProperties({
         </div>
         <div className="space-y-3">
           {events.map((ev, idx) => (
-            <div key={ev.id || idx} className="grid grid-cols-12 gap-2">
-              <div className="col-span-2">
-                <label className="block text-xs font-medium mb-1">Date</label>
-                <input
-                  type="text"
-                  value={ev.date || ""}
-                  onChange={(e) => updateEvent(idx, { date: e.target.value })}
-                  className="w-full border rounded px-2 py-2"
-                />
+            <div
+              key={ev.id || idx}
+              className="bg-gray-50 p-2 rounded border"
+              draggable
+              onDragStart={handleDragStart(idx)}
+              onDragOver={handleDragOver(idx)}
+              onDrop={handleDrop(idx)}
+            >
+              <div className="grid grid-cols-12 gap-2 items-center">
+                <div className="col-span-1 flex items-center justify-center cursor-grab" title="Drag to reorder">≡</div>
+                <div className="col-span-2">
+                  <label className="block text-xs font-medium mb-1">Date</label>
+                  <input
+                    type="text"
+                    value={ev.date || ""}
+                    onChange={(e) => updateEvent(idx, { date: e.target.value })}
+                    className="w-full border rounded px-2 py-2 text-xs"
+                  />
+                </div>
+                <div className="col-span-3">
+                  <label className="block text-xs font-medium mb-1">Title</label>
+                  <input
+                    type="text"
+                    value={ev.title || ""}
+                    onChange={(e) => updateEvent(idx, { title: e.target.value })}
+                    className="w-full border rounded px-2 py-2 text-xs"
+                  />
+                </div>
+                <div className="col-span-4">
+                  <label className="block text-xs font-medium mb-1">Description</label>
+                  <input
+                    type="text"
+                    value={ev.description || ""}
+                    onChange={(e) => updateEvent(idx, { description: e.target.value })}
+                    className="w-full border rounded px-2 py-2 text-xs"
+                  />
+                </div>
+                <div className="col-span-2">
+                  <label className="block text-xs font-medium mb-1">Icon (optional)</label>
+                  <input
+                    type="text"
+                    value={ev.icon || ''}
+                    onChange={(e) => updateEvent(idx, { icon: e.target.value })}
+                    className="w-full border rounded px-2 py-2 text-xs"
+                    placeholder="e.g., ⭐ or 🚀"
+                  />
+                </div>
               </div>
-              <div className="col-span-4">
-                <label className="block text-xs font-medium mb-1">Title</label>
-                <input
-                  type="text"
-                  value={ev.title || ""}
-                  onChange={(e) => updateEvent(idx, { title: e.target.value })}
-                  className="w-full border rounded px-2 py-2"
-                />
-              </div>
-              <div className="col-span-5">
-                <label className="block text-xs font-medium mb-1">Description</label>
-                <input
-                  type="text"
-                  value={ev.description || ""}
-                  onChange={(e) => updateEvent(idx, { description: e.target.value })}
-                  className="w-full border rounded px-2 py-2"
-                />
-              </div>
-              <div className="col-span-1 flex items-end">
-                <button onClick={() => removeEvent(idx)} className="text-red-600 text-xs border rounded px-2 py-1 hover:bg-red-50">Remove</button>
+              <div className="flex justify-between items-center mt-2">
+                <div className="text-[10px] text-gray-500">Tip: Drag the ≡ handle to reorder</div>
+                <div className="flex gap-1">
+                  <button onClick={() => removeEvent(idx)} className="text-[10px] text-red-600 border rounded px-2 py-1">Remove</button>
+                </div>
               </div>
             </div>
           ))}
@@ -11975,6 +12060,86 @@ function CalculatorProperties({ data, onUpdate }: { data: CalculatorComponent['d
   };
   return (
     <div className="space-y-4">
+      {/* Quick Presets */}
+      <div className="border rounded p-3 bg-gray-50">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-sm font-medium">Quick Presets</span>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <button
+            className="text-xs px-2 py-1 border rounded hover:bg-white"
+            onClick={() => {
+              if (fields.length > 0 && !confirm('Replace existing fields with the Portrait Session preset?')) return;
+              onUpdate({
+                heading: data.heading || 'Session Estimator',
+                basePrice: 199,
+                description: data.description || 'Estimate your session cost.',
+                showBreakdown: true,
+                fields: [
+                  { id: `field-${Date.now()}-dur`, label: 'Session Duration', type: 'select', options: [
+                    { label: '30 minutes', value: 0 },
+                    { label: '60 minutes', value: 150 },
+                    { label: '90 minutes', value: 300 },
+                  ] },
+                  { id: `field-${Date.now()}-extra`, label: 'Extra Edited Photos', type: 'number', multiplier: 10 },
+                  { id: `field-${Date.now()}-travel`, label: 'Travel (miles)', type: 'select', options: [
+                    { label: '0-10', value: 0 },
+                    { label: '10-25', value: 25 },
+                    { label: '25-50', value: 50 },
+                  ] },
+                ],
+              });
+            }}
+          >Portrait Session</button>
+          <button
+            className="text-xs px-2 py-1 border rounded hover:bg-white"
+            onClick={() => {
+              if (fields.length > 0 && !confirm('Replace existing fields with the Wedding Quote preset?')) return;
+              onUpdate({
+                heading: data.heading || 'Wedding Quote',
+                basePrice: 999,
+                description: data.description || 'Estimate your wedding photography package.',
+                showBreakdown: true,
+                fields: [
+                  { id: `field-${Date.now()}-cov`, label: 'Coverage Hours', type: 'select', options: [
+                    { label: '4 hours', value: 0 },
+                    { label: '6 hours', value: 400 },
+                    { label: '8 hours', value: 800 },
+                  ] },
+                  { id: `field-${Date.now()}-second`, label: 'Second Shooter', type: 'select', options: [
+                    { label: 'No', value: 0 },
+                    { label: 'Yes', value: 300 },
+                  ] },
+                  { id: `field-${Date.now()}-rush`, label: 'Rush Delivery', type: 'select', options: [
+                    { label: 'No', value: 0 },
+                    { label: 'Yes', value: 200 },
+                  ] },
+                ],
+              });
+            }}
+          >Wedding Quote</button>
+          <button
+            className="text-xs px-2 py-1 border rounded hover:bg-white"
+            onClick={() => {
+              if (fields.length > 0 && !confirm('Replace existing fields with the Commercial preset?')) return;
+              onUpdate({
+                heading: data.heading || 'Commercial Estimate',
+                basePrice: 299,
+                description: data.description || 'Estimate commercial photography.',
+                showBreakdown: true,
+                fields: [
+                  { id: `field-${Date.now()}-products`, label: 'Number of Products', type: 'number', multiplier: 25 },
+                  { id: `field-${Date.now()}-retouch`, label: 'Retouching Level', type: 'select', options: [
+                    { label: 'Basic', value: 0 },
+                    { label: 'Advanced', value: 150 },
+                    { label: 'Premium', value: 300 },
+                  ] },
+                ],
+              });
+            }}
+          >Commercial</button>
+        </div>
+      </div>
       <div className="grid grid-cols-2 gap-3">
         <div>
           <label className="block text-sm font-medium mb-1">Heading</label>
@@ -14287,7 +14452,22 @@ function BadgesProperties({
           {(data.badges || []).map((b, idx) => (
             <div key={idx} className="border rounded p-3 bg-gray-50 space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-xs text-gray-600">Badge #{idx + 1}</span>
+                <span className="text-xs text-gray-600 inline-flex items-center gap-2">
+                  {/* Tiny visual thumbnail preview */}
+                  <span
+                    className="inline-flex items-center justify-center w-6 h-6 rounded-full border border-gray-300 bg-white text-[12px]"
+                    title="Preview"
+                    style={
+                      // Apply inline color when hex is used, otherwise rely on Tailwind text-* class on child span
+                      b.color && b.color.startsWith('#') ? { color: b.color } : undefined
+                    }
+                  >
+                    <span className={b.color && b.color.startsWith('text-') ? b.color : ''}>
+                      {b.icon === 'thumbtack' ? '📌' : b.icon === 'shield' ? '🛡️' : b.icon === 'camera' ? '📷' : b.icon === 'check' ? '✔️' : '★'}
+                    </span>
+                  </span>
+                  <span>Badge #{idx + 1}</span>
+                </span>
                 <button
                   type="button"
                   onClick={() => removeBadge(idx)}
