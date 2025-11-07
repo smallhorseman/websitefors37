@@ -1213,19 +1213,19 @@ export default function VisualEditor({
     } catch {}
   }, [quickPropertiesMode]);
 
-  // Memoize the selected component with stable reference using deep comparison
+  // Memoize the selected component with stable reference
   const selectedComponentData = React.useMemo(() => {
     if (!selectedComponent) return null;
     return components.find((c) => c.id === selectedComponent) || null;
   }, [selectedComponent, components]);
 
-  // Keep a stable reference to prevent unnecessary re-renders
-  const selectedComponentDataStable = React.useRef<PageComponent | null>(null);
-  React.useEffect(() => {
-    if (selectedComponentData) {
-      selectedComponentDataStable.current = selectedComponentData;
-    }
-  }, [selectedComponentData]);
+  // Keep a stable reference updated synchronously to prevent re-renders
+  const selectedComponentDataStableRef = React.useRef<PageComponent | null>(null);
+  if (selectedComponentData && selectedComponentData.id === selectedComponent) {
+    selectedComponentDataStableRef.current = selectedComponentData;
+  } else if (!selectedComponent) {
+    selectedComponentDataStableRef.current = null;
+  }
 
   type Suggestion = {
     id: string;
@@ -4675,10 +4675,10 @@ export default function VisualEditor({
               </div>
             </div>
 
-            {selectedComponent && selectedComponentDataStable.current && (
+            {selectedComponent && selectedComponentDataStableRef.current && (
               <ComponentPropertiesWrapper
                 key={selectedComponent}
-                component={selectedComponentDataStable.current}
+                component={selectedComponentDataStableRef.current}
                 quickMode={quickPropertiesMode}
                 onUpdate={(data) => updateComponent(selectedComponent!, data)}
               />
@@ -4716,10 +4716,10 @@ export default function VisualEditor({
               </button>
             </div>
             <div className="p-4 overflow-y-auto h-[calc(100%-56px)]">
-              {selectedComponent && selectedComponentDataStable.current ? (
+              {selectedComponent && selectedComponentDataStableRef.current ? (
                 <ComponentPropertiesWrapper
                   key={selectedComponent}
-                  component={selectedComponentDataStable.current}
+                  component={selectedComponentDataStableRef.current}
                   quickMode={quickPropertiesMode}
                   onUpdate={(data) => updateComponent(selectedComponent!, data)}
                 />
@@ -11948,6 +11948,12 @@ const ComponentPropertiesInner = React.memo(function ComponentPropertiesInner({
     default:
       return null;
   }
+}, (prevProps, nextProps) => {
+  // Custom comparison: only re-render if component ID or type changes
+  // Don't re-render on data changes (they're handled by local input state)
+  return prevProps.component.id === nextProps.component.id &&
+         prevProps.component.type === nextProps.component.type &&
+         prevProps.quickMode === nextProps.quickMode;
 });
 
 // Add missing HeroProperties component
