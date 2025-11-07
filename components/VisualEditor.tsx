@@ -11573,7 +11573,7 @@ function getQuickFieldsForType(type: PageComponent["type"]): string[] | null {
   }
 }
 
-// Wrapper that adds local state to prevent losing focus during updates
+// Simple wrapper to prevent updates from propagating immediately
 function ComponentPropertiesWrapper({
   component,
   onUpdate,
@@ -11583,54 +11583,31 @@ function ComponentPropertiesWrapper({
   onUpdate: (data: any) => void;
   quickMode?: boolean;
 }) {
-  // Use local state to track changes without triggering parent updates
-  const [localData, setLocalData] = React.useState(component.data);
-  const updateTimeoutRef = React.useRef<NodeJS.Timeout>();
-  const localDataRef = React.useRef(component.data);
-
-  // Sync local state when component ID changes (different component selected)
-  React.useEffect(() => {
-    setLocalData(component.data);
-    localDataRef.current = component.data;
-  }, [component.id]);
-
-  // Stable update handler that doesn't change on every render
-  const handleUpdate = React.useCallback((partialData: any) => {
-    // Update local state immediately for UI responsiveness
-    const newData = { ...localDataRef.current, ...partialData };
-    setLocalData(newData);
-    localDataRef.current = newData;
-    
-    // Clear existing timeout
-    if (updateTimeoutRef.current) {
-      clearTimeout(updateTimeoutRef.current);
-    }
-    
-    // Debounce the parent update to prevent re-renders
-    updateTimeoutRef.current = setTimeout(() => {
-      onUpdate(partialData);
-    }, 300);
+  const timeoutRef = React.useRef<NodeJS.Timeout>();
+  
+  // Wrap the onUpdate to prevent immediate propagation
+  const debouncedUpdate = React.useCallback((data: any) => {
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    timeoutRef.current = setTimeout(() => onUpdate(data), 0);
   }, [onUpdate]);
 
-  // Cleanup timeout on unmount
   React.useEffect(() => {
     return () => {
-      if (updateTimeoutRef.current) {
-        clearTimeout(updateTimeoutRef.current);
-      }
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
   }, []);
 
   return (
     <ComponentPropertiesInner
-      component={{ ...component, data: localData }}
-      onUpdate={handleUpdate}
+      component={component}
+      onUpdate={debouncedUpdate}
       quickMode={quickMode}
     />
   );
 }
 
-function ComponentPropertiesInner({
+// Memoize to prevent re-renders when props haven't changed deeply
+const ComponentPropertiesInner = React.memo(function ComponentPropertiesInner({
   component,
   onUpdate,
   quickMode,
@@ -11963,7 +11940,7 @@ function ComponentPropertiesInner({
     default:
       return null;
   }
-}
+});
 
 // Add missing HeroProperties component
 function HeroProperties({
