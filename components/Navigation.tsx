@@ -6,12 +6,22 @@ import { Menu, X, Camera } from 'lucide-react'
 import Image from 'next/image'
 import { supabase } from '@/lib/supabase'
 
+interface NavigationItem {
+  id: string
+  label: string
+  href: string
+  order: number
+  visible: boolean
+  highlighted?: boolean
+}
+
 export default function Navigation() {
   const [isMounted, setIsMounted] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const [logoUrl, setLogoUrl] = useState<string | null>(null)
   const [dbLogoUrl, setDbLogoUrl] = useState<string | null>(null)
+  const [navItems, setNavItems] = useState<NavigationItem[]>([])
   // Badge concept (light/dark) as default fallbacks
   const DEFAULT_LOGO_LIGHT = '/brand/studio37-badge-light.svg'
   const DEFAULT_LOGO_DARK = '/brand/studio37-badge-dark.svg'
@@ -40,11 +50,30 @@ export default function Navigation() {
     let mounted = true
     ;(async () => {
       try {
-        const { data } = await supabase.from('settings').select('logo_url').single()
+        const { data } = await supabase.from('settings').select('logo_url, navigation_items').single()
         if (!mounted) return
         setDbLogoUrl((data && data.logo_url) ? String(data.logo_url) : null)
+        
+        // Load navigation items
+        const items = (data?.navigation_items || []) as NavigationItem[]
+        const visibleItems = items
+          .filter(item => item.visible)
+          .sort((a, b) => a.order - b.order)
+        setNavItems(visibleItems)
       } catch {
-        if (mounted) setDbLogoUrl(null)
+        if (mounted) {
+          setDbLogoUrl(null)
+          // Fallback to default navigation if DB fails
+          setNavItems([
+            { id: 'home', label: 'Home', href: '/', order: 1, visible: true },
+            { id: 'gallery', label: 'Gallery', href: '/gallery', order: 2, visible: true },
+            { id: 'services', label: 'Services', href: '/services', order: 3, visible: true },
+            { id: 'blog', label: 'Blog', href: '/blog', order: 4, visible: true },
+            { id: 'about', label: 'About', href: '/about', order: 5, visible: true },
+            { id: 'contact', label: 'Contact', href: '/contact', order: 6, visible: true },
+            { id: 'book', label: 'Book a Session', href: '/book-a-session', order: 7, visible: true, highlighted: true },
+          ])
+        }
       }
     })()
     return () => { mounted = false }
@@ -105,51 +134,30 @@ export default function Navigation() {
           </Link>
 
           <div className="hidden md:flex items-center space-x-8" suppressHydrationWarning>
-            <Link 
-              href="/" 
-              className={`hover:text-amber-600 focus:text-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-600 focus:ring-offset-2 transition-colors font-medium px-2 py-1 rounded ${scrolled ? 'text-amber-900' : 'text-white'}`}
-            >
-              Home
-            </Link>
-            <Link 
-              href="/gallery" 
-              className={`hover:text-amber-600 focus:text-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-600 focus:ring-offset-2 transition-colors font-medium px-2 py-1 rounded ${scrolled ? 'text-amber-900' : 'text-white'}`}
-            >
-              Gallery
-            </Link>
-            <Link 
-              href="/services" 
-              className={`hover:text-amber-600 focus:text-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-600 focus:ring-offset-2 transition-colors font-medium px-2 py-1 rounded ${scrolled ? 'text-amber-900' : 'text-white'}`}
-            >
-              Services
-            </Link>
-            <Link 
-              href="/blog" 
-              className={`hover:text-amber-600 focus:text-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-600 focus:ring-offset-2 transition-colors font-medium px-2 py-1 rounded ${scrolled ? 'text-amber-900' : 'text-white'}`}
-            >
-              Blog
-            </Link>
-            <Link 
-              href="/about" 
-              className={`hover:text-amber-600 focus:text-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-600 focus:ring-offset-2 transition-colors font-medium px-2 py-1 rounded ${scrolled ? 'text-amber-900' : 'text-white'}`}
-            >
-              About
-            </Link>
-            <Link 
-              href="/contact" 
-              className={`hover:text-amber-600 focus:text-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-600 focus:ring-offset-2 transition-colors font-medium px-2 py-1 rounded ${scrolled ? 'text-amber-900' : 'text-white'}`}
-            >
-              Contact
-            </Link>
-            <Link 
-              href="/book-a-session" 
-              className={`hover:text-amber-600 focus:text-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-600 focus:ring-offset-2 transition-colors font-medium px-2 py-1 rounded ${scrolled ? 'text-amber-900' : 'text-white'}`}
-            >
-              Book a Session
-            </Link>
-            <Link 
-              href="/admin" 
-              className={`focus:outline-none focus:ring-2 focus:ring-amber-600 focus:ring-offset-2 transition-colors ${scrolled ? "btn-primary" : "bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg border border-amber-200/30"}`}
+            {navItems.map((item) => (
+              <Link
+                key={item.id}
+                href={item.href}
+                className={`transition-colors font-medium px-2 py-1 rounded ${
+                  item.highlighted
+                    ? scrolled
+                      ? 'btn-primary'
+                      : 'bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg border border-amber-200/30'
+                    : `hover:text-amber-600 focus:text-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-600 focus:ring-offset-2 ${
+                        scrolled ? 'text-amber-900' : 'text-white'
+                      }`
+                }`}
+              >
+                {item.label}
+              </Link>
+            ))}
+            <Link
+              href="/admin"
+              className={`focus:outline-none focus:ring-2 focus:ring-amber-600 focus:ring-offset-2 transition-colors ${
+                scrolled
+                  ? 'btn-primary'
+                  : 'bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg border border-amber-200/30'
+              }`}
             >
               Admin
             </Link>
@@ -173,57 +181,22 @@ export default function Navigation() {
             id="mobile-menu"
           >
             <div className="flex flex-col space-y-4">
-              <Link 
-                href="/" 
-                className="hover:text-amber-600 focus:text-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-600 focus:ring-offset-2 transition-colors font-medium text-amber-900 px-2 py-1 rounded"
-                onClick={() => setIsOpen(false)}
-              >
-                Home
-              </Link>
-              <Link 
-                href="/gallery" 
-                className="hover:text-amber-600 focus:text-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-600 focus:ring-offset-2 transition-colors font-medium text-amber-900 px-2 py-1 rounded"
-                onClick={() => setIsOpen(false)}
-              >
-                Gallery
-              </Link>
-              <Link 
-                href="/services" 
-                className="hover:text-amber-600 focus:text-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-600 focus:ring-offset-2 transition-colors font-medium text-amber-900 px-2 py-1 rounded"
-                onClick={() => setIsOpen(false)}
-              >
-                Services
-              </Link>
-              <Link 
-                href="/blog" 
-                className="hover:text-amber-600 focus:text-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-600 focus:ring-offset-2 transition-colors font-medium text-amber-900 px-2 py-1 rounded"
-                onClick={() => setIsOpen(false)}
-              >
-                Blog
-              </Link>
-              <Link 
-                href="/about" 
-                className="hover:text-amber-600 focus:text-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-600 focus:ring-offset-2 transition-colors font-medium text-amber-900 px-2 py-1 rounded"
-                onClick={() => setIsOpen(false)}
-              >
-                About
-              </Link>
-              <Link 
-                href="/contact" 
-                className="hover:text-amber-600 focus:text-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-600 focus:ring-offset-2 transition-colors font-medium text-amber-900 px-2 py-1 rounded"
-                onClick={() => setIsOpen(false)}
-              >
-                Contact
-              </Link>
-              <Link 
-                href="/book-a-session" 
-                className="hover:text-amber-600 focus:text-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-600 focus:ring-offset-2 transition-colors font-medium text-amber-900 px-2 py-1 rounded"
-                onClick={() => setIsOpen(false)}
-              >
-                Book a Session
-              </Link>
-              <Link 
-                href="/admin" 
+              {navItems.map((item) => (
+                <Link
+                  key={item.id}
+                  href={item.href}
+                  className={`transition-colors font-medium text-amber-900 px-2 py-1 rounded ${
+                    item.highlighted
+                      ? 'btn-primary w-fit'
+                      : 'hover:text-amber-600 focus:text-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-600 focus:ring-offset-2'
+                  }`}
+                  onClick={() => setIsOpen(false)}
+                >
+                  {item.label}
+                </Link>
+              ))}
+              <Link
+                href="/admin"
                 className="btn-primary w-fit focus:outline-none focus:ring-2 focus:ring-amber-600 focus:ring-offset-2"
                 onClick={() => setIsOpen(false)}
               >

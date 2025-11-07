@@ -348,6 +348,29 @@ export default function AdminPage() {
             </Link>
 
             <Link
+              href="/admin/navigation"
+              className="bg-white overflow-hidden shadow rounded-lg hover:shadow-md transition-shadow"
+            >
+              <div className="p-5">
+                <div className="flex items-center">
+                  <div className="flex-shrink-0">
+                    <div className="w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center">
+                      <span className="text-white font-bold">🗂️</span>
+                    </div>
+                  </div>
+                  <div className="ml-5 w-0 flex-1">
+                    <h3 className="text-lg font-medium text-gray-900">
+                      Navigation
+                    </h3>
+                    <p className="text-sm text-gray-500">
+                      Edit menu items
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </Link>
+
+            <Link
               href="/admin/page-builder"
               className="bg-white overflow-hidden shadow rounded-lg hover:shadow-md transition-shadow"
             >
