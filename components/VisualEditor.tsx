@@ -1156,6 +1156,54 @@ export default function VisualEditor({
     } catch {}
   }, [propertiesExpanded]);
 
+  // Custom properties panel width (drag-resize)
+  const [propertiesWidth, setPropertiesWidth] = useState<number>(() => {
+    if (typeof window === 'undefined') return 320;
+    try {
+      const raw = localStorage.getItem('ve:propertiesWidth');
+      return raw ? Number(JSON.parse(raw)) : 320;
+    } catch {
+      return 320;
+    }
+  });
+  const [isResizing, setIsResizing] = useState(false);
+  useEffect(() => {
+    try {
+      localStorage.setItem('ve:propertiesWidth', JSON.stringify(propertiesWidth));
+    } catch {}
+  }, [propertiesWidth]);
+
+  useEffect(() => {
+    if (!isResizing) return;
+    const handleMouseMove = (e: MouseEvent) => {
+      const newWidth = window.innerWidth - e.clientX;
+      setPropertiesWidth(Math.max(280, Math.min(800, newWidth)));
+    };
+    const handleMouseUp = () => setIsResizing(false);
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isResizing]);
+
+  // Quick properties mode (compact editors)
+  const [quickPropertiesMode, setQuickPropertiesMode] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    try {
+      const raw = localStorage.getItem('ve:quickPropsMode');
+      return raw ? JSON.parse(raw) : false;
+    } catch {
+      return false;
+    }
+  });
+  useEffect(() => {
+    try {
+      localStorage.setItem('ve:quickPropsMode', JSON.stringify(quickPropertiesMode));
+    } catch {}
+  }, [quickPropertiesMode]);
+
   type Suggestion = {
     id: string;
     type: PageComponent["type"];
@@ -2887,6 +2935,15 @@ export default function VisualEditor({
                     case "event":
                       newComponents = buildEventInfoTemplate();
                       break;
+                    case "real-estate":
+                      newComponents = buildRealEstateTemplate();
+                      break;
+                    case "restaurant":
+                      newComponents = buildRestaurantTemplate();
+                      break;
+                    case "saas":
+                      newComponents = buildSaaSTemplate();
+                      break;
                   }
 
                   if (newComponents.length > 0) {
@@ -2913,6 +2970,9 @@ export default function VisualEditor({
                 <option value="blog">📝 Blog/Content Page</option>
                 <option value="quiz">🎯 Quiz & Calculator</option>
                 <option value="event">💒 Wedding/Event Info</option>
+                <option value="real-estate">🏠 Real Estate Photography</option>
+                <option value="restaurant">🍽️ Restaurant & Food</option>
+                <option value="saas">💼 SaaS & Brand Photography</option>
               </select>
             </div>
           </div>
@@ -3792,6 +3852,15 @@ export default function VisualEditor({
                         case "event":
                           newComponents = buildEventInfoTemplate();
                           break;
+                        case "real-estate":
+                          newComponents = buildRealEstateTemplate();
+                          break;
+                        case "restaurant":
+                          newComponents = buildRestaurantTemplate();
+                          break;
+                        case "saas":
+                          newComponents = buildSaaSTemplate();
+                          break;
                       }
 
                       if (newComponents.length > 0) {
@@ -3817,6 +3886,9 @@ export default function VisualEditor({
                     <option value="blog">📝 Blog/Content Page</option>
                     <option value="quiz">🎯 Quiz & Calculator</option>
                     <option value="event">💒 Wedding/Event Info</option>
+                    <option value="real-estate">🏠 Real Estate Photography</option>
+                    <option value="restaurant">🍽️ Restaurant & Food</option>
+                    <option value="saas">💼 SaaS & Brand Photography</option>
                   </select>
                 </div>
               </div>
@@ -4508,16 +4580,47 @@ export default function VisualEditor({
 
       {/* Right Sidebar - Properties (desktop) */}
       {!previewMode && selectedComponent && (
-        <div className={`hidden md:block ${propertiesExpanded ? 'w-[28rem]' : 'w-80'} bg-white border-l overflow-y-auto`}>
+        <div 
+          className="hidden md:block bg-white border-l overflow-y-auto relative"
+          style={{ width: `${propertiesWidth}px` }}
+        >
+          {/* Drag resize handle */}
+          <div
+            className="absolute left-0 top-0 bottom-0 w-1 cursor-col-resize hover:bg-primary-300 transition-colors z-10"
+            onMouseDown={() => setIsResizing(true)}
+            title="Drag to resize"
+          />
           <div className="p-4 border-b flex items-center justify-between">
             <h2 className="font-bold text-lg">Properties</h2>
-            <button
-              className="px-2 py-1 text-xs border rounded"
-              onClick={() => setPropertiesExpanded((v) => !v)}
-              title={propertiesExpanded ? 'Shrink properties panel' : 'Expand properties panel'}
-            >
-              {propertiesExpanded ? 'Shrink' : 'Expand'}
-            </button>
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1 text-xs border rounded overflow-hidden">
+                <button
+                  className={`px-2 py-1 ${quickPropertiesMode ? 'bg-gray-100 font-medium' : 'bg-white'}`}
+                  onClick={() => setQuickPropertiesMode(true)}
+                  title="Quick properties"
+                >Quick</button>
+                <button
+                  className={`px-2 py-1 ${!quickPropertiesMode ? 'bg-gray-100 font-medium' : 'bg-white'}`}
+                  onClick={() => setQuickPropertiesMode(false)}
+                  title="Full properties"
+                >Full</button>
+              </div>
+              <button
+                className="px-2 py-1 text-xs border rounded"
+                onClick={() => {
+                  if (propertiesWidth <= 320) {
+                    setPropertiesWidth(450);
+                  } else if (propertiesWidth <= 450) {
+                    setPropertiesWidth(600);
+                  } else {
+                    setPropertiesWidth(320);
+                  }
+                }}
+                title="Cycle panel width (or drag left edge)"
+              >
+                {propertiesWidth <= 320 ? 'Expand' : propertiesWidth <= 450 ? 'Wider' : 'Shrink'}
+              </button>
+            </div>
           </div>
 
           <div className="p-4">
@@ -4551,6 +4654,7 @@ export default function VisualEditor({
 
             <ComponentProperties
               component={components.find((c) => c.id === selectedComponent)!}
+              quickMode={quickPropertiesMode}
               onUpdate={(data) => updateComponent(selectedComponent, data)}
             />
           </div>
@@ -4589,6 +4693,7 @@ export default function VisualEditor({
               {selectedComponent ? (
                 <ComponentProperties
                   component={components.find((c) => c.id === selectedComponent)!}
+                  quickMode={quickPropertiesMode}
                   onUpdate={(data) => updateComponent(selectedComponent, data)}
                 />
               ) : (
@@ -8127,6 +8232,861 @@ function buildBlogTemplate(): PageComponent[] {
   return components;
 }
 
+// Build Real Estate Template
+function buildRealEstateTemplate(): PageComponent[] {
+  const id = () =>
+    `component-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  const components: PageComponent[] = [];
+
+  // Hero
+  components.push({
+    id: id(),
+    type: "hero",
+    data: {
+      title: "Professional Real Estate Photography",
+      subtitle: "Stunning photos that sell properties faster",
+      backgroundImage: "https://images.unsplash.com/photo-1560518883-ce09059eeffa?q=80&w=2000&auto=format&fit=crop",
+      buttonText: "View Portfolio",
+      buttonLink: "#gallery",
+      alignment: "center",
+      overlay: 50,
+      titleColor: "text-white",
+      subtitleColor: "text-amber-50",
+      buttonStyle: "primary",
+      fullBleed: true,
+    },
+  } as HeroComponent);
+
+  components.push({
+    id: id(),
+    type: "spacer",
+    data: { height: "md" },
+  } as SpacerComponent);
+
+  // Features Grid
+  components.push({
+    id: id(),
+    type: "featuresGrid",
+    data: {
+      heading: "Why Choose Professional Photography?",
+      subheading: "Make your listings stand out with high-quality visuals",
+      items: [
+        {
+          icon: "📸",
+          title: "HDR Photography",
+          description: "Perfectly balanced exposures that showcase every detail of the property",
+        },
+        {
+          icon: "🎥",
+          title: "Video Walkthroughs",
+          description: "Engaging video tours that give buyers a true sense of the space",
+        },
+        {
+          icon: "🚁",
+          title: "Drone Aerials",
+          description: "Stunning bird's-eye views highlighting the property and surroundings",
+        },
+        {
+          icon: "✨",
+          title: "Virtual Staging",
+          description: "Digital furniture placement to help buyers visualize potential",
+        },
+        {
+          icon: "⚡",
+          title: "24-Hour Turnaround",
+          description: "Fast delivery so you can list properties quickly",
+        },
+        {
+          icon: "💼",
+          title: "MLS Ready",
+          description: "Properly sized and optimized images for all listing platforms",
+        },
+      ],
+      columns: 3,
+      animation: "fade-in",
+    },
+  } as FeaturesGridComponent);
+
+  // Gallery
+  components.push({
+    id: id(),
+    type: "gallery",
+    data: {
+      heading: "Recent Property Shoots",
+      layout: "masonry",
+      columns: 3,
+      showFilters: true,
+      images: [
+        { url: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800&h=600&fit=crop", alt: "Modern living room", category: "Interior" },
+        { url: "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=800&h=600&fit=crop", alt: "Luxury kitchen", category: "Interior" },
+        { url: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&h=600&fit=crop", alt: "Home exterior", category: "Exterior" },
+        { url: "https://images.unsplash.com/photo-1600573472550-8090b5e0745e?w=800&h=600&fit=crop", alt: "Master bedroom", category: "Interior" },
+        { url: "https://images.unsplash.com/photo-1600047509807-ba8f99d2cdde?w=800&h=600&fit=crop", alt: "Backyard view", category: "Exterior" },
+        { url: "https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?w=800&h=600&fit=crop", alt: "Modern bathroom", category: "Interior" },
+      ],
+    },
+  } as GalleryComponent);
+
+  // Before/After
+  components.push({
+    id: id(),
+    type: "beforeAfter",
+    data: {
+      heading: "The Power of Professional Photography",
+      subheading: "See how quality photos transform listings",
+      beforeImage: "https://images.unsplash.com/photo-1556912173-46c336c7fd55?w=1200&h=800&fit=crop&auto=format&q=50",
+      afterImage: "https://images.unsplash.com/photo-1556912173-46c336c7fd55?w=1200&h=800&fit=crop&auto=format&q=90",
+      beforeLabel: "Phone Photo",
+      afterLabel: "Professional Shot",
+      orientation: "horizontal",
+      defaultPosition: 50,
+    },
+  } as BeforeAfterComponent);
+
+  // Pricing
+  components.push({
+    id: id(),
+    type: "pricingTable",
+    data: {
+      heading: "Real Estate Photography Packages",
+      subheading: "Choose the package that fits your listing needs",
+      plans: [
+        {
+          name: "Essential",
+          price: 150,
+          period: "per property",
+          features: [
+            "Up to 25 HDR photos",
+            "Interior & exterior shots",
+            "24-hour delivery",
+            "MLS-ready format",
+            "Basic editing included",
+          ],
+          buttonText: "Book Now",
+          buttonLink: "/book-a-session",
+          highlight: false,
+        },
+        {
+          name: "Premium",
+          price: 275,
+          period: "per property",
+          features: [
+            "Up to 40 HDR photos",
+            "Twilight exterior shots",
+            "Drone aerial views",
+            "Video walkthrough (2 min)",
+            "Same-day rush available",
+            "Virtual staging (2 rooms)",
+          ],
+          buttonText: "Most Popular",
+          buttonLink: "/book-a-session",
+          highlight: true,
+        },
+        {
+          name: "Luxury",
+          price: 450,
+          period: "per property",
+          features: [
+            "Unlimited HDR photos",
+            "4K video tour (5 min)",
+            "Drone aerial video",
+            "Floor plan included",
+            "3D virtual tour (Matterport)",
+            "Virtual staging (all rooms)",
+            "Priority scheduling",
+          ],
+          buttonText: "Book Now",
+          buttonLink: "/book-a-session",
+          highlight: false,
+        },
+      ],
+      columns: 3,
+      animation: "fade-in",
+    },
+  } as PricingTableComponent);
+
+  // Testimonials
+  components.push({
+    id: id(),
+    type: "testimonials",
+    data: {
+      heading: "What Agents Say",
+      style: "cards",
+      autoplay: true,
+      interval: 5000,
+      items: [
+        {
+          text: "My listings sell 40% faster since I started using these photos. Buyers always comment on how stunning the images are!",
+          author: "Sarah Johnson",
+          role: "Realtor, Keller Williams",
+          avatar: "https://i.pravatar.cc/150?img=5",
+          rating: 5,
+        },
+        {
+          text: "The drone footage is a game-changer for larger properties. Professional, reliable, and always on time.",
+          author: "Michael Chen",
+          role: "Broker, RE/MAX",
+          avatar: "https://i.pravatar.cc/150?img=12",
+          rating: 5,
+        },
+        {
+          text: "Fast turnaround and incredible quality. I recommend these services to all my fellow agents.",
+          author: "Emily Rodriguez",
+          role: "Agent, Century 21",
+          avatar: "https://i.pravatar.cc/150?img=9",
+          rating: 5,
+        },
+      ],
+    },
+  } as TestimonialsComponent);
+
+  // FAQ
+  components.push({
+    id: id(),
+    type: "faq",
+    data: {
+      heading: "Frequently Asked Questions",
+      layout: "accordion",
+      columns: 1,
+      items: [
+        {
+          question: "How long does a typical shoot take?",
+          answer: "Most residential properties take 45-90 minutes depending on size. We work efficiently to minimize disruption.",
+        },
+        {
+          question: "When will I receive my photos?",
+          answer: "Standard turnaround is 24 hours. Same-day rush delivery is available for an additional fee.",
+        },
+        {
+          question: "Do you offer twilight photography?",
+          answer: "Yes! Twilight shoots are included in Premium and Luxury packages. They're perfect for showcasing exterior lighting.",
+        },
+        {
+          question: "Can you shoot occupied homes?",
+          answer: "Absolutely. We work around tenants' schedules and can digitally stage to minimize clutter if needed.",
+        },
+        {
+          question: "What happens if weather affects the drone shoot?",
+          answer: "We'll reschedule the aerial portion at no extra charge. Safety and quality always come first.",
+        },
+      ],
+    },
+  } as FAQComponent);
+
+  // CTA Banner
+  components.push({
+    id: id(),
+    type: "ctaBanner",
+    data: {
+      heading: "Ready to Elevate Your Listings?",
+      subheading: "Book a shoot and see the difference professional photography makes",
+      primaryButtonText: "Schedule Now",
+      primaryButtonLink: "/book-a-session",
+      secondaryButtonText: "View Pricing",
+      secondaryButtonLink: "#pricing",
+      backgroundColor: "#0f172a",
+      textColor: "text-white",
+      fullBleed: true,
+    },
+  } as CTABannerComponent);
+
+  return components;
+}
+
+// Build Restaurant Template
+function buildRestaurantTemplate(): PageComponent[] {
+  const id = () =>
+    `component-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  const components: PageComponent[] = [];
+
+  // Hero
+  components.push({
+    id: id(),
+    type: "hero",
+    data: {
+      title: "Restaurant Photography That Makes Mouths Water",
+      subtitle: "Professional food and ambiance photography for menus, websites, and social media",
+      backgroundImage: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=2000&auto=format&fit=crop",
+      buttonText: "See Our Work",
+      buttonLink: "#gallery",
+      alignment: "center",
+      overlay: 50,
+      titleColor: "text-white",
+      subtitleColor: "text-amber-50",
+      buttonStyle: "primary",
+      fullBleed: true,
+    },
+  } as HeroComponent);
+
+  components.push({
+    id: id(),
+    type: "spacer",
+    data: { height: "md" },
+  } as SpacerComponent);
+
+  // Features Grid
+  components.push({
+    id: id(),
+    type: "featuresGrid",
+    data: {
+      heading: "Complete Restaurant Photography Services",
+      subheading: "Everything you need to showcase your culinary experience",
+      items: [
+        {
+          icon: "🍽️",
+          title: "Menu Photography",
+          description: "Mouthwatering shots of your signature dishes with perfect lighting and styling",
+        },
+        {
+          icon: "🏛️",
+          title: "Interior Ambiance",
+          description: "Capture your restaurant's atmosphere and unique dining experience",
+        },
+        {
+          icon: "👨‍🍳",
+          title: "Chef & Team",
+          description: "Authentic behind-the-scenes and professional portraits of your culinary team",
+        },
+        {
+          icon: "📱",
+          title: "Social Media Content",
+          description: "Instagram-ready images optimized for maximum engagement",
+        },
+        {
+          icon: "🎥",
+          title: "Video Production",
+          description: "Short recipe videos, cooking demos, and promotional clips",
+        },
+        {
+          icon: "📖",
+          title: "Menu Design Support",
+          description: "Professional images ready for print menus and digital displays",
+        },
+      ],
+      columns: 3,
+      animation: "fade-in",
+    },
+  } as FeaturesGridComponent);
+
+  // Gallery
+  components.push({
+    id: id(),
+    type: "gallery",
+    data: {
+      heading: "Recent Restaurant Projects",
+      layout: "masonry",
+      columns: 3,
+      showFilters: true,
+      images: [
+        { url: "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=800&h=600&fit=crop", alt: "Gourmet burger", category: "Food" },
+        { url: "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=800&h=600&fit=crop", alt: "Pancake stack", category: "Food" },
+        { url: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&h=600&fit=crop", alt: "Restaurant interior", category: "Interior" },
+        { url: "https://images.unsplash.com/photo-1555992336-fb0d29498b13?w=800&h=600&fit=crop", alt: "Chef plating", category: "Behind the Scenes" },
+        { url: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&h=600&fit=crop", alt: "Asian cuisine", category: "Food" },
+        { url: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800&h=600&fit=crop", alt: "Bar atmosphere", category: "Interior" },
+      ],
+    },
+  } as GalleryComponent);
+
+  // Stats/Counters
+  components.push({
+    id: id(),
+    type: "stats",
+    data: {
+      heading: "Proven Results for Restaurants",
+      items: [
+        { value: 150, label: "Restaurants Served", suffix: "+" },
+        { value: 5000, label: "Dishes Photographed", suffix: "+" },
+        { value: 89, label: "Social Media Engagement Increase", suffix: "%" },
+        { value: 24, label: "Average Turnaround", suffix: " hrs" },
+      ],
+      columns: 4,
+      animation: "count-up",
+    },
+  } as StatsComponent);
+
+  // Comparison Table
+  components.push({
+    id: id(),
+    type: "comparisonTable",
+    data: {
+      heading: "DIY Photos vs. Professional Photography",
+      subheading: "See the difference quality makes",
+      columns: [
+        {
+          title: "DIY/Phone Photos",
+          features: [
+            { label: "Professional Lighting", value: false },
+            { label: "Food Styling", value: false },
+            { label: "Consistent Quality", value: false },
+            { label: "High-Resolution Files", value: false },
+            { label: "Social Media Ready", value: false },
+            { label: "Menu Print Quality", value: false },
+          ],
+          highlight: false,
+        },
+        {
+          title: "Professional Photography",
+          features: [
+            { label: "Professional Lighting", value: true },
+            { label: "Food Styling", value: true },
+            { label: "Consistent Quality", value: true },
+            { label: "High-Resolution Files", value: true },
+            { label: "Social Media Ready", value: true },
+            { label: "Menu Print Quality", value: true },
+          ],
+          highlight: true,
+        },
+      ],
+    },
+  } as ComparisonTableComponent);
+
+  // Pricing
+  components.push({
+    id: id(),
+    type: "pricingTable",
+    data: {
+      heading: "Restaurant Photography Packages",
+      subheading: "Flexible options for every budget",
+      plans: [
+        {
+          name: "Starter",
+          price: 350,
+          period: "half-day session",
+          features: [
+            "Up to 10 menu items",
+            "2 hours on-site",
+            "Basic food styling",
+            "20 edited photos",
+            "Social media sized versions",
+            "48-hour delivery",
+          ],
+          buttonText: "Get Started",
+          buttonLink: "/contact",
+          highlight: false,
+        },
+        {
+          name: "Complete",
+          price: 650,
+          period: "full-day session",
+          features: [
+            "Up to 25 menu items",
+            "4 hours on-site",
+            "Professional food styling",
+            "50 edited photos",
+            "Interior shots included",
+            "Chef/team portraits (5 people)",
+            "Video clips (15 sec each)",
+            "24-hour rush delivery",
+          ],
+          buttonText: "Most Popular",
+          buttonLink: "/contact",
+          highlight: true,
+        },
+        {
+          name: "Premium",
+          price: 1200,
+          period: "multi-day project",
+          features: [
+            "Full menu coverage",
+            "2-day shoot (8 hours total)",
+            "Advanced food styling",
+            "100+ edited photos",
+            "Complete interior coverage",
+            "Team & chef portraits (unlimited)",
+            "Behind-the-scenes content",
+            "Short promotional video (60 sec)",
+            "Menu design consultation",
+            "Ongoing social content (monthly)",
+          ],
+          buttonText: "Contact Us",
+          buttonLink: "/contact",
+          highlight: false,
+        },
+      ],
+      columns: 3,
+      animation: "fade-in",
+    },
+  } as PricingTableComponent);
+
+  // Testimonials
+  components.push({
+    id: id(),
+    type: "testimonials",
+    data: {
+      heading: "What Restaurant Owners Say",
+      style: "cards",
+      autoplay: true,
+      interval: 5000,
+      items: [
+        {
+          text: "Our online orders increased 60% after updating our menu photos. The investment paid for itself in the first month!",
+          author: "Maria Garcia",
+          role: "Owner, La Cocina",
+          avatar: "https://i.pravatar.cc/150?img=27",
+          rating: 5,
+        },
+        {
+          text: "These photos capture exactly what we're about. Our Instagram engagement has never been higher.",
+          author: "James Park",
+          role: "Chef/Owner, Fusion Kitchen",
+          avatar: "https://i.pravatar.cc/150?img=33",
+          rating: 5,
+        },
+        {
+          text: "Professional, fast, and the photos are absolutely stunning. Customers constantly compliment our new menu.",
+          author: "Lisa Thompson",
+          role: "Manager, The Steakhouse",
+          avatar: "https://i.pravatar.cc/150?img=24",
+          rating: 5,
+        },
+      ],
+    },
+  } as TestimonialsComponent);
+
+  // FAQ
+  components.push({
+    id: id(),
+    type: "faq",
+    data: {
+      heading: "Common Questions",
+      layout: "accordion",
+      columns: 1,
+      items: [
+        {
+          question: "Do I need to prepare the food?",
+          answer: "We work with your kitchen team to prepare dishes. We can also bring a food stylist for more complex shots if needed.",
+        },
+        {
+          question: "Can you shoot during business hours?",
+          answer: "We prefer to shoot before opening or during slower periods to minimize disruption, but we're flexible to your needs.",
+        },
+        {
+          question: "How many dishes can you photograph in one session?",
+          answer: "Typically 8-12 dishes in a half-day session, or 20-30 in a full day. Complex presentations may require more time.",
+        },
+        {
+          question: "Do you provide the props and backgrounds?",
+          answer: "Yes! We bring a variety of plates, utensils, and backgrounds. We can also incorporate your branded items.",
+        },
+        {
+          question: "Can you help with our social media strategy?",
+          answer: "Absolutely. We can advise on content calendars and provide images optimized for each platform.",
+        },
+      ],
+    },
+  } as FAQComponent);
+
+  // CTA Banner
+  components.push({
+    id: id(),
+    type: "ctaBanner",
+    data: {
+      heading: "Ready to Make Your Menu Irresistible?",
+      subheading: "Let's create mouthwatering photos that drive orders and reservations",
+      primaryButtonText: "Book a Consultation",
+      primaryButtonLink: "/contact",
+      secondaryButtonText: "View Packages",
+      secondaryButtonLink: "#pricing",
+      backgroundColor: "#0f172a",
+      textColor: "text-white",
+      fullBleed: true,
+    },
+  } as CTABannerComponent);
+
+  return components;
+}
+
+// Build SaaS Template
+function buildSaaSTemplate(): PageComponent[] {
+  const id = () =>
+    `component-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  const components: PageComponent[] = [];
+
+  // Hero
+  components.push({
+    id: id(),
+    type: "hero",
+    data: {
+      title: "Product & Brand Photography for SaaS Companies",
+      subtitle: "Professional visuals that elevate your brand and convert visitors into customers",
+      backgroundImage: "https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=2000&auto=format&fit=crop",
+      buttonText: "See Our Portfolio",
+      buttonLink: "#gallery",
+      secondaryButtonText: "Free Consultation",
+      secondaryButtonLink: "/contact",
+      alignment: "center",
+      overlay: 60,
+      titleColor: "text-white",
+      subtitleColor: "text-amber-50",
+      buttonStyle: "primary",
+      fullBleed: true,
+    },
+  } as HeroComponent);
+
+  components.push({
+    id: id(),
+    type: "spacer",
+    data: { height: "md" },
+  } as SpacerComponent);
+
+  // Features Grid
+  components.push({
+    id: id(),
+    type: "featuresGrid",
+    data: {
+      heading: "Complete Visual Content for SaaS Brands",
+      subheading: "Everything you need to stand out in a crowded market",
+      items: [
+        {
+          icon: "💼",
+          title: "Team Portraits",
+          description: "Professional headshots and team photos that build trust and credibility",
+        },
+        {
+          icon: "🏢",
+          title: "Office & Culture",
+          description: "Showcase your workspace and company culture to attract top talent",
+        },
+        {
+          icon: "🎯",
+          title: "Product Screenshots",
+          description: "High-quality UI/UX captures with professional editing and mockups",
+        },
+        {
+          icon: "🎥",
+          title: "Demo Videos",
+          description: "Engaging product demos and explainer videos that drive conversions",
+        },
+        {
+          icon: "📊",
+          title: "Marketing Assets",
+          description: "Custom graphics, hero images, and visual content for campaigns",
+        },
+        {
+          icon: "🎤",
+          title: "Event Coverage",
+          description: "Professional photos and videos from conferences, launches, and webinars",
+        },
+      ],
+      columns: 3,
+      animation: "fade-in",
+    },
+  } as FeaturesGridComponent);
+
+  // Gallery
+  components.push({
+    id: id(),
+    type: "gallery",
+    data: {
+      heading: "Recent SaaS Projects",
+      layout: "grid",
+      columns: 3,
+      showFilters: true,
+      images: [
+        { url: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=800&h=600&fit=crop", alt: "Team collaboration", category: "Team" },
+        { url: "https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=800&h=600&fit=crop", alt: "Product demo", category: "Product" },
+        { url: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&h=600&fit=crop", alt: "Modern office", category: "Office" },
+        { url: "https://images.unsplash.com/photo-1531482615713-2afd69097998?w=800&h=600&fit=crop", alt: "Conference speaker", category: "Events" },
+        { url: "https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=800&h=600&fit=crop", alt: "Professional headshot", category: "Team" },
+        { url: "https://images.unsplash.com/photo-1553877522-43269d4ea984?w=800&h=600&fit=crop", alt: "Product interface", category: "Product" },
+      ],
+    },
+  } as GalleryComponent);
+
+  // Stats
+  components.push({
+    id: id(),
+    type: "stats",
+    data: {
+      heading: "Results That Matter",
+      items: [
+        { value: 85, label: "Average Conversion Rate Increase", suffix: "%" },
+        { value: 200, label: "SaaS Clients Served", suffix: "+" },
+        { value: 4.9, label: "Client Satisfaction Rating", prefix: "", suffix: "/5" },
+        { value: 10000, label: "Professional Images Delivered", suffix: "+" },
+      ],
+      columns: 4,
+      animation: "count-up",
+    },
+  } as StatsComponent);
+
+  // Trust Badges
+  components.push({
+    id: id(),
+    type: "trustBadges",
+    data: {
+      heading: "Trusted by Leading SaaS Companies",
+      layout: "grid",
+      columns: 6,
+      animation: "fade-in",
+      badges: [
+        { image: "https://via.placeholder.com/120x60/0ea5e9/ffffff?text=Slack", alt: "Slack", link: "" },
+        { image: "https://via.placeholder.com/120x60/7c3aed/ffffff?text=Notion", alt: "Notion", link: "" },
+        { image: "https://via.placeholder.com/120x60/10b981/ffffff?text=Zoom", alt: "Zoom", link: "" },
+        { image: "https://via.placeholder.com/120x60/f59e0b/ffffff?text=Asana", alt: "Asana", link: "" },
+        { image: "https://via.placeholder.com/120x60/ef4444/ffffff?text=Monday", alt: "Monday", link: "" },
+        { image: "https://via.placeholder.com/120x60/6366f1/ffffff?text=Figma", alt: "Figma", link: "" },
+      ],
+    },
+  } as TrustBadgesComponent);
+
+  // Pricing
+  components.push({
+    id: id(),
+    type: "pricingTable",
+    data: {
+      heading: "SaaS Photography Packages",
+      subheading: "Scalable solutions for startups to enterprise",
+      plans: [
+        {
+          name: "Startup",
+          price: 500,
+          period: "half-day session",
+          features: [
+            "Team headshots (up to 10)",
+            "Office tour photos (15 images)",
+            "Product screenshots (5 mockups)",
+            "48-hour delivery",
+            "Social media formats included",
+            "Usage rights for marketing",
+          ],
+          buttonText: "Get Started",
+          buttonLink: "/contact",
+          highlight: false,
+        },
+        {
+          name: "Growth",
+          price: 1200,
+          period: "full-day session",
+          features: [
+            "Team photos (up to 30 people)",
+            "Complete office coverage (40 images)",
+            "Product UI/UX captures (15 mockups)",
+            "Culture & lifestyle shots",
+            "Branded marketing assets",
+            "Short demo video (30 sec)",
+            "24-hour rush delivery",
+            "Dedicated photo editor",
+          ],
+          buttonText: "Most Popular",
+          buttonLink: "/contact",
+          highlight: true,
+        },
+        {
+          name: "Enterprise",
+          price: 2500,
+          period: "per month (retainer)",
+          features: [
+            "Unlimited team headshots",
+            "Monthly office/event coverage",
+            "Product photography & video",
+            "Conference & trade show support",
+            "Priority scheduling",
+            "Ongoing content calendar",
+            "Dedicated account manager",
+            "Brand asset library access",
+            "Custom video productions",
+            "Multi-location coverage",
+          ],
+          buttonText: "Contact Sales",
+          buttonLink: "/contact",
+          highlight: false,
+        },
+      ],
+      columns: 3,
+      animation: "fade-in",
+    },
+  } as PricingTableComponent);
+
+  // Testimonials
+  components.push({
+    id: id(),
+    type: "testimonials",
+    data: {
+      heading: "What SaaS Leaders Say",
+      style: "cards",
+      autoplay: true,
+      interval: 5000,
+      items: [
+        {
+          text: "The team photos and product shots elevated our entire brand. Our demo-to-trial conversion rate increased by 45%!",
+          author: "Alex Turner",
+          role: "CMO, CloudSync",
+          avatar: "https://i.pravatar.cc/150?img=60",
+          rating: 5,
+        },
+        {
+          text: "Professional, creative, and they really understand the SaaS space. Our website looks incredible now.",
+          author: "Rachel Kim",
+          role: "VP Marketing, DataFlow",
+          avatar: "https://i.pravatar.cc/150?img=45",
+          rating: 5,
+        },
+        {
+          text: "We've worked with them for 2 years on a retainer. Consistent quality and they're always available when we need coverage.",
+          author: "David Chen",
+          role: "Head of Brand, TechStart",
+          avatar: "https://i.pravatar.cc/150?img=51",
+          rating: 5,
+        },
+      ],
+    },
+  } as TestimonialsComponent);
+
+  // FAQ
+  components.push({
+    id: id(),
+    type: "faq",
+    data: {
+      heading: "Frequently Asked Questions",
+      layout: "accordion",
+      columns: 1,
+      items: [
+        {
+          question: "Do you sign NDAs?",
+          answer: "Absolutely. We regularly work under NDA and understand the need for confidentiality with unreleased products.",
+        },
+        {
+          question: "Can you shoot at multiple office locations?",
+          answer: "Yes! We offer multi-location packages and can coordinate shoots across different offices or countries.",
+        },
+        {
+          question: "What if our team is remote?",
+          answer: "We can work with individual team members remotely, or schedule shoots when the team gathers for events or offsites.",
+        },
+        {
+          question: "Do you help with product screenshots and UI design?",
+          answer: "Yes. We work with your design team to capture and enhance product interfaces with professional lighting and editing.",
+        },
+        {
+          question: "Can you attend our conferences and trade shows?",
+          answer: "Definitely. Event coverage is included in our Growth and Enterprise packages, and available as an add-on for others.",
+        },
+      ],
+    },
+  } as FAQComponent);
+
+  // CTA Banner
+  components.push({
+    id: id(),
+    type: "ctaBanner",
+    data: {
+      heading: "Ready to Elevate Your SaaS Brand?",
+      subheading: "Let's create professional visual content that drives growth and builds trust",
+      primaryButtonText: "Schedule Consultation",
+      primaryButtonLink: "/contact",
+      secondaryButtonText: "View Case Studies",
+      secondaryButtonLink: "#gallery",
+      backgroundColor: "#0f172a",
+      textColor: "text-white",
+      fullBleed: true,
+    },
+  } as CTABannerComponent);
+
+  return components;
+}
+
 // Build Interactive Quiz/Calculator Page
 function buildQuizTemplate(): PageComponent[] {
   const id = () =>
@@ -10567,13 +11527,47 @@ function GenericProperties({
 }
 
 // Component Properties Editor
+function getQuickFieldsForType(type: PageComponent["type"]): string[] | null {
+  switch (type) {
+    case "hero":
+      return ["title", "subtitle", "backgroundImage", "overlay", "buttonText", "buttonLink", "alignment"];
+    case "text":
+      return ["content", "alignment", "size"];
+    case "image":
+      return ["url", "alt", "caption", "link", "width", "animation"];
+    case "button":
+      return ["text", "link", "style", "alignment", "animation"];
+    case "ctaBanner":
+      return ["heading", "subheading", "primaryButtonText", "primaryButtonLink", "backgroundColor", "textColor", "overlay"];
+    case "servicesGrid":
+      return ["heading", "subheading", "columns", "animation"];
+    case "pricingTable":
+      return ["heading", "subheading", "columns", "style", "variant", "showFeatureChecks"];
+    case "newsletterSignup":
+      return ["heading", "subheading", "style"];
+    case "countdown":
+      return ["targetDate", "heading", "subheading", "showLabels", "size"];
+    case "mapEmbed":
+      return ["address", "zoom", "height", "mapType", "showMarker"];
+    default:
+      return null;
+  }
+}
 function ComponentProperties({
   component,
   onUpdate,
+  quickMode,
 }: {
   component: PageComponent;
   onUpdate: (data: any) => void;
+  quickMode?: boolean;
 }) {
+  if (quickMode) {
+    const quickFields = getQuickFieldsForType(component.type);
+    if (quickFields) {
+      return <GenericProperties component={component} onUpdate={onUpdate} fields={quickFields} />;
+    }
+  }
   switch (component.type) {
     case "faq":
       return (

@@ -22,6 +22,9 @@ export default function PageBuilderPage() {
   const [pageTitle, setPageTitle] = useState('')
   const [metaDescription, setMetaDescription] = useState('')
   const [keywords, setKeywords] = useState('')
+  const [showImportPreview, setShowImportPreview] = useState(false)
+  const [importedComponents, setImportedComponents] = useState<any[]>([])
+  const [importSourceSlug, setImportSourceSlug] = useState('')
 
   useEffect(() => {
     // Initialize slug from query string if provided
@@ -446,17 +449,29 @@ export default function PageBuilderPage() {
         alert('Could not parse any components from the published content.')
         return
       }
-      // Confirm with user before overwriting draft
-      const ok = window.confirm(`Import ${imported.length} component${imported.length === 1 ? '' : 's'} from published /${cleanSlug}? This will overwrite the current draft.`)
-      if (!ok) return
-      // Save as draft for this slug
-      await supabase
-        .from('page_configs')
-        .upsert({ slug: cleanSlug, data: { components: imported } }, { onConflict: 'slug' })
-      setMessage({ type: 'success', text: `Imported ${imported.length} component${imported.length === 1 ? '' : 's'} from published and saved as draft.` })
+      // Show preview modal
+      setImportedComponents(imported)
+      setImportSourceSlug(cleanSlug)
+      setShowImportPreview(true)
     } catch (e: any) {
       console.error('Import failed:', e)
       setMessage({ type: 'error', text: e?.message || 'Failed to import from published content.' })
+    }
+  }
+
+  const confirmImport = async () => {
+    try {
+      const cleanSlug = importSourceSlug
+      await supabase
+        .from('page_configs')
+        .upsert({ slug: cleanSlug, data: { components: importedComponents } }, { onConflict: 'slug' })
+      setComponents(importedComponents)
+      setMessage({ type: 'success', text: `Imported ${importedComponents.length} component${importedComponents.length === 1 ? '' : 's'} from published /${cleanSlug}.` })
+      setShowImportPreview(false)
+      setImportedComponents([])
+    } catch (e: any) {
+      console.error('Import confirmation failed:', e)
+      setMessage({ type: 'error', text: e?.message || 'Failed to save imported components.' })
     }
   }
 
@@ -899,6 +914,78 @@ export default function PageBuilderPage() {
                   Apply SEO Data
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Import Preview Modal */}
+      {showImportPreview && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-6xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+            <div className="p-6 border-b">
+              <h2 className="text-2xl font-bold">Import Preview</h2>
+              <p className="text-sm text-gray-600 mt-1">
+                Review components from published /{importSourceSlug} before importing
+              </p>
+            </div>
+            
+            <div className="flex-1 overflow-y-auto p-6">
+              <div className="grid md:grid-cols-2 gap-6">
+                <div>
+                  <h3 className="font-semibold mb-3 text-lg">Current Draft ({components.length} components)</h3>
+                  <div className="space-y-2 max-h-96 overflow-y-auto border rounded p-3 bg-gray-50">
+                    {components.length === 0 ? (
+                      <p className="text-sm text-gray-500">No components in current draft</p>
+                    ) : (
+                      components.map((c, idx) => (
+                        <div key={idx} className="text-sm p-2 bg-white rounded border">
+                          <span className="font-medium capitalize">{c.type.replace(/([A-Z])/g, ' $1')}</span>
+                          {c.data?.heading && <span className="text-gray-600"> - {c.data.heading}</span>}
+                          {c.data?.title && <span className="text-gray-600"> - {c.data.title}</span>}
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="font-semibold mb-3 text-lg">Imported ({importedComponents.length} components)</h3>
+                  <div className="space-y-2 max-h-96 overflow-y-auto border rounded p-3 bg-green-50">
+                    {importedComponents.map((c, idx) => (
+                      <div key={idx} className="text-sm p-2 bg-white rounded border border-green-200">
+                        <span className="font-medium capitalize">{c.type.replace(/([A-Z])/g, ' $1')}</span>
+                        {c.data?.heading && <span className="text-gray-600"> - {c.data.heading}</span>}
+                        {c.data?.title && <span className="text-gray-600"> - {c.data.title}</span>}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded">
+                <p className="text-sm text-yellow-800">
+                  <strong>Warning:</strong> Importing will replace all {components.length} component(s) in your current draft with the {importedComponents.length} imported component(s) from the published page.
+                </p>
+              </div>
+            </div>
+
+            <div className="p-6 border-t bg-gray-50 flex justify-end gap-3">
+              <button
+                onClick={() => {
+                  setShowImportPreview(false)
+                  setImportedComponents([])
+                }}
+                className="px-4 py-2 border rounded hover:bg-gray-100"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmImport}
+                className="px-6 py-2 bg-primary-600 text-white rounded hover:bg-primary-700"
+              >
+                Confirm Import
+              </button>
             </div>
           </div>
         </div>
