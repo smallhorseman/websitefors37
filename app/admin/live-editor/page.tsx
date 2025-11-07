@@ -688,10 +688,13 @@ export default function LiveEditorPage() {
             {/* Visual Editor */}
             <div className={showPreview ? 'flex-1 border-r' : 'flex-1'}>
               <VisualEditor
-                components={components}
+                initialComponents={components}
+                onSave={(comps) => {
+                  setComponents(comps)
+                  setHasChanges(true)
+                }}
                 onChange={setComponents}
                 slug={selectedSlug}
-                title={pageTitle}
               />
             </div>
 

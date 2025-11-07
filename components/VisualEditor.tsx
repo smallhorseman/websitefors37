@@ -1109,6 +1109,15 @@ export default function VisualEditor({
   const [selectedComponent, setSelectedComponent] = useState<string | null>(
     null
   );
+
+  // Sync components when initialComponents changes (for Live Editor page switching)
+  useEffect(() => {
+    setComponents(initialComponents);
+    setHistory([initialComponents]);
+    setHistoryIndex(0);
+    setSelectedComponent(null);
+  }, [initialComponents]);
+
   const [viewMode, setViewMode] = useState<"desktop" | "tablet" | "mobile">(
     "desktop"
   );
