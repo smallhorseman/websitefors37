@@ -73,6 +73,8 @@ export default function LiveEditorPage() {
 
       if (error) throw error
 
+      console.log('Raw page_configs data:', data)
+
       // Combine existing pages with core pages that might not exist yet
       const existingSlugs = new Set((data || []).map(p => p.slug))
       const allPages: PageConfig[] = [
@@ -84,8 +86,11 @@ export default function LiveEditorPage() {
       ]
 
       setPages(allPages)
+      
+      // Auto-select first page or 'home' if available
       if (allPages.length > 0 && !selectedSlug) {
-        setSelectedSlug(allPages[0].slug)
+        const homePage = allPages.find(p => p.slug === 'home')
+        setSelectedSlug(homePage?.slug || allPages[0].slug)
       }
     } catch (e) {
       console.error('Load pages error:', e)
@@ -110,9 +115,12 @@ export default function LiveEditorPage() {
       }
 
       // Load existing data or start with empty
-      const pageData = data?.data || { components: [] }
-      const comps = pageData.components || []
+      // Structure is: { slug: string, data: { components: [], navigation: {} } }
+      const pageData = data?.data || {}
+      const comps = Array.isArray(pageData.components) ? pageData.components : []
       const nav = pageData.navigation || null
+      
+      console.log('Loaded page:', slug, 'Components:', comps.length, 'Data:', pageData)
       
       setComponents(comps)
       setOriginalComponents(JSON.parse(JSON.stringify(comps)))
@@ -122,6 +130,13 @@ export default function LiveEditorPage() {
       // Set page title from CORE_PAGES or use slug
       const corePageInfo = CORE_PAGES.find(p => p.slug === slug)
       setPageTitle(corePageInfo?.title || slug)
+      
+      if (comps.length === 0) {
+        setMessage({ 
+          type: 'warning', 
+          text: `No components found for ${slug}. Start by adding components or using a template.` 
+        })
+      }
     } catch (e) {
       console.error('Load page content error:', e)
       setMessage({ type: 'error', text: 'Failed to load page content' })
@@ -281,6 +296,21 @@ export default function LiveEditorPage() {
             <RotateCcw className="h-4 w-4" />
             Restore Backup
           </button>
+
+          {selectedSlug && components.length === 0 && (
+            <button
+              onClick={() => {
+                if (confirm(`No components found for ${selectedSlug}. Would you like to load the published version if it exists?`)) {
+                  // This will be handled by the parent page-builder's import logic
+                  setMessage({ type: 'warning', text: 'Import from published not yet implemented in Live Editor. Use Page Builder\'s import feature instead.' })
+                }
+              }}
+              className="px-4 py-2 border border-blue-300 bg-blue-50 text-blue-700 rounded hover:bg-blue-100 flex items-center gap-2"
+              title="Import from published page"
+            >
+              Import Published
+            </button>
+          )}
 
           <button
             onClick={() => setShowPreview(!showPreview)}
