@@ -29,21 +29,6 @@ VALUES (
         }
       },
       {
-        "id": "portrait-gallery",
-        "type": "galleryHighlights",
-        "data": {
-          "categories": ["Portrait"],
-          "collections": [],
-          "tags": [],
-          "group": "",
-          "featuredOnly": true,
-          "limit": 6,
-          "sortBy": "display_order",
-          "sortDir": "asc",
-          "animation": "fade-in"
-        }
-      },
-      {
         "id": "portrait-gallery-home",
         "type": "galleryHighlights",
         "data": {

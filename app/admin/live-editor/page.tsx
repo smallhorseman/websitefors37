@@ -34,6 +34,7 @@ export default function LiveEditorPage() {
   const [pageTitle, setPageTitle] = useState('')
   const [importing, setImporting] = useState(false)
   const [availablePublishedPages, setAvailablePublishedPages] = useState<string[]>([])
+  const [publishing, setPublishing] = useState(false)
   
   const supabase = createClientComponentClient()
 
@@ -222,6 +223,66 @@ export default function LiveEditorPage() {
       setMessage({ type: 'error', text: e?.message || 'Failed to save changes' })
     } finally {
       setSaving(false)
+    }
+  }
+
+  // Publish to live site (convert components to MDX and save to content_pages)
+  const publishToLive = async () => {
+    if (!selectedSlug || components.length === 0) {
+      setMessage({ type: 'warning', text: 'No components to publish' })
+      return
+    }
+
+    const confirmed = window.confirm(
+      `Publish "${selectedSlug}" to the live site?\n\nThis will make these changes visible to all visitors immediately.`
+    )
+    if (!confirmed) return
+
+    setPublishing(true)
+    setMessage(null)
+
+    try {
+      // Convert components to MDX (same logic as page-builder)
+      const mdxContent = components.map(comp => {
+        const { type, data } = comp
+        const attrs = Object.entries(data)
+          .map(([k, v]) => {
+            if (typeof v === 'object') {
+              return `${k}="${Buffer.from(JSON.stringify(v)).toString('base64')}"`
+            }
+            return `${k}="${String(v).replace(/"/g, '&quot;')}"`
+          })
+          .join(' ')
+        
+        const blockName = type.charAt(0).toUpperCase() + type.slice(1) + 'Block'
+        return `<${blockName} ${attrs} />`
+      }).join('\n\n')
+
+      // Save to content_pages
+      const { error } = await supabase
+        .from('content_pages')
+        .upsert({
+          slug: selectedSlug,
+          title: pageTitle,
+          content: mdxContent,
+          published: true,
+        }, { onConflict: 'slug' })
+
+      if (error) throw error
+
+      setMessage({ type: 'success', text: '🎉 Published to live site! Changes are now visible to visitors.' })
+
+      // Trigger revalidation
+      try {
+        await revalidateContent(selectedSlug === 'home' ? '/' : `/${selectedSlug}`)
+      } catch (revalError) {
+        console.warn('Revalidation failed:', revalError)
+      }
+    } catch (e: any) {
+      console.error('Publish error:', e)
+      setMessage({ type: 'error', text: e?.message || 'Failed to publish to live site' })
+    } finally {
+      setPublishing(false)
     }
   }
 
@@ -619,6 +680,16 @@ export default function LiveEditorPage() {
           >
             {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
             {saving ? 'Saving...' : 'Save Changes'}
+          </button>
+
+          <button
+            onClick={publishToLive}
+            disabled={publishing || components.length === 0}
+            className="px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow"
+            title="Publish to live site (visible to all visitors)"
+          >
+            {publishing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Globe className="h-4 w-4" />}
+            {publishing ? 'Publishing...' : 'Publish to Live Site'}
           </button>
         </div>
       </div>
