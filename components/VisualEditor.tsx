@@ -1213,7 +1213,7 @@ export default function VisualEditor({
     } catch {}
   }, [quickPropertiesMode]);
 
-  // Memoize the selected component to prevent unnecessary re-renders
+  // Memoize the selected component to stabilize references
   const selectedComponentData = React.useMemo(() => {
     if (!selectedComponent) return null;
     return components.find((c) => c.id === selectedComponent) || null;
@@ -4668,7 +4668,7 @@ export default function VisualEditor({
             </div>
 
             {selectedComponentData && (
-              <ComponentProperties
+              <ComponentPropertiesWrapper
                 key={selectedComponent}
                 component={selectedComponentData}
                 quickMode={quickPropertiesMode}
@@ -4709,7 +4709,7 @@ export default function VisualEditor({
             </div>
             <div className="p-4 overflow-y-auto h-[calc(100%-56px)]">
               {selectedComponentData ? (
-                <ComponentProperties
+                <ComponentPropertiesWrapper
                   key={selectedComponent}
                   component={selectedComponentData}
                   quickMode={quickPropertiesMode}
@@ -11572,7 +11572,61 @@ function getQuickFieldsForType(type: PageComponent["type"]): string[] | null {
       return null;
   }
 }
-function ComponentProperties({
+
+// Wrapper that adds local state to prevent losing focus during updates
+function ComponentPropertiesWrapper({
+  component,
+  onUpdate,
+  quickMode,
+}: {
+  component: PageComponent;
+  onUpdate: (data: any) => void;
+  quickMode?: boolean;
+}) {
+  // Use local state to track changes and only propagate after a delay
+  const [localData, setLocalData] = React.useState(component.data);
+  const updateTimeoutRef = React.useRef<NodeJS.Timeout>();
+
+  // Sync local state when component changes (different component selected)
+  React.useEffect(() => {
+    setLocalData(component.data);
+  }, [component.id]);
+
+  // Debounced update to parent
+  const handleUpdate = React.useCallback((partialData: any) => {
+    const newData = { ...localData, ...partialData };
+    setLocalData(newData);
+    
+    // Clear existing timeout
+    if (updateTimeoutRef.current) {
+      clearTimeout(updateTimeoutRef.current);
+    }
+    
+    // Debounce the parent update
+    updateTimeoutRef.current = setTimeout(() => {
+      onUpdate(partialData);
+    }, 150);
+  }, [localData, onUpdate]);
+
+  // Cleanup timeout on unmount
+  React.useEffect(() => {
+    return () => {
+      if (updateTimeoutRef.current) {
+        clearTimeout(updateTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  return (
+    <ComponentPropertiesInner
+      component={{ ...component, data: localData }}
+      onUpdate={handleUpdate}
+      quickMode={quickMode}
+    />
+  );
+}
+
+function ComponentPropertiesInner({
   component,
   onUpdate,
   quickMode,
