@@ -437,6 +437,8 @@ export default function LiveEditorPage() {
     setMessage(null)
     
     try {
+      console.log('Importing from published:', selectedSlug)
+      
       const { data, error } = await supabase
         .from('content_pages')
         .select('content')
@@ -444,15 +446,22 @@ export default function LiveEditorPage() {
         .eq('published', true)
         .maybeSingle()
 
+      console.log('Published content fetch result:', { data, error, hasContent: !!data?.content })
+
       if (error) throw error
       if (!data?.content) {
-        setMessage({ type: 'warning', text: 'No published content found for this page' })
+        setMessage({ type: 'warning', text: 'No published content found for this page. Try using a template from the sidebar instead.' })
         return
       }
 
+      console.log('MDX content length:', data.content.length, 'First 500 chars:', data.content.substring(0, 500))
+
       const imported = mdxToComponents(data.content)
+      
+      console.log('Parsed components:', imported.length, 'Sample:', imported[0])
+
       if (imported.length === 0) {
-        setMessage({ type: 'warning', text: 'Could not parse any components from published content' })
+        setMessage({ type: 'warning', text: 'Could not parse any components from published content. The page might be using a different format.' })
         return
       }
 
@@ -539,12 +548,12 @@ export default function LiveEditorPage() {
             Restore Backup
           </button>
 
-          {selectedSlug && components.length === 0 && (
+          {selectedSlug && (
             <button
               onClick={importFromPublished}
               disabled={importing}
               className="px-4 py-2 border border-blue-300 bg-blue-50 text-blue-700 rounded hover:bg-blue-100 flex items-center gap-2 disabled:opacity-50"
-              title="Import from published page"
+              title="Import components from published page"
             >
               {importing ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileEdit className="h-4 w-4" />}
               {importing ? 'Importing...' : 'Import Published'}
