@@ -11583,30 +11583,34 @@ function ComponentPropertiesWrapper({
   onUpdate: (data: any) => void;
   quickMode?: boolean;
 }) {
-  // Use local state to track changes and only propagate after a delay
+  // Use local state to track changes without triggering parent updates
   const [localData, setLocalData] = React.useState(component.data);
   const updateTimeoutRef = React.useRef<NodeJS.Timeout>();
+  const localDataRef = React.useRef(component.data);
 
-  // Sync local state when component changes (different component selected)
+  // Sync local state when component ID changes (different component selected)
   React.useEffect(() => {
     setLocalData(component.data);
+    localDataRef.current = component.data;
   }, [component.id]);
 
-  // Debounced update to parent
+  // Stable update handler that doesn't change on every render
   const handleUpdate = React.useCallback((partialData: any) => {
-    const newData = { ...localData, ...partialData };
+    // Update local state immediately for UI responsiveness
+    const newData = { ...localDataRef.current, ...partialData };
     setLocalData(newData);
+    localDataRef.current = newData;
     
     // Clear existing timeout
     if (updateTimeoutRef.current) {
       clearTimeout(updateTimeoutRef.current);
     }
     
-    // Debounce the parent update
+    // Debounce the parent update to prevent re-renders
     updateTimeoutRef.current = setTimeout(() => {
       onUpdate(partialData);
-    }, 150);
-  }, [localData, onUpdate]);
+    }, 300);
+  }, [onUpdate]);
 
   // Cleanup timeout on unmount
   React.useEffect(() => {
