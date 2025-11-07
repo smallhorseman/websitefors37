@@ -33,6 +33,7 @@ export default function LiveEditorPage() {
   const [hasChanges, setHasChanges] = useState(false)
   const [pageTitle, setPageTitle] = useState('')
   const [importing, setImporting] = useState(false)
+  const [availablePublishedPages, setAvailablePublishedPages] = useState<string[]>([])
   
   const supabase = createClientComponentClient()
 
@@ -49,6 +50,7 @@ export default function LiveEditorPage() {
 
   useEffect(() => {
     loadPages()
+    checkAvailablePublishedPages()
   }, [])
 
   useEffect(() => {
@@ -98,6 +100,24 @@ export default function LiveEditorPage() {
       setMessage({ type: 'error', text: 'Failed to load pages' })
     } finally {
       setLoading(false)
+    }
+  }
+
+  const checkAvailablePublishedPages = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('content_pages')
+        .select('slug')
+        .eq('published', true)
+        .order('slug', { ascending: true })
+
+      if (!error && data) {
+        const slugs = data.map(p => p.slug)
+        setAvailablePublishedPages(slugs)
+        console.log('Available published pages:', slugs)
+      }
+    } catch (e) {
+      console.error('Failed to check published pages:', e)
     }
   }
 
@@ -450,7 +470,24 @@ export default function LiveEditorPage() {
 
       if (error) throw error
       if (!data?.content) {
-        setMessage({ type: 'warning', text: 'No published content found for this page. Try using a template from the sidebar instead.' })
+        // No published content found - offer to use a template instead
+        const useTemplate = confirm(
+          `No published content found for "${selectedSlug}".\n\n` +
+          `Would you like to load a template instead?\n\n` +
+          `Click OK to browse templates, or Cancel to start with an empty canvas.`
+        )
+        
+        if (useTemplate) {
+          setMessage({ 
+            type: 'warning', 
+            text: 'No published content found. Please select a template from the "Quick Start Templates" dropdown in the left sidebar.' 
+          })
+        } else {
+          setMessage({ 
+            type: 'warning', 
+            text: 'No published content found. Start by adding components from the left sidebar or use a template.' 
+          })
+        }
         return
       }
 
@@ -553,10 +590,17 @@ export default function LiveEditorPage() {
               onClick={importFromPublished}
               disabled={importing}
               className="px-4 py-2 border border-blue-300 bg-blue-50 text-blue-700 rounded hover:bg-blue-100 flex items-center gap-2 disabled:opacity-50"
-              title="Import components from published page"
+              title={
+                availablePublishedPages.includes(selectedSlug)
+                  ? 'Import components from published page'
+                  : `No published content for ${selectedSlug}. Available: ${availablePublishedPages.join(', ') || 'none'}`
+              }
             >
               {importing ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileEdit className="h-4 w-4" />}
               {importing ? 'Importing...' : 'Import Published'}
+              {!availablePublishedPages.includes(selectedSlug) && (
+                <span className="text-xs opacity-70">(N/A)</span>
+              )}
             </button>
           )}
 
