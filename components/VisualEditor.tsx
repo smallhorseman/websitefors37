@@ -1213,6 +1213,12 @@ export default function VisualEditor({
     } catch {}
   }, [quickPropertiesMode]);
 
+  // Memoize the selected component to prevent unnecessary re-renders
+  const selectedComponentData = React.useMemo(() => {
+    if (!selectedComponent) return null;
+    return components.find((c) => c.id === selectedComponent) || null;
+  }, [selectedComponent, components]);
+
   type Suggestion = {
     id: string;
     type: PageComponent["type"];
@@ -4661,12 +4667,14 @@ export default function VisualEditor({
               </div>
             </div>
 
-            <ComponentProperties
-              key={selectedComponent}
-              component={components.find((c) => c.id === selectedComponent)!}
-              quickMode={quickPropertiesMode}
-              onUpdate={(data) => updateComponent(selectedComponent, data)}
-            />
+            {selectedComponentData && (
+              <ComponentProperties
+                key={selectedComponent}
+                component={selectedComponentData}
+                quickMode={quickPropertiesMode}
+                onUpdate={(data) => updateComponent(selectedComponent!, data)}
+              />
+            )}
           </div>
         </div>
       )}
@@ -4700,12 +4708,12 @@ export default function VisualEditor({
               </button>
             </div>
             <div className="p-4 overflow-y-auto h-[calc(100%-56px)]">
-              {selectedComponent ? (
+              {selectedComponentData ? (
                 <ComponentProperties
                   key={selectedComponent}
-                  component={components.find((c) => c.id === selectedComponent)!}
+                  component={selectedComponentData}
                   quickMode={quickPropertiesMode}
-                  onUpdate={(data) => updateComponent(selectedComponent, data)}
+                  onUpdate={(data) => updateComponent(selectedComponent!, data)}
                 />
               ) : (
                 <p className="text-sm text-gray-500">Select a component to edit its properties.</p>
