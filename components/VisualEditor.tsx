@@ -1213,11 +1213,19 @@ export default function VisualEditor({
     } catch {}
   }, [quickPropertiesMode]);
 
-  // Memoize the selected component to stabilize references
+  // Memoize the selected component with stable reference using deep comparison
   const selectedComponentData = React.useMemo(() => {
     if (!selectedComponent) return null;
     return components.find((c) => c.id === selectedComponent) || null;
   }, [selectedComponent, components]);
+
+  // Keep a stable reference to prevent unnecessary re-renders
+  const selectedComponentDataStable = React.useRef<PageComponent | null>(null);
+  React.useEffect(() => {
+    if (selectedComponentData) {
+      selectedComponentDataStable.current = selectedComponentData;
+    }
+  }, [selectedComponentData]);
 
   type Suggestion = {
     id: string;
@@ -4667,10 +4675,10 @@ export default function VisualEditor({
               </div>
             </div>
 
-            {selectedComponentData && (
+            {selectedComponent && selectedComponentDataStable.current && (
               <ComponentPropertiesWrapper
                 key={selectedComponent}
-                component={selectedComponentData}
+                component={selectedComponentDataStable.current}
                 quickMode={quickPropertiesMode}
                 onUpdate={(data) => updateComponent(selectedComponent!, data)}
               />
@@ -4708,10 +4716,10 @@ export default function VisualEditor({
               </button>
             </div>
             <div className="p-4 overflow-y-auto h-[calc(100%-56px)]">
-              {selectedComponentData ? (
+              {selectedComponent && selectedComponentDataStable.current ? (
                 <ComponentPropertiesWrapper
                   key={selectedComponent}
-                  component={selectedComponentData}
+                  component={selectedComponentDataStable.current}
                   quickMode={quickPropertiesMode}
                   onUpdate={(data) => updateComponent(selectedComponent!, data)}
                 />
