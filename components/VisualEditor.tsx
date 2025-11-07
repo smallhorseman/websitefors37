@@ -11582,7 +11582,7 @@ function getQuickFieldsForType(type: PageComponent["type"]): string[] | null {
 }
 
 // Simple wrapper to prevent updates from propagating immediately
-function ComponentPropertiesWrapper({
+const ComponentPropertiesWrapper = React.memo(function ComponentPropertiesWrapper({
   component,
   onUpdate,
   quickMode,
@@ -11612,7 +11612,11 @@ function ComponentPropertiesWrapper({
       quickMode={quickMode}
     />
   );
-}
+}, (prevProps, nextProps) => {
+  // Only re-render if component ID changes
+  return prevProps.component.id === nextProps.component.id &&
+         prevProps.quickMode === nextProps.quickMode;
+});
 
 // Memoize to prevent re-renders when props haven't changed deeply
 const ComponentPropertiesInner = React.memo(function ComponentPropertiesInner({
