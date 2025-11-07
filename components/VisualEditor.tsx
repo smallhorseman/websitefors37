@@ -4662,6 +4662,7 @@ export default function VisualEditor({
             </div>
 
             <ComponentProperties
+              key={selectedComponent}
               component={components.find((c) => c.id === selectedComponent)!}
               quickMode={quickPropertiesMode}
               onUpdate={(data) => updateComponent(selectedComponent, data)}
@@ -4701,6 +4702,7 @@ export default function VisualEditor({
             <div className="p-4 overflow-y-auto h-[calc(100%-56px)]">
               {selectedComponent ? (
                 <ComponentProperties
+                  key={selectedComponent}
                   component={components.find((c) => c.id === selectedComponent)!}
                   quickMode={quickPropertiesMode}
                   onUpdate={(data) => updateComponent(selectedComponent, data)}
