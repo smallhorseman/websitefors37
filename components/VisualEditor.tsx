@@ -11437,15 +11437,40 @@ function GenericProperties({
   onUpdate: (data: any) => void;
   fields: string[];
 }) {
+  // Local state to prevent parent re-renders during typing
+  const [localData, setLocalData] = React.useState(component.data);
+  const updateTimeoutRef = React.useRef<NodeJS.Timeout>();
+
+  // Sync local state when component changes
+  React.useEffect(() => {
+    setLocalData(component.data);
+  }, [component.id]); // Only when component ID changes
+
   const handleFieldUpdate = (field: string, value: any) => {
-    onUpdate({
-      ...component.data,
+    const newData = {
+      ...localData,
       [field]: value,
-    });
+    };
+    
+    // Update local state immediately for responsive UI
+    setLocalData(newData);
+    
+    // Debounce parent update to prevent re-renders
+    if (updateTimeoutRef.current) clearTimeout(updateTimeoutRef.current);
+    updateTimeoutRef.current = setTimeout(() => {
+      onUpdate(newData);
+    }, 300);
   };
 
+  // Cleanup timeout on unmount
+  React.useEffect(() => {
+    return () => {
+      if (updateTimeoutRef.current) clearTimeout(updateTimeoutRef.current);
+    };
+  }, []);
+
   const renderField = (field: string) => {
-    const value = (component.data as any)[field];
+    const value = (localData as any)[field]; // Use local data instead of component.data
     const fieldType = typeof value;
 
     // Render field based on type
@@ -11968,15 +11993,40 @@ function HeroProperties({
   data: HeroComponent["data"];
   onUpdate: (data: any) => void;
 }) {
+  // Local state to prevent parent re-renders during typing
+  const [localData, setLocalData] = React.useState(data);
+  const updateTimeoutRef = React.useRef<NodeJS.Timeout>();
   const titleRef = React.useRef<HTMLTextAreaElement>(null);
   const subtitleRef = React.useRef<HTMLTextAreaElement>(null);
+
+  // Sync local state when component ID changes (not on every keystroke)
+  React.useEffect(() => {
+    setLocalData(data);
+  }, [data.title, data.subtitle]); // Only sync on major changes
+
+  // Local update handler
+  const handleUpdate = (updates: Partial<HeroComponent["data"]>) => {
+    const newData = { ...localData, ...updates };
+    setLocalData(newData);
+    
+    if (updateTimeoutRef.current) clearTimeout(updateTimeoutRef.current);
+    updateTimeoutRef.current = setTimeout(() => {
+      onUpdate(newData);
+    }, 300);
+  };
+
+  React.useEffect(() => {
+    return () => {
+      if (updateTimeoutRef.current) clearTimeout(updateTimeoutRef.current);
+    };
+  }, []);
 
   const insertTitleFormatting = (before: string, after: string) => {
     const textarea = titleRef.current;
     if (!textarea) return;
     const start = textarea.selectionStart;
     const end = textarea.selectionEnd;
-    const text = data.title;
+    const text = localData.title;
     const selectedText = text.substring(start, end);
     const newText =
       text.substring(0, start) +
@@ -11984,7 +12034,7 @@ function HeroProperties({
       selectedText +
       after +
       text.substring(end);
-    onUpdate({ title: newText });
+    handleUpdate({ title: newText });
     setTimeout(() => {
       textarea.focus();
       const newPos = start + before.length + selectedText.length + after.length;
@@ -11997,7 +12047,7 @@ function HeroProperties({
     if (!textarea) return;
     const start = textarea.selectionStart;
     const end = textarea.selectionEnd;
-    const text = data.subtitle;
+    const text = localData.subtitle;
     const selectedText = text.substring(start, end);
     const newText =
       text.substring(0, start) +
@@ -12005,7 +12055,7 @@ function HeroProperties({
       selectedText +
       after +
       text.substring(end);
-    onUpdate({ subtitle: newText });
+    handleUpdate({ subtitle: newText });
     setTimeout(() => {
       textarea.focus();
       const newPos = start + before.length + selectedText.length + after.length;
@@ -12056,8 +12106,8 @@ function HeroProperties({
         </div>
         <textarea
           ref={titleRef}
-          value={data.title}
-          onChange={(e) => onUpdate({ title: e.target.value })}
+          value={localData.title}
+          onChange={(e) => handleUpdate({ title: e.target.value })}
           className="w-full border rounded px-3 py-2 font-mono text-sm"
           rows={2}
           title="Hero title"
@@ -12073,8 +12123,8 @@ function HeroProperties({
           <input
             id="hero-fullbleed"
             type="checkbox"
-            checked={!!data.fullBleed}
-            onChange={(e) => onUpdate({ fullBleed: e.target.checked })}
+            checked={!!localData.fullBleed}
+            onChange={(e) => handleUpdate({ fullBleed: e.target.checked })}
             className="h-4 w-4 text-primary-600 rounded border-gray-300 focus:ring-primary-500"
           />
           <label htmlFor="hero-fullbleed" className="text-sm text-gray-700">
@@ -12085,8 +12135,8 @@ function HeroProperties({
           <input
             id="hero-overlap"
             type="checkbox"
-            checked={data.overlapHeader ?? true}
-            onChange={(e) => onUpdate({ overlapHeader: e.target.checked })}
+            checked={localData.overlapHeader ?? true}
+            onChange={(e) => handleUpdate({ overlapHeader: e.target.checked })}
             className="h-4 w-4 text-primary-600 rounded border-gray-300 focus:ring-primary-500"
           />
           <label htmlFor="hero-overlap" className="text-sm text-gray-700">
@@ -12097,8 +12147,8 @@ function HeroProperties({
       <div>
         <label className="block text-sm font-medium mb-1">Animation</label>
         <select
-          value={data.animation}
-          onChange={(e) => onUpdate({ animation: e.target.value })}
+          value={localData.animation}
+          onChange={(e) => handleUpdate({ animation: e.target.value })}
           className="w-full border rounded px-3 py-2"
           title="Hero animation"
         >
@@ -12113,8 +12163,8 @@ function HeroProperties({
           Button Animation
         </label>
         <select
-          value={data.buttonAnimation || "none"}
-          onChange={(e) => onUpdate({ buttonAnimation: e.target.value })}
+          value={localData.buttonAnimation || "none"}
+          onChange={(e) => handleUpdate({ buttonAnimation: e.target.value })}
           className="w-full border rounded px-3 py-2"
           title="Hero button animation"
         >
@@ -12153,8 +12203,8 @@ function HeroProperties({
         </div>
         <textarea
           ref={subtitleRef}
-          value={data.subtitle}
-          onChange={(e) => onUpdate({ subtitle: e.target.value })}
+          value={localData.subtitle}
+          onChange={(e) => handleUpdate({ subtitle: e.target.value })}
           className="w-full border rounded px-3 py-2 font-mono text-sm"
           rows={2}
           title="Hero subtitle"
@@ -12170,20 +12220,20 @@ function HeroProperties({
         </label>
         <input
           type="text"
-          value={data.backgroundImage}
-          onChange={(e) => onUpdate({ backgroundImage: e.target.value })}
+          value={localData.backgroundImage}
+          onChange={(e) => handleUpdate({ backgroundImage: e.target.value })}
           className="w-full border rounded px-3 py-2 mb-2"
           title="Background image URL"
           placeholder="Paste image URL here"
         />
         <div className="mt-2 mb-2 text-xs text-gray-500">or upload:</div>
         <ImageUploader
-          onImageUrl={(url) => onUpdate({ backgroundImage: url })}
+          onImageUrl={(url) => handleUpdate({ backgroundImage: url })}
         />
-        {data.backgroundImage && (
+        {localData.backgroundImage && (
           <div className="mt-2 relative aspect-video">
             <Image
-              src={data.backgroundImage}
+              src={localData.backgroundImage}
               alt=""
               fill
               className="object-cover rounded"
@@ -12195,8 +12245,8 @@ function HeroProperties({
         <label className="block text-sm font-medium mb-1">Button Text</label>
         <input
           type="text"
-          value={data.buttonText}
-          onChange={(e) => onUpdate({ buttonText: e.target.value })}
+          value={localData.buttonText}
+          onChange={(e) => handleUpdate({ buttonText: e.target.value })}
           className="w-full border rounded px-3 py-2"
           title="Button text"
           placeholder="Enter button text"
@@ -12206,8 +12256,8 @@ function HeroProperties({
         <label className="block text-sm font-medium mb-1">Button Link</label>
         <input
           type="text"
-          value={data.buttonLink}
-          onChange={(e) => onUpdate({ buttonLink: e.target.value })}
+          value={localData.buttonLink}
+          onChange={(e) => handleUpdate({ buttonLink: e.target.value })}
           className="w-full border rounded px-3 py-2"
           title="Button link"
           placeholder="Enter button link"
@@ -12219,8 +12269,8 @@ function HeroProperties({
         </label>
         <input
           type="text"
-          value={data.secondaryButtonText || ""}
-          onChange={(e) => onUpdate({ secondaryButtonText: e.target.value })}
+          value={localData.secondaryButtonText || ""}
+          onChange={(e) => handleUpdate({ secondaryButtonText: e.target.value })}
           className="w-full border rounded px-3 py-2"
           title="Secondary button text"
           placeholder="e.g., View Portfolio"
@@ -12232,8 +12282,8 @@ function HeroProperties({
         </label>
         <input
           type="text"
-          value={data.secondaryButtonLink || ""}
-          onChange={(e) => onUpdate({ secondaryButtonLink: e.target.value })}
+          value={localData.secondaryButtonLink || ""}
+          onChange={(e) => handleUpdate({ secondaryButtonLink: e.target.value })}
           className="w-full border rounded px-3 py-2"
           title="Secondary button link"
           placeholder="e.g., /gallery"
@@ -12242,8 +12292,8 @@ function HeroProperties({
       <div>
         <label className="block text-sm font-medium mb-1">Button Style</label>
         <select
-          value={data.buttonStyle || "primary"}
-          onChange={(e) => onUpdate({ buttonStyle: e.target.value })}
+          value={localData.buttonStyle || "primary"}
+          onChange={(e) => handleUpdate({ buttonStyle: e.target.value })}
           className="w-full border rounded px-3 py-2"
           title="Button style"
         >
@@ -12255,8 +12305,8 @@ function HeroProperties({
       <div>
         <label className="block text-sm font-medium mb-1">Title Color</label>
         <select
-          value={data.titleColor || "text-white"}
-          onChange={(e) => onUpdate({ titleColor: e.target.value })}
+          value={localData.titleColor || "text-white"}
+          onChange={(e) => handleUpdate({ titleColor: e.target.value })}
           className="w-full border rounded px-3 py-2"
           title="Title color"
         >
@@ -14141,8 +14191,36 @@ function TextProperties({
   data: TextComponent["data"];
   onUpdate: (data: any) => void;
 }) {
-  const [cursorPos, setCursorPos] = React.useState<number>(0);
+  // Local state to prevent parent re-renders during typing
+  const [localData, setLocalData] = React.useState(data);
+  const updateTimeoutRef = React.useRef<NodeJS.Timeout>();
   const textareaRef = React.useRef<HTMLTextAreaElement>(null);
+
+  // Sync local state when data prop changes (e.g., switching components)
+  React.useEffect(() => {
+    setLocalData(data);
+  }, [data.content, data.alignment, data.size, data.animation]); // Specific deps to avoid over-syncing
+
+  // Local update handler
+  const handleUpdate = (updates: Partial<TextComponent["data"]>) => {
+    const newData = { ...localData, ...updates };
+    
+    // Update local state immediately
+    setLocalData(newData);
+    
+    // Debounce parent update
+    if (updateTimeoutRef.current) clearTimeout(updateTimeoutRef.current);
+    updateTimeoutRef.current = setTimeout(() => {
+      onUpdate(newData);
+    }, 300);
+  };
+
+  // Cleanup timeout on unmount
+  React.useEffect(() => {
+    return () => {
+      if (updateTimeoutRef.current) clearTimeout(updateTimeoutRef.current);
+    };
+  }, []);
 
   const insertFormatting = (before: string, after: string) => {
     const textarea = textareaRef.current;
@@ -14150,7 +14228,7 @@ function TextProperties({
 
     const start = textarea.selectionStart;
     const end = textarea.selectionEnd;
-    const text = data.content;
+    const text = localData.content;
     const selectedText = text.substring(start, end);
 
     const newText =
@@ -14159,7 +14237,7 @@ function TextProperties({
       selectedText +
       after +
       text.substring(end);
-    onUpdate({ content: newText });
+    handleUpdate({ content: newText });
 
     // Set cursor position after the inserted text
     setTimeout(() => {
@@ -14242,8 +14320,8 @@ function TextProperties({
 
         <textarea
           ref={textareaRef}
-          value={data.content}
-          onChange={(e) => onUpdate({ content: e.target.value })}
+          value={localData.content}
+          onChange={(e) => handleUpdate({ content: e.target.value })}
           className="w-full border rounded px-3 py-2 font-mono text-sm"
           rows={8}
           title="Text content"
@@ -14257,8 +14335,8 @@ function TextProperties({
       <div>
         <label className="block text-sm font-medium mb-1">Alignment</label>
         <select
-          value={data.alignment}
-          onChange={(e) => onUpdate({ alignment: e.target.value })}
+          value={localData.alignment}
+          onChange={(e) => handleUpdate({ alignment: e.target.value })}
           className="w-full border rounded px-3 py-2"
           title="Text alignment"
         >
@@ -14270,8 +14348,8 @@ function TextProperties({
       <div>
         <label className="block text-sm font-medium mb-1">Size</label>
         <select
-          value={data.size}
-          onChange={(e) => onUpdate({ size: e.target.value })}
+          value={localData.size}
+          onChange={(e) => handleUpdate({ size: e.target.value })}
           className="w-full border rounded px-3 py-2"
           title="Text size"
         >
@@ -14284,8 +14362,8 @@ function TextProperties({
       <div>
         <label className="block text-sm font-medium mb-1">Animation</label>
         <select
-          value={data.animation || "none"}
-          onChange={(e) => onUpdate({ animation: e.target.value })}
+          value={localData.animation || "none"}
+          onChange={(e) => handleUpdate({ animation: e.target.value })}
           className="w-full border rounded px-3 py-2"
           title="Text animation"
         >
@@ -14307,14 +14385,40 @@ function ImageProperties({
   data: ImageComponent["data"];
   onUpdate: (data: any) => void;
 }) {
+  // Local state to prevent parent re-renders during typing
+  const [localData, setLocalData] = React.useState(data);
+  const updateTimeoutRef = React.useRef<NodeJS.Timeout>();
+
+  // Sync local state when data prop changes
+  React.useEffect(() => {
+    setLocalData(data);
+  }, [data.url, data.alt, data.caption, data.link, data.animation, data.width]);
+
+  // Local update handler
+  const handleUpdate = (updates: Partial<ImageComponent["data"]>) => {
+    const newData = { ...localData, ...updates };
+    setLocalData(newData);
+    
+    if (updateTimeoutRef.current) clearTimeout(updateTimeoutRef.current);
+    updateTimeoutRef.current = setTimeout(() => {
+      onUpdate(newData);
+    }, 300);
+  };
+
+  React.useEffect(() => {
+    return () => {
+      if (updateTimeoutRef.current) clearTimeout(updateTimeoutRef.current);
+    };
+  }, []);
+
   return (
     <div className="space-y-4">
       <div>
         <label className="block text-sm font-medium mb-1">Image URL</label>
         <input
           type="text"
-          value={data.url}
-          onChange={(e) => onUpdate({ url: e.target.value })}
+          value={localData.url}
+          onChange={(e) => handleUpdate({ url: e.target.value })}
           className="w-full border rounded px-3 py-2"
           title="Image URL"
           placeholder="Enter image URL"
@@ -14325,8 +14429,8 @@ function ImageProperties({
         <label className="block text-sm font-medium mb-1">Alt Text</label>
         <input
           type="text"
-          value={data.alt}
-          onChange={(e) => onUpdate({ alt: e.target.value })}
+          value={localData.alt}
+          onChange={(e) => handleUpdate({ alt: e.target.value })}
           className="w-full border rounded px-3 py-2"
           title="Alt text"
           placeholder="Enter alt text"
@@ -14336,14 +14440,14 @@ function ImageProperties({
         <label className="block text-sm font-medium mb-1">Caption</label>
         <input
           type="text"
-          value={data.caption}
-          onChange={(e) => onUpdate({ caption: e.target.value })}
+          value={localData.caption}
+          onChange={(e) => handleUpdate({ caption: e.target.value })}
           className="w-full border rounded px-3 py-2"
           title="Image caption"
           placeholder="Enter caption"
         />
         <div className="mt-2 mb-2 text-xs text-gray-500">or upload:</div>
-        <ImageUploader onImageUrl={(url) => onUpdate({ url })} />
+        <ImageUploader onImageUrl={(url) => handleUpdate({ url })} />
       </div>
       <div>
         <label className="block text-sm font-medium mb-1">
@@ -14351,8 +14455,8 @@ function ImageProperties({
         </label>
         <input
           type="text"
-          value={data.link || ""}
-          onChange={(e) => onUpdate({ link: e.target.value })}
+          value={localData.link || ""}
+          onChange={(e) => handleUpdate({ link: e.target.value })}
           className="w-full border rounded px-3 py-2"
           title="Image link"
           placeholder="/gallery or https://example.com"
@@ -14364,8 +14468,8 @@ function ImageProperties({
       <div>
         <label className="block text-sm font-medium mb-1">Animation</label>
         <select
-          value={data.animation || "none"}
-          onChange={(e) => onUpdate({ animation: e.target.value })}
+          value={localData.animation || "none"}
+          onChange={(e) => handleUpdate({ animation: e.target.value })}
           className="w-full border rounded px-3 py-2"
           title="Image animation"
         >
@@ -14379,8 +14483,8 @@ function ImageProperties({
       <div>
         <label className="block text-sm font-medium mb-1">Width</label>
         <select
-          value={data.width}
-          onChange={(e) => onUpdate({ width: e.target.value })}
+          value={localData.width}
+          onChange={(e) => handleUpdate({ width: e.target.value })}
           className="w-full border rounded px-3 py-2"
           title="Image width"
         >
@@ -14401,14 +14505,40 @@ function ButtonProperties({
   data: ButtonComponent["data"];
   onUpdate: (data: any) => void;
 }) {
+  // Local state to prevent parent re-renders during typing
+  const [localData, setLocalData] = React.useState(data);
+  const updateTimeoutRef = React.useRef<NodeJS.Timeout>();
+
+  // Sync local state when data prop changes
+  React.useEffect(() => {
+    setLocalData(data);
+  }, [data.text, data.link, data.style, data.alignment, data.animation]);
+
+  // Local update handler
+  const handleUpdate = (updates: Partial<ButtonComponent["data"]>) => {
+    const newData = { ...localData, ...updates };
+    setLocalData(newData);
+    
+    if (updateTimeoutRef.current) clearTimeout(updateTimeoutRef.current);
+    updateTimeoutRef.current = setTimeout(() => {
+      onUpdate(newData);
+    }, 300);
+  };
+
+  React.useEffect(() => {
+    return () => {
+      if (updateTimeoutRef.current) clearTimeout(updateTimeoutRef.current);
+    };
+  }, []);
+
   return (
     <div className="space-y-4">
       <div>
         <label className="block text-sm font-medium mb-1">Button Text</label>
         <input
           type="text"
-          value={data.text}
-          onChange={(e) => onUpdate({ text: e.target.value })}
+          value={localData.text}
+          onChange={(e) => handleUpdate({ text: e.target.value })}
           className="w-full border rounded px-3 py-2"
           title="Button text"
           placeholder="Enter button text"
@@ -14419,8 +14549,8 @@ function ButtonProperties({
         <label className="block text-sm font-medium mb-1">Link</label>
         <input
           type="text"
-          value={data.link}
-          onChange={(e) => onUpdate({ link: e.target.value })}
+          value={localData.link}
+          onChange={(e) => handleUpdate({ link: e.target.value })}
           className="w-full border rounded px-3 py-2"
           title="Button link"
           placeholder="Enter button link"
@@ -14430,8 +14560,8 @@ function ButtonProperties({
       <div>
         <label className="block text-sm font-medium mb-1">Style</label>
         <select
-          value={data.style}
-          onChange={(e) => onUpdate({ style: e.target.value })}
+          value={localData.style}
+          onChange={(e) => handleUpdate({ style: e.target.value })}
           className="w-full border rounded px-3 py-2"
           title="Button style"
         >
@@ -14444,8 +14574,8 @@ function ButtonProperties({
       <div>
         <label className="block text-sm font-medium mb-1">Alignment</label>
         <select
-          value={data.alignment}
-          onChange={(e) => onUpdate({ alignment: e.target.value })}
+          value={localData.alignment}
+          onChange={(e) => handleUpdate({ alignment: e.target.value })}
           className="w-full border rounded px-3 py-2"
           title="Button alignment"
         >
@@ -14457,8 +14587,8 @@ function ButtonProperties({
       <div>
         <label className="block text-sm font-medium mb-1">Animation</label>
         <select
-          value={data.animation || "none"}
-          onChange={(e) => onUpdate({ animation: e.target.value })}
+          value={localData.animation || "none"}
+          onChange={(e) => handleUpdate({ animation: e.target.value })}
           className="w-full border rounded px-3 py-2"
           title="Button animation"
         >
