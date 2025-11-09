@@ -1,18 +1,10 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  content: {
-    files: [
-      './pages/**/*.{js,ts,jsx,tsx,mdx}',
-      './components/**/*.{js,ts,jsx,tsx,mdx}',
-      './app/**/*.{js,ts,jsx,tsx,mdx}',
-    ],
-    options: {
-      safelist: {
-        standard: [/^text-/, /^bg-/, /^border-/],
-        deep: [/react-hot-toast/],
-      },
-    },
-  },
+  content: [
+    './pages/**/*.{js,ts,jsx,tsx,mdx}',
+    './components/**/*.{js,ts,jsx,tsx,mdx}',
+    './app/**/*.{js,ts,jsx,tsx,mdx}',
+  ],
   theme: {
     extend: {
       fontFamily: {
