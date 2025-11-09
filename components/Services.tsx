@@ -145,12 +145,12 @@ export default function Services() {
 					{currentImg && (
 						<div className="mb-6 aspect-[4/3] relative rounded-lg overflow-hidden">
 							<Image
-								src={optimizeCloudinaryUrl(currentImg.image_url, 800)}
+								src={optimizeCloudinaryUrl(currentImg.image_url, 800, 'auto:low')}
 								alt={currentImg.title || service.title}
 								fill
 								sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
 								loading={index < 2 ? "eager" : "lazy"}
-								quality={85}
+								quality={70}
 								className="object-cover group-hover:scale-105 transition-transform duration-500"
 							/>
 							<div className="absolute bottom-0 left-0 right-0 bg-black/40 text-white text-xs px-2 py-1">

@@ -45,7 +45,7 @@ export default function SlideshowHeroClient({
   }, [hasSlides, slides.length, intervalMs])
 
   const current = hasSlides ? slides[index] : undefined
-  const currentImageSrc = current?.image ? optimizeCloudinaryUrl(current.image, 1920) : undefined
+  const currentImageSrc = current?.image ? optimizeCloudinaryUrl(current.image, 1920, 'auto:low') : undefined
   const overlayAlpha = Math.min(Math.max(Number(overlay ?? 60), 0), 100) / 100
   const buttonStyleClasses: Record<string, string> = {
     primary: 'btn-primary',
@@ -66,7 +66,7 @@ export default function SlideshowHeroClient({
             priority={index === 0}
             fetchPriority={index === 0 ? 'high' : 'auto'}
             sizes="100vw"
-            quality={85}
+            quality={75}
             className="object-cover transition-opacity duration-700"
           />
         )}

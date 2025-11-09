@@ -79,7 +79,7 @@ export default function Hero() {
       : cfg?.hero_image ||
         "https://res.cloudinary.com/dmjxho2rl/image/upload/v1759639187/A4B03835-ED8B-4FBB-A27E-1F2EE6CA1A18_1_105_c_gstgil_e_gen_restore_e_improve_e_sharpen_l_image_upload_My_Brand_IMG_2115_mtuowt_c_scale_fl_relative_w_0.40_o_80_fl_layer_apply_g_south_x_0.03_y_0.04_yqgycj.jpg";
   
-  const heroImage = optimizeCloudinaryUrl(rawHeroImage, 1920); // Max 1920px width for hero
+  const heroImage = optimizeCloudinaryUrl(rawHeroImage, 1920, 'auto:low'); // Lower quality for faster load
 
   // Admin-configurable appearance fallbacks
   const heroMinHeight: string = siteSettings?.hero_min_height || "70vh"; // reduced from full screen
@@ -110,7 +110,7 @@ export default function Hero() {
           fill
           priority
           fetchPriority="high"
-          quality={90}
+          quality={75}
           sizes="100vw"
           className="object-cover transition-opacity duration-1000"
           placeholder="blur"
