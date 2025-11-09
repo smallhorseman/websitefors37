@@ -3,6 +3,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { generateSEOMetadata } from '@/lib/seo-helpers'
 import BTSFeed from '@/components/BTSFeed'
+import { optimizeCloudinaryUrl } from '@/lib/cloudinaryOptimizer'
 
 export const metadata = generateSEOMetadata({
   title: 'About Studio37 - Christian & Caitie Photography Team in Pinehurst, TX',
@@ -24,10 +25,14 @@ export default function AboutPage() {
       {/* Hero Section */}
       <section className="relative bg-gradient-to-r from-gray-900 to-blue-900 text-white py-20">
         <div className="absolute inset-0 opacity-30">
-          <img
-            src="https://res.cloudinary.com/dmjxho2rl/image/upload/v1759639187/A4B03835-ED8B-4FBB-A27E-1F2EE6CA1A18_1_105_c_gstgil_e_gen_restore_e_improve_e_sharpen_l_image_upload_My_Brand_IMG_2115_mtuowt_c_scale_fl_relative_w_0.40_o_80_fl_layer_apply_g_south_x_0.03_y_0.04_yqgycj.jpg"
+          <Image
+            src={optimizeCloudinaryUrl("https://res.cloudinary.com/dmjxho2rl/image/upload/v1759639187/A4B03835-ED8B-4FBB-A27E-1F2EE6CA1A18_1_105_c_gstgil_e_gen_restore_e_improve_e_sharpen_l_image_upload_My_Brand_IMG_2115_mtuowt_c_scale_fl_relative_w_0.40_o_80_fl_layer_apply_g_south_x_0.03_y_0.04_yqgycj.jpg", 1920)}
             alt="Studio37 Photography workspace"
-            className="object-cover w-full h-full"
+            fill
+            className="object-cover"
+            priority
+            quality={85}
+            sizes="100vw"
           />
         </div>
         <div className="relative z-10 container mx-auto px-4 text-center">
@@ -55,10 +60,14 @@ export default function AboutPage() {
             <div className="text-center">
               <div className="relative mb-8">
                 <div className="w-80 h-80 mx-auto rounded-full overflow-hidden shadow-2xl">
-                  <img
-                    src="https://res.cloudinary.com/dmjxho2rl/image/upload/v1758315615/_MG_9234_aerdni_e_gen_restore_e_improve_l_image_upload_My_Brand_IMG_2115_mtuowt_c_scale_fl_relative_w_0.36_o_80_fl_layer_apply_g_west_x_0.03_y_0.04_bmly4s.jpg"
+                  <Image
+                    src={optimizeCloudinaryUrl("https://res.cloudinary.com/dmjxho2rl/image/upload/v1758315615/_MG_9234_aerdni_e_gen_restore_e_improve_l_image_upload_My_Brand_IMG_2115_mtuowt_c_scale_fl_relative_w_0.36_o_80_fl_layer_apply_g_west_x_0.03_y_0.04_bmly4s.jpg", 640)}
                     alt="Christian - CEO, Marketing Lead, Producer and Photographer at Studio37"
+                    width={320}
+                    height={320}
                     className="object-cover w-full h-full"
+                    loading="lazy"
+                    quality={90}
                   />
                 </div>
                 <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white px-6 py-2 rounded-full font-semibold">
@@ -87,10 +96,14 @@ export default function AboutPage() {
             <div className="text-center">
               <div className="relative mb-8">
                 <div className="w-80 h-80 mx-auto rounded-full overflow-hidden shadow-2xl">
-                  <img
-                    src="https://res.cloudinary.com/dmjxho2rl/image/upload/v1758315656/IMG_6580_axayxe_e_gen_restore_e_improve_e_sharpen_l_image_upload_My_Brand_IMG_2115_mtuowt_c_scale_fl_relative_w_0.36_o_80_fl_layer_apply_g_west_x_0.03_y_0.04_nkjfev.jpg"
+                  <Image
+                    src={optimizeCloudinaryUrl("https://res.cloudinary.com/dmjxho2rl/image/upload/v1758315656/IMG_6580_axayxe_e_gen_restore_e_improve_e_sharpen_l_image_upload_My_Brand_IMG_2115_mtuowt_c_scale_fl_relative_w_0.36_o_80_fl_layer_apply_g_west_x_0.03_y_0.04_nkjfev.jpg", 640)}
                     alt="Caitie - Co-Owner, Photographer and Editor at Studio37"
+                    width={320}
+                    height={320}
                     className="object-cover w-full h-full"
+                    loading="lazy"
+                    quality={90}
                   />
                 </div>
                 <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2 bg-purple-600 text-white px-6 py-2 rounded-full font-semibold">

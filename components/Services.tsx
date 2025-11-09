@@ -6,6 +6,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useGalleryImages } from '@/hooks/useGalleryImages'
 import { Camera, Users, Building, Heart, ArrowRight } from 'lucide-react'
+import { optimizeCloudinaryUrl } from '@/lib/cloudinaryOptimizer'
 
 const services = [
 		{
@@ -144,22 +145,23 @@ export default function Services() {
 										<Icon className="h-8 w-8 text-primary-600 group-hover:text-white transition-colors duration-300" />
 									</div>
 
-									{/* Slideshow image for this service category */}
-									{currentImg && (
-										<div className="mb-6 aspect-[4/3] relative rounded-lg overflow-hidden">
-											<Image
-												src={currentImg.image_url}
-												alt={currentImg.title || service.title}
-												fill
-												className="object-cover group-hover:scale-105 transition-transform duration-500"
-											/>
-											<div className="absolute bottom-0 left-0 right-0 bg-black/40 text-white text-xs px-2 py-1">
-												{currentImg.title}
-											</div>
-										</div>
-									)}
-
-									<h3 className="text-xl font-semibold mb-4 text-center group-hover:text-primary-600 transition-colors duration-300">
+					{/* Slideshow image for this service category */}
+					{currentImg && (
+						<div className="mb-6 aspect-[4/3] relative rounded-lg overflow-hidden">
+							<Image
+								src={optimizeCloudinaryUrl(currentImg.image_url, 800)}
+								alt={currentImg.title || service.title}
+								fill
+								sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
+								loading={index < 2 ? "eager" : "lazy"}
+								quality={85}
+								className="object-cover group-hover:scale-105 transition-transform duration-500"
+							/>
+							<div className="absolute bottom-0 left-0 right-0 bg-black/40 text-white text-xs px-2 py-1">
+								{currentImg.title}
+							</div>
+						</div>
+					)}									<h3 className="text-xl font-semibold mb-4 text-center group-hover:text-primary-600 transition-colors duration-300">
 										{service.title}
 									</h3>
 									<p className="text-gray-600 mb-6 text-center flex-grow">

@@ -2,6 +2,7 @@
 
 import React from 'react'
 import Image from 'next/image'
+import { optimizeCloudinaryUrl } from '@/lib/cloudinaryOptimizer'
 
 type Slide = { image: string; category?: string; title?: string }
 
@@ -44,6 +45,7 @@ export default function SlideshowHeroClient({
   }, [hasSlides, slides.length, intervalMs])
 
   const current = hasSlides ? slides[index] : undefined
+  const currentImageSrc = current?.image ? optimizeCloudinaryUrl(current.image, 1920) : undefined
   const overlayAlpha = Math.min(Math.max(Number(overlay ?? 60), 0), 100) / 100
   const buttonStyleClasses: Record<string, string> = {
     primary: 'btn-primary',
@@ -56,9 +58,9 @@ export default function SlideshowHeroClient({
     <section className="relative min-h-[60vh] md:min-h-[70vh] lg:min-h-[80vh] flex items-center justify-center text-white overflow-hidden">
       {/* Slides */}
       <div className="absolute inset-0">
-        {hasSlides && (
+        {hasSlides && currentImageSrc && (
           <Image
-            src={current!.image}
+            src={currentImageSrc}
             alt={current?.title || 'Slideshow'}
             fill
             priority={index === 0}
