@@ -1254,6 +1254,15 @@ export default function VisualEditor({
   const [isResizing, setIsResizing] = useState(false);
   const [resizeDirection, setResizeDirection] = useState<'se' | 'e' | 's' | null>(null);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const [propertiesVisible, setPropertiesVisible] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return true;
+    try {
+      const raw = localStorage.getItem('ve:propertiesVisible');
+      return raw ? JSON.parse(raw) : true;
+    } catch {
+      return true;
+    }
+  });
   
   // Persist panel settings
   useEffect(() => {
@@ -1261,16 +1270,21 @@ export default function VisualEditor({
       localStorage.setItem('ve:propertiesWidth', JSON.stringify(propertiesWidth));
       localStorage.setItem('ve:propertiesHeight', JSON.stringify(propertiesHeight));
       localStorage.setItem('ve:propertiesPosition', JSON.stringify(propertiesPosition));
+      localStorage.setItem('ve:propertiesVisible', JSON.stringify(propertiesVisible));
     } catch {}
-  }, [propertiesWidth, propertiesHeight, propertiesPosition]);
+  }, [propertiesWidth, propertiesHeight, propertiesPosition, propertiesVisible]);
 
   // Handle dragging
   useEffect(() => {
     if (!isDragging) return;
     const handleMouseMove = (e: MouseEvent) => {
+      const nextX = e.clientX - dragOffset.x;
+      const nextY = e.clientY - dragOffset.y;
+      const maxX = Math.max(8, (window.innerWidth || 0) - propertiesWidth - 8);
+      const maxY = Math.max(8, (window.innerHeight || 0) - 80); // keep header visible
       setPropertiesPosition({
-        x: e.clientX - dragOffset.x,
-        y: e.clientY - dragOffset.y
+        x: Math.max(8, Math.min(nextX, maxX)),
+        y: Math.max(8, Math.min(nextY, maxY)),
       });
     };
     const handleMouseUp = () => setIsDragging(false);
@@ -1306,6 +1320,21 @@ export default function VisualEditor({
       document.removeEventListener('mouseup', handleMouseUp);
     };
   }, [isResizing, resizeDirection, propertiesPosition]);
+
+  // Clamp saved position to viewport on mount and when window resizes
+  useEffect(() => {
+    const clampToViewport = () => {
+      const maxX = Math.max(8, (window.innerWidth || 0) - propertiesWidth - 8);
+      const maxY = Math.max(8, (window.innerHeight || 0) - 80);
+      setPropertiesPosition((pos) => ({
+        x: Math.max(8, Math.min(pos.x, maxX)),
+        y: Math.max(8, Math.min(pos.y, maxY)),
+      }));
+    };
+    clampToViewport();
+    window.addEventListener('resize', clampToViewport);
+    return () => window.removeEventListener('resize', clampToViewport);
+  }, [propertiesWidth, propertiesHeight]);
 
   // Quick properties mode (compact editors)
   const [quickPropertiesMode, setQuickPropertiesMode] = useState<boolean>(() => {
@@ -4740,10 +4769,10 @@ export default function VisualEditor({
         </div>
       </div>
 
-      {/* Floating Properties Panel (desktop) - Always visible */}
-      {!previewMode && (
-        <div 
-          className="hidden md:block fixed bg-white border-2 border-gray-300 rounded-lg shadow-2xl overflow-hidden z-50"
+      {/* Floating Properties Panel (desktop) */}
+      {!previewMode && propertiesVisible && (
+        <div
+          className="hidden md:block fixed bg-white border-2 border-gray-300 rounded-lg shadow-2xl overflow-hidden z-50 select-none"
           style={{
             left: `${propertiesPosition.x}px`,
             top: `${propertiesPosition.y}px`,
@@ -4777,6 +4806,13 @@ export default function VisualEditor({
               )}
             </div>
             <div className="flex items-center gap-2">
+              <button
+                onClick={(e) => { e.stopPropagation(); setPropertiesVisible(false); }}
+                title="Hide properties panel"
+                className="px-2 py-1 text-xs rounded border bg-white hover:bg-gray-100"
+              >
+                Hide
+              </button>
               <div className="flex items-center gap-1 text-xs border rounded overflow-hidden bg-white">
                 <button
                   className={`px-2 py-1 ${quickPropertiesMode ? 'bg-primary-100 font-medium' : 'bg-white'}`}
@@ -4876,6 +4912,17 @@ export default function VisualEditor({
             title="Drag to resize"
           />
         </div>
+      )}
+
+      {/* Show tiny toggle when panel hidden */}
+      {!previewMode && !propertiesVisible && (
+        <button
+          onClick={() => setPropertiesVisible(true)}
+          className="hidden md:flex fixed top-4 right-4 z-40 px-3 py-2 bg-white border border-gray-300 rounded shadow hover:bg-gray-50 text-xs items-center gap-2"
+          title="Show properties panel"
+        >
+          <SlidersHorizontal className="h-4 w-4" /> Properties
+        </button>
       )}
 
       {/* Right Drawer (mobile) */}
