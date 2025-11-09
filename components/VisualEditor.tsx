@@ -1167,35 +1167,92 @@ export default function VisualEditor({
 
   // Custom properties panel width (drag-resize)
   const [propertiesWidth, setPropertiesWidth] = useState<number>(() => {
-    if (typeof window === 'undefined') return 320;
+    if (typeof window === 'undefined') return 400;
     try {
       const raw = localStorage.getItem('ve:propertiesWidth');
-      return raw ? Number(JSON.parse(raw)) : 320;
+      return raw ? Number(JSON.parse(raw)) : 400;
     } catch {
-      return 320;
+      return 400;
     }
   });
+  
+  // Floating properties panel position and height
+  const [propertiesPosition, setPropertiesPosition] = useState<{x: number, y: number}>(() => {
+    if (typeof window === 'undefined') return { x: 100, y: 100 };
+    try {
+      const raw = localStorage.getItem('ve:propertiesPosition');
+      return raw ? JSON.parse(raw) : { x: 100, y: 100 };
+    } catch {
+      return { x: 100, y: 100 };
+    }
+  });
+  
+  const [propertiesHeight, setPropertiesHeight] = useState<number>(() => {
+    if (typeof window === 'undefined') return 500;
+    try {
+      const raw = localStorage.getItem('ve:propertiesHeight');
+      return raw ? Number(JSON.parse(raw)) : 500;
+    } catch {
+      return 500;
+    }
+  });
+  
+  const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
+  const [resizeDirection, setResizeDirection] = useState<'se' | 'e' | 's' | null>(null);
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  
+  // Persist panel settings
   useEffect(() => {
     try {
       localStorage.setItem('ve:propertiesWidth', JSON.stringify(propertiesWidth));
+      localStorage.setItem('ve:propertiesHeight', JSON.stringify(propertiesHeight));
+      localStorage.setItem('ve:propertiesPosition', JSON.stringify(propertiesPosition));
     } catch {}
-  }, [propertiesWidth]);
+  }, [propertiesWidth, propertiesHeight, propertiesPosition]);
 
+  // Handle dragging
   useEffect(() => {
-    if (!isResizing) return;
+    if (!isDragging) return;
     const handleMouseMove = (e: MouseEvent) => {
-      const newWidth = window.innerWidth - e.clientX;
-      setPropertiesWidth(Math.max(280, Math.min(800, newWidth)));
+      setPropertiesPosition({
+        x: e.clientX - dragOffset.x,
+        y: e.clientY - dragOffset.y
+      });
     };
-    const handleMouseUp = () => setIsResizing(false);
+    const handleMouseUp = () => setIsDragging(false);
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseup', handleMouseUp);
     return () => {
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [isResizing]);
+  }, [isDragging, dragOffset]);
+
+  // Handle resizing
+  useEffect(() => {
+    if (!isResizing || !resizeDirection) return;
+    const handleMouseMove = (e: MouseEvent) => {
+      if (resizeDirection === 'e' || resizeDirection === 'se') {
+        const newWidth = e.clientX - propertiesPosition.x;
+        setPropertiesWidth(Math.max(300, Math.min(800, newWidth)));
+      }
+      if (resizeDirection === 's' || resizeDirection === 'se') {
+        const newHeight = e.clientY - propertiesPosition.y;
+        setPropertiesHeight(Math.max(300, Math.min(900, newHeight)));
+      }
+    };
+    const handleMouseUp = () => {
+      setIsResizing(false);
+      setResizeDirection(null);
+    };
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isResizing, resizeDirection, propertiesPosition]);
 
   // Quick properties mode (compact editors)
   const [quickPropertiesMode, setQuickPropertiesMode] = useState<boolean>(() => {
@@ -4601,89 +4658,136 @@ export default function VisualEditor({
         </div>
       </div>
 
-      {/* Right Sidebar - Properties (desktop) */}
-      {!previewMode && selectedComponent && (
+      {/* Floating Properties Panel (desktop) - Always visible */}
+      {!previewMode && (
         <div 
-          className="hidden md:block bg-white border-l overflow-y-auto relative"
-          style={{ width: `${propertiesWidth}px` }}
+          className="hidden md:block fixed bg-white border-2 border-gray-300 rounded-lg shadow-2xl overflow-hidden z-50"
+          style={{
+            left: `${propertiesPosition.x}px`,
+            top: `${propertiesPosition.y}px`,
+            width: `${propertiesWidth}px`,
+            height: `${propertiesHeight}px`,
+          }}
         >
-          {/* Drag resize handle */}
+          {/* Draggable header */}
           <div
-            className="absolute left-0 top-0 bottom-0 w-1 cursor-col-resize hover:bg-primary-300 transition-colors z-10"
-            onMouseDown={() => setIsResizing(true)}
-            title="Drag to resize"
-          />
-          <div className="p-4 border-b flex items-center justify-between">
-            <h2 className="font-bold text-lg">Properties</h2>
+            className="p-3 border-b bg-gradient-to-r from-primary-50 to-primary-100 cursor-move flex items-center justify-between select-none"
+            onMouseDown={(e) => {
+              const rect = e.currentTarget.getBoundingClientRect();
+              setDragOffset({
+                x: e.clientX - propertiesPosition.x,
+                y: e.clientY - propertiesPosition.y
+              });
+              setIsDragging(true);
+            }}
+          >
             <div className="flex items-center gap-2">
-              <div className="flex items-center gap-1 text-xs border rounded overflow-hidden">
+              <div className="flex gap-1">
+                <div className="w-3 h-3 rounded-full bg-red-400"></div>
+                <div className="w-3 h-3 rounded-full bg-yellow-400"></div>
+                <div className="w-3 h-3 rounded-full bg-green-400"></div>
+              </div>
+              <h2 className="font-bold text-sm">Properties {selectedComponent ? '✏️' : '📦'}</h2>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1 text-xs border rounded overflow-hidden bg-white">
                 <button
-                  className={`px-2 py-1 ${quickPropertiesMode ? 'bg-gray-100 font-medium' : 'bg-white'}`}
-                  onClick={() => setQuickPropertiesMode(true)}
+                  className={`px-2 py-1 ${quickPropertiesMode ? 'bg-primary-100 font-medium' : 'bg-white'}`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setQuickPropertiesMode(true);
+                  }}
                   title="Quick properties"
                 >Quick</button>
                 <button
-                  className={`px-2 py-1 ${!quickPropertiesMode ? 'bg-gray-100 font-medium' : 'bg-white'}`}
-                  onClick={() => setQuickPropertiesMode(false)}
+                  className={`px-2 py-1 ${!quickPropertiesMode ? 'bg-primary-100 font-medium' : 'bg-white'}`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setQuickPropertiesMode(false);
+                  }}
                   title="Full properties"
                 >Full</button>
               </div>
-              <button
-                className="px-2 py-1 text-xs border rounded"
-                onClick={() => {
-                  if (propertiesWidth <= 320) {
-                    setPropertiesWidth(450);
-                  } else if (propertiesWidth <= 450) {
-                    setPropertiesWidth(600);
-                  } else {
-                    setPropertiesWidth(320);
-                  }
-                }}
-                title="Cycle panel width (or drag left edge)"
-              >
-                {propertiesWidth <= 320 ? 'Expand' : propertiesWidth <= 450 ? 'Wider' : 'Shrink'}
-              </button>
             </div>
           </div>
 
-          <div className="p-4">
-            {/* Per-device visibility controls */}
-            <div className="mb-4 p-3 border rounded bg-gray-50">
-              <div className="text-sm font-medium mb-2">Visibility</div>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => updateComponentVisibility(selectedComponent!, { desktop: !((components.find((c) => c.id === selectedComponent) as any)?.visibility?.desktop ?? true) })}
-                  className={`px-2 py-1 rounded border ${((components.find((c) => c.id === selectedComponent) as any)?.visibility?.desktop ?? true) ? 'bg-white' : 'bg-gray-100 opacity-70'}`}
-                  title="Toggle desktop visibility"
-                >
-                  <span className="inline-flex items-center gap-1 text-sm"><Monitor className="h-4 w-4" /> Desktop</span>
-                </button>
-                <button
-                  onClick={() => updateComponentVisibility(selectedComponent!, { tablet: !((components.find((c) => c.id === selectedComponent) as any)?.visibility?.tablet ?? true) })}
-                  className={`px-2 py-1 rounded border ${((components.find((c) => c.id === selectedComponent) as any)?.visibility?.tablet ?? true) ? 'bg-white' : 'bg-gray-100 opacity-70'}`}
-                  title="Toggle tablet visibility"
-                >
-                  <span className="inline-flex items-center gap-1 text-sm"><Tablet className="h-4 w-4" /> Tablet</span>
-                </button>
-                <button
-                  onClick={() => updateComponentVisibility(selectedComponent!, { mobile: !((components.find((c) => c.id === selectedComponent) as any)?.visibility?.mobile ?? true) })}
-                  className={`px-2 py-1 rounded border ${((components.find((c) => c.id === selectedComponent) as any)?.visibility?.mobile ?? true) ? 'bg-white' : 'bg-gray-100 opacity-70'}`}
-                  title="Toggle mobile visibility"
-                >
-                  <span className="inline-flex items-center gap-1 text-sm"><Smartphone className="h-4 w-4" /> Mobile</span>
-                </button>
-              </div>
-            </div>
+          {/* Content area with scrolling */}
+          <div className="p-4 overflow-y-auto" style={{ height: 'calc(100% - 52px)' }}>
+            {selectedComponent ? (
+              <>
+                {/* Per-device visibility controls */}
+                <div className="mb-4 p-3 border rounded bg-gray-50">
+                  <div className="text-sm font-medium mb-2">Visibility</div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <button
+                      onClick={() => updateComponentVisibility(selectedComponent!, { desktop: !((components.find((c) => c.id === selectedComponent) as any)?.visibility?.desktop ?? true) })}
+                      className={`px-2 py-1 rounded border text-xs ${((components.find((c) => c.id === selectedComponent) as any)?.visibility?.desktop ?? true) ? 'bg-white' : 'bg-gray-100 opacity-70'}`}
+                      title="Toggle desktop visibility"
+                    >
+                      <span className="inline-flex items-center gap-1"><Monitor className="h-3 w-3" /> Desktop</span>
+                    </button>
+                    <button
+                      onClick={() => updateComponentVisibility(selectedComponent!, { tablet: !((components.find((c) => c.id === selectedComponent) as any)?.visibility?.tablet ?? true) })}
+                      className={`px-2 py-1 rounded border text-xs ${((components.find((c) => c.id === selectedComponent) as any)?.visibility?.tablet ?? true) ? 'bg-white' : 'bg-gray-100 opacity-70'}`}
+                      title="Toggle tablet visibility"
+                    >
+                      <span className="inline-flex items-center gap-1"><Tablet className="h-3 w-3" /> Tablet</span>
+                    </button>
+                    <button
+                      onClick={() => updateComponentVisibility(selectedComponent!, { mobile: !((components.find((c) => c.id === selectedComponent) as any)?.visibility?.mobile ?? true) })}
+                      className={`px-2 py-1 rounded border text-xs ${((components.find((c) => c.id === selectedComponent) as any)?.visibility?.mobile ?? true) ? 'bg-white' : 'bg-gray-100 opacity-70'}`}
+                      title="Toggle mobile visibility"
+                    >
+                      <span className="inline-flex items-center gap-1"><Smartphone className="h-3 w-3" /> Mobile</span>
+                    </button>
+                  </div>
+                </div>
 
-            {selectedComponent && selectedComponentDataStableRef.current && (
-              <ComponentPropertiesWrapper
-                key={selectedComponent}
-                component={selectedComponentDataStableRef.current}
-                quickMode={quickPropertiesMode}
-                onUpdate={(data) => updateComponent(selectedComponent!, data)}
-              />
+                {selectedComponentDataStableRef.current && (
+                  <ComponentPropertiesWrapper
+                    key={selectedComponent}
+                    component={selectedComponentDataStableRef.current}
+                    quickMode={quickPropertiesMode}
+                    onUpdate={(data) => updateComponent(selectedComponent!, data)}
+                  />
+                )}
+              </>
+            ) : (
+              <div className="text-center py-12 text-gray-400">
+                <div className="text-4xl mb-2">👈</div>
+                <p className="text-sm">Select a component to edit its properties</p>
+              </div>
             )}
           </div>
+
+          {/* Resize handles */}
+          <div
+            className="absolute right-0 top-0 bottom-0 w-2 cursor-ew-resize hover:bg-primary-200 transition-colors"
+            onMouseDown={(e) => {
+              e.stopPropagation();
+              setResizeDirection('e');
+              setIsResizing(true);
+            }}
+            title="Drag to resize width"
+          />
+          <div
+            className="absolute left-0 right-0 bottom-0 h-2 cursor-ns-resize hover:bg-primary-200 transition-colors"
+            onMouseDown={(e) => {
+              e.stopPropagation();
+              setResizeDirection('s');
+              setIsResizing(true);
+            }}
+            title="Drag to resize height"
+          />
+          <div
+            className="absolute right-0 bottom-0 w-4 h-4 cursor-nwse-resize hover:bg-primary-300 transition-colors"
+            onMouseDown={(e) => {
+              e.stopPropagation();
+              setResizeDirection('se');
+              setIsResizing(true);
+            }}
+            title="Drag to resize"
+          />
         </div>
       )}
 
