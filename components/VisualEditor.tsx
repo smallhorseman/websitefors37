@@ -4918,7 +4918,7 @@ export default function VisualEditor({
       {!previewMode && !propertiesVisible && (
         <button
           onClick={() => setPropertiesVisible(true)}
-          className="hidden md:flex fixed top-4 right-4 z-40 px-3 py-2 bg-white border border-gray-300 rounded shadow hover:bg-gray-50 text-xs items-center gap-2"
+          className="hidden md:flex fixed bottom-6 right-6 z-[1000] px-3 py-2 bg-white border border-gray-300 rounded shadow-xl hover:bg-gray-50 text-xs items-center gap-2"
           title="Show properties panel"
         >
           <SlidersHorizontal className="h-4 w-4" /> Properties
