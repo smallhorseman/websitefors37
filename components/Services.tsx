@@ -1,7 +1,6 @@
 'use client'
 
 import React, { useEffect, useState, useRef } from 'react'
-import { motion } from 'framer-motion'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useGalleryImages } from '@/hooks/useGalleryImages'
@@ -132,13 +131,10 @@ export default function Services() {
 							<Link
 								key={service.title}
 								href={`/services/${service.slug}`}
-								className="group block"
+								className="group block animate-fade-in-up"
+								style={{ animationDelay: `${index * 100}ms` }}
 							>
-								<motion.div
-									initial={{ opacity: 0, y: 30 }}
-									whileInView={{ opacity: 1, y: 0 }}
-									transition={{ duration: 0.5, delay: index * 0.1 }}
-									viewport={{ once: true }}
+								<div
 									className="bg-gray-50 p-8 rounded-lg hover:shadow-xl hover:bg-white transition-all duration-300 h-full flex flex-col cursor-pointer border-2 border-transparent group-hover:border-primary-500"
 								>
 									<div className="flex items-center justify-center w-16 h-16 bg-primary-100 rounded-lg mb-6 mx-auto group-hover:bg-primary-600 group-hover:scale-110 transition-all duration-300">
@@ -185,12 +181,28 @@ export default function Services() {
 										Learn More
 										<ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform duration-300" />
 									</div>
-								</motion.div>
+								</div>
 							</Link>
 						)
 					})}
 				</div>
 			</div>
+			<style jsx>{`
+				@keyframes fade-in-up {
+					from {
+						opacity: 0;
+						transform: translateY(30px);
+					}
+					to {
+						opacity: 1;
+						transform: translateY(0);
+					}
+				}
+				.animate-fade-in-up {
+					animation: fade-in-up 0.5s ease-out forwards;
+					opacity: 0;
+				}
+			`}</style>
 		</section>
 	)
 }

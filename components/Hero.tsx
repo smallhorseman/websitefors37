@@ -93,10 +93,13 @@ export default function Hero() {
   return (
     <section
       className="relative flex items-center justify-center overflow-hidden"
-      style={{ minHeight: heroMinHeight }}
+      style={{ 
+        minHeight: heroMinHeight,
+        contain: 'layout style paint', // Performance: contain layout to prevent reflow
+      }}
     >
       {/* Background Image (slideshow) - fetchPriority high for LCP optimization */}
-      <div className="absolute inset-0 z-0">
+      <div className="absolute inset-0 z-0" style={{ contain: 'strict' }}>
         <Image
           src={heroImage}
           alt={

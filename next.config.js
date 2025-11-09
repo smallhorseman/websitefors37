@@ -49,7 +49,74 @@ const nextConfig = {
   },
   experimental: {
     // optimizeCss: true, // Disabled - requires 'critters' package
-    optimizePackageImports: ['lucide-react', 'react-hot-toast'], // Tree-shake large packages
+    optimizePackageImports: ['lucide-react', 'react-hot-toast', 'framer-motion', '@supabase/auth-helpers-nextjs'], // Tree-shake large packages
+    webpackBuildWorker: true, // Use worker threads for faster builds
+  },
+  // Webpack optimizations
+  webpack: (config, { dev, isServer }) => {
+    // Production optimizations
+    if (!dev) {
+      config.optimization = {
+        ...config.optimization,
+        moduleIds: 'deterministic',
+        splitChunks: {
+          chunks: 'all',
+          cacheGroups: {
+            default: false,
+            vendors: false,
+            // Framework bundles
+            framework: {
+              name: 'framework',
+              chunks: 'all',
+              test: /[\\/]node_modules[\\/](react|react-dom|scheduler|prop-types|use-subscription)[\\/]/,
+              priority: 40,
+              enforce: true,
+            },
+            // Shared libraries
+            lib: {
+              test(module) {
+                return module.size() > 160000 && /node_modules/.test(module.identifier())
+              },
+              name(module) {
+                const hash = require('crypto').createHash('sha1')
+                hash.update(module.identifier())
+                return hash.digest('hex').substring(0, 8)
+              },
+              priority: 30,
+              minChunks: 1,
+              reuseExistingChunk: true,
+            },
+            // Commons chunk for shared components
+            commons: {
+              name: 'commons',
+              minChunks: 2,
+              priority: 20,
+            },
+            // Shared UI components
+            shared: {
+              name: 'shared',
+              test: /[\\/]components[\\/]/,
+              minChunks: 2,
+              priority: 10,
+              reuseExistingChunk: true,
+            },
+          },
+        },
+      }
+    }
+    
+    // Bundle analyzer for production
+    if (process.env.ANALYZE === 'true' && !isServer) {
+      const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer')
+      config.plugins.push(
+        new BundleAnalyzerPlugin({
+          analyzerMode: 'static',
+          openAnalyzer: false,
+        })
+      )
+    }
+    
+    return config
   },
   async redirects() {
     return [
@@ -65,21 +132,6 @@ const nextConfig = {
       },
     ];
   },
-  // Bundle analyzer for production builds
-  ...(process.env.ANALYZE === "true" && {
-    webpack: (config) => {
-      if (process.env.NODE_ENV === "production") {
-        const { BundleAnalyzerPlugin } = require("webpack-bundle-analyzer");
-        config.plugins.push(
-          new BundleAnalyzerPlugin({
-            analyzerMode: "static",
-            openAnalyzer: false,
-          })
-        );
-      }
-      return config;
-    },
-  }),
   // Headers for performance and security
   async headers() {
     return [
