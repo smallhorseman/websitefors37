@@ -1193,6 +1193,31 @@ export default function VisualEditor({
     } catch {}
   }, [propertiesExpanded]);
 
+  // Persist canvas scroll position to avoid jumps after updates
+  const canvasContainerRef = React.useRef<HTMLDivElement | null>(null);
+  const canvasScrollKey = React.useMemo(() => `ve:canvasScroll:${slug || 'default'}`, [slug]);
+  // Listen to scroll events on window (since canvas isn't a nested scroller)
+  React.useEffect(() => {
+    const handleScroll = () => {
+      try {
+        localStorage.setItem(canvasScrollKey, String(window.scrollY));
+      } catch {}
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [canvasScrollKey]);
+
+  // Restore scroll on mount (and slug change)
+  React.useEffect(() => {
+    try {
+      const saved = localStorage.getItem(canvasScrollKey);
+      if (saved) {
+        const y = Number(saved) || 0;
+        requestAnimationFrame(() => window.scrollTo(0, y));
+      }
+    } catch {}
+  }, [canvasScrollKey]);
+
   // Custom properties panel width (drag-resize)
   const [propertiesWidth, setPropertiesWidth] = useState<number>(() => {
     if (typeof window === 'undefined') return 400;
@@ -1503,6 +1528,8 @@ export default function VisualEditor({
   useEffect(() => { selectionRef.current = selectedComponent; }, [selectedComponent]);
 
   const notify = (next: PageComponent[]) => {
+    // Capture current scroll position to restore after state update
+    const prevScrollY = typeof window !== 'undefined' ? window.scrollY : 0;
     // Preserve selection if the component still exists after update
     const currentSelection = selectionRef.current;
     setComponents(next);
@@ -1526,6 +1553,17 @@ export default function VisualEditor({
       const idx = components.findIndex(c => c.id === currentSelection);
       const fallback = idx >= 0 ? next[Math.min(idx, next.length - 1)] : undefined;
       setSelectedComponent(fallback ? fallback.id : null);
+    }
+
+    // Restore scroll position on next frame (and again after layout) to avoid jumps
+    if (typeof window !== 'undefined') {
+      requestAnimationFrame(() => {
+        window.scrollTo(0, prevScrollY);
+        // A second frame to be extra safe after images/layout settle
+        requestAnimationFrame(() => {
+          window.scrollTo(0, prevScrollY);
+        });
+      });
     }
   };
 
@@ -4340,8 +4378,8 @@ export default function VisualEditor({
           </div>
         </div>
 
-        {/* Canvas Area */}
-        <div className="flex-1 min-h-0">
+  {/* Canvas Area (scroll position persisted) */}
+  <div className="flex-1 min-h-0" ref={canvasContainerRef}>
           <MobilePreviewToggle mode={viewMode} onModeChange={setViewMode} showControls={false}>
             <DragDropContext onDragEnd={handleDragEnd}>
               <Droppable droppableId="page-builder">
@@ -4554,8 +4592,9 @@ export default function VisualEditor({
                               <div className="absolute top-2 right-2 z-10 flex gap-2 md:gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                                 {/* Lock indicator - always visible when locked */}
                                 {isLocked(component.id) && (
-                                  <div className="p-2 sm:p-1 bg-amber-100 rounded shadow border border-amber-300">
+                                  <div className="p-2 sm:p-1 bg-amber-100 rounded shadow border border-amber-300 flex items-center gap-1" title="Component locked">
                                     <Lock className="h-5 w-5 text-amber-600" />
+                                    <span className="hidden xl:inline text-[10px] font-medium text-amber-700">Locked</span>
                                   </div>
                                 )}
                                 <div
@@ -4731,6 +4770,11 @@ export default function VisualEditor({
                 <div className="w-3 h-3 rounded-full bg-green-400"></div>
               </div>
               <h2 className="font-bold text-sm">Properties {selectedComponent ? '✏️' : '📦'}</h2>
+              {selectedComponent && isLocked(selectedComponent) && (
+                <span className="ml-1 inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded bg-amber-100 text-amber-700 border border-amber-300" title="Selected component is locked">
+                  <Lock className="h-3 w-3" /> Locked
+                </span>
+              )}
             </div>
             <div className="flex items-center gap-2">
               <div className="flex items-center gap-1 text-xs border rounded overflow-hidden bg-white">
@@ -13790,34 +13834,56 @@ function FAQProperties({
   data: FAQComponent["data"];
   onUpdate: (data: any) => void;
 }) {
+  // Local debounced state for smoother editing
+  const [localItems, setLocalItems] = React.useState(data.items || []);
+  const [localHeading, setLocalHeading] = React.useState(data.heading || "");
+  const [localColumns, setLocalColumns] = React.useState(data.columns || 1);
+  const [localAnimation, setLocalAnimation] = React.useState(data.animation || "fade-in");
+  const faqDebounceRef = React.useRef<NodeJS.Timeout>();
+
+  React.useEffect(() => {
+    setLocalItems(data.items || []);
+    setLocalHeading(data.heading || "");
+    setLocalColumns(data.columns || 1);
+    setLocalAnimation(data.animation || "fade-in");
+  }, [data.items, data.heading, data.columns, data.animation]);
+
+  const scheduleCommit = (override?: Partial<FAQComponent['data']>) => {
+    const payload: FAQComponent['data'] = {
+      heading: localHeading,
+      columns: localColumns as 1 | 2,
+      animation: localAnimation as any,
+      items: localItems,
+      ...override,
+    };
+    if (faqDebounceRef.current) clearTimeout(faqDebounceRef.current);
+    faqDebounceRef.current = setTimeout(() => onUpdate(payload), 300);
+  };
   const addItem = () => {
-    onUpdate({
-      items: [
-        ...(data.items || []),
-        { question: "New question", answer: "Answer..." },
-      ],
-    });
+    const next = [...localItems, { question: 'New question', answer: 'Answer...' }];
+    setLocalItems(next);
+    scheduleCommit({ items: next });
   };
   const removeItem = (idx: number) => {
-    onUpdate({ items: (data.items || []).filter((_, i) => i !== idx) });
+    const next = localItems.filter((_, i) => i !== idx);
+    setLocalItems(next);
+    scheduleCommit({ items: next });
   };
-  const updateItem = (
-    idx: number,
-    field: "question" | "answer",
-    value: string
-  ) => {
-    const arr = [...(data.items || [])];
+  const updateItem = (idx: number, field: 'question' | 'answer', value: string) => {
+    const arr = [...localItems];
     arr[idx] = { ...arr[idx], [field]: value };
-    onUpdate({ items: arr });
+    setLocalItems(arr);
+    scheduleCommit({ items: arr });
   };
+  React.useEffect(() => () => { if (faqDebounceRef.current) clearTimeout(faqDebounceRef.current); }, []);
   return (
     <div className="space-y-4">
       <div>
         <label className="block text-sm font-medium mb-1">Heading</label>
         <input
           type="text"
-          value={data.heading || ""}
-          onChange={(e) => onUpdate({ heading: e.target.value })}
+          value={localHeading}
+          onChange={(e) => { setLocalHeading(e.target.value); scheduleCommit({ heading: e.target.value }); }}
           className="w-full border rounded px-3 py-2"
           placeholder="Frequently Asked Questions"
         />
@@ -13826,8 +13892,8 @@ function FAQProperties({
         <div>
           <label className="block text-sm font-medium mb-1">Columns</label>
           <select
-            value={data.columns || 1}
-            onChange={(e) => onUpdate({ columns: Number(e.target.value) })}
+            value={localColumns}
+            onChange={(e) => { const v = Number(e.target.value); setLocalColumns(v); scheduleCommit({ columns: v }); }}
             className="w-full border rounded px-3 py-2"
           >
             <option value={1}>1 Column</option>
@@ -13837,8 +13903,8 @@ function FAQProperties({
         <div>
           <label className="block text-sm font-medium mb-1">Animation</label>
           <select
-            value={data.animation || "fade-in"}
-            onChange={(e) => onUpdate({ animation: e.target.value })}
+            value={localAnimation}
+            onChange={(e) => { setLocalAnimation(e.target.value); scheduleCommit({ animation: e.target.value }); }}
             className="w-full border rounded px-3 py-2"
           >
             <option value="none">None</option>
@@ -13860,7 +13926,7 @@ function FAQProperties({
           </button>
         </div>
         <div className="space-y-3">
-          {(data.items || []).map((qa, idx) => (
+          {localItems.map((qa, idx) => (
             <div key={idx} className="border rounded p-3 bg-gray-50 space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-xs text-gray-600">Item #{idx + 1}</span>
@@ -13898,7 +13964,7 @@ function FAQProperties({
               </div>
             </div>
           ))}
-          {!data.items?.length && (
+          {!localItems.length && (
             <p className="text-sm text-gray-500">
               No questions yet. Add your first FAQ item.
             </p>
@@ -13917,60 +13983,88 @@ function PricingTableProperties({
   data: PricingTableComponent["data"];
   onUpdate: (data: any) => void;
 }) {
+  // Local debounced state for Pricing Table
+  const [localPlans, setLocalPlans] = React.useState(data.plans || []);
+  const [localHeading, setLocalHeading] = React.useState(data.heading || "");
+  const [localSubheading, setLocalSubheading] = React.useState(data.subheading || "");
+  const [localColumns, setLocalColumns] = React.useState(data.columns || 3);
+  const [localAnimation, setLocalAnimation] = React.useState(data.animation || "fade-in");
+  const [localStyle, setLocalStyle] = React.useState(data.style || "light");
+  const [localVariant, setLocalVariant] = React.useState(data.variant || "card");
+  const [localShowFeatureChecks, setLocalShowFeatureChecks] = React.useState<boolean>(data.showFeatureChecks ?? true);
+  const pricingDebounceRef = React.useRef<NodeJS.Timeout>();
+
+  React.useEffect(() => {
+    setLocalPlans(data.plans || []);
+    setLocalHeading(data.heading || "");
+    setLocalSubheading(data.subheading || "");
+    setLocalColumns(data.columns || 3);
+    setLocalAnimation(data.animation || "fade-in");
+    setLocalStyle(data.style || "light");
+    setLocalVariant(data.variant || "card");
+    setLocalShowFeatureChecks(data.showFeatureChecks ?? true);
+  }, [data.plans, data.heading, data.subheading, data.columns, data.animation, data.style, data.variant, data.showFeatureChecks]);
+
+  const scheduleCommit = (override?: Partial<PricingTableComponent['data']>) => {
+    const payload: PricingTableComponent['data'] = {
+      heading: localHeading,
+      subheading: localSubheading,
+      plans: localPlans,
+      columns: localColumns as 2 | 3 | 4,
+      animation: localAnimation as any,
+      style: localStyle as any,
+      variant: localVariant as any,
+      showFeatureChecks: localShowFeatureChecks,
+      ...override,
+    };
+    if (pricingDebounceRef.current) clearTimeout(pricingDebounceRef.current);
+    pricingDebounceRef.current = setTimeout(() => onUpdate(payload), 300);
+  };
+
   const addPlan = () => {
-    onUpdate({
-      plans: [
-        ...(data.plans || []),
-        {
-          title: "New Plan",
-          price: "$0",
-          period: "",
-          features: [],
-          ctaText: "Choose",
-          ctaLink: "#",
-          highlight: false,
-        },
-      ],
-    });
+    const next = [...localPlans, { title: 'New Plan', price: '$0', period: '', features: [], ctaText: 'Choose', ctaLink: '#', highlight: false }];
+    setLocalPlans(next);
+    scheduleCommit({ plans: next });
   };
   const removePlan = (idx: number) => {
-    onUpdate({ plans: (data.plans || []).filter((_, i) => i !== idx) });
+    const next = localPlans.filter((_, i) => i !== idx);
+    setLocalPlans(next);
+    scheduleCommit({ plans: next });
   };
-  const updatePlan = (
-    idx: number,
-    field: keyof PricingTableComponent["data"]["plans"][number],
-    value: any
-  ) => {
-    const arr = [...(data.plans || [])];
+  const updatePlan = (idx: number, field: keyof PricingTableComponent["data"]["plans"][number], value: any) => {
+    const arr = [...localPlans];
     // @ts-ignore
     arr[idx] = { ...arr[idx], [field]: value };
-    onUpdate({ plans: arr });
+    setLocalPlans(arr);
+    scheduleCommit({ plans: arr });
   };
   const addFeature = (idx: number) => {
-    const arr = [...(data.plans || [])];
-    arr[idx].features = [...(arr[idx].features || []), "New feature"];
-    onUpdate({ plans: arr });
+    const arr = [...localPlans];
+    arr[idx].features = [...(arr[idx].features || []), 'New feature'];
+    setLocalPlans(arr);
+    scheduleCommit({ plans: arr });
   };
   const updateFeature = (planIdx: number, featIdx: number, value: string) => {
-    const arr = [...(data.plans || [])];
+    const arr = [...localPlans];
     arr[planIdx].features[featIdx] = value;
-    onUpdate({ plans: arr });
+    setLocalPlans(arr);
+    scheduleCommit({ plans: arr });
   };
   const removeFeature = (planIdx: number, featIdx: number) => {
-    const arr = [...(data.plans || [])];
-    arr[planIdx].features = arr[planIdx].features.filter(
-      (_, i) => i !== featIdx
-    );
-    onUpdate({ plans: arr });
+    const arr = [...localPlans];
+    arr[planIdx].features = arr[planIdx].features.filter((_, i) => i !== featIdx);
+    setLocalPlans(arr);
+    scheduleCommit({ plans: arr });
   };
+  React.useEffect(() => () => { if (pricingDebounceRef.current) clearTimeout(pricingDebounceRef.current); }, []);
   return (
     <div className="space-y-4">
       <div>
         <label className="block text-sm font-medium mb-1">Heading</label>
         <input
           type="text"
-          value={data.heading || ""}
-          onChange={(e) => onUpdate({ heading: e.target.value })}
+          value={localHeading}
+          onChange={(e) => { setLocalHeading(e.target.value); scheduleCommit({ heading: e.target.value }); }}
           className="w-full border rounded px-3 py-2"
           placeholder="Packages & Pricing"
         />
@@ -13979,8 +14073,8 @@ function PricingTableProperties({
         <label className="block text-sm font-medium mb-1">Subheading</label>
         <input
           type="text"
-          value={data.subheading || ""}
-          onChange={(e) => onUpdate({ subheading: e.target.value })}
+          value={localSubheading}
+          onChange={(e) => { setLocalSubheading(e.target.value); scheduleCommit({ subheading: e.target.value }); }}
           className="w-full border rounded px-3 py-2"
           placeholder="Simple packages for every need"
         />
@@ -13989,8 +14083,8 @@ function PricingTableProperties({
         <div>
           <label className="block text-sm font-medium mb-1">Columns</label>
           <select
-            value={data.columns || 3}
-            onChange={(e) => onUpdate({ columns: Number(e.target.value) })}
+            value={localColumns}
+            onChange={(e) => { const v = Number(e.target.value); setLocalColumns(v); scheduleCommit({ columns: v }); }}
             className="w-full border rounded px-3 py-2"
           >
             <option value={2}>2 Columns</option>
@@ -14001,8 +14095,8 @@ function PricingTableProperties({
         <div>
           <label className="block text-sm font-medium mb-1">Animation</label>
           <select
-            value={data.animation || "fade-in"}
-            onChange={(e) => onUpdate({ animation: e.target.value })}
+            value={localAnimation}
+            onChange={(e) => { setLocalAnimation(e.target.value); scheduleCommit({ animation: e.target.value }); }}
             className="w-full border rounded px-3 py-2"
           >
             <option value="none">None</option>
@@ -14016,8 +14110,8 @@ function PricingTableProperties({
         <div>
           <label className="block text-sm font-medium mb-1">Style</label>
           <select
-            value={data.style || "light"}
-            onChange={(e) => onUpdate({ style: e.target.value })}
+            value={localStyle}
+            onChange={(e) => { setLocalStyle(e.target.value); scheduleCommit({ style: e.target.value }); }}
             className="w-full border rounded px-3 py-2"
           >
             <option value="light">Light</option>
@@ -14027,8 +14121,8 @@ function PricingTableProperties({
         <div>
           <label className="block text-sm font-medium mb-1">Variant</label>
           <select
-            value={data.variant || "card"}
-            onChange={(e) => onUpdate({ variant: e.target.value })}
+            value={localVariant}
+            onChange={(e) => { setLocalVariant(e.target.value); scheduleCommit({ variant: e.target.value }); }}
             className="w-full border rounded px-3 py-2"
           >
             <option value="card">Cards</option>
@@ -14039,8 +14133,8 @@ function PricingTableProperties({
           <input
             id="pricing-checkmarks"
             type="checkbox"
-            checked={data.showFeatureChecks ?? true}
-            onChange={(e) => onUpdate({ showFeatureChecks: e.target.checked })}
+            checked={localShowFeatureChecks}
+            onChange={(e) => { setLocalShowFeatureChecks(e.target.checked); scheduleCommit({ showFeatureChecks: e.target.checked }); }}
             className="h-4 w-4"
           />
           <label htmlFor="pricing-checkmarks" className="text-sm">
@@ -14060,7 +14154,7 @@ function PricingTableProperties({
           </button>
         </div>
         <div className="space-y-3">
-          {(data.plans || []).map((p, idx) => (
+          {localPlans.map((p, idx) => (
             <div key={idx} className="border rounded p-3 bg-gray-50 space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-xs text-gray-600">Plan #{idx + 1}</span>
@@ -14176,7 +14270,7 @@ function PricingTableProperties({
               </div>
             </div>
           ))}
-          {!data.plans?.length && (
+          {!localPlans.length && (
             <p className="text-sm text-gray-500">
               No plans yet. Add your first plan above.
             </p>
@@ -14757,7 +14851,27 @@ function ColumnsProperties({
   data: ColumnsComponent["data"];
   onUpdate: (data: any) => void;
 }) {
+  // Local debounced state for columns
+  const [localColumns, setLocalColumns] = React.useState(data.columns);
+  const [localAnimation, setLocalAnimation] = React.useState(data.animation || 'none');
+  const columnsDebounceRef = React.useRef<NodeJS.Timeout>();
   const columnRefs = React.useRef<(HTMLTextAreaElement | null)[]>([]);
+
+  React.useEffect(() => {
+    setLocalColumns(data.columns);
+    setLocalAnimation(data.animation || 'none');
+  }, [data.columns, data.animation]);
+
+  const scheduleCommit = (override?: Partial<ColumnsComponent['data']>) => {
+    const payload: ColumnsComponent['data'] = {
+      columns: localColumns,
+      animation: localAnimation as any,
+      ...override,
+    };
+    if (columnsDebounceRef.current) clearTimeout(columnsDebounceRef.current);
+    columnsDebounceRef.current = setTimeout(() => onUpdate(payload), 300);
+  };
+  React.useEffect(() => () => { if (columnsDebounceRef.current) clearTimeout(columnsDebounceRef.current); }, []);
 
   const insertColumnFormatting = (
     colIndex: number,
@@ -14769,7 +14883,7 @@ function ColumnsProperties({
 
     const start = textarea.selectionStart;
     const end = textarea.selectionEnd;
-    const text = data.columns[colIndex].content;
+  const text = localColumns[colIndex].content;
     const selectedText = text.substring(start, end);
 
     const newText =
@@ -14778,9 +14892,10 @@ function ColumnsProperties({
       selectedText +
       after +
       text.substring(end);
-    const newColumns = [...data.columns];
+  const newColumns = [...localColumns];
     newColumns[colIndex].content = newText;
-    onUpdate({ columns: newColumns });
+  setLocalColumns(newColumns);
+  scheduleCommit({ columns: newColumns });
 
     // Set cursor position after the inserted text
     setTimeout(() => {
@@ -14795,8 +14910,8 @@ function ColumnsProperties({
       <div>
         <label className="block text-sm font-medium mb-1">Animation</label>
         <select
-          value={data.animation || "none"}
-          onChange={(e) => onUpdate({ animation: e.target.value })}
+          value={localAnimation}
+          onChange={(e) => { setLocalAnimation(e.target.value); scheduleCommit({ animation: e.target.value }); }}
           className="w-full border rounded px-3 py-2"
           title="Columns animation"
         >
@@ -14806,7 +14921,7 @@ function ColumnsProperties({
           <option value="zoom">Zoom</option>
         </select>
       </div>
-      {data.columns.map((col, i) => (
+      {localColumns.map((col, i) => (
         <div key={i} className="border rounded p-3 space-y-2">
           <h4 className="font-medium">Column {i + 1}</h4>
 
@@ -15007,8 +15122,8 @@ function SEOFooterProperties({
           value={data.content}
           onChange={(e) => onUpdate({ content: e.target.value })}
           className="w-full border rounded px-3 py-2 font-mono text-sm"
-          rows={8}
-          placeholder="Enter footer HTML (e.g., NAP, service areas, internal links)"
+          rows={6}
+          placeholder="HTML content for SEO footer"
         />
         <p className="text-xs text-gray-500 mt-1">
           Tip: Include business name, address, phone, key services and service
