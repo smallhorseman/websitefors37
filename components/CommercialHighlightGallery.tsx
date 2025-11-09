@@ -1,7 +1,6 @@
 'use client'
 
 import React, { useState, useEffect, useRef } from 'react'
-import { motion } from 'framer-motion'
 import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowRight, Building2, Package, Briefcase, TrendingUp } from 'lucide-react'
@@ -59,7 +58,9 @@ const commercialStats = [
 
 export default function CommercialHighlightGallery() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
+  const [visibleSections, setVisibleSections] = useState<Set<string>>(new Set())
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
+  const observerRef = useRef<IntersectionObserver | null>(null)
 
   // Slideshow functionality
   useEffect(() => {
@@ -72,16 +73,36 @@ export default function CommercialHighlightGallery() {
     }
   }, [])
 
+  // Intersection Observer for animations
+  useEffect(() => {
+    observerRef.current = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const id = entry.target.getAttribute('data-section')
+            if (id) setVisibleSections((prev) => new Set(prev).add(id))
+          }
+        })
+      },
+      { threshold: 0.1, rootMargin: '50px' }
+    )
+
+    const sections = document.querySelectorAll('[data-section]')
+    sections.forEach((section) => observerRef.current?.observe(section))
+
+    return () => observerRef.current?.disconnect()
+  }, [])
+
   return (
     <section className="py-20 bg-gray-50">
       <div className="container mx-auto px-4">
         {/* Header */}
         <div className="text-center mb-16">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
+          <div
+            data-section="header"
+            className={`transition-all duration-600 ${
+              visibleSections.has('header') ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+            }`}
           >
             <h2 className="text-4xl md:text-5xl font-bold mb-6">
               Commercial Photography
@@ -91,15 +112,14 @@ export default function CommercialHighlightGallery() {
               Professional photography solutions that elevate your brand, showcase your products, 
               and tell your business story with compelling visual content.
             </p>
-          </motion.div>
+          </div>
 
           {/* Stats */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            viewport={{ once: true }}
-            className="grid grid-cols-3 gap-8 max-w-2xl mx-auto mb-12"
+          <div
+            data-section="stats"
+            className={`grid grid-cols-3 gap-8 max-w-2xl mx-auto mb-12 transition-all duration-600 delay-200 ${
+              visibleSections.has('stats') ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+            }`}
           >
             {commercialStats.map((stat, index) => (
               <div key={index} className="text-center">
@@ -110,16 +130,15 @@ export default function CommercialHighlightGallery() {
                 <div className="text-sm text-gray-600">{stat.label}</div>
               </div>
             ))}
-          </motion.div>
+          </div>
         </div>
 
         {/* Main Slideshow */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.3 }}
-          viewport={{ once: true }}
-          className="mb-16"
+        <div
+          data-section="slideshow"
+          className={`mb-16 transition-all duration-600 delay-300 ${
+            visibleSections.has('slideshow') ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+          }`}
         >
           <div className="relative max-w-4xl mx-auto">
             <div className="aspect-[16/9] rounded-2xl overflow-hidden shadow-2xl">
@@ -169,18 +188,18 @@ export default function CommercialHighlightGallery() {
               ))}
             </div>
           </div>
-        </motion.div>
+        </div>
 
         {/* Gallery Grid */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
           {commercialHighlights.map((image, index) => (
-            <motion.div
+            <div
               key={image.id}
-              initial={{ opacity: 0, scale: 0.9 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
-              viewport={{ once: true }}
-              className="group relative overflow-hidden rounded-xl bg-gray-800 aspect-[4/5] shadow-lg hover:shadow-xl transition-all duration-300"
+              data-section={`grid-${index}`}
+              className={`group relative overflow-hidden rounded-xl bg-gray-800 aspect-[4/5] shadow-lg hover:shadow-xl transition-all duration-500 ${
+                visibleSections.has(`grid-${index}`) ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
+              }`}
+              style={{ transitionDelay: `${index * 100}ms` }}
             >
               <Image
                 src={image.src}
@@ -219,17 +238,16 @@ export default function CommercialHighlightGallery() {
                   <Briefcase className="w-4 h-4 text-white" />
                 </div>
               </div>
-            </motion.div>
+            </div>
           ))}
         </div>
 
         {/* Services Grid */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          viewport={{ once: true }}
-          className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12"
+        <div
+          data-section="services"
+          className={`grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12 transition-all duration-600 ${
+            visibleSections.has('services') ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+          }`}
         >
           {[
             { icon: Package, title: 'Product Photography', desc: 'E-commerce & catalog images' },
@@ -245,15 +263,14 @@ export default function CommercialHighlightGallery() {
               <p className="text-gray-600 text-sm">{service.desc}</p>
             </div>
           ))}
-        </motion.div>
+        </div>
 
         {/* Call to Action */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          viewport={{ once: true }}
-          className="text-center"
+        <div
+          data-section="cta"
+          className={`text-center transition-all duration-600 ${
+            visibleSections.has('cta') ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+          }`}
         >
           <div className="bg-gradient-to-r from-amber-50 to-amber-100 rounded-2xl p-8 max-w-4xl mx-auto">
             <h3 className="text-2xl font-bold text-amber-900 mb-4">
@@ -279,7 +296,7 @@ export default function CommercialHighlightGallery() {
               </Link>
             </div>
           </div>
-        </motion.div>
+        </div>
       </div>
     </section>
   )

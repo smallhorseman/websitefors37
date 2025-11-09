@@ -1,7 +1,6 @@
  'use client'
 
-import React, { useState } from 'react'
-import { motion } from 'framer-motion'
+import React, { useState, useEffect, useRef } from 'react'
 import OptimizedImage from './OptimizedImage'
 import NewsletterModal from './NewsletterModal'
 
@@ -55,10 +54,36 @@ const categories = [
 export default function Gallery() {
   const [activeCategory, setActiveCategory] = useState('all')
   const [isNewsletterModalOpen, setIsNewsletterModalOpen] = useState(false)
+  const [visibleItems, setVisibleItems] = useState<Set<number>>(new Set())
+  const observerRef = useRef<IntersectionObserver | null>(null)
 
   const filteredImages = activeCategory === 'all' 
     ? galleryImages 
     : galleryImages.filter(img => img.category === activeCategory)
+
+  useEffect(() => {
+    observerRef.current = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const index = parseInt(entry.target.getAttribute('data-index') || '0')
+            setVisibleItems((prev) => new Set(prev).add(index))
+          }
+        })
+      },
+      { threshold: 0.1, rootMargin: '50px' }
+    )
+
+    return () => observerRef.current?.disconnect()
+  }, [])
+
+  useEffect(() => {
+    const items = document.querySelectorAll('.gallery-item')
+    items.forEach((item) => observerRef.current?.observe(item))
+    return () => {
+      items.forEach((item) => observerRef.current?.unobserve(item))
+    }
+  }, [filteredImages])
 
   return (
     <section className="py-20 bg-gray-50">
@@ -89,13 +114,13 @@ export default function Gallery() {
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredImages.map((image, index) => (
-            <motion.div
+            <div
               key={image.id}
-              initial={{ opacity: 0, scale: 0.9 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.3, delay: index * 0.1 }}
-              viewport={{ once: true }}
-              className="group relative overflow-hidden rounded-lg bg-gradient-to-br from-slate-800 via-slate-900 to-slate-800 aspect-[4/3]"
+              data-index={index}
+              className={`gallery-item group relative overflow-hidden rounded-lg bg-gradient-to-br from-slate-800 via-slate-900 to-slate-800 aspect-[4/3] transition-all duration-300 ${
+                visibleItems.has(index) ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
+              }`}
+              style={{ transitionDelay: `${index * 100}ms` }}
             >
               <OptimizedImage
                 src={image.src}
@@ -109,7 +134,7 @@ export default function Gallery() {
               <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
                 <h3 className="text-white text-lg font-semibold">{image.title}</h3>
               </div>
-            </motion.div>
+            </div>
           ))}
         </div>
 

@@ -5,6 +5,16 @@ module.exports = {
     './components/**/*.{js,ts,jsx,tsx,mdx}',
     './app/**/*.{js,ts,jsx,tsx,mdx}',
   ],
+  safelist: [
+    // Dynamic classes that might be purged incorrectly
+    'animate-fadeIn',
+    'animate-slideUp',
+    'animate-zoom',
+    'film-grain-bg',
+    'vintage-card',
+    'retro-shadow',
+    'retro-border',
+  ],
   theme: {
     extend: {
       fontFamily: {

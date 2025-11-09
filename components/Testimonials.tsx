@@ -1,7 +1,6 @@
 'use client'
 
-import React from 'react'
-import { motion } from 'framer-motion'
+import React, { useEffect, useRef, useState } from 'react'
 import { Star, Quote } from 'lucide-react'
 
 const testimonials = [
@@ -32,6 +31,28 @@ const testimonials = [
 ]
 
 export default function Testimonials() {
+	const [visibleItems, setVisibleItems] = useState<Set<number>>(new Set())
+	const observerRef = useRef<IntersectionObserver | null>(null)
+
+	useEffect(() => {
+		observerRef.current = new IntersectionObserver(
+			(entries) => {
+				entries.forEach((entry) => {
+					if (entry.isIntersecting) {
+						const index = parseInt(entry.target.getAttribute('data-index') || '0')
+						setVisibleItems((prev) => new Set(prev).add(index))
+					}
+				})
+			},
+			{ threshold: 0.1, rootMargin: '50px' }
+		)
+
+		const items = document.querySelectorAll('.testimonial-item')
+		items.forEach((item) => observerRef.current?.observe(item))
+
+		return () => observerRef.current?.disconnect()
+	}, [])
+
 	return (
 		<section className="py-20 bg-white">
 			<div className="container mx-auto px-4">
@@ -44,13 +65,13 @@ export default function Testimonials() {
 
 				<div className="grid md:grid-cols-3 gap-8">
 					{testimonials.map((testimonial, index) => (
-						<motion.div
+						<div
 							key={testimonial.id}
-							initial={{ opacity: 0, y: 30 }}
-							whileInView={{ opacity: 1, y: 0 }}
-							transition={{ duration: 0.5, delay: index * 0.1 }}
-							viewport={{ once: true }}
-							className="bg-gray-50 p-8 rounded-lg relative"
+							data-index={index}
+							className={`testimonial-item bg-gray-50 p-8 rounded-lg relative transition-all duration-500 ${
+								visibleItems.has(index) ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+							}`}
+							style={{ transitionDelay: `${index * 100}ms` }}
 						>
 							<Quote className="h-8 w-8 text-primary-500 mb-4" />
 							
@@ -73,7 +94,7 @@ export default function Testimonials() {
 									<p className="text-sm text-gray-600">{testimonial.service}</p>
 								</div>
 							</div>
-						</motion.div>
+						</div>
 					))}
 				</div>
 			</div>

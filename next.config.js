@@ -49,7 +49,7 @@ const nextConfig = {
   },
   experimental: {
     // optimizeCss: true, // Disabled - requires 'critters' package
-    optimizePackageImports: ['lucide-react', 'react-hot-toast', 'framer-motion', '@supabase/auth-helpers-nextjs'], // Tree-shake large packages
+    optimizePackageImports: ['lucide-react', 'react-hot-toast', '@supabase/auth-helpers-nextjs'], // Tree-shake large packages (framer-motion removed - now only in dynamic imports)
   },
   async redirects() {
     return [
