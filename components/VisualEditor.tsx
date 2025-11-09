@@ -1106,16 +1106,44 @@ export default function VisualEditor({
 }: VisualEditorProps) {
   const [components, setComponents] =
     useState<PageComponent[]>(initialComponents);
-  const [selectedComponent, setSelectedComponent] = useState<string | null>(
-    null
-  );
+  // Selected component ID (persisted) — keep stable across re-renders so user doesn't need to reselect
+  const [selectedComponent, setSelectedComponent] = useState<string | null>(() => {
+    if (typeof window === 'undefined') return null;
+    try {
+      const saved = localStorage.getItem('ve:selectedComponent');
+      return saved || null;
+    } catch {
+      return null;
+    }
+  });
+
+  // Persist selection whenever it changes
+  useEffect(() => {
+    try {
+      if (selectedComponent) {
+        localStorage.setItem('ve:selectedComponent', selectedComponent);
+      } else {
+        localStorage.removeItem('ve:selectedComponent');
+      }
+    } catch {}
+  }, [selectedComponent]);
 
   // Sync components when initialComponents changes (for Live Editor page switching)
+  // When initialComponents change (e.g. slug switch or external load), attempt to preserve selection
   useEffect(() => {
     setComponents(initialComponents);
     setHistory([initialComponents]);
     setHistoryIndex(0);
-    setSelectedComponent(null);
+    setSelectedComponent(prev => {
+      // If previous selection still exists, keep it
+      if (prev && initialComponents.some(c => c.id === prev)) return prev;
+      // Try saved selection from storage (may differ from prev if user refreshed)
+      let stored: string | null = null;
+      try { stored = localStorage.getItem('ve:selectedComponent'); } catch {}
+      if (stored && initialComponents.some(c => c.id === stored)) return stored;
+      // Otherwise, don't force-clear; optionally select first component for convenience
+      return initialComponents.length ? initialComponents[0].id : null;
+    });
   }, [initialComponents]);
 
   const [viewMode, setViewMode] = useState<"desktop" | "tablet" | "mobile">(
@@ -1471,19 +1499,34 @@ export default function VisualEditor({
     if (tpl.length) setSelectedComponent(tpl[0].id);
   };
 
+  const selectionRef = useRef<string | null>(null);
+  useEffect(() => { selectionRef.current = selectedComponent; }, [selectedComponent]);
+
   const notify = (next: PageComponent[]) => {
+    // Preserve selection if the component still exists after update
+    const currentSelection = selectionRef.current;
     setComponents(next);
     if (onChange) onChange(next);
 
-    // Update history for undo/redo
     const newHistory = history.slice(0, historyIndex + 1);
     newHistory.push(next);
     setHistory(newHistory);
     setHistoryIndex(newHistory.length - 1);
 
-    // Mark as unsaved and trigger auto-save
     setSaveStatus('unsaved');
     scheduleAutoSave(next);
+
+    if (currentSelection && next.some(c => c.id === currentSelection)) {
+      // Reapply without triggering scroll jitter (noop if same)
+      if (currentSelection !== selectedComponent) {
+        setSelectedComponent(currentSelection);
+      }
+    } else if (currentSelection && !next.some(c => c.id === currentSelection)) {
+      // Selection was deleted; select nearest sibling for continuity
+      const idx = components.findIndex(c => c.id === currentSelection);
+      const fallback = idx >= 0 ? next[Math.min(idx, next.length - 1)] : undefined;
+      setSelectedComponent(fallback ? fallback.id : null);
+    }
   };
 
   // Version History (snapshots)
