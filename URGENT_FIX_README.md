@@ -1,31 +1,32 @@
-# 🔧 UPGRADED TO GEMINI 2.5 PRO! - Nov 2, 2025
+# 🔧 AI MODEL FIX - Nov 10, 2025
 
-## 🎯 The Fastest Model Available
+## ⚠️ UPDATE: gemini-2.5-pro Not Available Yet
 
-Google's most advanced model is here:
+**Previous fix from Nov 2 no longer works!** Google hasn't released `gemini-2.5-pro` yet.
+
+Current working models:
 
 - ❌ `gemini-pro` - **DEPRECATED** (doesn't exist anymore)
-- ❌ `gemini-1.5-pro` - **WRONG ID** for v1beta API
-- ⚠️ `gemini-1.5-flash` - **GOOD** (stable fallback)
-- ⚠️ `gemini-2.0-flash-exp` - **BETTER** (experimental)
-- ✅ `gemini-2.5-pro` - **BEST** (fastest & most capable!)
+- ❌ `gemini-2.5-pro` - **NOT AVAILABLE YET** (causes 502 errors)
+- ✅ `gemini-1.5-flash` - **STABLE & FAST** (recommended!)
+- ⚠️ `gemini-1.5-pro` - **SLOWER** but more capable
+- ⚠️ `gemini-2.0-flash-exp` - **EXPERIMENTAL** (may break)
 
-## ✅ What I Just Upgraded
+## ✅ Fixed All AI Routes (Nov 10, 2025)
 
-Updated **ALL** API endpoints to use `gemini-2.5-pro`:
+Changed **ALL** endpoints to use `gemini-1.5-flash`:
 
-1. ✅ `app/api/gallery/generate-alt-text/route.ts`
-2. ✅ `app/api/blog/generate/route.ts`
-3. ✅ `app/api/chat/respond/route.ts`
-4. ✅ `app/api/seo/generate/route.ts`
-5. ✅ `lib/settings.ts` (default model)
-6. ✅ Documentation updated
+1. ✅ `app/api/blog/generate/route.ts`
+2. ✅ `app/api/chat/respond/route.ts`
+3. ✅ `app/api/gallery/generate-alt-text/route.ts`
+4. ✅ `app/api/ai/generate-seo/route.ts`
+5. ✅ `app/api/ai/page-suggestions/route.ts`
 
 **Zero TypeScript errors** ✨
 
 ---
 
-## 🚀 Deploy NOW to Fix
+## 🚀 Deploy NOW to Fix 502 Errors
 
 Your Netlify deployment is still using the OLD code with the broken model name. You need to:
 

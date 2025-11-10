@@ -1,12 +1,27 @@
-# AI Blog Writer Fix - JSON Parse Error
+# AI Blog Writer Fix - 502 Server Error
 
 ## Problem
-Blog writer shows error: `JSON.parse: unexpected end of data at line 1 column 1`
 
-## Root Cause
-Missing `GEMINI_API_KEY` environment variable in Netlify.
+Blog writer shows error: `Server error: 502`
 
-## ✅ Solution - Add API Key to Netlify
+## Root Causes
+
+1. **Missing API Key**: `GEMINI_API_KEY` not set in Netlify
+2. **Invalid Model Name**: `gemini-2.5-pro` doesn't exist (yet)
+
+## ✅ Solution 1: Fix Model Name (Code Updated)
+
+Changed all AI routes from `gemini-2.5-pro` → `gemini-1.5-flash` (stable model):
+
+- ✅ `app/api/blog/generate/route.ts`
+- ✅ `app/api/chat/respond/route.ts`
+- ✅ `app/api/gallery/generate-alt-text/route.ts`
+- ✅ `app/api/ai/generate-seo/route.ts`
+- ✅ `app/api/ai/page-suggestions/route.ts`
+
+**Why**: Google's `gemini-2.5-pro` model is not available yet (causes 502 errors). Using stable `gemini-1.5-flash` instead.
+
+## ✅ Solution 2: Add API Key to Netlify
 
 ### Step 1: Get Your Gemini API Key
 
