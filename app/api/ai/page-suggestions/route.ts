@@ -138,7 +138,7 @@ export async function POST(request: NextRequest) {
       .join('\n')
 
     const genAI = new GoogleGenerativeAI(apiKey)
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' })
 
     const prompt = `You are assisting a no-code page builder for a photography studio website.
 Suggest up to ${Math.max(1, Math.min(10, Number(maxSuggestions) || 6))} new blocks to improve conversions, clarity, and SEO, based on the current layout.
