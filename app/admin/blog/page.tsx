@@ -252,23 +252,28 @@ export default function BlogManagementPage() {
         body: JSON.stringify(aiForm),
       });
 
+      // Get response text for debugging
+      const responseText = await res.text();
+      console.log("API Response:", responseText);
+
       if (!res.ok) {
-        let errorMessage = "Failed to generate blog post";
+        let errorMessage = `Server error: ${res.status} ${res.statusText}`;
         try {
-          const errorData = await res.json();
+          const errorData = JSON.parse(responseText);
           errorMessage = errorData.error || errorMessage;
         } catch (parseError) {
-          // If response isn't JSON, use status text
-          errorMessage = `Server error: ${res.status} ${res.statusText}`;
+          // Show raw response in error
+          errorMessage = `Server error (${res.status}): ${responseText.substring(0, 500)}`;
         }
         throw new Error(errorMessage);
       }
 
       let data;
       try {
-        data = await res.json();
+        data = JSON.parse(responseText);
       } catch (parseError) {
-        throw new Error("Invalid response from server. Please check if GEMINI_API_KEY is configured in Netlify environment variables.");
+        // Show the actual response that failed to parse
+        throw new Error(`Invalid JSON response: ${responseText.substring(0, 500)}`);
       }
 
       // Populate the form with AI-generated content
