@@ -123,6 +123,8 @@ export default function BTSFeed() {
             key={index}
             onClick={() => setCurrentPostIndex(index)}
             title={`View post ${index + 1}`}
+            aria-label={`Go to post ${index + 1}`}
+            aria-pressed={index === currentPostIndex}
             className={`w-3 h-3 rounded-full transition-all duration-300 ${
               index === currentPostIndex 
                 ? 'bg-blue-600 scale-110' 
@@ -150,7 +152,10 @@ export default function BTSFeed() {
                   <img
                     src={currentPost.avatar}
                     alt="Author avatar"
+                    width="48"
+                    height="48"
                     className="w-full h-full object-cover"
+                    loading="lazy"
                   />
                 </div>
               ) : (
@@ -218,7 +223,10 @@ export default function BTSFeed() {
               <img
                 src={currentPost.image}
                 alt="Behind the scenes"
+                width={currentPost.image?.includes('w=600&h=400') ? 600 : 800}
+                height={currentPost.image?.includes('w=600&h=400') ? 400 : 600}
                 className="w-full h-auto rounded-lg transition-transform duration-300 group-hover:scale-105"
+                loading="lazy"
               />
               <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all duration-300 rounded-lg" />
             </motion.div>
@@ -236,7 +244,10 @@ export default function BTSFeed() {
                   <img
                     src={img}
                     alt={`Behind the scenes ${index + 1}`}
+                    width={img.includes('w=300&h=200') ? 300 : 400}
+                    height={img.includes('w=300&h=200') ? 200 : 300}
                     className="w-full h-auto rounded-lg transition-transform duration-300 group-hover:scale-105"
+                    loading="lazy"
                   />
                 </div>
               ))}
@@ -299,7 +310,7 @@ export default function BTSFeed() {
             <div className="flex items-center gap-2 mb-2">
               <div className="w-8 h-8 rounded-full overflow-hidden">
                 {post.avatar ? (
-                  <img src={post.avatar} alt="Avatar" className="w-full h-full object-cover" />
+                  <img src={post.avatar} alt="Avatar" width="32" height="32" className="w-full h-full object-cover" loading="lazy" />
                 ) : (
                   <div className="w-full h-full bg-gradient-to-r from-blue-600 to-purple-600 flex items-center justify-center text-white text-xs font-bold">
                     S37

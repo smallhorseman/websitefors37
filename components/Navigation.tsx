@@ -114,7 +114,10 @@ export default function Navigation() {
                   <img 
                     src={logoUrl} 
                     alt="Studio 37 Photography - Professional photography in Pinehurst, TX" 
+                    width="140"
+                    height="40"
                     className={`w-auto object-contain transition-all duration-300 ${scrolled ? 'h-8' : 'h-10'}`}
+                    loading="eager"
                   />
                 </div>
               </div>

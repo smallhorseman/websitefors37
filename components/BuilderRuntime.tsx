@@ -57,7 +57,7 @@ export function LogoBlock({
         <div className={`flex items-center gap-3 ${sizeMap[String(size)] || sizeMap.md}`}>
           {String(mode) === 'image' && imageUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={imageUrl} alt={text || 'Logo'} className="w-auto object-contain" style={{ height: imageHeightPx ? `${Number(imageHeightPx)}px` : undefined }} />
+            <img src={imageUrl} alt={text || 'Logo'} width="120" height="40" className="w-auto object-contain" style={{ height: imageHeightPx ? `${Number(imageHeightPx)}px` : undefined }} />
           ) : (
             <div className="flex items-center gap-2">
               {showCam && (

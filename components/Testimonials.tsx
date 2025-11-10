@@ -75,9 +75,9 @@ export default function Testimonials() {
 						>
 							<Quote className="h-8 w-8 text-primary-500 mb-4" />
 							
-							<div className="flex mb-4">
+							<div className="flex mb-4" aria-label={`Rated ${testimonial.rating} out of 5`} role="img">
 								{[...Array(testimonial.rating)].map((_, i) => (
-									<Star key={i} className="h-5 w-5 text-yellow-400 fill-current" />
+									<Star key={i} className="h-5 w-5 text-yellow-400 fill-current" aria-hidden="true" />
 								))}
 							</div>
 							
@@ -87,7 +87,10 @@ export default function Testimonials() {
 								<img
 									src={testimonial.image}
 									alt={testimonial.name}
+									width="48"
+									height="48"
 									className="w-12 h-12 rounded-full mr-4 object-cover"
+									loading="lazy"
 								/>
 								<div>
 									<h4 className="font-semibold text-gray-900">{testimonial.name}</h4>
