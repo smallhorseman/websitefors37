@@ -131,6 +131,18 @@ Return the response in this exact JSON format (no markdown code blocks):
 
     try {
       const blogData = JSON.parse(responseText);
+      
+      // Fix escaped newlines in content to actual newlines for proper markdown
+      if (blogData.content && typeof blogData.content === 'string') {
+        blogData.content = blogData.content.replace(/\\n/g, '\n');
+      }
+      if (blogData.title && typeof blogData.title === 'string') {
+        blogData.title = blogData.title.replace(/\\n/g, '\n');
+      }
+      if (blogData.excerpt && typeof blogData.excerpt === 'string') {
+        blogData.excerpt = blogData.excerpt.replace(/\\n/g, '\n');
+      }
+      
       return NextResponse.json(blogData);
     } catch (parseError) {
       // If JSON parsing fails, return a structured fallback
