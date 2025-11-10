@@ -129,10 +129,30 @@ Return the response in this exact JSON format (no markdown code blocks):
       .replace(/\n?```$/i, "")
       .trim();
 
+    // Helper to inject internal links & CTA if missing
+    const ensureLinks = (md: string): string => {
+      let out = md || "";
+      // Link brand mention
+      if (!/\[Studio37 Photography\]\(/.test(out) && out.includes("Studio37 Photography")) {
+        out = out.replace(/Studio37 Photography/g, "[Studio37 Photography](/services)");
+      }
+      // Service links
+      if (!/\]\(\/services\)/.test(out)) {
+        out = out.replace(/\bwedding photography\b/gi, "[wedding photography](/services)");
+        out = out.replace(/\bcorporate (?:photography|services)\b/gi, "[corporate services](/services)");
+        out = out.replace(/\bportrait photography\b/gi, "[portrait photography](/services)");
+      }
+      // Session booking CTA
+      if (!/book-a-session/.test(out)) {
+        out += "\n\nReady to create something beautiful? [Book a session](/book-a-session) or [contact us](/contact).";
+      }
+      return out;
+    };
+
     try {
       const blogData = JSON.parse(responseText);
-      
-      // Fix escaped newlines in content to actual newlines for proper markdown
+
+      // Fix escaped newlines in content/title/excerpt
       if (blogData.content && typeof blogData.content === 'string') {
         blogData.content = blogData.content.replace(/\\n/g, '\n');
       }
@@ -142,7 +162,17 @@ Return the response in this exact JSON format (no markdown code blocks):
       if (blogData.excerpt && typeof blogData.excerpt === 'string') {
         blogData.excerpt = blogData.excerpt.replace(/\\n/g, '\n');
       }
-      
+
+      // Apply formatting template if missing leading H1
+      let contentStr = String(blogData.content || "");
+      const titleStr = String(blogData.title || topic || "");
+      const introStr = String(blogData.metaDescription || blogData.excerpt || "");
+      const hasHeader = /^#\s/.test(contentStr.trim());
+      if (!hasHeader && titleStr) {
+        contentStr = `# ${titleStr}\n\n${introStr ? '> ' + introStr + '\n\n' : ''}---\n\n` + contentStr;
+      }
+      blogData.content = ensureLinks(contentStr);
+
       return NextResponse.json(blogData);
     } catch (parseError) {
       // If JSON parsing fails, return a structured fallback
@@ -151,7 +181,16 @@ Return the response in this exact JSON format (no markdown code blocks):
       return NextResponse.json({
         title: topic,
         metaDescription: `Learn about ${topic} with Studio37 Photography in Pinehurst, TX. Expert tips and professional insights.`,
-        content: responseText, // Use raw response as content
+        content: (() => {
+          let fc = String(responseText || "");
+          const ft = String(topic || "");
+          const fi = `Learn about ${topic} with Studio37 Photography in Pinehurst, TX. Expert tips and professional insights.`;
+          const startsWithHeader = /^#\s/.test(fc.trim());
+          if (!startsWithHeader && ft) {
+            fc = `# ${ft}\n\n> ${fi}\n\n---\n\n` + fc;
+          }
+          return ensureLinks(fc);
+        })(), // Formatted fallback content
         excerpt: `Discover everything you need to know about ${topic}.`,
         suggestedTags: keywords?.split(",").map((k: string) => k.trim()) || [],
         category: "Photography Tips",
