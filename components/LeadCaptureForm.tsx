@@ -77,44 +77,49 @@ export default function LeadCaptureForm() {
         <input type="hidden" name="bot-field" />
   <div className="grid md:grid-cols-2 gap-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="name-input" className="block text-sm font-medium text-gray-700 mb-2">
               Full Name *
             </label>
             <input
               {...register('name')}
+              id="name-input"
               aria-invalid={!!errors.name || undefined}
+              aria-required="true"
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               placeholder="Your full name"
             />
             {errors.name && (
-              <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>
+              <p className="text-red-500 text-sm mt-1" id="name-error" role="alert">{errors.name.message}</p>
             )}
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="email-input" className="block text-sm font-medium text-gray-700 mb-2">
               Email Address *
             </label>
             <input
               {...register('email')}
+              id="email-input"
               type="email"
               aria-invalid={!!errors.email || undefined}
+              aria-required="true"
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               placeholder="your@email.com"
             />
             {errors.email && (
-              <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>
+              <p className="text-red-500 text-sm mt-1" id="email-error" role="alert">{errors.email.message}</p>
             )}
           </div>
         </div>
 
         <div className="grid md:grid-cols-2 gap-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="phone-input" className="block text-sm font-medium text-gray-700 mb-2">
               Phone Number
             </label>
             <input
               {...register('phone')}
+              id="phone-input"
               type="tel"
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               placeholder="(555) 123-4567"
@@ -122,12 +127,14 @@ export default function LeadCaptureForm() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="service-select" className="block text-sm font-medium text-gray-700 mb-2">
               Service Interest *
             </label>
             <select
               {...register('service_interest')}
+              id="service-select"
               aria-invalid={!!errors.service_interest || undefined}
+              aria-required="true"
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
             >
               <option value="">Select a service</option>
@@ -138,18 +145,19 @@ export default function LeadCaptureForm() {
               <option value="other">Other</option>
             </select>
             {errors.service_interest && (
-              <p className="text-red-500 text-sm mt-1">{errors.service_interest.message}</p>
+              <p className="text-red-500 text-sm mt-1" id="service-error" role="alert">{errors.service_interest.message}</p>
             )}
           </div>
         </div>
 
         <div className="grid md:grid-cols-2 gap-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="budget-select" className="block text-sm font-medium text-gray-700 mb-2">
               Budget Range
             </label>
             <select
               {...register('budget_range')}
+              id="budget-select"
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
             >
               <option value="">Select budget range</option>
@@ -162,11 +170,12 @@ export default function LeadCaptureForm() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="date-input" className="block text-sm font-medium text-gray-700 mb-2">
               Event Date
             </label>
             <input
               {...register('event_date')}
+              id="date-input"
               type="date"
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
             />
@@ -174,18 +183,20 @@ export default function LeadCaptureForm() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label htmlFor="message-textarea" className="block text-sm font-medium text-gray-700 mb-2">
             Message *
           </label>
           <textarea
             {...register('message')}
+            id="message-textarea"
             rows={4}
             aria-invalid={!!errors.message || undefined}
+            aria-required="true"
             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
             placeholder="Tell us about your photography needs..."
           />
           {errors.message && (
-            <p className="text-red-500 text-sm mt-1">{errors.message.message}</p>
+            <p className="text-red-500 text-sm mt-1" id="message-error" role="alert">{errors.message.message}</p>
           )}
         </div>
 

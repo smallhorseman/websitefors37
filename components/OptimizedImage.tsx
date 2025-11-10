@@ -41,7 +41,7 @@ export default function OptimizedImage({
     : src
 
   return (
-    <div className={`relative overflow-hidden ${className}`}>
+    <div className={`relative overflow-hidden ${className}`} style={{ aspectRatio: !fill && width && height ? `${width} / ${height}` : undefined }}>
       <Image
         src={optimizedSrc}
         alt={alt}

@@ -100,7 +100,7 @@ export default function Gallery() {
               <button
                 key={category.id}
                 onClick={() => setActiveCategory(category.id)}
-                className={`px-6 py-2 rounded-full font-medium transition-colors ${
+                className={`px-6 py-3 min-h-[44px] min-w-[44px] rounded-full font-medium transition-colors ${
                   activeCategory === category.id
                     ? 'bg-primary-600 text-white'
                     : 'bg-white text-gray-600 hover:bg-gray-100'
@@ -122,17 +122,20 @@ export default function Gallery() {
             <div
               key={image.id}
               data-index={index}
-              className={`gallery-item group relative overflow-hidden rounded-lg bg-gradient-to-br from-slate-800 via-slate-900 to-slate-800 aspect-[4/3] transition-all duration-300 ${
+              className={`gallery-item group relative overflow-hidden rounded-lg bg-gradient-to-br from-slate-800 via-slate-900 to-slate-800 transition-all duration-300 ${
                 visibleItems.has(index) ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
               }`}
-              style={{ transitionDelay: `${index * 100}ms` }}
+              style={{ 
+                aspectRatio: '4 / 3',
+                transitionDelay: `${index * 100}ms` 
+              }}
             >
               <OptimizedImage
                 src={image.src}
                 alt={image.title}
                 width={800}
                 height={600}
-                imgClassName="object-cover transition-transform duration-500 group-hover:scale-110"
+                imgClassName="object-cover transition-transform duration-500 group-hover:scale-110 w-full h-full"
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                 // Only prioritize the first image to avoid eager-loading many images
                 priority={index === 0}
