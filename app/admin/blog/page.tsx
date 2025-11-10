@@ -59,6 +59,8 @@ export default function BlogManagementPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filter, setFilter] = useState("all");
   const [tagInput, setTagInput] = useState("");
+  // Raw AI response for debugging
+  const [rawPreview, setRawPreview] = useState<string>("");
 
   // Fetch blog posts
   const fetchBlogPosts = async () => {
