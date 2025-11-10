@@ -121,7 +121,10 @@ export default function Services() {
 					</p>
 				</div>
 
-				<div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+				<div
+					className="grid md:grid-cols-2 lg:grid-cols-4 gap-8"
+					style={{ contain: 'layout style paint', contentVisibility: 'auto', containIntrinsicSize: '1000px' as any }}
+				>
 					{services.map((service, index) => {
 						const Icon = service.icon
 						const images = imagesByCategory[service.category] || []
