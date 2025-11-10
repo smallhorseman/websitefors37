@@ -352,7 +352,7 @@ export default function VisualEditorV2({
       {/* Center - Canvas */}
       <div className="flex-1 overflow-y-auto bg-white">
         <div className="sticky top-0 bg-white border-b p-4 flex justify-between items-center z-10">
-          <h1 className="text-xl font-bold">Page Editor V2</h1>
+          <h2 className="text-xl font-bold" aria-level={2} role="heading">Page Editor V2</h2>
           <div className="flex gap-2">
             <button
               onClick={() => setPreviewMode(!previewMode)}

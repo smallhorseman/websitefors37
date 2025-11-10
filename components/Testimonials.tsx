@@ -63,7 +63,10 @@ export default function Testimonials() {
 					</p>
 				</div>
 
-				<div className="grid md:grid-cols-3 gap-8">
+				<div
+					className="grid md:grid-cols-3 gap-8"
+					style={{ contain: 'layout style paint', contentVisibility: 'auto', containIntrinsicSize: '800px' as any }}
+				>
 					{testimonials.map((testimonial, index) => (
 						<div
 							key={testimonial.id}

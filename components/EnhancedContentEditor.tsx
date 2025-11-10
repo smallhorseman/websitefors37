@@ -92,7 +92,7 @@ export default function EnhancedContentEditor({
       {/* Top Toolbar */}
       <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between sticky top-0 z-50 shadow-sm">
         <div className="flex items-center gap-4">
-          <h1 className="text-xl font-semibold text-gray-900">Content Editor</h1>
+          <h2 className="text-xl font-semibold text-gray-900" aria-level={2} role="heading">Content Editor</h2>
           <div className="flex gap-1 bg-gray-100 rounded-lg p-1">
             <button
               onClick={() => setMode('visual')}

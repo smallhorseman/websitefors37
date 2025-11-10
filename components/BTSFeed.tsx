@@ -255,13 +255,15 @@ export default function BTSFeed() {
           )}
 
           {/* Post Actions */}
-          <div className="flex items-center gap-6 pt-4 border-t border-gray-100">
+            <div className="flex items-center gap-6 pt-4 border-t border-gray-100" role="group" aria-label="Post actions">
             <motion.button
               whileTap={{ scale: 0.9 }}
               onClick={() => handleLike(currentPost.id)}
               className={`flex items-center gap-2 text-sm transition-all duration-300 ${
                 isLiked[currentPost.id] ? 'text-red-500' : 'text-gray-500 hover:text-red-500'
               }`}
+              aria-pressed={isLiked[currentPost.id]}
+              aria-label={isLiked[currentPost.id] ? 'Unlike post' : 'Like post'}
             >
               <motion.div
                 animate={animatingLikes[currentPost.id] ? { scale: [1, 1.3, 1] } : {}}
@@ -278,15 +280,23 @@ export default function BTSFeed() {
               </span>
             </motion.button>
 
-            <div className="flex items-center gap-2 text-gray-500 text-sm">
-              <MessageCircle className="h-5 w-5" />
-              <span>{currentPost.comments}</span>
-            </div>
+            <button
+              className="flex items-center gap-2 text-gray-500 text-sm hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-600 rounded"
+              aria-label="View comments"
+              type="button"
+            >
+              <MessageCircle className="h-5 w-5" aria-hidden="true" />
+              <span aria-hidden="true">{currentPost.comments}</span>
+            </button>
 
-            <div className="flex items-center gap-2 text-gray-500 text-sm">
-              <Share className="h-5 w-5" />
-              <span>{currentPost.shares}</span>
-            </div>
+            <button
+              className="flex items-center gap-2 text-gray-500 text-sm hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-600 rounded"
+              aria-label="Share post"
+              type="button"
+            >
+              <Share className="h-5 w-5" aria-hidden="true" />
+              <span aria-hidden="true">{currentPost.shares}</span>
+            </button>
 
             <div className="ml-auto flex items-center gap-1 text-gray-400 text-xs">
               <Users className="h-4 w-4" />

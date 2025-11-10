@@ -105,6 +105,8 @@ export default function Gallery() {
                     ? 'bg-primary-600 text-white'
                     : 'bg-white text-gray-600 hover:bg-gray-100'
                 }`}
+                aria-pressed={activeCategory === category.id}
+                aria-label={`Filter gallery by ${category.label}`}
               >
                 {category.label}
               </button>
@@ -112,7 +114,10 @@ export default function Gallery() {
           </div>
         </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div
+          className="grid md:grid-cols-2 lg:grid-cols-3 gap-6"
+          style={{ contain: 'layout style paint', contentVisibility: 'auto', containIntrinsicSize: '800px' as any }}
+        >
           {filteredImages.map((image, index) => (
             <div
               key={image.id}

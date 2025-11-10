@@ -752,7 +752,7 @@ export default function PageBuilderPage() {
           Back to Admin
         </Link>
         <div className="flex flex-col items-center gap-2">
-          <h1 className="text-xl font-bold">Visual Page Builder</h1>
+          <h2 className="text-xl font-bold" aria-level={2} role="heading">Visual Page Builder</h2>
           <div className="flex items-center gap-2">
             <span className="text-sm text-gray-600">URL Slug:</span>
             <div className="flex items-center gap-1">
