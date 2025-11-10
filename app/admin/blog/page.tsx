@@ -253,11 +253,23 @@ export default function BlogManagementPage() {
       });
 
       if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.error || "Failed to generate blog post");
+        let errorMessage = "Failed to generate blog post";
+        try {
+          const errorData = await res.json();
+          errorMessage = errorData.error || errorMessage;
+        } catch (parseError) {
+          // If response isn't JSON, use status text
+          errorMessage = `Server error: ${res.status} ${res.statusText}`;
+        }
+        throw new Error(errorMessage);
       }
 
-      const data = await res.json();
+      let data;
+      try {
+        data = await res.json();
+      } catch (parseError) {
+        throw new Error("Invalid response from server. Please check if GEMINI_API_KEY is configured in Netlify environment variables.");
+      }
 
       // Populate the form with AI-generated content
       setPostForm({
