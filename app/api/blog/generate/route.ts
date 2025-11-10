@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { supabase } from "@/lib/supabase";
 
+export const maxDuration = 60; // Increase timeout to 60 seconds for blog generation
+
 export async function POST(req: Request) {
   try {
     const { topic, keywords, tone, wordCount } = await req.json();
@@ -35,7 +37,13 @@ export async function POST(req: Request) {
     }
 
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-pro" });
+    const model = genAI.getGenerativeModel({ 
+      model: "gemini-2.5-pro",
+      generationConfig: {
+        maxOutputTokens: 8192,
+        temperature: 0.7,
+      },
+    });
 
     const prompt = `You are an expert content writer for Studio37 Photography, a professional photography studio in Pinehurst, TX.
 
@@ -54,34 +62,7 @@ Requirements:
 - End with a clear call-to-action
 - Use short paragraphs (2-3 sentences max)
 
-Blog Post Title:
-Create an engaging, SEO-friendly title (50-60 characters) that includes main keywords.
-
-Meta Description:
-Write a compelling meta description (150-160 characters) that summarizes the post and includes a CTA.
-
-Structure:
-# [Title]
-
-[Engaging introduction paragraph that hooks the reader]
-
-## [H2 Section 1]
-[Content...]
-
-### [H3 Subsection if relevant]
-[Content...]
-
-## [H2 Section 2]
-[Content...]
-
-[Continue with 3-5 total H2 sections]
-
-## Conclusion
-[Summarize key points and include call-to-action]
-
----
-
-Return the response in JSON format:
+Return the response in this exact JSON format (no markdown code blocks):
 {
   "title": "Blog post title here",
   "metaDescription": "Meta description here",
@@ -103,7 +84,17 @@ Return the response in JSON format:
       );
     }
 
-    let responseText = response.text().trim();
+    let responseText;
+    try {
+      responseText = response.text().trim();
+    } catch (textError: any) {
+      console.error("Error extracting text from response:", textError);
+      console.error("Response object:", JSON.stringify(response, null, 2));
+      return NextResponse.json(
+        { error: `Failed to extract response: ${textError.message}` },
+        { status: 500 }
+      );
+    }
 
     // Check if response is empty
     if (!responseText) {
