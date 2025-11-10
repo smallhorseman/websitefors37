@@ -240,43 +240,68 @@ export default function BlogManagementPage() {
     setTagInput("");
   };
 
-  // Generate blog post with AI
+  // Generate blog post with AI (with timeout + fallback + raw preview)
   const generateBlogPost = async () => {
     setGeneratingPost(true);
     setError(null);
+    setRawPreview("");
+
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 30000); // 30s client timeout
 
     try {
       const res = await fetch("/api/blog/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(aiForm),
+        signal: controller.signal,
+      }).catch((err) => {
+        if (err.name === "AbortError") {
+          throw new Error("Request timed out after 30s. Try a shorter word count.");
+        }
+        throw err;
       });
 
-      // Get response text for debugging
+      if (!res) throw new Error("No response from server");
+
       const responseText = await res.text();
-      console.log("API Response:", responseText);
+      console.log("API Response (raw):", responseText);
+      setRawPreview(responseText || "(empty response)");
 
       if (!res.ok) {
         let errorMessage = `Server error: ${res.status} ${res.statusText}`;
         try {
           const errorData = JSON.parse(responseText);
           errorMessage = errorData.error || errorMessage;
-        } catch (parseError) {
-          // Show raw response in error
-          errorMessage = `Server error (${res.status}): ${responseText.substring(0, 500)}`;
+        } catch {
+          if (!responseText) {
+            errorMessage = `Server error (${res.status}). Empty response. Possibly model quota / invalid model / missing key in production.`;
+          } else {
+            errorMessage = `Server error (${res.status}): ${responseText.substring(0, 300)}`;
+          }
         }
         throw new Error(errorMessage);
       }
 
-      let data;
+      let data: any = null;
       try {
         data = JSON.parse(responseText);
       } catch (parseError) {
-        // Show the actual response that failed to parse
-        throw new Error(`Invalid JSON response: ${responseText.substring(0, 500)}`);
+        // Attempt to salvage by wrapping in object if content looks like markdown
+        if (responseText.includes("#") || responseText.length > 50) {
+          data = {
+            title: aiForm.topic || "Untitled",
+            metaDescription: "Generated content (raw markdown)",
+            content: responseText,
+            excerpt: responseText.split(/\n\n/)[0]?.slice(0, 160) || "",
+            suggestedTags: (aiForm.keywords || "").split(",").map((k) => k.trim()).filter(Boolean),
+            category: "Photography Tips",
+          };
+        } else {
+          throw new Error(`Invalid JSON response: ${responseText.substring(0, 300)}`);
+        }
       }
 
-      // Populate the form with AI-generated content
       setPostForm({
         title: data.title,
         slug: generateSlug(data.title),
@@ -298,6 +323,7 @@ export default function BlogManagementPage() {
       console.error("Error generating blog post:", error);
       setError(error.message || "Failed to generate blog post");
     } finally {
+      clearTimeout(timeout);
       setGeneratingPost(false);
     }
   };
@@ -910,6 +936,14 @@ export default function BlogManagementPage() {
                 {error && (
                   <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg">
                     {error}
+                  </div>
+                )}
+
+                {/* Raw AI response preview (helps debug 502/empty response) */}
+                {rawPreview && (
+                  <div className="bg-gray-50 border border-gray-200 text-gray-800 px-4 py-3 rounded-lg">
+                    <div className="text-sm font-semibold mb-2">AI Raw Response (debug)</div>
+                    <pre className="whitespace-pre-wrap text-xs max-h-48 overflow-auto">{rawPreview}</pre>
                   </div>
                 )}
 

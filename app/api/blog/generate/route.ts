@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { supabase } from "@/lib/supabase";
 
+export const dynamic = "force-dynamic";
 export const maxDuration = 60; // Increase timeout to 60 seconds for blog generation
 
 export async function POST(req: Request) {
@@ -40,7 +41,7 @@ export async function POST(req: Request) {
     const model = genAI.getGenerativeModel({ 
       model: "gemini-2.5-pro",
       generationConfig: {
-        maxOutputTokens: 8192,
+        maxOutputTokens: 4096, // Reduced from 8192 to avoid quota limits
         temperature: 0.7,
       },
     });
