@@ -1,19 +1,35 @@
 
 
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { usePathname } from 'next/navigation';
 
 
 
 export default function DiscountNewsletterModal() {
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(false);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const supabase = createClientComponentClient();
+  const pathname = usePathname();
+
+  useEffect(() => {
+    // Don't show modal on admin pages
+    if (pathname?.startsWith('/admin')) {
+      return;
+    }
+
+    // Show modal after 3 seconds delay
+    const timer = setTimeout(() => {
+      setOpen(true);
+    }, 3000);
+
+    return () => clearTimeout(timer);
+  }, [pathname]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
