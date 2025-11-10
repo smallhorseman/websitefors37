@@ -72,8 +72,18 @@ Return the response in this exact JSON format (no markdown code blocks):
   "category": "suggested category"
 }`;
 
-    const result = await model.generateContent(prompt);
-    const response = result.response;
+
+    let result, response;
+    try {
+      result = await model.generateContent(prompt);
+      response = result.response;
+    } catch (aiError: any) {
+      console.error("Gemini API error:", aiError);
+      return NextResponse.json(
+        { error: `Gemini API error: ${aiError?.message || aiError}` },
+        { status: 502 }
+      );
+    }
 
     // Check if response exists
     if (!response) {
