@@ -113,7 +113,7 @@ export default async function HomePage() {
             <h2 className="text-3xl font-bold mb-4">
               Ready to Capture Your Story?
             </h2>
-            <p className="text-lg text-gray-600">
+            <p className="text-lg text-gray-700">
               Let's discuss your photography needs and create something
               beautiful together.
             </p>

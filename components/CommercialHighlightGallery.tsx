@@ -108,9 +108,10 @@ export default function CommercialHighlightGallery() {
               Commercial Photography
               <span className="block text-amber-600">Showcase</span>
             </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
-              Professional photography solutions that elevate your brand, showcase your products, 
-              and tell your business story with compelling visual content.
+                        <p className="text-xl text-gray-700 max-w-3xl mx-auto mb-8">
+              Transforming brands through powerful visual storytelling. From
+              product showcases to corporate events, we deliver images that
+              drive results.
             </p>
           </div>
 
@@ -127,7 +128,7 @@ export default function CommercialHighlightGallery() {
                   <stat.icon className="w-6 h-6 text-amber-600" />
                 </div>
                 <div className="text-2xl font-bold text-amber-900 mb-1">{stat.value}</div>
-                <div className="text-sm text-gray-600">{stat.label}</div>
+                <div className="text-sm text-gray-700">{stat.label}</div>
               </div>
             ))}
           </div>
@@ -263,7 +264,7 @@ export default function CommercialHighlightGallery() {
                 <service.icon className="w-6 h-6 text-amber-600" />
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">{service.title}</h3>
-              <p className="text-gray-600 text-sm">{service.desc}</p>
+              <p className="text-gray-700 text-sm">{service.desc}</p>
             </div>
           ))}
         </div>

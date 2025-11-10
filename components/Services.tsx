@@ -114,7 +114,7 @@ export default function Services() {
 					<h2 className="text-4xl font-bold mb-4">
 						Our Photography Services
 					</h2>
-					<p className="text-xl text-gray-600 max-w-2xl mx-auto">
+					<p className="text-xl text-gray-700 max-w-2xl mx-auto">
 						From intimate portraits to grand celebrations, we offer
 						comprehensive photography services tailored to your unique
 						needs.
@@ -163,7 +163,7 @@ export default function Services() {
 					)}									<h3 className="text-xl font-semibold mb-4 text-center group-hover:text-primary-600 transition-colors duration-300">
 										{service.title}
 									</h3>
-									<p className="text-gray-600 mb-6 text-center flex-grow">
+									<p className="text-gray-700 mb-6 text-center flex-grow">
 										{service.description}
 									</p>
 
@@ -171,7 +171,7 @@ export default function Services() {
 										{service.features.map((feature) => (
 											<li
 												key={feature}
-												className="flex items-center text-sm text-gray-600"
+												className="flex items-center text-sm text-gray-700"
 											>
 												<div className="w-2 h-2 bg-primary-500 rounded-full mr-3 group-hover:scale-125 transition-transform duration-300"></div>
 												{feature}
