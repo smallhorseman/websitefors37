@@ -1097,6 +1097,141 @@ interface VisualEditorProps {
   onImportFromPublished?: () => void | Promise<void>;
 }
 
+// Quick Start Template Builders: add Location Page template
+const makeId = (prefix: string) => `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+
+function buildLocationTemplate(): PageComponent[] {
+  const locationName = "Pinehurst, TX";
+  return [
+    {
+      id: makeId('hero'),
+      type: 'hero',
+      data: {
+        title: `Professional Photography in ${locationName}`,
+        subtitle: `Studio37 – Capturing authentic stories & timeless visuals in ${locationName}`,
+        backgroundImage: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e',
+        buttonText: 'Book a Session',
+        buttonLink: '/book-a-session',
+        secondaryButtonText: 'View Services',
+        secondaryButtonLink: '/services',
+        alignment: 'center',
+        overlay: 55,
+        titleColor: '#ffffff',
+        subtitleColor: '#f3f3f3',
+        buttonStyle: 'primary',
+        animation: 'fade-in',
+        fullBleed: true,
+        overlapHeader: false,
+      },
+      visibility: { desktop: true, tablet: true, mobile: true },
+    } as HeroComponent,
+    {
+      id: makeId('text-intro'),
+      type: 'text',
+      data: {
+        content: `<h2>Why Choose Studio37 in ${locationName}?</h2><p>We blend artistic vision with technical precision to deliver compelling imagery for portraits, events, branding & more. Local knowledge helps us pick the best natural light locations, seasonal backdrops, and hidden gems that elevate your session.</p>`,
+        alignment: 'left',
+        size: 'md',
+        animation: 'slide-up',
+      },
+      visibility: { desktop: true, tablet: true, mobile: true },
+    } as TextComponent,
+    {
+      id: makeId('services-grid'),
+      type: 'servicesGrid',
+      data: {
+        heading: 'Popular Local Photography Services',
+        subheading: `Tailored for families, brands & events in ${locationName}`,
+        services: [
+          { image: 'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e', title: 'Portrait Sessions', description: 'Natural-light portraits with personality.', features: ['Outdoor & studio', 'Color + B&W', 'Fast turnaround'], link: '/services' },
+          { image: 'https://images.unsplash.com/photo-1517841905240-472988babdf9', title: 'Family Photography', description: 'Relaxed, story-driven family sessions.', features: ['Playful posing', 'Multiple looks', 'Wall print ready'], link: '/services' },
+          { image: 'https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f', title: 'Brand & Product', description: 'Elevate your brand with scroll-stopping visuals.', features: ['Lifestyle setups', 'High-res exports', 'Usage licensing'], link: '/services' },
+          { image: 'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee', title: 'Event Coverage', description: 'Document important milestones & gatherings.', features: ['Candid + posed', 'Full gallery', 'Optional video'], link: '/services' },
+        ],
+        columns: 2,
+        animation: 'fade-in',
+      },
+      visibility: { desktop: true, tablet: true, mobile: true },
+    } as ServicesGridComponent,
+    {
+      id: makeId('map'),
+      type: 'mapEmbed',
+      data: {
+        address: locationName,
+        lat: 30.1737,
+        lng: -95.6886,
+        zoom: 11,
+        height: 'md',
+        showMarker: true,
+        mapType: 'roadmap',
+      },
+      visibility: { desktop: true, tablet: true, mobile: true },
+    } as MapEmbedComponent,
+    {
+      id: makeId('faq'),
+      type: 'faq',
+      data: {
+        heading: `${locationName} Session FAQs`,
+        items: [
+          { question: 'What locations do you recommend?', answer: 'We curate parks, urban textures, and hidden natural backdrops depending on your vision. We also scout light beforehand.' },
+          { question: 'How far in advance should I book?', answer: 'Peak seasons (spring & fall) fill fast. Booking 2–3 weeks ahead ensures preferred timing.' },
+          { question: 'Do you help with posing?', answer: 'Yes—we guide you into natural movement-driven poses that look relaxed and flattering.' },
+          { question: 'Can I get both color and black & white?', answer: 'Absolutely. We deliver refined color edits plus select artistic monochrome versions.' },
+        ],
+        columns: 1,
+        animation: 'fade-in',
+      },
+      visibility: { desktop: true, tablet: true, mobile: true },
+    } as FAQComponent,
+    {
+      id: makeId('pricing'),
+      type: 'pricingTable',
+      data: {
+        heading: 'Session Investment',
+        subheading: 'Transparent packages tailored to your needs',
+        plans: [
+          { title: 'Essentials', price: '$249', period: 'per session', features: ['30 min', '15 edited images', 'Online gallery'], ctaText: 'Book Essentials', ctaLink: '/book-a-session' },
+          { title: 'Signature', price: '$449', period: 'per session', features: ['60 min', '35 edited images', 'Priority editing', 'Print rights'], ctaText: 'Book Signature', ctaLink: '/book-a-session', highlight: true },
+          { title: 'Brand Story', price: '$749', period: 'half-day', features: ['Strategy call', 'Multi-location', 'Usage licensing', 'Advance color grading'], ctaText: 'Book Brand Story', ctaLink: '/book-a-session' },
+        ],
+        columns: 3,
+        animation: 'slide-up',
+        style: 'light',
+        variant: 'card',
+        showFeatureChecks: true,
+      },
+      visibility: { desktop: true, tablet: true, mobile: true },
+    } as PricingTableComponent,
+    {
+      id: makeId('cta'),
+      type: 'ctaBanner',
+      data: {
+        heading: `Ready to book your ${locationName} session?`,
+        subheading: 'Tell us your vision—we’ll shape the lighting, composition & creative direction for impact.',
+        primaryButtonText: 'Start Your Booking',
+        primaryButtonLink: '/book-a-session',
+        secondaryButtonText: 'Contact Us',
+        secondaryButtonLink: '/contact',
+        backgroundImage: 'https://images.unsplash.com/photo-1491975474562-1f4e30c1d0c1',
+        overlay: 60,
+        textColor: '#ffffff',
+        fullBleed: false,
+        animation: 'fade-in',
+      },
+      visibility: { desktop: true, tablet: true, mobile: true },
+    } as CTABannerComponent,
+    {
+      id: makeId('seo-footer'),
+      type: 'seoFooter',
+      data: {
+        content: `**Local Photography – ${locationName}**\nStudio37 provides portrait, family, event, brand & product photography across ${locationName} and nearby communities. Book a session to capture authentic visuals with impact.`,
+        includeSchema: false,
+      },
+      visibility: { desktop: true, tablet: true, mobile: true },
+    } as SEOFooterComponent,
+  ];
+}
+
 export default function VisualEditor({
   initialComponents = [],
   onSave,

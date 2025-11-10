@@ -46,28 +46,37 @@ export async function POST(req: Request) {
       },
     });
 
-    const prompt = `You are an expert content writer for Studio37 Photography, a professional photography studio in Pinehurst, TX.
+    const prompt = `You are an expert content strategist and senior copywriter for Studio37 Photography, a professional photography studio in Pinehurst, TX.
 
 Write a complete, SEO-optimized blog post about: ${topic}
 
-Requirements:
+STRICT STRUCTURE REQUIREMENTS (must appear exactly as H2 headings in this order):
+## 🎯 Vision & Purpose
+## 🎨 Style & Aesthetic
+## 🤝 Client Experience & Collaboration
+## 💰 Investment & Value
+## 📍 Local Advantage (Pinehurst, TX)
+
+Under each required H2 heading include 1-2 H3 subsections with concise, keyword-relevant titles.
+
+Additional Requirements:
 - Tone: ${tone || "professional and friendly"}
 - Target length: ${wordCount || 800}-${(wordCount || 800) + 200} words
 - Target keywords: ${keywords || "photography, Studio37, Pinehurst TX"}
-- Include 3-5 H2 sections with descriptive headings
-- Include 1-2 H3 subsections under each H2
-- Write in Markdown format
+- Write in Markdown format (no HTML tags except inline code if needed)
 - Be engaging, informative, and actionable
 - Include relevant photography tips and insights
-- Mention Studio37 Photography and Pinehurst, TX naturally
-- End with a clear call-to-action
+- Mention Studio37 Photography and Pinehurst, TX naturally (brand mention at least twice)
+- Use internal linking opportunities (services, booking, contact) where natural
+- End with a clear call-to-action inviting booking
 - Use short paragraphs (2-3 sentences max)
+- Avoid fluff, maintain clarity and professionalism
 
 Return the response in this exact JSON format (no markdown code blocks):
 {
   "title": "Blog post title here",
   "metaDescription": "Meta description here",
-  "content": "Full markdown content here",
+  "content": "Full markdown content here including required emoji section headings in order",
   "excerpt": "Brief 1-2 sentence summary",
   "suggestedTags": ["tag1", "tag2", "tag3"],
   "category": "suggested category"
@@ -129,6 +138,43 @@ Return the response in this exact JSON format (no markdown code blocks):
       .replace(/\n?```$/i, "")
       .trim();
 
+    // Helper: ensure required emoji section headings exist & ordered
+    const ensureSectionHeadings = (md: string): string => {
+      const required = [
+        "## 🎯 Vision & Purpose",
+        "## 🎨 Style & Aesthetic",
+        "## 🤝 Client Experience & Collaboration",
+        "## 💰 Investment & Value",
+        "## 📍 Local Advantage (Pinehurst, TX)"
+      ];
+      let out = md || "";
+      const present = required.filter(h => out.includes(h));
+      // If none present, prepend all in order with placeholder intro paragraphs
+      if (present.length === 0) {
+        out = required.map(h => `${h}\n\n`).join("") + out;
+      } else {
+        // Ensure order: rebuild sequence preserving existing content for each section
+        // Split at required headings
+        const sections: Record<string, string> = {};
+        for (const h of required) {
+          if (out.includes(h)) {
+            const idx = out.indexOf(h);
+            // Find next heading or end
+            let nextIdx = out.length;
+            for (const other of required) {
+              if (other !== h && out.indexOf(other) > idx) {
+                nextIdx = Math.min(nextIdx, out.indexOf(other));
+              }
+            }
+            sections[h] = out.substring(idx, nextIdx).trim();
+          }
+        }
+        // Reassemble in canonical order
+        out = required.map(h => sections[h] || `${h}\n\n`).join("\n\n");
+      }
+      return out;
+    };
+
     // Helper to inject internal links & CTA if missing
     const ensureLinks = (md: string): string => {
       let out = md || "";
@@ -171,7 +217,8 @@ Return the response in this exact JSON format (no markdown code blocks):
       if (!hasHeader && titleStr) {
         contentStr = `# ${titleStr}\n\n${introStr ? '> ' + introStr + '\n\n' : ''}---\n\n` + contentStr;
       }
-      blogData.content = ensureLinks(contentStr);
+  // Enforce section headings structure then internal links
+  blogData.content = ensureLinks(ensureSectionHeadings(contentStr));
 
       return NextResponse.json(blogData);
     } catch (parseError) {
@@ -189,7 +236,7 @@ Return the response in this exact JSON format (no markdown code blocks):
           if (!startsWithHeader && ft) {
             fc = `# ${ft}\n\n> ${fi}\n\n---\n\n` + fc;
           }
-          return ensureLinks(fc);
+          return ensureLinks(ensureSectionHeadings(fc));
         })(), // Formatted fallback content
         excerpt: `Discover everything you need to know about ${topic}.`,
         suggestedTags: keywords?.split(",").map((k: string) => k.trim()) || [],

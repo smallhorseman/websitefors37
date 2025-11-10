@@ -88,6 +88,13 @@ export default function AdminPage() {
               >
                 🧠 AI Training
               </Link>
+              <Link
+                href="/admin/ai-site-builder"
+                className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 transition duration-200"
+                title="Generate full page layouts from a prompt"
+              >
+                ⚙️ AI Site Builder
+              </Link>
               <button
                 onClick={handleLogout}
                 className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition duration-200"
