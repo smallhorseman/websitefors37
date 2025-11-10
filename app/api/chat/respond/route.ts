@@ -94,18 +94,6 @@ export async function POST(req: Request) {
 
     const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
-
-    let result;
-    try {
-      result = await model.generateContent(prompt);
-    } catch (aiError:any) {
-      const msg = String(aiError?.message || aiError || "");
-      if (msg.includes("reported as leaked") || (aiError.status === 403 && msg.includes("Forbidden"))) {
-        return NextResponse.json({ error: "API key was reported as leaked. Rotate in Netlify and redeploy.", code: "API_KEY_LEAKED" }, { status: 403 });
-      }
-      throw aiError;
-    }
-
     // Build prompt with custom training data
     const systemInstructions =
       chatbotSettings?.system_instructions ||
@@ -140,8 +128,16 @@ ${context ? `\nRecent conversation:\n${context}` : ""}
 Customer says: "${message}"
 
 Respond naturally in 2-3 sentences using the ${personality} personality and ${tone} tone. Use the training examples above as reference for similar questions. Don't repeat information already discussed. Be helpful and conversational.`;
-
-  const result = await model.generateContent(prompt);
+    let result;
+    try {
+      result = await model.generateContent(prompt);
+    } catch (aiError:any) {
+      const msg = String(aiError?.message || aiError || "");
+      if (msg.includes("reported as leaked") || (aiError.status === 403 && msg.includes("Forbidden"))) {
+        return NextResponse.json({ error: "API key was reported as leaked. Rotate in Netlify and redeploy.", code: "API_KEY_LEAKED" }, { status: 403 });
+      }
+      throw aiError;
+    }
     const response = result.response.text().trim();
 
     // Try to detect if user provided important information
