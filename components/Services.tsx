@@ -127,15 +127,11 @@ export default function Services() {
 				>
 					{services.map((service, index) => {
 						const Icon = service.icon
-						const images = imagesByCategory[service.category] || []
-						const imgIdx = slideshowIndexes[service.category] || 0
-						const currentImg = images[imgIdx]
 						return (
 							<Link
 								key={service.title}
 								href={`/services/${service.slug}`}
-								className="group block animate-fade-in-up"
-								style={{ animationDelay: `${index * 100}ms` }}
+								className="group block"
 							>
 								<div
 									className="bg-gray-50 p-8 rounded-lg hover:shadow-xl hover:bg-white transition-all duration-300 h-full flex flex-col cursor-pointer border-2 border-transparent group-hover:border-primary-500"
@@ -144,25 +140,21 @@ export default function Services() {
 										<Icon className="h-8 w-8 text-primary-600 group-hover:text-white transition-colors duration-300" />
 									</div>
 
-					{/* Slideshow image for this service category */}
-					{currentImg && (
-						<div className="mb-6 aspect-[4/3] relative rounded-lg overflow-hidden">
-							<Image
-								src={optimizeCloudinaryUrl(currentImg.image_url, 800, 'auto:low')}
-								alt={currentImg.title || service.title}
-								fill
-								sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
-								loading={index < 2 ? "eager" : "lazy"}
-								quality={70}
-								className="object-cover group-hover:scale-105 transition-transform duration-500"
-							/>
-							<div className="absolute bottom-0 left-0 right-0 bg-black/40 text-white text-xs px-2 py-1">
-								{currentImg.title}
-							</div>
-						</div>
-					)}									<h3 className="text-xl font-semibold mb-4 text-center group-hover:text-primary-600 transition-colors duration-300">
-										{service.title}
-									</h3>
+					{/* Static service image - optimized for performance */}
+					<div className="mb-6 aspect-[4/3] relative rounded-lg overflow-hidden">
+						<Image
+							src={service.image}
+							alt={service.title}
+							fill
+							sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
+							loading={index < 2 ? "eager" : "lazy"}
+							quality={65}
+							className="object-cover group-hover:scale-105 transition-transform duration-500"
+						/>
+					</div>
+					<h3 className="text-xl font-semibold mb-4 text-center group-hover:text-primary-600 transition-colors duration-300">
+						{service.title}
+					</h3>
 									<p className="text-gray-700 mb-6 text-center flex-grow">
 										{service.description}
 									</p>
