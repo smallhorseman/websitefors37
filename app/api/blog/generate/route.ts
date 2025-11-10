@@ -80,6 +80,13 @@ Return the response in this exact JSON format (no markdown code blocks):
       response = result.response;
     } catch (aiError: any) {
       console.error("Gemini API error:", aiError);
+      const msg = String(aiError?.message || aiError || "");
+      if (msg.includes("reported as leaked") || msg.includes("403")) {
+        return NextResponse.json(
+          { error: "API key was reported as leaked. Please rotate the key in Netlify and redeploy.", code: "API_KEY_LEAKED" },
+          { status: 403 }
+        );
+      }
       return NextResponse.json(
         { error: `Gemini API error: ${aiError?.message || aiError}` },
         { status: 502 }

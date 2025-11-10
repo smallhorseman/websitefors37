@@ -95,6 +95,17 @@ export async function POST(req: Request) {
     const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
+    let result;
+    try {
+      result = await model.generateContent(prompt);
+    } catch (aiError:any) {
+      const msg = String(aiError?.message || aiError || "");
+      if (msg.includes("reported as leaked") || (aiError.status === 403 && msg.includes("Forbidden"))) {
+        return NextResponse.json({ error: "API key was reported as leaked. Rotate in Netlify and redeploy.", code: "API_KEY_LEAKED" }, { status: 403 });
+      }
+      throw aiError;
+    }
+
     // Build prompt with custom training data
     const systemInstructions =
       chatbotSettings?.system_instructions ||
