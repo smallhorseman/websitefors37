@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Menu, X, Camera } from 'lucide-react'
+import { Menu, X, Camera, ChevronDown } from 'lucide-react'
 import Image from 'next/image'
 import { supabase } from '@/lib/supabase'
 
@@ -13,6 +13,7 @@ interface NavigationItem {
   order: number
   visible: boolean
   highlighted?: boolean
+  children?: NavigationItem[]
 }
 
 export default function Navigation() {
@@ -137,23 +138,65 @@ export default function Navigation() {
           </Link>
 
           <div className="hidden md:flex items-center space-x-8" suppressHydrationWarning>
-            {navItems.map((item) => (
-              <Link
-                key={item.id}
-                href={item.href}
-                className={`transition-colors font-medium px-2 py-1 rounded ${
-                  item.highlighted
-                    ? scrolled
-                      ? 'btn-primary'
-                      : 'bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg border border-amber-200/30'
-                    : `hover:text-amber-600 focus:text-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-600 focus:ring-offset-2 ${
-                        scrolled ? 'text-amber-900' : 'text-white'
-                      }`
-                }`}
-              >
-                {item.label}
-              </Link>
-            ))}
+            {navItems.map((item) => {
+              // Dropdown menu item
+              if (item.children && item.children.length > 0) {
+                const [dropdownOpen, setDropdownOpen] = useState(false)
+                
+                return (
+                  <div
+                    key={item.id}
+                    className="relative"
+                    onMouseEnter={() => setDropdownOpen(true)}
+                    onMouseLeave={() => setDropdownOpen(false)}
+                  >
+                    <button
+                      className={`transition-colors font-medium px-2 py-1 rounded flex items-center gap-1 ${
+                        scrolled ? 'text-amber-900 hover:text-amber-600' : 'text-white hover:text-amber-200'
+                      } focus:outline-none focus:ring-2 focus:ring-amber-600 focus:ring-offset-2`}
+                      aria-expanded={dropdownOpen}
+                      aria-haspopup="true"
+                    >
+                      {item.label}
+                      <ChevronDown className="h-4 w-4" aria-hidden="true" />
+                    </button>
+                    
+                    {dropdownOpen && (
+                      <div className="absolute top-full left-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+                        {item.children.map((child) => (
+                          <Link
+                            key={child.id}
+                            href={child.href}
+                            className="block px-4 py-2 text-amber-900 hover:bg-amber-50 transition-colors"
+                          >
+                            {child.label}
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )
+              }
+              
+              // Regular link item
+              return (
+                <Link
+                  key={item.id}
+                  href={item.href}
+                  className={`transition-colors font-medium px-2 py-1 rounded ${
+                    item.highlighted
+                      ? scrolled
+                        ? 'btn-primary'
+                        : 'bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg border border-amber-200/30'
+                      : `hover:text-amber-600 focus:text-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-600 focus:ring-offset-2 ${
+                          scrolled ? 'text-amber-900' : 'text-white'
+                        }`
+                  }`}
+                >
+                  {item.label}
+                </Link>
+              )
+            })}
             <Link
               href="/admin"
               className={`focus:outline-none focus:ring-2 focus:ring-amber-600 focus:ring-offset-2 transition-colors ${
@@ -184,20 +227,56 @@ export default function Navigation() {
             id="mobile-menu"
           >
             <div className="flex flex-col space-y-4">
-              {navItems.map((item) => (
-                <Link
-                  key={item.id}
-                  href={item.href}
-                  className={`transition-colors font-medium text-amber-900 px-2 py-1 rounded ${
-                    item.highlighted
-                      ? 'btn-primary w-fit'
-                      : 'hover:text-amber-600 focus:text-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-600 focus:ring-offset-2'
-                  }`}
-                  onClick={() => setIsOpen(false)}
-                >
-                  {item.label}
-                </Link>
-              ))}
+              {navItems.map((item) => {
+                // Mobile dropdown menu item
+                if (item.children && item.children.length > 0) {
+                  const [mobileDropdownOpen, setMobileDropdownOpen] = useState(false)
+                  
+                  return (
+                    <div key={item.id}>
+                      <button
+                        onClick={() => setMobileDropdownOpen(!mobileDropdownOpen)}
+                        className="w-full flex items-center justify-between text-left transition-colors font-medium text-amber-900 px-2 py-1 rounded hover:text-amber-600 focus:text-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-600 focus:ring-offset-2"
+                        aria-expanded={mobileDropdownOpen}
+                      >
+                        {item.label}
+                        <ChevronDown className={`h-4 w-4 transition-transform ${mobileDropdownOpen ? 'rotate-180' : ''}`} aria-hidden="true" />
+                      </button>
+                      
+                      {mobileDropdownOpen && (
+                        <div className="pl-4 mt-2 space-y-2">
+                          {item.children.map((child) => (
+                            <Link
+                              key={child.id}
+                              href={child.href}
+                              className="block transition-colors text-amber-900 px-2 py-1 rounded hover:text-amber-600 focus:text-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-600 focus:ring-offset-2"
+                              onClick={() => setIsOpen(false)}
+                            >
+                              {child.label}
+                            </Link>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )
+                }
+                
+                // Regular mobile link
+                return (
+                  <Link
+                    key={item.id}
+                    href={item.href}
+                    className={`transition-colors font-medium text-amber-900 px-2 py-1 rounded ${
+                      item.highlighted
+                        ? 'btn-primary w-fit'
+                        : 'hover:text-amber-600 focus:text-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-600 focus:ring-offset-2'
+                    }`}
+                    onClick={() => setIsOpen(false)}
+                  >
+                    {item.label}
+                  </Link>
+                )
+              })}
               <Link
                 href="/admin"
                 className="btn-primary w-fit focus:outline-none focus:ring-2 focus:ring-amber-600 focus:ring-offset-2"

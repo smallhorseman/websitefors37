@@ -2,11 +2,310 @@
 
 import React, { useState, useEffect } from 'react'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
-import { Loader2, Eye, EyeOff, Save, AlertTriangle, RotateCcw, FileEdit, Globe, Menu, Settings as Cog, Image as ImageIcon, Calendar } from 'lucide-react'
+import { Loader2, Eye, EyeOff, Save, AlertTriangle, RotateCcw, FileEdit, Globe, Menu, Settings as Cog, Image as ImageIcon, Calendar, Plus, Trash2, GripVertical, ChevronDown, ChevronRight } from 'lucide-react'
 import VisualEditor from '@/components/VisualEditor'
 import type { PageComponent } from '@/types/page-builder'
 import { revalidateContent } from '@/lib/revalidate'
 import dynamic from 'next/dynamic'
+
+interface NavigationItem {
+  id: string
+  label: string
+  href: string
+  order: number
+  visible: boolean
+  highlighted?: boolean
+  children?: NavigationItem[]
+}
+
+function NavigationEditor({ onClose }: { onClose: () => void }) {
+  const [navItems, setNavItems] = useState<NavigationItem[]>([])
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
+  const supabase = createClientComponentClient()
+
+  useEffect(() => {
+    loadNavigation()
+  }, [])
+
+  const loadNavigation = async () => {
+    setLoading(true)
+    try {
+      const { data, error } = await supabase.from('settings').select('navigation_items').single()
+      if (error) throw error
+      const items = (data?.navigation_items || []) as NavigationItem[]
+      setNavItems(items.sort((a, b) => a.order - b.order))
+    } catch (e) {
+      console.error('Failed to load navigation:', e)
+      setNavItems([
+        { id: 'home', label: 'Home', href: '/', order: 1, visible: true },
+        { id: 'gallery', label: 'Gallery', href: '/gallery', order: 2, visible: true },
+        { id: 'services', label: 'Services', href: '/services', order: 3, visible: true },
+        { id: 'blog', label: 'Blog', href: '/blog', order: 4, visible: true },
+        { id: 'about', label: 'About', href: '/about', order: 5, visible: true },
+        { id: 'contact', label: 'Contact', href: '/contact', order: 6, visible: true },
+        { id: 'book', label: 'Book a Session', href: '/book-a-session', order: 7, visible: true, highlighted: true },
+      ])
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const saveNavigation = async () => {
+    setSaving(true)
+    setMessage(null)
+    try {
+      const { data: existing } = await supabase.from('settings').select('id').maybeSingle()
+      
+      if (existing?.id) {
+        const { error } = await supabase
+          .from('settings')
+          .update({ navigation_items: navItems, updated_at: new Date().toISOString() })
+          .eq('id', existing.id)
+        if (error) throw error
+      } else {
+        const { error } = await supabase
+          .from('settings')
+          .insert([{ navigation_items: navItems }])
+        if (error) throw error
+      }
+      
+      setMessage({ type: 'success', text: 'Navigation saved successfully!' })
+      setTimeout(() => window.location.reload(), 1000)
+    } catch (e: any) {
+      setMessage({ type: 'error', text: e?.message || 'Failed to save navigation' })
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const addItem = (parentId?: string) => {
+    const newItem: NavigationItem = {
+      id: `nav-${Date.now()}`,
+      label: 'New Link',
+      href: '#',
+      order: navItems.length + 1,
+      visible: true,
+    }
+    
+    if (parentId) {
+      setNavItems(navItems.map(item => {
+        if (item.id === parentId) {
+          return {
+            ...item,
+            children: [...(item.children || []), newItem]
+          }
+        }
+        return item
+      }))
+    } else {
+      setNavItems([...navItems, newItem])
+    }
+  }
+
+  const updateItem = (id: string, updates: Partial<NavigationItem>, parentId?: string) => {
+    if (parentId) {
+      setNavItems(navItems.map(item => {
+        if (item.id === parentId) {
+          return {
+            ...item,
+            children: (item.children || []).map(child =>
+              child.id === id ? { ...child, ...updates } : child
+            )
+          }
+        }
+        return item
+      }))
+    } else {
+      setNavItems(navItems.map(item => item.id === id ? { ...item, ...updates } : item))
+    }
+  }
+
+  const deleteItem = (id: string, parentId?: string) => {
+    if (parentId) {
+      setNavItems(navItems.map(item => {
+        if (item.id === parentId) {
+          return {
+            ...item,
+            children: (item.children || []).filter(child => child.id !== id)
+          }
+        }
+        return item
+      }))
+    } else {
+      setNavItems(navItems.filter(item => item.id !== id))
+    }
+  }
+
+  const moveItem = (id: string, direction: 'up' | 'down', parentId?: string) => {
+    const items = parentId 
+      ? (navItems.find(i => i.id === parentId)?.children || [])
+      : navItems
+    
+    const index = items.findIndex(item => item.id === id)
+    if (index === -1) return
+    
+    const newIndex = direction === 'up' ? index - 1 : index + 1
+    if (newIndex < 0 || newIndex >= items.length) return
+    
+    const reordered = [...items]
+    const [moved] = reordered.splice(index, 1)
+    reordered.splice(newIndex, 0, moved)
+    
+    const updated = reordered.map((item, i) => ({ ...item, order: i + 1 }))
+    
+    if (parentId) {
+      setNavItems(navItems.map(item => 
+        item.id === parentId ? { ...item, children: updated } : item
+      ))
+    } else {
+      setNavItems(updated)
+    }
+  }
+
+  const renderItem = (item: NavigationItem, parentId?: string) => {
+    const [expanded, setExpanded] = useState(false)
+    
+    return (
+      <div key={item.id} className="border rounded mb-2 bg-white">
+        <div className="flex items-center gap-2 p-3">
+          <button
+            type="button"
+            onClick={() => moveItem(item.id, 'up', parentId)}
+            className="p-1 hover:bg-gray-100 rounded"
+            title="Move up"
+          >
+            <GripVertical className="h-4 w-4 text-gray-400" />
+          </button>
+          
+          {item.children && item.children.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setExpanded(!expanded)}
+              className="p-1 hover:bg-gray-100 rounded"
+            >
+              {expanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+            </button>
+          )}
+          
+          <input
+            type="text"
+            value={item.label}
+            onChange={(e) => updateItem(item.id, { label: e.target.value }, parentId)}
+            className="flex-1 border rounded px-2 py-1 text-sm"
+            placeholder="Label"
+          />
+          
+          <input
+            type="text"
+            value={item.href}
+            onChange={(e) => updateItem(item.id, { href: e.target.value }, parentId)}
+            className="flex-1 border rounded px-2 py-1 text-sm font-mono"
+            placeholder="/path"
+          />
+          
+          <label className="flex items-center gap-1 text-xs">
+            <input
+              type="checkbox"
+              checked={item.visible}
+              onChange={(e) => updateItem(item.id, { visible: e.target.checked }, parentId)}
+              className="h-3 w-3"
+            />
+            Visible
+          </label>
+          
+          <label className="flex items-center gap-1 text-xs">
+            <input
+              type="checkbox"
+              checked={item.highlighted || false}
+              onChange={(e) => updateItem(item.id, { highlighted: e.target.checked }, parentId)}
+              className="h-3 w-3"
+            />
+            Highlight
+          </label>
+          
+          {!parentId && (
+            <button
+              type="button"
+              onClick={() => addItem(item.id)}
+              className="px-2 py-1 text-xs border rounded hover:bg-gray-50"
+              title="Add child item"
+            >
+              + Sub
+            </button>
+          )}
+          
+          <button
+            type="button"
+            onClick={() => deleteItem(item.id, parentId)}
+            className="p-1 hover:bg-red-50 text-red-600 rounded"
+            title="Delete"
+          >
+            <Trash2 className="h-4 w-4" />
+          </button>
+        </div>
+        
+        {expanded && item.children && item.children.length > 0 && (
+          <div className="pl-8 pr-3 pb-3 space-y-2">
+            {item.children.map(child => renderItem(child, item.id))}
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex-1 overflow-auto p-6">
+      <div className="max-w-4xl mx-auto bg-white rounded-lg shadow p-6">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-xl font-bold">Navigation Editor</h2>
+          <button onClick={onClose} className="px-4 py-2 border rounded hover:bg-gray-50">
+            Back to Editor
+          </button>
+        </div>
+        
+        {message && (
+          <div className={`mb-4 p-3 rounded ${message.type === 'success' ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'}`}>
+            {message.text}
+          </div>
+        )}
+        
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="h-6 w-6 animate-spin" />
+          </div>
+        ) : (
+          <>
+            <div className="mb-4">
+              <button
+                onClick={() => addItem()}
+                className="px-4 py-2 bg-primary-600 text-white rounded hover:bg-primary-700 flex items-center gap-2"
+              >
+                <Plus className="h-4 w-4" /> Add Link
+              </button>
+            </div>
+            
+            <div className="space-y-2">
+              {navItems.map(item => renderItem(item))}
+            </div>
+            
+            <div className="mt-6 flex gap-3">
+              <button
+                onClick={saveNavigation}
+                disabled={saving}
+                className="px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50 flex items-center gap-2"
+              >
+                {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                {saving ? 'Saving...' : 'Save Navigation'}
+              </button>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  )
+}
 
 interface PageConfig {
   slug: string
@@ -979,26 +1278,7 @@ export default function LiveEditorPage() {
             </div>
           </div>
         ) : showNavEditor ? (
-          <div className="flex-1 overflow-auto p-6">
-            <div className="max-w-4xl mx-auto bg-white rounded-lg shadow p-6">
-              <h2 className="text-xl font-bold mb-4">Navigation Editor</h2>
-              <p className="text-gray-600 mb-4">
-                Edit site navigation menu items (coming soon - for now, edit via Settings)
-              </p>
-              <div className="border rounded p-4 bg-gray-50">
-                <p className="text-sm text-gray-600">
-                  Navigation structure is currently managed via the Settings page.
-                  This feature will allow you to visually edit menu items, links, and structure.
-                </p>
-              </div>
-              <button
-                onClick={() => setShowNavEditor(false)}
-                className="mt-4 px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
-              >
-                Back to Page Editor
-              </button>
-            </div>
-          </div>
+          <NavigationEditor onClose={() => setShowNavEditor(false)} />
         ) : (
           <>
             {/* Visual Editor */}
