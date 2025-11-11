@@ -110,7 +110,7 @@ export default function Hero() {
       <div className="absolute inset-8 border border-amber-200/20 pointer-events-none z-10 hidden md:block"></div>
 
       {/* Animated scroll indicator - pure CSS */}
-      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20 animate-bounce-slow" aria-hidden="true">
+      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20 animate-bounce-slow motion-safe:animate-bounce-slow" aria-hidden="true">
         <div className="w-6 h-10 border-2 border-amber-200/50 rounded-full flex justify-center">
           <div className="w-1 h-3 bg-amber-200/70 rounded-full mt-2"></div>
         </div>
@@ -141,6 +141,9 @@ export default function Hero() {
         }
         .animate-bounce-slow {
           animation: bounce-slow 1.5s ease-in-out infinite;
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .animate-bounce-slow { animation: none; }
         }
       `}</style>
     </section>

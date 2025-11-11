@@ -190,6 +190,7 @@ export default function Navigation() {
                       } focus:outline-none focus:ring-2 focus:ring-amber-600 focus:ring-offset-2`}
                       aria-expanded={isDropdownOpen}
                       aria-haspopup="true"
+                      aria-label={`${item.label} menu`}
                     >
                       {item.label}
                       <ChevronDown className="h-4 w-4" aria-hidden="true" />
@@ -255,7 +256,8 @@ export default function Navigation() {
             onClick={() => setIsOpen(!isOpen)}
             aria-expanded={isOpen ? 'true' : 'false'}
             aria-controls="mobile-menu"
-            aria-label={isOpen ? 'Close menu' : 'Open menu'}
+            aria-label={isOpen ? 'Close main navigation' : 'Open main navigation'}
+            title={isOpen ? 'Close navigation menu' : 'Open navigation menu'}
           >
             {isOpen ? <X aria-hidden="true" /> : <Menu aria-hidden="true" />}
           </button>
@@ -278,6 +280,7 @@ export default function Navigation() {
                         onClick={() => setMobileDropdownStates(prev => ({ ...prev, [item.id]: !prev[item.id] }))}
                         className="w-full flex items-center justify-between text-left transition-colors font-medium text-amber-900 px-2 py-1 rounded hover:text-amber-600 focus:text-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-600 focus:ring-offset-2"
                         aria-expanded={isMobileDropdownOpen}
+                        aria-label={`${item.label} submenu toggle`}
                       >
                         {item.label}
                         <ChevronDown className={`h-4 w-4 transition-transform ${isMobileDropdownOpen ? 'rotate-180' : ''}`} aria-hidden="true" />
