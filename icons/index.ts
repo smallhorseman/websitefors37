@@ -1,10 +1,12 @@
-// Re-export only the icons we actually use via deep imports to keep bundles small
-export { default as Menu } from 'lucide-react/icons/menu'
-export { default as X } from 'lucide-react/icons/x'
-export { default as Camera } from 'lucide-react/icons/camera'
-export { default as ChevronDown } from 'lucide-react/icons/chevron-down'
-export { default as ArrowRight } from 'lucide-react/icons/arrow-right'
-export { default as Building2 } from 'lucide-react/icons/building-2'
-export { default as Package } from 'lucide-react/icons/package'
-export { default as Briefcase } from 'lucide-react/icons/briefcase'
-export { default as TrendingUp } from 'lucide-react/icons/trending-up'
+// Netlify build: Use root exports from lucide-react (deep icon paths are not available in current version)
+export { 
+	Menu,
+	X,
+	Camera,
+	ChevronDown,
+	ArrowRight,
+	Building2,
+	Package,
+	Briefcase,
+	TrendingUp,
+} from 'lucide-react'
