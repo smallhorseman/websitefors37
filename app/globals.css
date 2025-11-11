@@ -44,6 +44,11 @@
     mix-blend-mode: overlay;
   }
 
+  /* Mobile: disable global film grain layer to reduce paint cost */
+  @media (max-width: 640px) {
+    body::after { display: none; }
+  }
+
   h1,
   h2,
   h3,

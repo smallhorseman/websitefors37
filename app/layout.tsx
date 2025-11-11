@@ -87,14 +87,7 @@ export default function RootLayout({
           name="google-site-verification"
           content={process.env.GOOGLE_SITE_VERIFICATION || ""}
         />
-        {/* Removed aggressive preloads (they were contributing to LCP). Keep dns-prefetch instead. */}
-        {/* DNS prefetch for external domains */}
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link
-          rel="preconnect"
-          href="https://fonts.gstatic.com"
-          crossOrigin="anonymous"
-        />
+        {/* Fonts are self-hosted via next/font; remove external Google Fonts preconnect to shrink network dependency tree */}
         {/* Preconnect to Cloudinary for faster image loading (LCP optimization) */}
         <link rel="preconnect" href="https://res.cloudinary.com" />
         <link rel="dns-prefetch" href="//images.unsplash.com" />
@@ -103,8 +96,8 @@ export default function RootLayout({
           rel="preload"
           as="image"
           href="https://res.cloudinary.com/dmjxho2rl/image/upload/f_auto,q_auto:good,c_limit,w_1200/v1759639187/A4B03835-ED8B-4FBB-A27E-1F2EE6CA1A18_1_105_c_gstgil_e_gen_restore_e_improve_e_sharpen_l_image_upload_My_Brand_IMG_2115_mtuowt_c_scale_fl_relative_w_0.40_o_80_fl_layer_apply_g_south_x_0.03_y_0.04_yqgycj.jpg"
-          imageSrcSet="https://res.cloudinary.com/dmjxho2rl/image/upload/f_auto,q_auto:good,c_limit,w_800/v1759639187/A4B03835-ED8B-4FBB-A27E-1F2EE6CA1A18_1_105_c_gstgil_e_gen_restore_e_improve_e_sharpen_l_image_upload_My_Brand_IMG_2115_mtuowt_c_scale_fl_relative_w_0.40_o_80_fl_layer_apply_g_south_x_0.03_y_0.04_yqgycj.jpg 800w, https://res.cloudinary.com/dmjxho2rl/image/upload/f_auto,q_auto:good,c_limit,w_1200/v1759639187/A4B03835-ED8B-4FBB-A27E-1F2EE6CA1A18_1_105_c_gstgil_e_gen_restore_e_improve_e_sharpen_l_image_upload_My_Brand_IMG_2115_mtuowt_c_scale_fl_relative_w_0.40_o_80_fl_layer_apply_g_south_x_0.03_y_0.04_yqgycj.jpg 1200w, https://res.cloudinary.com/dmjxho2rl/image/upload/f_auto,q_auto:good,c_limit,w_1600/v1759639187/A4B03835-ED8B-4FBB-A27E-1F2EE6CA1A18_1_105_c_gstgil_e_gen_restore_e_improve_e_sharpen_l_image_upload_My_Brand_IMG_2115_mtuowt_c_scale_fl_relative_w_0.40_o_80_fl_layer_apply_g_south_x_0.03_y_0.04_yqgycj.jpg 1600w"
-          imageSizes="100vw"
+          imageSrcSet="https://res.cloudinary.com/dmjxho2rl/image/upload/f_auto,q_auto:good,c_limit,w_640/v1759639187/A4B03835-ED8B-4FBB-A27E-1F2EE6CA1A18_1_105_c_gstgil_e_gen_restore_e_improve_e_sharpen_l_image_upload_My_Brand_IMG_2115_mtuowt_c_scale_fl_relative_w_0.40_o_80_fl_layer_apply_g_south_x_0.03_y_0.04_yqgycj.jpg 640w, https://res.cloudinary.com/dmjxho2rl/image/upload/f_auto,q_auto:good,c_limit,w_800/v1759639187/A4B03835-ED8B-4FBB-A27E-1F2EE6CA1A18_1_105_c_gstgil_e_gen_restore_e_improve_e_sharpen_l_image_upload_My_Brand_IMG_2115_mtuowt_c_scale_fl_relative_w_0.40_o_80_fl_layer_apply_g_south_x_0.03_y_0.04_yqgycj.jpg 800w, https://res.cloudinary.com/dmjxho2rl/image/upload/f_auto,q_auto:good,c_limit,w_1200/v1759639187/A4B03835-ED8B-4FBB-A27E-1F2EE6CA1A18_1_105_c_gstgil_e_gen_restore_e_improve_e_sharpen_l_image_upload_My_Brand_IMG_2115_mtuowt_c_scale_fl_relative_w_0.40_o_80_fl_layer_apply_g_south_x_0.03_y_0.04_yqgycj.jpg 1200w"
+          imageSizes="(max-width: 640px) 100vw, (max-width: 1200px) 100vw, 1200px"
         />
   {/* Removed global Cloudinary Media Library (only needed in admin). */}
         {/* Explicit favicon for modern browsers */}

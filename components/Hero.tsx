@@ -32,25 +32,21 @@ export default function Hero() {
       }}
       aria-label="Hero section - Studio 37 Photography"
     >
-      {/* Background Image - static for performance */}
+      {/* Background Image - Next/Image only to improve LCP request discovery */}
       <div className="absolute inset-0 z-0" style={{ contain: 'strict' }}>
-        <picture>
-          {/* Modern formats delivered automatically by Cloudinary (f_auto) */}
-          <source srcSet={`${heroImageSmall} 800w, ${heroImageMedium} 1200w, ${heroImageLarge} 1600w`} sizes="100vw" />
-          <Image
-            src={heroImage}
-            alt="Studio 37 Photography - Professional wedding and portrait photography"
-            fill
-            priority
-            fetchPriority="high"
-            quality={75}
-            sizes="100vw"
-            decoding="async"
-            className="object-cover will-change-auto"
-            placeholder="blur"
-            blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWEREiMxUf/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q=="
-          />
-        </picture>
+        <Image
+          src={heroImage}
+          alt="Studio 37 Photography - Professional wedding and portrait photography"
+          fill
+          priority
+          fetchPriority="high"
+          quality={70}
+          sizes="100vw"
+          decoding="async"
+          className="object-cover"
+          placeholder="blur"
+          blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWEREiMxUf/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q=="
+        />
       </div>
 
       {/* Overlay with vintage gradient */}
@@ -62,7 +58,7 @@ export default function Hero() {
           }), rgba(146, 64, 14, ${
             Math.max(overlayPct - 20, 0) / 100
           }), rgba(0,0,0,0))`,
-          willChange: 'auto', // Remove will-change to reduce layer promotion
+          willChange: 'auto', // keep simple; no layer promotion
         }}
       ></div>
 
