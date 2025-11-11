@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server'
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
 
+// This route requires cookies/session access; ensure Next.js treats it as dynamic.
+export const dynamic = 'force-dynamic'
+
 /**
  * One-time migration endpoint to convert static homepage to page_configs format
  * This makes the homepage editable in the Live Page Editor

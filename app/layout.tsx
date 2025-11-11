@@ -9,6 +9,7 @@ import Script from "next/script";
 import Analytics from "@/components/Analytics";
 import ClientErrorBoundary from "@/components/ClientErrorBoundary";
 import ToasterClient from "@/components/ToasterClient";
+import ChatBotMount from "@/components/ChatBotMount";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -63,50 +64,11 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  // Lazy load ChatBot only after user interaction or idle (reduces main thread during LCP)
-  const LazyChatBot = dynamic(() => import("@/components/EnhancedChatBot"), {
-    ssr: false,
-    loading: () => null,
-  });
   const WebVitals = dynamic(() => import("@/components/WebVitals"), {
     ssr: false,
     loading: () => null,
   });
   const localBusinessSchema = generateLocalBusinessSchema();
-
-  // Tiny client component to mount chatbot after user interaction or idle
-  function ChatBotMount() {
-    // This is a Client Component placeholder – defined inline for simplicity
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    const [ready, setReady] = React.useState(false);
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    React.useEffect(() => {
-      let timeout: any;
-      const onFirstInteract = () => {
-        setReady(true);
-        window.removeEventListener('scroll', onFirstInteract);
-        window.removeEventListener('pointerdown', onFirstInteract);
-        window.removeEventListener('keydown', onFirstInteract);
-      };
-      // Prefer idle; fall back to a short timer and first interaction
-      if ('requestIdleCallback' in window) {
-        // @ts-ignore
-        (window as any).requestIdleCallback(() => setReady(true), { timeout: 3000 });
-      } else {
-        timeout = setTimeout(() => setReady(true), 2500);
-      }
-      window.addEventListener('scroll', onFirstInteract, { passive: true, once: true });
-      window.addEventListener('pointerdown', onFirstInteract, { once: true });
-      window.addEventListener('keydown', onFirstInteract, { once: true });
-      return () => {
-        if (timeout) clearTimeout(timeout);
-        window.removeEventListener('scroll', onFirstInteract);
-        window.removeEventListener('pointerdown', onFirstInteract);
-        window.removeEventListener('keydown', onFirstInteract);
-      };
-    }, []);
-    return ready ? <LazyChatBot /> : null;
-  }
 
   return (
     <html lang="en">
