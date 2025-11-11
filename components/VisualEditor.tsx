@@ -16293,50 +16293,92 @@ function ServicesGridProperties({
   data: ServicesGridComponent["data"];
   onUpdate: (data: any) => void;
 }) {
+  // Stable local draft to avoid input flicker/reset while typing
+  const [draft, setDraft] = React.useState<ServicesGridComponent["data"]>(() => ({
+    heading: data.heading || "",
+    subheading: data.subheading || "",
+    columns: data.columns || 2,
+    animation: data.animation || "none",
+    services: (data.services || []).map((s) => ({ ...s })),
+  }));
+
+  // Helpers to sync parent preview while keeping local draft as source of truth during edits
+  const commit = React.useCallback((partial: Partial<ServicesGridComponent["data"]>) => {
+    onUpdate(partial);
+  }, [onUpdate]);
+
+  const setField = <K extends keyof ServicesGridComponent["data"]>(key: K, value: ServicesGridComponent["data"][K]) => {
+    setDraft((prev) => {
+      const next = { ...prev, [key]: value } as ServicesGridComponent["data"];
+      commit({ [key]: value } as Partial<ServicesGridComponent["data"]>);
+      return next;
+    });
+  };
+
   const addService = () => {
-    const next = {
-      image: "",
-      title: "New Service",
-      description: "",
-      features: [],
-    };
-    onUpdate({ services: [...(data.services || []), next] });
+    const nextItem = { image: "", title: "New Service", description: "", features: [] as string[] };
+    setDraft((prev) => {
+      const next = { ...prev, services: [...(prev.services || []), nextItem] };
+      commit({ services: next.services });
+      return next;
+    });
   };
+
   const removeService = (idx: number) => {
-    onUpdate({ services: (data.services || []).filter((_, i) => i !== idx) });
+    setDraft((prev) => {
+      const nextServices = (prev.services || []).filter((_, i) => i !== idx);
+      const next = { ...prev, services: nextServices };
+      commit({ services: nextServices });
+      return next;
+    });
   };
+
   const updateService = (
     idx: number,
     field: keyof ServicesGridComponent["data"]["services"][number],
     value: any
   ) => {
-    const arr = [...(data.services || [])];
-    arr[idx] = { ...arr[idx], [field]: value };
-    onUpdate({ services: arr });
+    setDraft((prev) => {
+      const arr = [...(prev.services || [])];
+      arr[idx] = { ...arr[idx], [field]: value };
+      const next = { ...prev, services: arr };
+      commit({ services: arr });
+      return next;
+    });
   };
+
   const addFeature = (serviceIdx: number) => {
-    const arr = [...(data.services || [])];
-    arr[serviceIdx].features = [
-      ...(arr[serviceIdx].features || []),
-      "New feature",
-    ];
-    onUpdate({ services: arr });
+    setDraft((prev) => {
+      const arr = [...(prev.services || [])];
+      const features = [...(arr[serviceIdx]?.features || []), "New feature"];
+      arr[serviceIdx] = { ...arr[serviceIdx], features };
+      const next = { ...prev, services: arr };
+      commit({ services: arr });
+      return next;
+    });
   };
+
   const removeFeature = (serviceIdx: number, featureIdx: number) => {
-    const arr = [...(data.services || [])];
-    arr[serviceIdx].features = arr[serviceIdx].features.filter(
-      (_, i) => i !== featureIdx
-    );
-    onUpdate({ services: arr });
+    setDraft((prev) => {
+      const arr = [...(prev.services || [])];
+      const features = (arr[serviceIdx]?.features || []).filter((_, i) => i !== featureIdx);
+      arr[serviceIdx] = { ...arr[serviceIdx], features };
+      const next = { ...prev, services: arr };
+      commit({ services: arr });
+      return next;
+    });
   };
-  const updateFeature = (
-    serviceIdx: number,
-    featureIdx: number,
-    value: string
-  ) => {
-    const arr = [...(data.services || [])];
-    arr[serviceIdx].features[featureIdx] = value;
-    onUpdate({ services: arr });
+
+  const updateFeature = (serviceIdx: number, featureIdx: number, value: string) => {
+    setDraft((prev) => {
+      const arr = [...(prev.services || [])];
+      const features = [...(arr[serviceIdx]?.features || [])];
+      features[featureIdx] = value;
+      arr[serviceIdx] = { ...arr[serviceIdx], features };
+      const next = { ...prev, services: arr };
+      commit({ services: arr });
+      return next;
+    });
   };
 
   return (
@@ -16345,8 +16387,8 @@ function ServicesGridProperties({
         <label className="block text-sm font-medium mb-1">Heading</label>
         <input
           type="text"
-          value={data.heading || ""}
-          onChange={(e) => onUpdate({ heading: e.target.value })}
+          value={draft.heading || ""}
+          onChange={(e) => setField("heading", e.target.value)}
           className="w-full border rounded px-3 py-2"
           placeholder="Our Services"
         />
@@ -16355,8 +16397,8 @@ function ServicesGridProperties({
         <label className="block text-sm font-medium mb-1">Subheading</label>
         <input
           type="text"
-          value={data.subheading || ""}
-          onChange={(e) => onUpdate({ subheading: e.target.value })}
+          value={draft.subheading || ""}
+          onChange={(e) => setField("subheading", e.target.value)}
           className="w-full border rounded px-3 py-2"
           placeholder="What we offer"
         />
@@ -16365,8 +16407,8 @@ function ServicesGridProperties({
         <div>
           <label className="block text-sm font-medium mb-1">Columns</label>
           <select
-            value={data.columns || 3}
-            onChange={(e) => onUpdate({ columns: Number(e.target.value) })}
+            value={draft.columns || 3}
+            onChange={(e) => setField("columns", Number(e.target.value) as any)}
             className="w-full border rounded px-3 py-2"
           >
             <option value={2}>2 Columns</option>
@@ -16377,8 +16419,8 @@ function ServicesGridProperties({
         <div>
           <label className="block text-sm font-medium mb-1">Animation</label>
           <select
-            value={data.animation || "none"}
-            onChange={(e) => onUpdate({ animation: e.target.value })}
+            value={draft.animation || "none"}
+            onChange={(e) => setField("animation", e.target.value as any)}
             className="w-full border rounded px-3 py-2"
           >
             <option value="none">None</option>
@@ -16401,7 +16443,7 @@ function ServicesGridProperties({
           </button>
         </div>
         <div className="space-y-3">
-          {(data.services || []).map((s, idx) => (
+          {(draft.services || []).map((s, idx) => (
             <div key={idx} className="border rounded p-3 bg-gray-50 space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-xs text-gray-600">
@@ -16495,7 +16537,7 @@ function ServicesGridProperties({
               </div>
             </div>
           ))}
-          {!data.services?.length && (
+          {!draft.services?.length && (
             <p className="text-sm text-gray-500">
               No services yet. Add your first service above.
             </p>
