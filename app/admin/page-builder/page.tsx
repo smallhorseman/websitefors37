@@ -682,6 +682,20 @@ export default function PageBuilderPage() {
 
       if (error) throw error
 
+      // Trigger revalidation of the published page via API route
+      try {
+        const revalResponse = await fetch('/api/admin/revalidate-page', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ path: `/${cleanSlug}` })
+        })
+        if (!revalResponse.ok) {
+          console.warn('Revalidation request returned non-OK status:', revalResponse.status)
+        }
+      } catch (revalError) {
+        console.warn('Revalidation failed (page will be cached for up to 10 minutes):', revalError)
+      }
+
       setMessage({ type: 'success', text: `Published to /${cleanSlug}.` })
       setLastPublishedSlug(cleanSlug)
     } catch (e) {
