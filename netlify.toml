@@ -36,15 +36,13 @@
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
 
-[[redirects]]
-  from = "/portfolio"
-  to = "/gallery"
-  status = 301
-  force = true
-
-## IMPORTANT: Prefer configuring the primary domain in Netlify UI instead of code-level host redirects.
-## Removing www→apex redirect here avoids clashes with Netlify's automatic domain redirect,
-## which can otherwise create a redirect loop if the primary domain is set to www.
+## Removed /portfolio redirect - now serving as a separate page
+## If you want it back, uncomment:
+# [[redirects]]
+#   from = "/portfolio"
+#   to = "/gallery"
+#   status = 301
+#   force = true
 
 # Serve .well-known files for domain verification
 [[headers]]

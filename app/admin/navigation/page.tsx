@@ -13,7 +13,9 @@ import {
   RefreshCw,
   ExternalLink,
   Star,
-  AlertCircle
+  AlertCircle,
+  ChevronDown,
+  ChevronRight
 } from 'lucide-react'
 
 interface NavigationItem {
@@ -24,6 +26,7 @@ interface NavigationItem {
   visible: boolean
   highlighted?: boolean
   icon?: string
+  children?: NavigationItem[]
 }
 
 export default function NavigationEditor() {
@@ -34,6 +37,7 @@ export default function NavigationEditor() {
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null)
+  const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>({})
 
   const supabase = createClientComponentClient()
 
@@ -135,10 +139,40 @@ export default function NavigationEditor() {
     setEditingId(newItem.id)
   }
 
-  const deleteItem = (id: string) => {
-    if (confirm('Delete this menu item?')) {
-      setItems(items.filter(item => item.id !== id))
+  const addDropdownItem = (parentId: string) => {
+    const newItem: NavigationItem = {
+      id: `nav-${Date.now()}`,
+      label: 'New Dropdown Item',
+      href: '#',
+      order: 0,
+      visible: true
     }
+    setItems(items.map(item => 
+      item.id === parentId 
+        ? { ...item, children: [...(item.children || []), newItem] }
+        : item
+    ))
+    setExpandedItems(prev => ({ ...prev, [parentId]: true }))
+  }
+
+  const deleteItem = (id: string, parentId?: string) => {
+    if (confirm('Delete this menu item?')) {
+      if (parentId) {
+        // Deleting a child item
+        setItems(items.map(item => 
+          item.id === parentId 
+            ? { ...item, children: (item.children || []).filter(child => child.id !== id) }
+            : item
+        ))
+      } else {
+        // Deleting a parent item
+        setItems(items.filter(item => item.id !== id))
+      }
+    }
+  }
+
+  const toggleExpanded = (id: string) => {
+    setExpandedItems(prev => ({ ...prev, [id]: !prev[id] }))
   }
 
   const toggleVisibility = (id: string) => {
@@ -153,10 +187,25 @@ export default function NavigationEditor() {
     ))
   }
 
-  const updateItem = (id: string, field: keyof NavigationItem, value: any) => {
-    setItems(items.map(item => 
-      item.id === id ? { ...item, [field]: value } : item
-    ))
+  const updateItem = (id: string, field: keyof NavigationItem, value: any, parentId?: string) => {
+    if (parentId) {
+      // Updating a child item
+      setItems(items.map(item => 
+        item.id === parentId 
+          ? {
+              ...item,
+              children: (item.children || []).map(child =>
+                child.id === id ? { ...child, [field]: value } : child
+              )
+            }
+          : item
+      ))
+    } else {
+      // Updating a parent item
+      setItems(items.map(item => 
+        item.id === id ? { ...item, [field]: value } : item
+      ))
+    }
   }
 
   const handleDragStart = (index: number) => {
@@ -266,105 +315,194 @@ export default function NavigationEditor() {
 
             {/* Items List */}
             <div className="space-y-3">
-              {items.map((item, index) => (
-                <div
-                  key={item.id}
-                  draggable
-                  onDragStart={() => handleDragStart(index)}
-                  onDragOver={(e) => handleDragOver(e, index)}
-                  onDragEnd={handleDragEnd}
-                  className={`bg-white border rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow ${
-                    draggedIndex === index ? 'opacity-50' : ''
-                  } ${!item.visible ? 'border-gray-300 bg-gray-50' : 'border-gray-200'}`}
-                >
-                  <div className="flex items-start gap-3">
-                    {/* Drag Handle */}
-                    <button
-                      className="mt-2 cursor-move text-gray-400 hover:text-gray-600"
-                      aria-label="Drag to reorder"
+              {items.map((item, index) => {
+                const hasChildren = item.children && item.children.length > 0
+                const isExpanded = expandedItems[item.id]
+                
+                return (
+                  <div key={item.id} className="space-y-2">
+                    <div
+                      draggable
+                      onDragStart={() => handleDragStart(index)}
+                      onDragOver={(e) => handleDragOver(e, index)}
+                      onDragEnd={handleDragEnd}
+                      className={`bg-white border rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow ${
+                        draggedIndex === index ? 'opacity-50' : ''
+                      } ${!item.visible ? 'border-gray-300 bg-gray-50' : 'border-gray-200'}`}
                     >
-                      <GripVertical className="h-5 w-5" />
-                    </button>
+                      <div className="flex items-start gap-3">
+                        {/* Expand/Collapse for dropdowns */}
+                        <button
+                          onClick={() => toggleExpanded(item.id)}
+                          className={`p-1 rounded shrink-0 mt-1 ${hasChildren ? 'hover:bg-gray-100' : 'opacity-30'}`}
+                          disabled={!hasChildren}
+                        >
+                          {hasChildren && isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                        </button>
 
-                    {/* Content */}
-                    <div className="flex-1">
-                      {editingId === item.id ? (
-                        <div className="space-y-3">
-                          <input
-                            type="text"
-                            value={item.label}
-                            onChange={(e) => updateItem(item.id, 'label', e.target.value)}
-                            className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
-                            placeholder="Menu Label"
-                          />
-                          <input
-                            type="text"
-                            value={item.href}
-                            onChange={(e) => updateItem(item.id, 'href', e.target.value)}
-                            className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 font-mono text-sm"
-                            placeholder="/page-url"
-                          />
+                        {/* Drag Handle */}
+                        <button
+                          className="mt-2 cursor-move text-gray-400 hover:text-gray-600"
+                          aria-label="Drag to reorder"
+                        >
+                          <GripVertical className="h-5 w-5" />
+                        </button>
+
+                        {/* Content */}
+                        <div className="flex-1">
+                          {editingId === item.id ? (
+                            <div className="space-y-3">
+                              <input
+                                type="text"
+                                value={item.label}
+                                onChange={(e) => updateItem(item.id, 'label', e.target.value)}
+                                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                                placeholder="Menu Label"
+                              />
+                              <input
+                                type="text"
+                                value={item.href}
+                                onChange={(e) => updateItem(item.id, 'href', e.target.value)}
+                                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 font-mono text-sm"
+                                placeholder="/page-url"
+                              />
+                              <button
+                                onClick={() => setEditingId(null)}
+                                className="text-sm text-amber-600 hover:text-amber-700 font-medium"
+                              >
+                                Done Editing
+                              </button>
+                            </div>
+                          ) : (
+                            <div
+                              onClick={() => setEditingId(item.id)}
+                              className="cursor-pointer group"
+                            >
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <h3 className="text-lg font-medium text-gray-900 group-hover:text-amber-600">
+                                  {item.label}
+                                </h3>
+                                {item.highlighted && (
+                                  <Star className="h-4 w-4 text-amber-500 fill-amber-500" />
+                                )}
+                                {hasChildren && (
+                                  <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">
+                                    {item.children!.length} dropdown {item.children!.length === 1 ? 'item' : 'items'}
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-sm text-gray-500 font-mono flex items-center gap-1">
+                                {item.href}
+                                <ExternalLink className="h-3 w-3" />
+                              </p>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Actions */}
+                        <div className="flex items-center gap-2 flex-wrap">
                           <button
-                            onClick={() => setEditingId(null)}
-                            className="text-sm text-amber-600 hover:text-amber-700 font-medium"
+                            onClick={() => addDropdownItem(item.id)}
+                            className="px-2 py-1 text-xs bg-blue-50 text-blue-600 rounded hover:bg-blue-100 whitespace-nowrap"
+                            title="Add dropdown item"
                           >
-                            Done Editing
+                            + Dropdown
+                          </button>
+
+                          <button
+                            onClick={() => toggleHighlight(item.id)}
+                            className={`p-2 rounded hover:bg-gray-100 ${
+                              item.highlighted ? 'text-amber-600' : 'text-gray-400'
+                            }`}
+                            title={item.highlighted ? 'Remove highlight' : 'Highlight (CTA button)'}
+                          >
+                            <Star className={`h-5 w-5 ${item.highlighted ? 'fill-amber-600' : ''}`} />
+                          </button>
+
+                          <button
+                            onClick={() => toggleVisibility(item.id)}
+                            className={`p-2 rounded hover:bg-gray-100 ${
+                              item.visible ? 'text-green-600' : 'text-gray-400'
+                            }`}
+                            title={item.visible ? 'Hide from menu' : 'Show in menu'}
+                          >
+                            {item.visible ? <Eye className="h-5 w-5" /> : <EyeOff className="h-5 w-5" />}
+                          </button>
+
+                          <button
+                            onClick={() => deleteItem(item.id)}
+                            className="p-2 rounded hover:bg-red-50 text-red-600"
+                            title="Delete menu item"
+                          >
+                            <Trash2 className="h-5 w-5" />
                           </button>
                         </div>
-                      ) : (
-                        <div
-                          onClick={() => setEditingId(item.id)}
-                          className="cursor-pointer group"
-                        >
-                          <div className="flex items-center gap-2">
-                            <h3 className="text-lg font-medium text-gray-900 group-hover:text-amber-600">
-                              {item.label}
-                            </h3>
-                            {item.highlighted && (
-                              <Star className="h-4 w-4 text-amber-500 fill-amber-500" />
-                            )}
+                      </div>
+                    </div>
+
+                    {/* Dropdown Children */}
+                    {isExpanded && hasChildren && (
+                      <div className="ml-12 space-y-2">
+                        {item.children!.map(child => (
+                          <div
+                            key={child.id}
+                            className="bg-blue-50 border border-blue-200 rounded-lg p-3 shadow-sm"
+                          >
+                            <div className="flex items-start gap-3">
+                              <div className="flex-1">
+                                {editingId === child.id ? (
+                                  <div className="space-y-2">
+                                    <input
+                                      type="text"
+                                      value={child.label}
+                                      onChange={(e) => updateItem(child.id, 'label', e.target.value, item.id)}
+                                      className="w-full px-2 py-1 border rounded text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                      placeholder="Dropdown Label"
+                                    />
+                                    <input
+                                      type="text"
+                                      value={child.href}
+                                      onChange={(e) => updateItem(child.id, 'href', e.target.value, item.id)}
+                                      className="w-full px-2 py-1 border rounded text-sm font-mono focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                      placeholder="/page-url"
+                                    />
+                                    <button
+                                      onClick={() => setEditingId(null)}
+                                      className="text-xs text-blue-600 hover:text-blue-700 font-medium"
+                                    >
+                                      Done
+                                    </button>
+                                  </div>
+                                ) : (
+                                  <div
+                                    onClick={() => setEditingId(child.id)}
+                                    className="cursor-pointer group"
+                                  >
+                                    <h4 className="text-sm font-medium text-gray-900 group-hover:text-blue-600">
+                                      {child.label}
+                                    </h4>
+                                    <p className="text-xs text-gray-500 font-mono">
+                                      {child.href}
+                                    </p>
+                                  </div>
+                                )}
+                              </div>
+
+                              <button
+                                onClick={() => deleteItem(child.id, item.id)}
+                                className="p-1 rounded hover:bg-red-50 text-red-600 shrink-0"
+                                title="Delete dropdown item"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                            </div>
                           </div>
-                          <p className="text-sm text-gray-500 font-mono flex items-center gap-1">
-                            {item.href}
-                            <ExternalLink className="h-3 w-3" />
-                          </p>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Actions */}
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => toggleHighlight(item.id)}
-                        className={`p-2 rounded hover:bg-gray-100 ${
-                          item.highlighted ? 'text-amber-600' : 'text-gray-400'
-                        }`}
-                        title={item.highlighted ? 'Remove highlight' : 'Highlight (CTA button)'}
-                      >
-                        <Star className={`h-5 w-5 ${item.highlighted ? 'fill-amber-600' : ''}`} />
-                      </button>
-
-                      <button
-                        onClick={() => toggleVisibility(item.id)}
-                        className={`p-2 rounded hover:bg-gray-100 ${
-                          item.visible ? 'text-green-600' : 'text-gray-400'
-                        }`}
-                        title={item.visible ? 'Hide from menu' : 'Show in menu'}
-                      >
-                        {item.visible ? <Eye className="h-5 w-5" /> : <EyeOff className="h-5 w-5" />}
-                      </button>
-
-                      <button
-                        onClick={() => deleteItem(item.id)}
-                        className="p-2 rounded hover:bg-red-50 text-red-600"
-                        title="Delete menu item"
-                      >
-                        <Trash2 className="h-5 w-5" />
-                      </button>
-                    </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                </div>
-              ))}
+                )
+              })}
 
               {items.length === 0 && (
                 <div className="text-center py-12 bg-white border-2 border-dashed border-gray-300 rounded-lg">
