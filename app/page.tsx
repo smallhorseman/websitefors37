@@ -9,7 +9,7 @@ import { createServerComponentClient } from "@supabase/auth-helpers-nextjs";
 import { cookies } from "next/headers";
 import { MDXRemote } from "next-mdx-remote/rsc";
 import rehypeHighlight from "rehype-highlight";
-import { MDXBuilderComponents } from "@/components/BuilderRuntime";
+// Note: MDX builder components are dynamically imported only when needed
 
 // Lazy load below-the-fold components for better initial page load
 const Services = dynamic(() => import("@/components/Services"), {
@@ -83,6 +83,7 @@ export default async function HomePage() {
     .maybeSingle();
 
   if (page?.content) {
+    const { MDXBuilderComponents } = await import("@/components/BuilderRuntime")
     return (
       <div className="min-h-screen">
         <MDXRemote

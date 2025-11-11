@@ -40,15 +40,22 @@ export default function Navigation() {
 
   useEffect(() => {
     if (!isMounted) return
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 20)
+    let ticking = false
+    const onScroll = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          setScrolled(window.scrollY > 20)
+          ticking = false
+        })
+        ticking = true
+      }
     }
-    
-    // Set initial scroll state
-    handleScroll()
-    
-    window.addEventListener('scroll', handleScroll)
-    return () => window.removeEventListener('scroll', handleScroll)
+
+    // Set initial scroll state without forced sync layout
+    onScroll()
+
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll as EventListener)
   }, [isMounted])
 
   // Fetch logo URL from settings once (client-side via Supabase)

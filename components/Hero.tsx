@@ -45,7 +45,8 @@ export default function Hero() {
             fetchPriority="high"
             quality={75}
             sizes="100vw"
-            className="object-cover"
+            decoding="async"
+            className="object-cover will-change-auto"
             placeholder="blur"
             blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWEREiMxUf/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q=="
           />
@@ -100,7 +101,7 @@ export default function Hero() {
 
             <Link
               href="/gallery"
-              className="btn-secondary text-lg px-8 py-4 bg-white/10 hover:bg-white/20 text-white border border-amber-200/30 hover:border-amber-200/50 transition-colors focus:outline-none focus:ring-4 focus:ring-white focus:ring-offset-2"
+              className="btn-secondary text-lg px-8 py-4 focus:outline-none focus:ring-4 focus:ring-amber-500 focus:ring-offset-2"
               aria-label="View our photography portfolio"
             >
               View Portfolio

@@ -5,7 +5,10 @@ import { notFound } from 'next/navigation'
 import { ContentPage } from '@/lib/supabase'
 import { MDXRemote } from 'next-mdx-remote/rsc'
 import rehypeHighlight from 'rehype-highlight'
-import { MDXBuilderComponents } from '@/components/BuilderRuntime'
+// IMPORTANT: Dynamically import BuilderRuntime components only when needed
+// to avoid shipping the entire visual builder component set to every CMS page.
+// This reduces unused JS (Lighthouse flag ~102 KiB) for simple markdown pages.
+// We'll conditionally load them inside the builder branch.
 import PageWrapper from '@/components/PageWrapper'
 
 // Try to import rehype-raw, but fall back gracefully if not available
@@ -80,6 +83,8 @@ export default async function DynamicPage({ params }: { params: { slug: string }
   const showNav = page.show_navbar !== false // Default to true if not specified
   
   if (isBuilderPage) {
+    // Dynamic import of MDX components for builder pages only.
+    const { MDXBuilderComponents } = await import('@/components/BuilderRuntime')
     // Builder-managed page: render full-width with no constraints
     return (
       <PageWrapper showNav={showNav} className={`min-h-screen ${showNav ? 'pt-16' : ''}`}>
@@ -93,6 +98,7 @@ export default async function DynamicPage({ params }: { params: { slug: string }
                   : [[rehypeHighlight, {}] as any]
               }
             }}
+            // MDXBuilderComponents is only present when imported dynamically above
             components={MDXBuilderComponents as any}
           />
         ) : (
