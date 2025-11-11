@@ -23,6 +23,8 @@ export default function Navigation() {
   const [logoUrl, setLogoUrl] = useState<string | null>(null)
   const [dbLogoUrl, setDbLogoUrl] = useState<string | null>(null)
   const [navItems, setNavItems] = useState<NavigationItem[]>([])
+  const [dropdownStates, setDropdownStates] = useState<Record<string, boolean>>({})
+  const [mobileDropdownStates, setMobileDropdownStates] = useState<Record<string, boolean>>({})
   // Badge concept (light/dark) as default fallbacks
   const DEFAULT_LOGO_LIGHT = '/brand/studio37-badge-light.svg'
   const DEFAULT_LOGO_DARK = '/brand/studio37-badge-dark.svg'
@@ -141,27 +143,27 @@ export default function Navigation() {
             {navItems.map((item) => {
               // Dropdown menu item
               if (item.children && item.children.length > 0) {
-                const [dropdownOpen, setDropdownOpen] = useState(false)
+                const isDropdownOpen = dropdownStates[item.id] || false
                 
                 return (
                   <div
                     key={item.id}
                     className="relative"
-                    onMouseEnter={() => setDropdownOpen(true)}
-                    onMouseLeave={() => setDropdownOpen(false)}
+                    onMouseEnter={() => setDropdownStates(prev => ({ ...prev, [item.id]: true }))}
+                    onMouseLeave={() => setDropdownStates(prev => ({ ...prev, [item.id]: false }))}
                   >
                     <button
                       className={`transition-colors font-medium px-2 py-1 rounded flex items-center gap-1 ${
                         scrolled ? 'text-amber-900 hover:text-amber-600' : 'text-white hover:text-amber-200'
                       } focus:outline-none focus:ring-2 focus:ring-amber-600 focus:ring-offset-2`}
-                      aria-expanded={dropdownOpen}
+                      aria-expanded={isDropdownOpen}
                       aria-haspopup="true"
                     >
                       {item.label}
                       <ChevronDown className="h-4 w-4" aria-hidden="true" />
                     </button>
                     
-                    {dropdownOpen && (
+                    {isDropdownOpen && (
                       <div className="absolute top-full left-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
                         {item.children.map((child) => (
                           <Link
@@ -230,20 +232,20 @@ export default function Navigation() {
               {navItems.map((item) => {
                 // Mobile dropdown menu item
                 if (item.children && item.children.length > 0) {
-                  const [mobileDropdownOpen, setMobileDropdownOpen] = useState(false)
+                  const isMobileDropdownOpen = mobileDropdownStates[item.id] || false
                   
                   return (
                     <div key={item.id}>
                       <button
-                        onClick={() => setMobileDropdownOpen(!mobileDropdownOpen)}
+                        onClick={() => setMobileDropdownStates(prev => ({ ...prev, [item.id]: !prev[item.id] }))}
                         className="w-full flex items-center justify-between text-left transition-colors font-medium text-amber-900 px-2 py-1 rounded hover:text-amber-600 focus:text-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-600 focus:ring-offset-2"
-                        aria-expanded={mobileDropdownOpen}
+                        aria-expanded={isMobileDropdownOpen}
                       >
                         {item.label}
-                        <ChevronDown className={`h-4 w-4 transition-transform ${mobileDropdownOpen ? 'rotate-180' : ''}`} aria-hidden="true" />
+                        <ChevronDown className={`h-4 w-4 transition-transform ${isMobileDropdownOpen ? 'rotate-180' : ''}`} aria-hidden="true" />
                       </button>
                       
-                      {mobileDropdownOpen && (
+                      {isMobileDropdownOpen && (
                         <div className="pl-4 mt-2 space-y-2">
                           {item.children.map((child) => (
                             <Link

@@ -23,6 +23,7 @@ function NavigationEditor({ onClose }: { onClose: () => void }) {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
+  const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>({})
   const supabase = createClientComponentClient()
 
   useEffect(() => {
@@ -58,22 +59,28 @@ function NavigationEditor({ onClose }: { onClose: () => void }) {
     try {
       const { data: existing } = await supabase.from('settings').select('id').maybeSingle()
       
+      const payload = { 
+        navigation_items: navItems, 
+        updated_at: new Date().toISOString() 
+      }
+      
       if (existing?.id) {
         const { error } = await supabase
           .from('settings')
-          .update({ navigation_items: navItems, updated_at: new Date().toISOString() })
+          .update(payload)
           .eq('id', existing.id)
         if (error) throw error
       } else {
         const { error } = await supabase
           .from('settings')
-          .insert([{ navigation_items: navItems }])
+          .insert([payload])
         if (error) throw error
       }
       
       setMessage({ type: 'success', text: 'Navigation saved successfully!' })
       setTimeout(() => window.location.reload(), 1000)
     } catch (e: any) {
+      console.error('Save navigation error:', e)
       setMessage({ type: 'error', text: e?.message || 'Failed to save navigation' })
     } finally {
       setSaving(false)
@@ -165,7 +172,7 @@ function NavigationEditor({ onClose }: { onClose: () => void }) {
   }
 
   const renderItem = (item: NavigationItem, parentId?: string) => {
-    const [expanded, setExpanded] = useState(false)
+    const isExpanded = expandedItems[item.id] || false
     
     return (
       <div key={item.id} className="border rounded mb-2 bg-white">
@@ -182,10 +189,10 @@ function NavigationEditor({ onClose }: { onClose: () => void }) {
           {item.children && item.children.length > 0 && (
             <button
               type="button"
-              onClick={() => setExpanded(!expanded)}
+              onClick={() => setExpandedItems(prev => ({ ...prev, [item.id]: !prev[item.id] }))}
               className="p-1 hover:bg-gray-100 rounded"
             >
-              {expanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+              {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
             </button>
           )}
           
@@ -246,7 +253,7 @@ function NavigationEditor({ onClose }: { onClose: () => void }) {
           </button>
         </div>
         
-        {expanded && item.children && item.children.length > 0 && (
+        {isExpanded && item.children && item.children.length > 0 && (
           <div className="pl-8 pr-3 pb-3 space-y-2">
             {item.children.map(child => renderItem(child, item.id))}
           </div>

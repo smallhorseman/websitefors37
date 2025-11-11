@@ -49,6 +49,7 @@ export const metadata = {
     index: true,
     follow: true,
   },
+  referrer: 'strict-origin-when-cross-origin',
   other: {
     "geo.region": "US-TX",
     "geo.placename": "Pinehurst, Texas",
