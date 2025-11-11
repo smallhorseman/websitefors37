@@ -99,24 +99,22 @@ export default function ContentManagementPage() {
       const { data: existing, error: fetchErr } = await supabase
         .from('settings')
         .select('id')
+        .limit(1)
         .maybeSingle()
       if (fetchErr) throw fetchErr
 
-      let err: any = null
       if (existing?.id) {
-        // Update singleton settings row without strict id filter to avoid uuid casting problems
         const { error } = await supabase
           .from('settings')
           .update({ book_session_bg_url: bookingBgUrl, updated_at: new Date().toISOString() })
-          .neq('id', null)
-        err = error
+          .match({ id: existing.id })
+        if (error) throw error
       } else {
         const { error } = await supabase
           .from('settings')
           .insert([{ book_session_bg_url: bookingBgUrl }])
-        err = error
+        if (error) throw error
       }
-      if (err) throw err
     } catch (err: any) {
       setSettingsError(err.message || 'Failed to save background image URL')
     } finally {

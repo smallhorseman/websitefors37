@@ -57,20 +57,23 @@ function NavigationEditor({ onClose }: { onClose: () => void }) {
     setSaving(true)
     setMessage(null)
     try {
-      const { data: existing } = await supabase.from('settings').select('id').maybeSingle()
-      
       const payload = { 
         navigation_items: navItems, 
         updated_at: new Date().toISOString() 
       }
       
-      if (existing?.id) {
-        // Update the existing row; avoid strict id casting issues by updating all rows
-        // (settings is a singleton table in this app).
+      // Settings is a singleton - get the actual row ID and update it
+      const { data: existing } = await supabase
+        .from('settings')
+        .select('id')
+        .limit(1)
+        .maybeSingle()
+      
+      if (existing) {
         const { error } = await supabase
           .from('settings')
           .update(payload)
-          .neq('id', null)
+          .match({ id: existing.id })
         if (error) throw error
       } else {
         const { error } = await supabase

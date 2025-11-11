@@ -87,13 +87,30 @@ export default function NavigationEditor() {
         order: index + 1
       }))
 
-      // Update singleton settings row without strict id filter to avoid uuid casting
-      const { error } = await supabase
+      // Settings is a singleton table - just update the first/only row
+      // First, try to get the existing row
+      const { data: existing } = await supabase
         .from('settings')
-        .update({ navigation_items: reorderedItems })
-        .neq('id', null)
+        .select('id')
+        .limit(1)
+        .maybeSingle()
 
-      if (error) throw error
+      if (existing) {
+        // Update using the actual ID we got back
+        const { error } = await supabase
+          .from('settings')
+          .update({ navigation_items: reorderedItems })
+          .match({ id: existing.id })
+        
+        if (error) throw error
+      } else {
+        // No settings row exists, insert one
+        const { error } = await supabase
+          .from('settings')
+          .insert([{ navigation_items: reorderedItems }])
+        
+        if (error) throw error
+      }
 
       setItems(reorderedItems)
       setOriginalItems(JSON.parse(JSON.stringify(reorderedItems)))
