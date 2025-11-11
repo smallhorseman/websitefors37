@@ -684,7 +684,7 @@ export default function ContentManagementPage() {
                               <ExternalLink className="h-4 w-4" />
                             </a>
                             <a
-                              href={`/admin/page-builder?slug=${encodeURIComponent(page.slug)}`}
+                              href={`/admin/live-editor?slug=${encodeURIComponent(page.slug)}`}
                               className="text-primary-600 hover:text-primary-900"
                               title="Edit in Visual Builder"
                             >

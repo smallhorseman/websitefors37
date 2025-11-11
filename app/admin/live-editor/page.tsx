@@ -2,10 +2,11 @@
 
 import React, { useState, useEffect } from 'react'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
-import { Loader2, Eye, EyeOff, Save, AlertTriangle, RotateCcw, FileEdit, Globe, Menu } from 'lucide-react'
+import { Loader2, Eye, EyeOff, Save, AlertTriangle, RotateCcw, FileEdit, Globe, Menu, Settings as Cog, Image as ImageIcon, Calendar } from 'lucide-react'
 import VisualEditor from '@/components/VisualEditor'
 import type { PageComponent } from '@/types/page-builder'
 import { revalidateContent } from '@/lib/revalidate'
+import dynamic from 'next/dynamic'
 
 interface PageConfig {
   slug: string
@@ -35,6 +36,20 @@ export default function LiveEditorPage() {
   const [importing, setImporting] = useState(false)
   const [availablePublishedPages, setAvailablePublishedPages] = useState<string[]>([])
   const [publishing, setPublishing] = useState(false)
+  const [showSettings, setShowSettings] = useState(false)
+  const [showCloudinary, setShowCloudinary] = useState(false)
+  const [pageMeta, setPageMeta] = useState({
+    title: '',
+    meta_description: '',
+    featured_image: '',
+    category: '',
+    tags: '' as string, // comma separated in UI
+    show_navbar: true,
+    status: 'draft' as 'draft' | 'in_progress' | 'review' | 'published' | 'archived',
+    publish_at: '' as string | null,
+    unpublish_at: '' as string | null,
+  })
+  const CloudinaryMediaLibrary = dynamic(() => import('@/components/CloudinaryMediaLibrary'), { ssr: false, loading: () => null })
   
   const supabase = createClientComponentClient()
 
@@ -57,8 +72,22 @@ export default function LiveEditorPage() {
   useEffect(() => {
     if (selectedSlug) {
       loadPageContent(selectedSlug)
+      loadContentPageMeta(selectedSlug)
     }
   }, [selectedSlug])
+
+  // Autosave draft to content_pages with debounce
+  useEffect(() => {
+    if (!selectedSlug) return
+    const t = setTimeout(() => {
+      // Only autosave when there is at least one component or metadata present
+      if (components.length > 0 || pageMeta.title || pageMeta.meta_description || pageMeta.featured_image) {
+        saveDraftContent()
+      }
+    }, 1500)
+    return () => clearTimeout(t)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedSlug, components, pageMeta])
 
   useEffect(() => {
     // Detect changes in components or navigation
@@ -171,6 +200,169 @@ export default function LiveEditorPage() {
     }
   }
 
+  // Load existing content_pages metadata to unify editing/publishing
+  const loadContentPageMeta = async (slug: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('content_pages')
+        .select('*')
+        .eq('slug', slug)
+        .maybeSingle()
+
+      if (error && (error as any).code !== 'PGRST116') return
+
+      if (data) {
+        setPageMeta({
+          title: data.title || '',
+          meta_description: data.meta_description || '',
+          featured_image: data.featured_image || '',
+          category: data.category || '',
+          tags: Array.isArray(data.tags) ? (data.tags as string[]).join(', ') : (data.tags || ''),
+          show_navbar: data.show_navbar !== false,
+          status: (data.status as any) || (data.published ? 'published' : 'draft'),
+          publish_at: data.publish_at || '',
+          unpublish_at: data.unpublish_at || '',
+        })
+        // Also keep pageTitle in sync for header display
+        setPageTitle(data.title || slug)
+      } else {
+        setPageMeta((prev) => ({
+          ...prev,
+          title: slug,
+        }))
+      }
+    } catch (e) {
+      // non-blocking
+    }
+  }
+
+  // Reusable: convert builder components -> MDX (mirrors page-builder logic)
+  const componentsToMDX = (list: PageComponent[]): string => {
+    const md: string[] = []
+
+    const escapeAttr = (v: string) =>
+      String(v ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;')
+
+    const toB64 = (s: string) => {
+      try { return btoa(unescape(encodeURIComponent(s))) } catch { return '' }
+    }
+
+    list.forEach((c) => {
+      const d: any = c.data || {}
+      switch (c.type) {
+        case 'faq': {
+          const itemsB64 = toB64(JSON.stringify(d.items || []))
+          md.push(`<FAQBlock itemsB64="${itemsB64}" heading="${escapeAttr(d.heading || '')}" columns="${Number(d.columns || 1)}" animation="${escapeAttr(d.animation || 'fade-in')}" />`)
+          break
+        }
+        case 'pricingTable': {
+          const plansB64 = toB64(JSON.stringify(d.plans || []))
+          md.push(`<PricingTableBlock plansB64="${plansB64}" heading="${escapeAttr(d.heading || '')}" subheading="${escapeAttr(d.subheading || '')}" columns="${Number(d.columns || 3)}" animation="${escapeAttr(d.animation || 'fade-in')}" style="${escapeAttr(d.style || 'light')}" variant="${escapeAttr(d.variant || 'card')}" showFeatureChecks="${(d.showFeatureChecks ?? true) ? 'true' : 'false'}" />`)
+          break
+        }
+        case 'contactForm': {
+          md.push(`<ContactFormBlock heading="${escapeAttr(d.heading || '')}" subheading="${escapeAttr(d.subheading || '')}" animation="${escapeAttr(d.animation || 'fade-in')}" />`)
+          break
+        }
+        case 'newsletterSignup': {
+          md.push(`<NewsletterBlock heading="${escapeAttr(d.heading || '')}" subheading="${escapeAttr(d.subheading || '')}" disclaimer="${escapeAttr(d.disclaimer || '')}" style="${escapeAttr(d.style || 'card')}" animation="${escapeAttr(d.animation || 'fade-in')}" />`)
+          break
+        }
+        case 'logo': {
+          md.push(`<LogoBlock mode="${escapeAttr(d.mode || 'svg')}" text="${escapeAttr(d.text || 'Studio 37')}" subtext="${escapeAttr(d.subtext || '')}" showCamera="${(d.showCamera ?? true) ? 'true' : 'false'}" color="${escapeAttr(d.color || '#111827')}" accentColor="${escapeAttr(d.accentColor || '#b46e14')}" imageUrl="${escapeAttr(d.imageUrl || '')}" size="${escapeAttr(d.size || 'xl')}" imageHeightPx="${Number(d.imageHeightPx ?? 64)}" fontSizePx="${Number(d.fontSizePx ?? 0)}" alignment="${escapeAttr(d.alignment || 'left')}" link="${escapeAttr(d.link || '')}" animation="${escapeAttr(d.animation || 'none')}" />`)
+          break
+        }
+        case 'hero': {
+          md.push(`<HeroBlock title="${escapeAttr(d.title)}" subtitle="${escapeAttr(d.subtitle)}" backgroundImage="${escapeAttr(d.backgroundImage || '')}" buttonText="${escapeAttr(d.buttonText)}" buttonLink="${escapeAttr(d.buttonLink)}" secondaryButtonText="${escapeAttr(d.secondaryButtonText || '')}" secondaryButtonLink="${escapeAttr(d.secondaryButtonLink || '')}" alignment="${escapeAttr(d.alignment || 'center')}" overlay="${Number.isFinite(d.overlay) ? d.overlay : 50}" titleColor="${escapeAttr(d.titleColor || 'text-white')}" subtitleColor="${escapeAttr(d.subtitleColor || 'text-amber-50')}" buttonStyle="${escapeAttr(d.buttonStyle || 'primary')}" animation="${escapeAttr(d.animation || 'none')}" buttonAnimation="${escapeAttr(d.buttonAnimation || 'none')}" fullBleed="${(d.fullBleed ?? true) ? 'true' : 'false'}" />`)
+          break
+        }
+        case 'slideshowHero': {
+          const slidesB64 = toB64(JSON.stringify(d.slides || []))
+          md.push(`<SlideshowHeroBlock slidesB64="${slidesB64}" intervalMs="${Number(d.intervalMs || 5000)}" overlay="${Number(d.overlay || 60)}" title="${escapeAttr(d.title || '')}" subtitle="${escapeAttr(d.subtitle || '')}" buttonText="${escapeAttr(d.buttonText || '')}" buttonLink="${escapeAttr(d.buttonLink || '/book-a-session')}" alignment="${escapeAttr(d.alignment || 'center')}" titleColor="${escapeAttr(d.titleColor || 'text-white')}" subtitleColor="${escapeAttr(d.subtitleColor || 'text-amber-50')}" buttonStyle="${escapeAttr(d.buttonStyle || 'primary')}" buttonAnimation="${escapeAttr(d.buttonAnimation || 'hover-zoom')}" fullBleed="${(d.fullBleed ?? true) ? 'true' : 'false'}" />`)
+          break
+        }
+        case 'text': {
+          const contentB64 = toB64(String(d.content || ''))
+          md.push(`<TextBlock contentB64="${contentB64}" alignment="${escapeAttr(d.alignment || 'left')}" size="${escapeAttr(d.size || 'md')}" animation="${escapeAttr(d.animation || 'none')}" />`)
+          break
+        }
+        case 'image': {
+          md.push(`<ImageBlock url="${escapeAttr(d.url || '')}" alt="${escapeAttr(d.alt || '')}" caption="${escapeAttr(d.caption || '')}" width="${escapeAttr(d.width || 'full')}" link="${escapeAttr(d.link || '')}" animation="${escapeAttr(d.animation || 'none')}" />`)
+          break
+        }
+        case 'button': {
+          md.push(`<ButtonBlock text="${escapeAttr(d.text || '')}" link="${escapeAttr(d.link || '#')}" style="${escapeAttr(d.style || 'primary')}" alignment="${escapeAttr(d.alignment || 'center')}" animation="${escapeAttr(d.animation || 'none')}" />`)
+          break
+        }
+        case 'columns': {
+          const columnsB64 = toB64(JSON.stringify(d.columns || []))
+          md.push(`<ColumnsBlock columnsB64="${columnsB64}" animation="${escapeAttr(d.animation || 'none')}" />`)
+          break
+        }
+        case 'spacer': {
+          md.push(`<SpacerBlock height="${escapeAttr(d.height || 'md')}" />`)
+          break
+        }
+        case 'seoFooter': {
+          const contentB64 = toB64(String(d.content || ''))
+          md.push(`<SeoFooterBlock contentB64="${contentB64}" includeSchema="${(d.includeSchema ?? true) ? 'true' : 'false'}" />`)
+          break
+        }
+        case 'testimonials': {
+          const testimonialsB64 = toB64(JSON.stringify(d.testimonials || []))
+          md.push(`<TestimonialsBlock testimonialsB64="${testimonialsB64}" animation="${escapeAttr(d.animation || 'fade-in')}" />`)
+          break
+        }
+        case 'galleryHighlights': {
+          const categoriesB64 = toB64(JSON.stringify(d.categories || []))
+          const collectionsB64 = toB64(JSON.stringify(d.collections || []))
+          const tagsB64 = toB64(JSON.stringify(d.tags || []))
+          md.push(`<GalleryHighlightsBlock categoriesB64="${categoriesB64}" collectionsB64="${collectionsB64}" tagsB64="${tagsB64}" group="${escapeAttr(d.group || '')}" featuredOnly="${(d.featuredOnly ?? true) ? 'true' : 'false'}" limit="${Number(d.limit || 6)}" limitPerCategory="${Number(d.limitPerCategory || 0)}" sortBy="${escapeAttr(d.sortBy || 'display_order')}" sortDir="${escapeAttr(d.sortDir || 'asc')}" animation="${escapeAttr(d.animation || 'fade-in')}" />`)
+          break
+        }
+        case 'badges': {
+          const badgesB64 = toB64(JSON.stringify(d.badges || []))
+          md.push(`<BadgesBlock badgesB64="${badgesB64}" alignment="${escapeAttr(d.alignment || 'center')}" size="${escapeAttr(d.size || 'md')}" style="${escapeAttr(d.style || 'pill')}" animation="${escapeAttr(d.animation || 'fade-in')}" />`)
+          break
+        }
+        case 'widgetEmbed': {
+          const htmlB64 = toB64(String(d.html || ''))
+          const scriptSrcsB64 = toB64(JSON.stringify(d.scriptSrcs || []))
+          md.push(`<WidgetEmbedBlock provider="${escapeAttr(d.provider || 'custom')}" htmlB64="${htmlB64}" scriptSrcsB64="${scriptSrcsB64}" styleReset="${(d.styleReset ?? true) ? 'true' : 'false'}" />`)
+          break
+        }
+        case 'servicesGrid': {
+          const servicesB64 = toB64(JSON.stringify(d.services || []))
+          md.push(`<ServicesGridBlock servicesB64="${servicesB64}" heading="${escapeAttr(d.heading || '')}" subheading="${escapeAttr(d.subheading || '')}" columns="${Number(d.columns || 3)}" animation="${escapeAttr(d.animation || 'fade-in')}" />`)
+          break
+        }
+        case 'stats': {
+          const statsB64 = toB64(JSON.stringify(d.stats || []))
+          md.push(`<StatsBlock statsB64="${statsB64}" heading="${escapeAttr(d.heading || '')}" columns="${Number(d.columns || 3)}" style="${escapeAttr(d.style || 'default')}" animation="${escapeAttr(d.animation || 'fade-in')}" />`)
+          break
+        }
+        case 'ctaBanner': {
+          md.push(`<CTABannerBlock heading="${escapeAttr(d.heading || '')}" subheading="${escapeAttr(d.subheading || '')}" primaryButtonText="${escapeAttr(d.primaryButtonText || '')}" primaryButtonLink="${escapeAttr(d.primaryButtonLink || '')}" secondaryButtonText="${escapeAttr(d.secondaryButtonText || '')}" secondaryButtonLink="${escapeAttr(d.secondaryButtonLink || '')}" backgroundImage="${escapeAttr(d.backgroundImage || '')}" backgroundColor="${escapeAttr(d.backgroundColor || '#0f172a')}" overlay="${Number(d.overlay || 60)}" textColor="${escapeAttr(d.textColor || 'text-white')}" fullBleed="${(d.fullBleed ?? true) ? 'true' : 'false'}" animation="${escapeAttr(d.animation || 'fade-in')}" />`)
+          break
+        }
+        case 'iconFeatures': {
+          const featuresB64 = toB64(JSON.stringify(d.features || []))
+          md.push(`<IconFeaturesBlock featuresB64="${featuresB64}" heading="${escapeAttr(d.heading || '')}" subheading="${escapeAttr(d.subheading || '')}" columns="${Number(d.columns || 4)}" animation="${escapeAttr(d.animation || 'fade-in')}" />`)
+          break
+        }
+        default:
+          break
+      }
+    })
+
+    return md.join('\n\n')
+  }
+
   const saveChanges = async () => {
     if (!selectedSlug) return
     setSaving(true)
@@ -226,6 +418,41 @@ export default function LiveEditorPage() {
     }
   }
 
+  // Save content_pages draft (convert components to MDX and save metadata)
+  const saveDraftContent = async () => {
+    if (!selectedSlug) return
+    setSaving(true)
+    setMessage(null)
+    try {
+      const mdxContent = componentsToMDX(components)
+      const { error } = await supabase
+        .from('content_pages')
+        .upsert({
+          slug: selectedSlug,
+          title: pageMeta.title || pageTitle || selectedSlug,
+          content: mdxContent,
+          meta_description: pageMeta.meta_description || null,
+          featured_image: pageMeta.featured_image || null,
+          category: pageMeta.category || null,
+          tags: pageMeta.tags ? pageMeta.tags.split(',').map(t => t.trim()).filter(Boolean) : null,
+          show_navbar: pageMeta.show_navbar,
+          status: pageMeta.status || 'draft',
+          publish_at: pageMeta.publish_at || null,
+          unpublish_at: pageMeta.unpublish_at || null,
+          published: false,
+          updated_at: new Date().toISOString(),
+        }, { onConflict: 'slug' })
+
+      if (error) throw error
+      setMessage({ type: 'success', text: 'Draft saved to CMS.' })
+    } catch (e: any) {
+      console.error('Save draft error:', e)
+      setMessage({ type: 'error', text: e?.message || 'Failed to save draft' })
+    } finally {
+      setSaving(false)
+    }
+  }
+
   // Publish to live site (convert components to MDX and save to content_pages)
   const publishToLive = async () => {
     if (!selectedSlug || components.length === 0) {
@@ -242,35 +469,31 @@ export default function LiveEditorPage() {
     setMessage(null)
 
     try {
-      // Convert components to MDX (same logic as page-builder)
-      const mdxContent = components.map(comp => {
-        const { type, data } = comp
-        const attrs = Object.entries(data)
-          .map(([k, v]) => {
-            if (typeof v === 'object') {
-              return `${k}="${Buffer.from(JSON.stringify(v)).toString('base64')}"`
-            }
-            return `${k}="${String(v).replace(/"/g, '&quot;')}"`
-          })
-          .join(' ')
-        
-        const blockName = type.charAt(0).toUpperCase() + type.slice(1) + 'Block'
-        return `<${blockName} ${attrs} />`
-      }).join('\n\n')
+      // Convert components to MDX (shared logic)
+      const mdxContent = componentsToMDX(components)
 
-      // Save to content_pages
+      // Save to content_pages with metadata
       const { error } = await supabase
         .from('content_pages')
         .upsert({
           slug: selectedSlug,
-          title: pageTitle,
+          title: pageMeta.title || pageTitle || selectedSlug,
           content: mdxContent,
+          meta_description: pageMeta.meta_description || null,
+          featured_image: pageMeta.featured_image || null,
+          category: pageMeta.category || null,
+          tags: pageMeta.tags ? pageMeta.tags.split(',').map(t => t.trim()).filter(Boolean) : null,
+          show_navbar: pageMeta.show_navbar,
+          status: 'published',
+          publish_at: pageMeta.publish_at || null,
+          unpublish_at: pageMeta.unpublish_at || null,
           published: true,
+          updated_at: new Date().toISOString(),
         }, { onConflict: 'slug' })
 
       if (error) throw error
 
-      setMessage({ type: 'success', text: '🎉 Published to live site! Changes are now visible to visitors.' })
+  setMessage({ type: 'success', text: '🎉 Published to live site! Changes are now visible to visitors.' })
 
       // Trigger revalidation
       try {
@@ -626,6 +849,17 @@ export default function LiveEditorPage() {
             </button>
           )}
 
+          {selectedSlug && (
+            <button
+              onClick={() => setShowSettings(true)}
+              className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-50 flex items-center gap-2"
+              title="Page settings (SEO, featured image, visibility)"
+            >
+              <Cog className="h-4 w-4" />
+              Page Settings
+            </button>
+          )}
+
           {hasChanges && (
             <button
               onClick={revertChanges}
@@ -680,6 +914,16 @@ export default function LiveEditorPage() {
           >
             {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
             {saving ? 'Saving...' : 'Save Changes'}
+          </button>
+
+          <button
+            onClick={saveDraftContent}
+            disabled={saving}
+            className="px-6 py-2 border rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow"
+            title="Save as CMS draft (with SEO/meta)"
+          >
+            <Save className="h-4 w-4" />
+            Save Draft
           </button>
 
           <button
@@ -791,6 +1035,141 @@ export default function LiveEditorPage() {
           </>
         )}
       </div>
+
+      {/* Settings Modal */}
+      {showSettings && (
+        <div className="fixed inset-0 z-[60] bg-black/50 flex items-center justify-center p-4" onClick={() => setShowSettings(false)}>
+          <div className="bg-white rounded-lg max-w-3xl w-full max-h-[90vh] overflow-auto" onClick={(e) => e.stopPropagation()}>
+            <div className="p-6 border-b sticky top-0 bg-white z-10 flex items-center justify-between">
+              <h2 className="text-xl font-bold">Page Settings</h2>
+              <button onClick={() => setShowSettings(false)} className="p-2 hover:bg-gray-100 rounded" aria-label="Close settings">
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+            <div className="p-6 space-y-6">
+              <div>
+                <label className="block text-sm font-medium mb-1">Title</label>
+                <input
+                  type="text"
+                  value={pageMeta.title}
+                  onChange={(e) => { setPageMeta({ ...pageMeta, title: e.target.value }); setPageTitle(e.target.value) }}
+                  className="w-full border rounded px-3 py-2"
+                  placeholder="Page title"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Meta Description</label>
+                <textarea
+                  value={pageMeta.meta_description}
+                  onChange={(e) => setPageMeta({ ...pageMeta, meta_description: e.target.value })}
+                  className="w-full border rounded px-3 py-2"
+                  rows={3}
+                  maxLength={160}
+                  placeholder="Up to 160 characters"
+                />
+                <p className="text-xs text-gray-500 mt-1">{(pageMeta.meta_description || '').length}/160</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Featured Image</label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={pageMeta.featured_image}
+                    onChange={(e) => setPageMeta({ ...pageMeta, featured_image: e.target.value })}
+                    className="flex-1 border rounded px-3 py-2"
+                    placeholder="https://..."
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowCloudinary(true)}
+                    className="px-3 py-2 border rounded bg-blue-50 text-blue-700 hover:bg-blue-100 flex items-center gap-2"
+                  >
+                    <ImageIcon className="h-4 w-4" /> Browse
+                  </button>
+                </div>
+                {pageMeta.featured_image && (
+                  <img src={pageMeta.featured_image} alt="Featured" className="mt-2 h-28 rounded border object-cover" />
+                )}
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">Tags (comma-separated)</label>
+                  <input
+                    type="text"
+                    value={pageMeta.tags}
+                    onChange={(e) => setPageMeta({ ...pageMeta, tags: e.target.value })}
+                    className="w-full border rounded px-3 py-2"
+                    placeholder="portrait, wedding"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Status</label>
+                  <select
+                    value={pageMeta.status}
+                    onChange={(e) => setPageMeta({ ...pageMeta, status: e.target.value as any })}
+                    className="w-full border rounded px-3 py-2"
+                  >
+                    <option value="draft">Draft</option>
+                    <option value="in_progress">In Progress</option>
+                    <option value="review">Review</option>
+                    <option value="published">Published</option>
+                    <option value="archived">Archived</option>
+                  </select>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">Publish At (optional)</label>
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-gray-500" />
+                    <input
+                      type="datetime-local"
+                      value={pageMeta.publish_at || ''}
+                      onChange={(e) => setPageMeta({ ...pageMeta, publish_at: e.target.value || '' })}
+                      className="w-full border rounded px-3 py-2"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Unpublish At (optional)</label>
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-gray-500" />
+                    <input
+                      type="datetime-local"
+                      value={pageMeta.unpublish_at || ''}
+                      onChange={(e) => setPageMeta({ ...pageMeta, unpublish_at: e.target.value || '' })}
+                      className="w-full border rounded px-3 py-2"
+                    />
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <input
+                  id="show-navbar"
+                  type="checkbox"
+                  checked={pageMeta.show_navbar}
+                  onChange={(e) => setPageMeta({ ...pageMeta, show_navbar: e.target.checked })}
+                  className="h-4 w-4 text-primary-600 rounded border-gray-300 focus:ring-primary-500"
+                />
+                <label htmlFor="show-navbar" className="text-sm text-gray-700">Show navigation bar on this page</label>
+              </div>
+            </div>
+            <div className="p-6 border-t bg-gray-50 flex justify-end gap-2">
+              <button onClick={() => setShowSettings(false)} className="px-4 py-2 border rounded hover:bg-gray-100">Close</button>
+              <button onClick={saveDraftContent} className="px-4 py-2 border rounded hover:bg-gray-100">Save Draft</button>
+              <button onClick={publishToLive} className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">Publish</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Cloudinary Media Library */}
+      {showCloudinary && (
+        <CloudinaryMediaLibrary
+          onSelect={(result: any) => { setPageMeta({ ...pageMeta, featured_image: result.url }); setShowCloudinary(false) }}
+          onClose={() => setShowCloudinary(false)}
+        />
+      )}
     </div>
   )
 }

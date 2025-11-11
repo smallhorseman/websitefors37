@@ -3,6 +3,36 @@ const withPWABuilder = require('@ducanh2912/next-pwa').default({
   register: true,
   skipWaiting: true,
   disable: process.env.NODE_ENV === 'development',
+  runtimeCaching: [
+    // Cache Cloudinary images safely
+    {
+      urlPattern: /^https?:\/\/res\.cloudinary\.com\/.*/i,
+      handler: 'StaleWhileRevalidate',
+      options: {
+        cacheName: 'cloudinary-images',
+        expiration: { maxEntries: 80, maxAgeSeconds: 7 * 24 * 60 * 60 },
+        cacheableResponse: { statuses: [0, 200] },
+      },
+    },
+    // Same-origin images under /images and typical image extensions
+    {
+      urlPattern: ({ url }) => url.origin === self.location.origin && (/\/(images|_next\/image)\//.test(url.pathname) || /\.(?:png|jpg|jpeg|gif|webp|avif|svg)$/.test(url.pathname)),
+      handler: 'StaleWhileRevalidate',
+      options: {
+        cacheName: 'local-images',
+        expiration: { maxEntries: 100, maxAgeSeconds: 30 * 24 * 60 * 60 },
+      },
+    },
+    // Fonts
+    {
+      urlPattern: /\.(?:woff2?|ttf|otf)$/i,
+      handler: 'StaleWhileRevalidate',
+      options: {
+        cacheName: 'font-cache',
+        expiration: { maxEntries: 50, maxAgeSeconds: 365 * 24 * 60 * 60 },
+      },
+    },
+  ],
 });
 
 /** @type {import('next').NextConfig} */

@@ -12386,6 +12386,8 @@ function HeroProperties({
   const updateTimeoutRef = React.useRef<NodeJS.Timeout>();
   const titleRef = React.useRef<HTMLTextAreaElement>(null);
   const subtitleRef = React.useRef<HTMLTextAreaElement>(null);
+  // Cloudinary modal state (scoped to Hero properties)
+  const [showCloudinary, setShowCloudinary] = React.useState(false);
 
   // Sync local state when component ID changes (not on every keystroke)
   React.useEffect(() => {
@@ -12756,22 +12758,18 @@ function HeroProperties({
           aria-label="Overlay darkness percentage"
         />
       </div>
+      {/* Cloudinary Media Library Modal */}
+      {showCloudinary && (
+        <CloudinaryMediaLibrary
+          onSelect={(result) => {
+            handleUpdate({ backgroundImage: result.url });
+            setShowCloudinary(false);
+          }}
+          onClose={() => setShowCloudinary(false)}
+        />
+      )}
     </div>
   );
-
-  // Cloudinary modal (rendered at root of component to overlay panel)
-  const [showCloudinary, setShowCloudinary] = React.useState(false);
-  if (showCloudinary) {
-    return (
-      <CloudinaryMediaLibrary
-        onSelect={(result) => {
-          handleUpdate({ backgroundImage: result.url });
-          setShowCloudinary(false);
-        }}
-        onClose={() => setShowCloudinary(false)}
-      />
-    )
-  }
 }
 
 // Before/After Properties
