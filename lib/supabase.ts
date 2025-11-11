@@ -12,7 +12,16 @@ declare global {
 }
 
 export const supabase: SupabaseClient =
-  globalThis.__supabase ?? createClient(supabaseUrl, supabaseAnonKey)
+  globalThis.__supabase ?? createClient(supabaseUrl, supabaseAnonKey, {
+    auth: {
+      // Use a distinct storage key so this public client doesn't clash
+      // with the authenticated client used in admin routes.
+      storageKey: 'sb-public-anon',
+      autoRefreshToken: true,
+      persistSession: true,
+      detectSessionInUrl: false,
+    },
+  })
 
 if (typeof window !== 'undefined') {
   globalThis.__supabase = supabase

@@ -65,10 +65,12 @@ function NavigationEditor({ onClose }: { onClose: () => void }) {
       }
       
       if (existing?.id) {
+        // Update the existing row; avoid strict id casting issues by updating all rows
+        // (settings is a singleton table in this app).
         const { error } = await supabase
           .from('settings')
           .update(payload)
-          .eq('id', existing.id)
+          .neq('id', null)
         if (error) throw error
       } else {
         const { error } = await supabase

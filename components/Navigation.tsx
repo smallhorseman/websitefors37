@@ -121,6 +121,7 @@ export default function Navigation() {
                     height="40"
                     className={`w-auto object-contain transition-all duration-300 ${scrolled ? 'h-8' : 'h-10'}`}
                     loading="eager"
+                    referrerPolicy="strict-origin-when-cross-origin"
                   />
                 </div>
               </div>

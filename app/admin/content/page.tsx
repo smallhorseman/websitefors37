@@ -104,10 +104,11 @@ export default function ContentManagementPage() {
 
       let err: any = null
       if (existing?.id) {
+        // Update singleton settings row without strict id filter to avoid uuid casting problems
         const { error } = await supabase
           .from('settings')
           .update({ book_session_bg_url: bookingBgUrl, updated_at: new Date().toISOString() })
-          .eq('id', existing.id)
+          .neq('id', null)
         err = error
       } else {
         const { error } = await supabase
