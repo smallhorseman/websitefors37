@@ -82,7 +82,7 @@ export default async function DynamicPage({ params }: { params: { slug: string }
   if (isBuilderPage) {
     // Builder-managed page: render full-width with no constraints
     return (
-      <PageWrapper showNav={showNav} className="min-h-screen">
+      <PageWrapper showNav={showNav} className={`min-h-screen ${showNav ? 'pt-16' : ''}`}>
         {page.content ? (
           <MDXRemote 
             source={page.content}
