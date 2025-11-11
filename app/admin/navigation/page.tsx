@@ -87,10 +87,11 @@ export default function NavigationEditor() {
         order: index + 1
       }))
 
+      // Update singleton settings row without strict id filter to avoid uuid casting
       const { error } = await supabase
         .from('settings')
         .update({ navigation_items: reorderedItems })
-        .eq('id', 1) // Assuming single settings row
+        .neq('id', null)
 
       if (error) throw error
 
