@@ -173,26 +173,28 @@ function NavigationEditor({ onClose }: { onClose: () => void }) {
 
   const renderItem = (item: NavigationItem, parentId?: string) => {
     const isExpanded = expandedItems[item.id] || false
+    const hasChildren = item.children && item.children.length > 0
     
     return (
       <div key={item.id} className="border rounded mb-2 bg-white">
-        <div className="flex items-center gap-2 p-3">
+        <div className="flex items-center gap-2 p-3 flex-wrap">
           <button
             type="button"
             onClick={() => moveItem(item.id, 'up', parentId)}
-            className="p-1 hover:bg-gray-100 rounded"
+            className="p-1 hover:bg-gray-100 rounded shrink-0"
             title="Move up"
           >
             <GripVertical className="h-4 w-4 text-gray-400" />
           </button>
           
-          {item.children && item.children.length > 0 && (
+          {!parentId && (
             <button
               type="button"
               onClick={() => setExpandedItems(prev => ({ ...prev, [item.id]: !prev[item.id] }))}
-              className="p-1 hover:bg-gray-100 rounded"
+              className={`p-1 rounded shrink-0 ${hasChildren ? 'hover:bg-gray-100' : 'opacity-30'}`}
+              disabled={!hasChildren}
             >
-              {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+              {hasChildren && isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
             </button>
           )}
           
@@ -200,7 +202,7 @@ function NavigationEditor({ onClose }: { onClose: () => void }) {
             type="text"
             value={item.label}
             onChange={(e) => updateItem(item.id, { label: e.target.value }, parentId)}
-            className="flex-1 border rounded px-2 py-1 text-sm"
+            className="flex-1 min-w-[120px] border rounded px-2 py-1 text-sm"
             placeholder="Label"
           />
           
@@ -208,11 +210,11 @@ function NavigationEditor({ onClose }: { onClose: () => void }) {
             type="text"
             value={item.href}
             onChange={(e) => updateItem(item.id, { href: e.target.value }, parentId)}
-            className="flex-1 border rounded px-2 py-1 text-sm font-mono"
+            className="flex-1 min-w-[120px] border rounded px-2 py-1 text-sm font-mono"
             placeholder="/path"
           />
           
-          <label className="flex items-center gap-1 text-xs">
+          <label className="flex items-center gap-1 text-xs whitespace-nowrap shrink-0">
             <input
               type="checkbox"
               checked={item.visible}
@@ -222,7 +224,7 @@ function NavigationEditor({ onClose }: { onClose: () => void }) {
             Visible
           </label>
           
-          <label className="flex items-center gap-1 text-xs">
+          <label className="flex items-center gap-1 text-xs whitespace-nowrap shrink-0">
             <input
               type="checkbox"
               checked={item.highlighted || false}
@@ -236,26 +238,26 @@ function NavigationEditor({ onClose }: { onClose: () => void }) {
             <button
               type="button"
               onClick={() => addItem(item.id)}
-              className="px-2 py-1 text-xs border rounded hover:bg-gray-50"
-              title="Add child item"
+              className="px-3 py-1 text-xs bg-blue-50 text-blue-700 border border-blue-200 rounded hover:bg-blue-100 shrink-0 font-medium"
+              title="Add dropdown menu item"
             >
-              + Sub
+              + Dropdown
             </button>
           )}
           
           <button
             type="button"
             onClick={() => deleteItem(item.id, parentId)}
-            className="p-1 hover:bg-red-50 text-red-600 rounded"
+            className="p-1 hover:bg-red-50 text-red-600 rounded shrink-0"
             title="Delete"
           >
             <Trash2 className="h-4 w-4" />
           </button>
         </div>
         
-        {isExpanded && item.children && item.children.length > 0 && (
+        {isExpanded && hasChildren && (
           <div className="pl-8 pr-3 pb-3 space-y-2">
-            {item.children.map(child => renderItem(child, item.id))}
+            {item.children!.map(child => renderItem(child, item.id))}
           </div>
         )}
       </div>
