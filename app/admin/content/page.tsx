@@ -4,6 +4,12 @@ import React, { useState, useEffect } from 'react'
 import { Loader2, Plus, Trash2, Edit, Settings, X, ExternalLink, FileText } from 'lucide-react'
 import MarkdownEditor from '@/components/MarkdownEditor'
 import { revalidateContent } from '@/lib/revalidate'
+import dynamic from 'next/dynamic'
+
+const CloudinaryMediaLibrary = dynamic(() => import('@/components/CloudinaryMediaLibrary'), {
+  ssr: false,
+  loading: () => null
+})
 
 interface ContentPage {
   id: string
@@ -14,10 +20,27 @@ interface ContentPage {
   published: boolean
   created_at: string
   updated_at: string
+  category: string
+  tags: string[]
+  featured_image: string
+  status: 'draft' | 'in_progress' | 'review' | 'published' | 'archived'
+  seo_score: number
+  view_count: number
+  publish_at: string | null
+  unpublish_at: string | null
+  show_navbar: boolean
+}
+
+interface Category {
+  id: string
+  name: string
+  slug: string
+  description?: string
 }
 
 export default function ContentManagementPage() {
   const [pages, setPages] = useState<ContentPage[]>([])
+  const [categories, setCategories] = useState<Category[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedPage, setSelectedPage] = useState<ContentPage | null>(null)
   const [showPageModal, setShowPageModal] = useState(false)
@@ -26,13 +49,26 @@ export default function ContentManagementPage() {
     slug: '',
     content: '',
     meta_description: '',
-    published: false
+    published: false,
+    category: '',
+    tags: [] as string[],
+    featured_image: '',
+    status: 'draft' as 'draft' | 'review' | 'in_progress' | 'published' | 'archived',
+    seo_score: 0,
+    view_count: 0,
+    publish_at: null as string | null,
+    unpublish_at: null as string | null,
+    show_navbar: true,
   })
   const [isNewPage, setIsNewPage] = useState(false)
   const [savingPage, setSavingPage] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [filter, setFilter] = useState('all')
+  const [filterCategory, setFilterCategory] = useState('all')
+  const [filterStatus, setFilterStatus] = useState('all')
+  const [showCloudinary, setShowCloudinary] = useState(false)
+  const [selectedPages, setSelectedPages] = useState<Set<string>>(new Set())
 
   // Booking background image URL setting
   const [bookingBgUrl, setBookingBgUrl] = useState('')
@@ -87,6 +123,22 @@ export default function ContentManagementPage() {
     }
   }
 
+  // Fetch categories
+  const fetchCategories = async () => {
+    try {
+      const { supabase } = await import('@/lib/supabase')
+      const { data, error } = await supabase
+        .from('content_categories')
+        .select('*')
+        .order('sort_order', { ascending: true })
+
+      if (error) throw error
+      setCategories(data || [])
+    } catch (error: any) {
+      console.error('Error fetching categories:', error)
+    }
+  }
+
   // Fetch content pages
   const fetchPages = async () => {
     setLoading(true)
@@ -97,6 +149,7 @@ export default function ContentManagementPage() {
       const { data, error } = await supabase
         .from('content_pages')
         .select('*')
+        .order('sort_order', { ascending: true })
         .order('updated_at', { ascending: false })
 
       if (error) throw error
@@ -111,6 +164,7 @@ export default function ContentManagementPage() {
 
   useEffect(() => {
     fetchPages()
+    fetchCategories()
   }, [])
 
   // Generate slug from title
@@ -132,6 +186,36 @@ export default function ContentManagementPage() {
     })
   }
 
+  // Calculate SEO score
+  const calculateSEOScore = (form: typeof pageForm): number => {
+    let score = 0
+    
+    // Title (30 points)
+    if (form.title && form.title.length >= 30 && form.title.length <= 60) score += 30
+    else if (form.title && form.title.length > 0) score += 15
+    
+    // Meta description (25 points)
+    if (form.meta_description && form.meta_description.length >= 120 && form.meta_description.length <= 160) score += 25
+    else if (form.meta_description && form.meta_description.length > 0) score += 12
+    
+    // Content length (20 points)
+    const contentLength = form.content?.length || 0
+    if (contentLength >= 1000) score += 20
+    else if (contentLength >= 500) score += 10
+    else if (contentLength >= 200) score += 5
+    
+    // Featured image (10 points)
+    if (form.featured_image) score += 10
+    
+    // Category (10 points)
+    if (form.category) score += 10
+    
+    // Slug (5 points)
+    if (form.slug && form.slug.length > 0 && form.slug.length <= 60) score += 5
+    
+    return Math.min(score, 100)
+  }
+
   // Create or update a page
   const savePage = async () => {
     if (!pageForm.title || !pageForm.slug) {
@@ -145,17 +229,30 @@ export default function ContentManagementPage() {
     try {
       const { supabase } = await import('@/lib/supabase')
       
+      // Calculate SEO score
+      const seoScore = calculateSEOScore(pageForm)
+      const pageData = {
+        title: pageForm.title,
+        slug: pageForm.slug,
+        content: pageForm.content,
+        meta_description: pageForm.meta_description,
+        published: pageForm.published,
+        category: pageForm.category || null,
+        tags: pageForm.tags.length > 0 ? pageForm.tags : null,
+        featured_image: pageForm.featured_image || null,
+        status: pageForm.status,
+        seo_score: seoScore,
+        publish_at: pageForm.publish_at || null,
+        unpublish_at: pageForm.unpublish_at || null,
+        show_navbar: pageForm.show_navbar,
+        updated_at: new Date().toISOString()
+      }
+      
       if (isNewPage) {
         // Create new page
         const { data, error } = await supabase
           .from('content_pages')
-          .insert([{
-            title: pageForm.title,
-            slug: pageForm.slug,
-            content: pageForm.content,
-            meta_description: pageForm.meta_description,
-            published: pageForm.published
-          }])
+          .insert([pageData])
           .select()
 
         if (error) throw error
@@ -166,14 +263,7 @@ export default function ContentManagementPage() {
         // Update existing page
         const { error } = await supabase
           .from('content_pages')
-          .update({
-            title: pageForm.title,
-            slug: pageForm.slug,
-            content: pageForm.content,
-            meta_description: pageForm.meta_description,
-            published: pageForm.published,
-            updated_at: new Date().toISOString()
-          })
+          .update(pageData)
           .eq('id', selectedPage!.id)
 
         if (error) throw error
@@ -181,7 +271,7 @@ export default function ContentManagementPage() {
         // Update local state
         setPages(pages.map(page => 
           page.id === selectedPage!.id 
-            ? { ...page, ...pageForm, updated_at: new Date().toISOString() } 
+            ? { ...page, ...pageData } 
             : page
         ))
       }
@@ -236,16 +326,24 @@ export default function ContentManagementPage() {
 
   // Open edit modal for a page
   const editPage = (page: ContentPage) => {
-    setSelectedPage(page)
+    setEditingPage(page.id)
     setPageForm({
       title: page.title,
       slug: page.slug,
-      content: page.content || '',
+      content: page.content,
       meta_description: page.meta_description || '',
-      published: page.published
+      published: page.published,
+      category: page.category || '',
+      tags: page.tags || [],
+      featured_image: page.featured_image || '',
+      status: page.status || 'draft',
+      seo_score: page.seo_score || 0,
+      view_count: page.view_count || 0,
+      publish_at: page.publish_at || null,
+      unpublish_at: page.unpublish_at || null,
+      show_navbar: page.show_navbar ?? true,
     })
-    setIsNewPage(false)
-    setShowPageModal(true)
+    setShowModal(true)
   }
 
   // Open modal to create a new page
@@ -256,7 +354,16 @@ export default function ContentManagementPage() {
       slug: '',
       content: '',
       meta_description: '',
-      published: false
+      published: false,
+      category: '',
+      tags: [],
+      featured_image: '',
+      status: 'draft',
+      seo_score: 0,
+      view_count: 0,
+      publish_at: null,
+      unpublish_at: null,
+      show_navbar: true,
     })
     setIsNewPage(true)
     setShowPageModal(true)
@@ -287,10 +394,20 @@ export default function ContentManagementPage() {
   // Filter and search pages
   const filteredPages = pages
     .filter(page => {
-      // Apply status filter
+      // Apply published filter
       if (filter === 'published') return page.published
       if (filter === 'draft') return !page.published
-      return true // 'all' filter
+      return true
+    })
+    .filter(page => {
+      // Apply category filter
+      if (filterCategory !== 'all' && page.category !== filterCategory) return false
+      return true
+    })
+    .filter(page => {
+      // Apply status filter
+      if (filterStatus !== 'all' && page.status !== filterStatus) return false
+      return true
     })
     .filter(page => {
       // Apply search term
@@ -352,30 +469,48 @@ export default function ContentManagementPage() {
             className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
           />
         </div>
-        <div className="flex-shrink-0">
-          <label htmlFor="page-filter" className="sr-only">Filter pages</label>
+        <div className="flex gap-2">
           <select
-            id="page-filter"
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
-            className="w-full md:w-auto px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-            aria-label="Filter pages"
+            className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
           >
             <option value="all">All Pages</option>
             <option value="published">Published</option>
             <option value="draft">Draft</option>
           </select>
+          <select
+            value={filterCategory}
+            onChange={(e) => setFilterCategory(e.target.value)}
+            className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+          >
+            <option value="all">All Categories</option>
+            {categories.map(cat => (
+              <option key={cat.id} value={cat.slug}>{cat.name}</option>
+            ))}
+          </select>
+          <select
+            value={filterStatus}
+            onChange={(e) => setFilterStatus(e.target.value)}
+            className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+          >
+            <option value="all">All Status</option>
+            <option value="draft">Draft</option>
+            <option value="in_progress">In Progress</option>
+            <option value="review">Review</option>
+            <option value="published">Published</option>
+            <option value="archived">Archived</option>
+          </select>
+          <button
+            onClick={fetchPages}
+            className="flex-shrink-0 px-4 py-2 border rounded-lg hover:bg-gray-50 flex items-center gap-2"
+            title="Refresh pages"
+          >
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+          </button>
         </div>
-        <button
-          onClick={fetchPages}
-          className="flex-shrink-0 px-4 py-2 border rounded-lg hover:bg-gray-50 flex items-center gap-2"
-          title="Refresh pages"
-        >
-          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-          </svg>
-          <span>Refresh</span>
-        </button>
       </div>
 
       {error && (
@@ -430,7 +565,13 @@ export default function ContentManagementPage() {
                     URL Slug
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Category
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Status
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    SEO
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Last Updated
@@ -441,24 +582,65 @@ export default function ContentManagementPage() {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {filteredPages.map((page) => (
+                {filteredPages.map((page) => {
+                  const seoColor = (page.seo_score || 0) >= 80 ? 'text-green-600' :
+                                   (page.seo_score || 0) >= 60 ? 'text-yellow-600' :
+                                   (page.seo_score || 0) >= 40 ? 'text-orange-600' : 'text-red-600'
+                  
+                  return (
                   <tr key={page.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {page.title}
+                    <td className="px-6 py-4 text-sm font-medium text-gray-900">
+                      <div className="flex items-center gap-2">
+                        {page.featured_image && (
+                          <img src={page.featured_image} alt="" className="w-8 h-8 rounded object-cover" />
+                        )}
+                        <div>
+                          <div>{page.title}</div>
+                          {page.tags && page.tags.length > 0 && (
+                            <div className="flex flex-wrap gap-1 mt-1">
+                              {page.tags.map(tag => (
+                                <span key={tag} className="px-1.5 py-0.5 bg-gray-100 text-gray-600 rounded text-xs">
+                                  {tag}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-mono">
                       /{page.slug}
                     </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                      {page.category ? (
+                        categories.find(c => c.slug === page.category)?.name || page.category
+                      ) : (
+                        <span className="text-gray-400">—</span>
+                      )}
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span 
                         className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${
-                          page.published 
+                          (page.status || (page.published ? 'published' : 'draft')) === 'published' 
                             ? 'bg-green-100 text-green-800' 
-                            : 'bg-yellow-100 text-yellow-800'
+                            : (page.status || 'draft') === 'review'
+                            ? 'bg-yellow-100 text-yellow-800'
+                            : (page.status || 'draft') === 'in_progress'
+                            ? 'bg-blue-100 text-blue-800'
+                            : 'bg-gray-100 text-gray-800'
                         }`}
                       >
-                        {page.published ? 'Published' : 'Draft'}
+                        {page.status || (page.published ? 'Published' : 'Draft')}
                       </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {page.seo_score !== undefined ? (
+                        <div className={`text-sm font-semibold ${seoColor}`}>
+                          {page.seo_score}/100
+                        </div>
+                      ) : (
+                        <span className="text-gray-400 text-sm">—</span>
+                      )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {new Date(page.updated_at).toLocaleString()}
@@ -513,7 +695,7 @@ export default function ContentManagementPage() {
                       </div>
                     </td>
                   </tr>
-                ))}
+                )})}
               </tbody>
             </table>
           </div>
@@ -539,8 +721,8 @@ export default function ContentManagementPage() {
             </div>
 
             <div className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Page Title *
                   </label>
@@ -556,6 +738,26 @@ export default function ContentManagementPage() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
+                    SEO Score
+                  </label>
+                  <div className={`text-2xl font-bold ${
+                    calculateSEOScore(pageForm) >= 80 ? 'text-green-600' :
+                    calculateSEOScore(pageForm) >= 60 ? 'text-yellow-600' :
+                    calculateSEOScore(pageForm) >= 40 ? 'text-orange-600' : 'text-red-600'
+                  }`}>
+                    {calculateSEOScore(pageForm)}/100
+                  </div>
+                  <div className="text-xs text-gray-500 mt-1">
+                    {calculateSEOScore(pageForm) >= 80 ? 'Excellent' :
+                     calculateSEOScore(pageForm) >= 60 ? 'Good' :
+                     calculateSEOScore(pageForm) >= 40 ? 'Fair' : 'Needs Work'}
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
                     URL Slug *
                   </label>
                   <div className="flex items-center">
@@ -569,6 +771,110 @@ export default function ContentManagementPage() {
                       required
                     />
                   </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Category
+                  </label>
+                  <select
+                    value={pageForm.category}
+                    onChange={(e) => setPageForm({ ...pageForm, category: e.target.value })}
+                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  >
+                    <option value="">No Category</option>
+                    {categories.map(cat => (
+                      <option key={cat.id} value={cat.slug}>{cat.name}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Tags (comma-separated)
+                  </label>
+                  <input
+                    type="text"
+                    value={pageForm.tags.join(', ')}
+                    onChange={(e) => setPageForm({ 
+                      ...pageForm, 
+                      tags: e.target.value.split(',').map(t => t.trim()).filter(Boolean)
+                    })}
+                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    placeholder="photography, portrait, wedding"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Status
+                  </label>
+                  <select
+                    value={pageForm.status}
+                    onChange={(e) => setPageForm({ ...pageForm, status: e.target.value as any })}
+                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  >
+                    <option value="draft">Draft</option>
+                    <option value="in_progress">In Progress</option>
+                    <option value="review">Review Needed</option>
+                    <option value="published">Published</option>
+                    <option value="archived">Archived</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Featured Image URL
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={pageForm.featured_image}
+                    onChange={(e) => setPageForm({ ...pageForm, featured_image: e.target.value })}
+                    className="flex-1 px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    placeholder="https://example.com/image.jpg"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowCloudinary(true)}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition whitespace-nowrap"
+                  >
+                    📷 Browse Cloudinary
+                  </button>
+                </div>
+                {pageForm.featured_image && (
+                  <img src={pageForm.featured_image} alt="Featured" className="mt-2 h-32 w-auto rounded border" />
+                )}
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Publish At (optional)
+                  </label>
+                  <input
+                    type="datetime-local"
+                    value={pageForm.publish_at || ''}
+                    onChange={(e) => setPageForm({ ...pageForm, publish_at: e.target.value || null })}
+                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  />
+                  <p className="mt-1 text-xs text-gray-500">Schedule when this page should be published</p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Unpublish At (optional)
+                  </label>
+                  <input
+                    type="datetime-local"
+                    value={pageForm.unpublish_at || ''}
+                    onChange={(e) => setPageForm({ ...pageForm, unpublish_at: e.target.value || null })}
+                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  />
+                  <p className="mt-1 text-xs text-gray-500">Automatically hide this page after this date</p>
                 </div>
               </div>
 
@@ -586,6 +892,9 @@ export default function ContentManagementPage() {
                 />
                 <p className="mt-1 text-xs text-gray-500">
                   {pageForm.meta_description.length}/160 characters
+                  {pageForm.meta_description.length >= 120 && pageForm.meta_description.length <= 160 && 
+                    <span className="text-green-600 ml-2">✓ Optimal length</span>
+                  }
                 </p>
               </div>
 
@@ -599,19 +908,40 @@ export default function ContentManagementPage() {
                   minHeight="400px"
                   placeholder="Write your page content using Markdown..."
                 />
+                <p className="mt-1 text-xs text-gray-500">
+                  {pageForm.content.length} characters
+                  {pageForm.content.length >= 1000 && 
+                    <span className="text-green-600 ml-2">✓ Good length for SEO</span>
+                  }
+                </p>
               </div>
 
-              <div className="flex items-center">
-                <input
-                  type="checkbox"
-                  id="published"
-                  checked={pageForm.published}
-                  onChange={(e) => setPageForm({ ...pageForm, published: e.target.checked })}
-                  className="h-4 w-4 text-primary-600 rounded border-gray-300 focus:ring-primary-500"
-                />
-                <label htmlFor="published" className="ml-2 text-sm text-gray-700">
-                  Publish this page (will be visible to visitors)
-                </label>
+              <div className="space-y-3">
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    id="show_navbar"
+                    checked={pageForm.show_navbar}
+                    onChange={(e) => setPageForm({ ...pageForm, show_navbar: e.target.checked })}
+                    className="h-4 w-4 text-primary-600 rounded border-gray-300 focus:ring-primary-500"
+                  />
+                  <label htmlFor="show_navbar" className="ml-2 text-sm text-gray-700">
+                    Show navigation bar on this page
+                  </label>
+                </div>
+
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    id="published"
+                    checked={pageForm.published}
+                    onChange={(e) => setPageForm({ ...pageForm, published: e.target.checked })}
+                    className="h-4 w-4 text-primary-600 rounded border-gray-300 focus:ring-primary-500"
+                  />
+                  <label htmlFor="published" className="ml-2 text-sm text-gray-700">
+                    Publish this page (will be visible to visitors)
+                  </label>
+                </div>
               </div>
             </div>
 
@@ -632,6 +962,17 @@ export default function ContentManagementPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Cloudinary Media Library */}
+      {showCloudinary && (
+        <CloudinaryMediaLibrary
+          onSelect={(result) => {
+            setPageForm({ ...pageForm, featured_image: result.url })
+            setShowCloudinary(false)
+          }}
+          onClose={() => setShowCloudinary(false)}
+        />
       )}
     </div>
   )

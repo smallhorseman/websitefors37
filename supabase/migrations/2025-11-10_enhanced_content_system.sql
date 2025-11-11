@@ -8,8 +8,9 @@ ALTER TABLE content_pages
   ADD COLUMN IF NOT EXISTS featured_image VARCHAR(500),
   ADD COLUMN IF NOT EXISTS open_graph_image VARCHAR(500),
   ADD COLUMN IF NOT EXISTS open_graph_description TEXT,
-  ADD COLUMN IF NOT EXISTS scheduled_publish_at TIMESTAMPTZ,
-  ADD COLUMN IF NOT EXISTS scheduled_unpublish_at TIMESTAMPTZ,
+  ADD COLUMN IF NOT EXISTS publish_at TIMESTAMPTZ, -- scheduled publish time
+  ADD COLUMN IF NOT EXISTS unpublish_at TIMESTAMPTZ, -- scheduled unpublish time
+  ADD COLUMN IF NOT EXISTS show_navbar BOOLEAN DEFAULT true, -- show/hide navigation bar
   ADD COLUMN IF NOT EXISTS status VARCHAR(50) DEFAULT 'draft', -- draft, review, in_progress, published, archived
   ADD COLUMN IF NOT EXISTS seo_score INTEGER, -- 0-100 SEO quality score
   ADD COLUMN IF NOT EXISTS readability_score INTEGER, -- 0-100 readability score
@@ -18,14 +19,15 @@ ALTER TABLE content_pages
   ADD COLUMN IF NOT EXISTS parent_id UUID REFERENCES content_pages(id) ON DELETE SET NULL, -- for folders/collections
   ADD COLUMN IF NOT EXISTS is_template BOOLEAN DEFAULT false,
   ADD COLUMN IF NOT EXISTS template_name VARCHAR(200),
-  ADD COLUMN IF NOT EXISTS sort_order INTEGER DEFAULT 0;
+  ADD COLUMN IF NOT EXISTS sort_order INTEGER DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS author_id UUID; -- references admin_users(id) but no FK constraint for flexibility
 
 -- Create index for better query performance
 CREATE INDEX IF NOT EXISTS idx_content_pages_category ON content_pages(category);
 CREATE INDEX IF NOT EXISTS idx_content_pages_tags ON content_pages USING GIN(tags);
 CREATE INDEX IF NOT EXISTS idx_content_pages_status ON content_pages(status);
 CREATE INDEX IF NOT EXISTS idx_content_pages_parent_id ON content_pages(parent_id);
-CREATE INDEX IF NOT EXISTS idx_content_pages_scheduled ON content_pages(scheduled_publish_at, scheduled_unpublish_at);
+CREATE INDEX IF NOT EXISTS idx_content_pages_scheduled ON content_pages(publish_at, unpublish_at);
 
 -- Create content_revisions table for version history
 CREATE TABLE IF NOT EXISTS content_revisions (

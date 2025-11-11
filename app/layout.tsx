@@ -100,6 +100,8 @@ export default function RootLayout({
         {/* Preconnect to Cloudinary for faster image loading (LCP optimization) */}
         <link rel="preconnect" href="https://res.cloudinary.com" />
         <link rel="dns-prefetch" href="//images.unsplash.com" />
+        {/* Cloudinary Media Library for admin image selection */}
+        <Script src="https://media-library.cloudinary.com/global/all.js" strategy="lazyOnload" />
         {/* Explicit favicon for modern browsers */}
         <link rel="icon" href="/icon.svg" type="image/svg+xml" />
       </head>

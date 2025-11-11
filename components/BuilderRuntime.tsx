@@ -192,8 +192,8 @@ export function TextBlock({ contentB64, alignment = 'left', size = 'md', animati
   }
   const content = contentB64 ? Buffer.from(contentB64, 'base64').toString('utf-8') : ''
   return (
-    <div className={`p-6 md:p-8 ${sizeClasses[size || 'md']} text-${alignment} ${animation === 'fade-in' ? 'animate-fadeIn' : animation === 'slide-up' ? 'animate-slideUp' : animation === 'zoom' ? 'animate-zoom' : ''}`}>
-      {content && <div dangerouslySetInnerHTML={{ __html: content }} />}
+    <div className={`py-12 md:py-16 px-6 md:px-8 bg-white ${sizeClasses[size || 'md']} text-${alignment} ${animation === 'fade-in' ? 'animate-fadeIn' : animation === 'slide-up' ? 'animate-slideUp' : animation === 'zoom' ? 'animate-zoom' : ''}`}>
+      {content && <div className="max-w-4xl mx-auto" dangerouslySetInnerHTML={{ __html: content }} />}
     </div>
   )
 }
@@ -233,7 +233,7 @@ export function ImageBlock({ url, alt = '', caption, width = 'full', link, anima
   )
   
   return (
-    <div className="p-6 md:p-8">
+    <div className="py-12 md:py-16 px-6 md:px-8 bg-white">
       {link ? (
         <a href={link} className="block cursor-pointer">
           {imageElement}
@@ -266,7 +266,7 @@ export function ButtonBlock({ text, link = '#', style = 'primary', alignment = '
   const hoverZoom = animation === 'hover-zoom' ? 'transition-transform duration-300 hover:scale-105' : ''
 
   return (
-    <div className={`p-6 md:p-8 text-${alignment} ${animClass}`}>
+    <div className={`py-12 md:py-16 px-6 md:px-8 bg-white text-${alignment} ${animClass}`}>
       {text && (
         <a href={link} className={`inline-block px-6 py-3 rounded-lg transition no-underline ${styleClasses[style]} ${hoverZoom}`}>
           {text}
@@ -289,8 +289,8 @@ export function ColumnsBlock({ columnsB64, animation = 'none' }: { columnsB64?: 
       ? 'md:grid-cols-3'
       : 'md:grid-cols-4'
   return (
-    <div className={`p-6 md:p-8 ${animation === 'fade-in' ? 'animate-fadeIn' : animation === 'slide-up' ? 'animate-slideUp' : animation === 'zoom' ? 'animate-zoom' : ''}`}>
-      <div className={`grid grid-cols-1 ${gridClass} gap-6`}>
+    <div className={`py-12 md:py-16 px-6 md:px-8 bg-white ${animation === 'fade-in' ? 'animate-fadeIn' : animation === 'slide-up' ? 'animate-slideUp' : animation === 'zoom' ? 'animate-zoom' : ''}`}>
+      <div className={`grid grid-cols-1 ${gridClass} gap-8`}>
         {cols.map((col, i) => (
           <div key={i} className="space-y-4">
             {col.image && (
@@ -315,8 +315,8 @@ export function SeoFooterBlock({ contentB64, includeSchema = 'true' }: { content
   const html = contentB64 ? Buffer.from(contentB64, 'base64').toString('utf-8') : ''
   const withSchema = String(includeSchema) === 'true'
   return (
-    <footer className="bg-gray-50 border-t">
-      <div className="container mx-auto px-4 py-8">
+    <footer className="bg-white border-t mt-auto">
+      <div className="container mx-auto px-4 py-12 md:py-16">
         {html && <div className="prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: html }} />}
       </div>
       {withSchema && <LocalBusinessSchema />}
@@ -372,8 +372,8 @@ export function BadgesBlock({ badgesB64, alignment = 'center', size = 'md', styl
   }
 
   return (
-    <div className={`p-6 md:p-8 ${animClass}`}>
-      <div className={`flex flex-wrap gap-2 ${alignClass}`}>
+    <div className={`py-12 md:py-16 px-6 md:px-8 bg-white ${animClass}`}>
+      <div className="flex flex-wrap gap-3 ${alignClass}">
         {badges.map((b, i) => {
           const styleColor = b.color && b.color.startsWith('#') ? { color: b.color } as React.CSSProperties : undefined
           const colorClass = b.color && b.color.startsWith('text-') ? b.color : ''
@@ -465,7 +465,7 @@ export function TestimonialsBlock({ testimonialsB64, animation = 'fade-in' }: { 
   let testimonials: Array<{ quote: string; author?: string; subtext?: string; avatar?: string }> = []
   try { testimonials = JSON.parse(json || '[]') } catch { testimonials = [] }
   return (
-    <div className={`p-6 md:p-10 ${animation === 'fade-in' ? 'animate-fadeIn' : animation === 'slide-up' ? 'animate-slideUp' : animation === 'zoom' ? 'animate-zoom' : ''}`}>
+    <div className={`py-12 md:py-16 px-6 md:px-10 bg-white ${animation === 'fade-in' ? 'animate-fadeIn' : animation === 'slide-up' ? 'animate-slideUp' : animation === 'zoom' ? 'animate-zoom' : ''}`}>
       <TestimonialsClient testimonials={testimonials} />
     </div>
   )
@@ -538,8 +538,8 @@ export async function GalleryHighlightsBlock({ categoriesB64, collectionsB64, ta
   }
 
   return (
-    <div className={`p-6 md:p-10 ${animation === 'fade-in' ? 'animate-fadeIn' : animation === 'slide-up' ? 'animate-slideUp' : animation === 'zoom' ? 'animate-zoom' : ''}`}>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div className={`py-12 md:py-16 px-6 md:px-10 bg-white ${animation === 'fade-in' ? 'animate-fadeIn' : animation === 'slide-up' ? 'animate-slideUp' : animation === 'zoom' ? 'animate-zoom' : ''}`}>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
         {(data || []).map((img) => (
           <div key={img.id} className="relative aspect-video overflow-hidden rounded-lg">
             <Image src={img.image_url} alt={img.title || ''} fill className="object-cover" />
@@ -568,7 +568,7 @@ export function WidgetEmbedBlock({ htmlB64, scriptSrcsB64, provider = 'custom', 
     try { scriptSrcs = JSON.parse(Buffer.from(scriptSrcsB64, 'base64').toString('utf-8') || '[]') } catch { scriptSrcs = [] }
   }
   return (
-    <div className="p-6 md:p-8">
+    <div className="py-12 md:py-16 px-6 md:px-8 bg-white">
       <WidgetEmbedClient html={html} scriptSrcs={scriptSrcs} provider={provider} styleReset={String(styleReset) !== 'false'} />
     </div>
   )
@@ -594,15 +594,15 @@ export function ServicesGridBlock({ servicesB64, heading, subheading, columns = 
   const animClass = animation === 'fade-in' ? 'animate-fadeIn' : animation === 'slide-up' ? 'animate-slideUp' : animation === 'zoom' ? 'animate-zoom' : ''
 
   return (
-    <div className={`p-6 md:p-8 ${animClass}`}>
+    <div className={`py-16 md:py-20 px-6 md:px-8 bg-white ${animClass}`}>
       <div className="max-w-7xl mx-auto">
         {heading && (
-          <div className="text-center mb-8">
+          <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-900 mb-2">{heading}</h2>
             {subheading && <p className="text-lg text-gray-600">{subheading}</p>}
           </div>
         )}
-        <div className={`grid grid-cols-1 ${gridCols[String(columns)] || 'md:grid-cols-3'} gap-6`}>
+        <div className={`grid grid-cols-1 ${gridCols[String(columns)] || 'md:grid-cols-3'} gap-8`}>
           {services.map((service, i) => {
             const CardContent = (
               <>
@@ -675,12 +675,12 @@ export function StatsBlock({ statsB64, heading, columns = '3', style = 'default'
   const animClass = animation === 'fade-in' ? 'animate-fadeIn' : animation === 'slide-up' ? 'animate-slideUp' : animation === 'zoom' ? 'animate-zoom' : ''
 
   return (
-    <div className={`p-6 md:p-8 ${animClass}`}>
+    <div className={`py-16 md:py-20 px-6 md:px-8 bg-white ${animClass}`}>
       <div className="max-w-7xl mx-auto">
         {heading && (
-          <h2 className="text-3xl font-bold text-gray-900 text-center mb-8">{heading}</h2>
+          <h2 className="text-3xl font-bold text-gray-900 text-center mb-12">{heading}</h2>
         )}
-        <div className={`grid grid-cols-1 ${gridCols[String(columns)] || 'md:grid-cols-3'} gap-6`}>
+        <div className={`grid grid-cols-1 ${gridCols[String(columns)] || 'md:grid-cols-3'} gap-8`}>
           {stats.map((stat, i) => (
             <div key={i} className={`text-center ${styleClasses[style] || ''}`}>
               {stat.icon && (
@@ -785,15 +785,15 @@ export function IconFeaturesBlock({ featuresB64, heading, subheading, columns = 
   const animClass = animation === 'fade-in' ? 'animate-fadeIn' : animation === 'slide-up' ? 'animate-slideUp' : animation === 'zoom' ? 'animate-zoom' : ''
 
   return (
-    <div className={`p-6 md:p-8 ${animClass}`}>
+    <div className={`py-16 md:py-20 px-6 md:px-8 bg-white ${animClass}`}>
       <div className="max-w-7xl mx-auto">
         {heading && (
-          <div className="text-center mb-8">
+          <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-900 mb-2">{heading}</h2>
             {subheading && <p className="text-lg text-gray-600">{subheading}</p>}
           </div>
         )}
-        <div className={`grid grid-cols-1 ${gridCols[String(columns)] || 'md:grid-cols-4'} gap-6`}>
+        <div className={`grid grid-cols-1 ${gridCols[String(columns)] || 'md:grid-cols-4'} gap-8`}>
           {features.map((feature, i) => (
             <div key={i} className="text-center p-6">
               {feature.icon && (
@@ -813,10 +813,10 @@ export function IconFeaturesBlock({ featuresB64, heading, subheading, columns = 
 export function ContactFormBlock({ heading, subheading, animation = 'fade-in' }: { heading?: string, subheading?: string, animation?: string }) {
   const animClass = animation === 'fade-in' ? 'animate-fadeIn' : animation === 'slide-up' ? 'animate-slideUp' : animation === 'zoom' ? 'animate-zoom' : ''
   return (
-    <section className={`p-6 md:p-10 ${animClass}`}>
+    <section className={`py-16 md:py-20 px-6 md:px-10 bg-white ${animClass}`}>
       <div className="max-w-3xl mx-auto">
         {(heading || subheading) && (
-          <div className="text-center mb-6">
+          <div className="text-center mb-8">
             {heading && <h2 className="text-3xl font-bold text-gray-900 mb-2">{heading}</h2>}
             {subheading && <p className="text-gray-600">{subheading}</p>}
           </div>
@@ -832,8 +832,8 @@ export function NewsletterBlock({ heading, subheading, disclaimer, style = 'card
   const animClass = animation === 'fade-in' ? 'animate-fadeIn' : animation === 'slide-up' ? 'animate-slideUp' : animation === 'zoom' ? 'animate-zoom' : ''
   const isBanner = String(style) === 'banner'
   return (
-    <section className={`p-6 md:p-10 ${animClass}`}>
-      <div className={`max-w-3xl mx-auto border rounded-xl p-6 ${isBanner ? 'bg-primary-50 border-primary-200' : 'bg-white border-gray-200'}`}>
+    <section className={`py-16 md:py-20 px-6 md:px-10 bg-white ${animClass}`}>
+      <div className={`max-w-3xl mx-auto border rounded-xl p-8 ${isBanner ? 'bg-primary-50 border-primary-200' : 'bg-white border-gray-200'}`}>
         <NewsletterInlineClient heading={heading} subheading={subheading} disclaimer={disclaimer} />
       </div>
     </section>
@@ -866,10 +866,10 @@ export function FAQBlock({ itemsB64, heading, columns = '1', animation = 'fade-i
   )
 
   return (
-    <section className={`p-6 md:p-10 ${animClass}`}>
+    <section className={`py-16 md:py-20 px-6 md:px-10 bg-white ${animClass}`}>
       <div className="max-w-5xl mx-auto">
-        {heading && <h2 className="text-3xl font-bold text-gray-900 mb-6 text-center">{heading}</h2>}
-        <div className={`grid grid-cols-1 ${cols === 2 ? 'md:grid-cols-2' : 'md:grid-cols-1'} gap-6`}>
+        {heading && <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">{heading}</h2>}
+        <div className={`grid grid-cols-1 ${cols === 2 ? 'md:grid-cols-2' : 'md:grid-cols-1'} gap-8`}>
           {renderCol(col1)}
           {col2.length > 0 && renderCol(col2)}
         </div>
@@ -898,15 +898,15 @@ export function PricingTableBlock({ plansB64, heading, subheading, columns = '3'
     : (isDark ? 'rounded-lg bg-transparent hover:bg-slate-800/50 transition' : 'rounded-lg bg-transparent hover:bg-gray-50 transition')
 
   return (
-    <section className={`p-6 md:p-10 ${animClass} ${isDark ? 'bg-slate-900' : ''}`}>
+    <section className={`py-16 md:py-20 px-6 md:px-10 bg-white ${animClass} ${isDark ? 'bg-slate-900' : ''}`}>
       <div className="max-w-7xl mx-auto">
         {(heading || subheading) && (
-          <div className="text-center mb-8">
+          <div className="text-center mb-12">
             {heading && <h2 className={`text-3xl font-bold mb-2 ${sectionText}`}>{heading}</h2>}
             {subheading && <p className={`text-lg ${subText}`}>{subheading}</p>}
           </div>
         )}
-        <div className={`grid grid-cols-1 ${colClass} gap-6`}>
+        <div className={`grid grid-cols-1 ${colClass} gap-8`}>
           {plans.map((plan, i) => (
             <div key={i} className={`${planBase} ${plan.highlight ? (isDark ? 'ring-1 ring-primary-700/40 bg-primary-900/20' : 'ring-1 ring-primary-200 bg-primary-50/30') : ''} p-6 flex flex-col`}>
               <div className="mb-4">

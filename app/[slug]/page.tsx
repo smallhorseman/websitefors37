@@ -76,37 +76,19 @@ export default async function DynamicPage({ params }: { params: { slug: string }
   // Detect if content uses builder blocks (contains custom JSX components)
   // vs traditional markdown/prose content
   const isBuilderPage = page.content?.includes('Block') || false
+  const showNav = page.show_navbar !== false // Default to true if not specified
   
   if (isBuilderPage) {
     // Builder-managed page: render full-width with no constraints
     return (
-      <div className="min-h-screen">
-        {page.content ? (
-          <MDXRemote 
-            source={page.content}
-            options={{
-              mdxOptions: {
-                rehypePlugins: rehypeRaw 
-                  ? [rehypeRaw as any, [rehypeHighlight, {}] as any]
-                  : [[rehypeHighlight, {}] as any]
-              }
-            }}
-            components={MDXBuilderComponents as any}
-          />
-        ) : (
-          <div className="container mx-auto px-4 py-16">
-            <div className="text-gray-600">This page has no content yet.</div>
-          </div>
+      <>
+        {!showNav && (
+          <style jsx global>{`
+            header nav { display: none !important; }
+            body { padding-top: 0 !important; }
+          `}</style>
         )}
-      </div>
-    )
-  }
-  
-  // Traditional CMS/article page: use prose wrapper for nice typography
-  return (
-    <div className="pt-16 min-h-screen">
-      <div className="container mx-auto px-4 py-16">
-        <article className="prose prose-lg md:prose-xl max-w-4xl mx-auto prose-headings:font-serif prose-headings:text-amber-900 prose-a:text-amber-700 hover:prose-a:text-amber-800">
+        <div className="min-h-screen">
           {page.content ? (
             <MDXRemote 
               source={page.content}
@@ -120,10 +102,45 @@ export default async function DynamicPage({ params }: { params: { slug: string }
               components={MDXBuilderComponents as any}
             />
           ) : (
-            <div className="text-gray-600">This page has no content yet.</div>
+            <div className="container mx-auto px-4 py-16">
+              <div className="text-gray-600">This page has no content yet.</div>
+            </div>
           )}
-        </article>
+        </div>
+      </>
+    )
+  }
+  
+  // Traditional CMS/article page: use prose wrapper for nice typography
+  return (
+    <>
+      {!showNav && (
+        <style jsx global>{`
+          header nav { display: none !important; }
+          body { padding-top: 0 !important; }
+        `}</style>
+      )}
+      <div className={`min-h-screen ${showNav ? 'pt-16' : ''}`}>
+        <div className="container mx-auto px-4 py-16">
+          <article className="prose prose-lg md:prose-xl max-w-4xl mx-auto prose-headings:font-serif prose-headings:text-amber-900 prose-a:text-amber-700 hover:prose-a:text-amber-800">
+            {page.content ? (
+              <MDXRemote 
+                source={page.content}
+                options={{
+                  mdxOptions: {
+                    rehypePlugins: rehypeRaw 
+                      ? [rehypeRaw as any, [rehypeHighlight, {}] as any]
+                      : [[rehypeHighlight, {}] as any]
+                  }
+                }}
+                components={MDXBuilderComponents as any}
+              />
+            ) : (
+              <div className="text-gray-600">This page has no content yet.</div>
+            )}
+          </article>
+        </div>
       </div>
-    </div>
+    </>
   )
 }
