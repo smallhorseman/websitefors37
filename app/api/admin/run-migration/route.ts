@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabaseAdmin'
+import { supabaseAdmin } from '@/lib/supabaseAdmin'
 import { createLogger } from '@/lib/logger'
 import { readFileSync } from 'fs'
 import { join } from 'path'
@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
     for (let i = 0; i < statements.length; i++) {
       const statement = statements[i] + ';'
       try {
-        const { data, error } = await supabase.rpc('exec_sql', { sql_query: statement })
+  const { data, error } = await supabaseAdmin.rpc('exec_sql', { sql_query: statement })
         
         if (error) {
           log.error(`Statement ${i + 1} failed`, { error: error.message, statement: statement.substring(0, 100) })
