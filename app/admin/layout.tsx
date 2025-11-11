@@ -20,6 +20,8 @@ export default function AdminLayout({
       <div className="bg-gray-50 min-h-screen">
         {/* Offset for fixed public navigation bar */}
         <main className="min-h-screen pt-16">
+          {/* Cloudinary Media Library is only needed in admin */}
+          <script src="https://media-library.cloudinary.com/global/all.js" defer />
           {children}
         </main>
       </div>

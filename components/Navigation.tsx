@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Menu, X, Camera, ChevronDown } from 'lucide-react'
+import { Menu, X, Camera, ChevronDown } from '@/icons'
 import Image from 'next/image'
 import { supabase } from '@/lib/supabase'
 

@@ -3,6 +3,7 @@ import dynamic from "next/dynamic";
 import Hero from "@/components/Hero";
 import LeadCaptureForm from "@/components/LeadCaptureForm";
 import LocalBusinessSchema from "@/components/LocalBusinessSchema";
+import LazyMount from "@/components/LazyMount";
 import { generateSEOMetadata } from "@/lib/seo-helpers";
 import { createServerComponentClient } from "@supabase/auth-helpers-nextjs";
 import { cookies } from "next/headers";
@@ -12,22 +13,22 @@ import { MDXBuilderComponents } from "@/components/BuilderRuntime";
 
 // Lazy load below-the-fold components for better initial page load
 const Services = dynamic(() => import("@/components/Services"), {
-  loading: () => <div className="h-96 bg-gray-50 animate-pulse" />,
+  loading: () => <div className="h-96 bg-gray-50" style={{ contentVisibility: 'auto' }} />,
 });
 const CommercialHighlightGallery = dynamic(
   () => import("@/components/CommercialHighlightGallery"),
   {
-    loading: () => <div className="h-96 bg-white animate-pulse" />,
+    loading: () => <div className="h-96 bg-white" style={{ contentVisibility: 'auto' }} />,
   }
 );
 const PortraitHighlightGallery = dynamic(
   () => import("@/components/PortraitHighlightGallery"),
   {
-    loading: () => <div className="h-96 bg-gray-50 animate-pulse" />,
+    loading: () => <div className="h-96 bg-gray-50" style={{ contentVisibility: 'auto' }} />,
   }
 );
 const Testimonials = dynamic(() => import("@/components/Testimonials"), {
-  loading: () => <div className="h-96 bg-white animate-pulse" />,
+  loading: () => <div className="h-96 bg-white" style={{ contentVisibility: 'auto' }} />,
 });
 
 // Defer newsletter modal - loads after page is interactive
@@ -104,9 +105,15 @@ export default async function HomePage() {
     <>
       <LocalBusinessSchema />
       <Hero />
-      <PortraitHighlightGallery />
-      <Services />
-      <CommercialHighlightGallery />
+      <LazyMount minHeight={400}>
+        <PortraitHighlightGallery />
+      </LazyMount>
+      <LazyMount minHeight={400}>
+        <Services />
+      </LazyMount>
+      <LazyMount minHeight={400}>
+        <CommercialHighlightGallery />
+      </LazyMount>
       <section className="py-16 bg-gray-50">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto text-center mb-12">
@@ -121,7 +128,9 @@ export default async function HomePage() {
           <LeadCaptureForm />
         </div>
       </section>
-      <Testimonials />
+      <LazyMount minHeight={400}>
+        <Testimonials />
+      </LazyMount>
       <DiscountNewsletterModal />
     </>
   );

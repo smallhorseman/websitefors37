@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { ArrowRight, Building2, Package, Briefcase, TrendingUp } from 'lucide-react'
+import { ArrowRight, Building2, Package, Briefcase, TrendingUp } from '@/icons'
 
 const commercialHighlights = [
   {

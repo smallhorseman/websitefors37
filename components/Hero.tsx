@@ -1,7 +1,7 @@
  "use client";
 
 import React from "react";
-import { Camera, ArrowRight } from "lucide-react";
+import { Camera, ArrowRight } from "@/icons";
 import Link from "next/link";
 import Image from "next/image";
 import { optimizeCloudinaryUrl } from "@/lib/cloudinaryOptimizer";
@@ -14,7 +14,12 @@ export default function Hero() {
   // Static hero image - optimized for LCP
   const rawHeroImage = "https://res.cloudinary.com/dmjxho2rl/image/upload/v1759639187/A4B03835-ED8B-4FBB-A27E-1F2EE6CA1A18_1_105_c_gstgil_e_gen_restore_e_improve_e_sharpen_l_image_upload_My_Brand_IMG_2115_mtuowt_c_scale_fl_relative_w_0.40_o_80_fl_layer_apply_g_south_x_0.03_y_0.04_yqgycj.jpg";
   
-  const heroImage = optimizeCloudinaryUrl(rawHeroImage, 1920, 'auto:eco'); // Eco quality for maximum performance
+  // Generate multi-density sources for responsive loading (reduces LCP bytes)
+  const heroImageLarge = optimizeCloudinaryUrl(rawHeroImage, 1600, 'auto:good');
+  const heroImageMedium = optimizeCloudinaryUrl(rawHeroImage, 1200, 'auto:good');
+  const heroImageSmall = optimizeCloudinaryUrl(rawHeroImage, 800, 'auto:good');
+  // Use the medium as default src (balanced quality vs size).
+  const heroImage = heroImageMedium;
   const heroMinHeight = "70vh";
   const overlayPct = 60;
 
@@ -28,18 +33,22 @@ export default function Hero() {
     >
       {/* Background Image - static for performance */}
       <div className="absolute inset-0 z-0" style={{ contain: 'strict' }}>
-        <Image
-          src={heroImage}
-          alt="Studio 37 Photography - Professional wedding and portrait photography"
-          fill
-          priority
-          fetchPriority="high"
-          quality={60}
-          sizes="100vw"
-          className="object-cover"
-          placeholder="blur"
-          blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWEREiMxUf/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q=="
-        />
+        <picture>
+          {/* Modern formats delivered automatically by Cloudinary (f_auto) */}
+          <source srcSet={`${heroImageSmall} 800w, ${heroImageMedium} 1200w, ${heroImageLarge} 1600w`} sizes="100vw" />
+          <Image
+            src={heroImage}
+            alt="Studio 37 Photography - Professional wedding and portrait photography"
+            fill
+            priority
+            fetchPriority="high"
+            quality={55}
+            sizes="100vw"
+            className="object-cover"
+            placeholder="blur"
+            blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWEREiMxUf/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q=="
+          />
+        </picture>
       </div>
 
       {/* Overlay with vintage gradient */}

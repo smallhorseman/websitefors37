@@ -63,15 +63,50 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const EnhancedChatBot = dynamic(
-    () => import("@/components/EnhancedChatBot"),
-    { ssr: false, loading: () => null }
-  );
+  // Lazy load ChatBot only after user interaction or idle (reduces main thread during LCP)
+  const LazyChatBot = dynamic(() => import("@/components/EnhancedChatBot"), {
+    ssr: false,
+    loading: () => null,
+  });
   const WebVitals = dynamic(() => import("@/components/WebVitals"), {
     ssr: false,
     loading: () => null,
   });
   const localBusinessSchema = generateLocalBusinessSchema();
+
+  // Tiny client component to mount chatbot after user interaction or idle
+  function ChatBotMount() {
+    // This is a Client Component placeholder – defined inline for simplicity
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    const [ready, setReady] = React.useState(false);
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    React.useEffect(() => {
+      let timeout: any;
+      const onFirstInteract = () => {
+        setReady(true);
+        window.removeEventListener('scroll', onFirstInteract);
+        window.removeEventListener('pointerdown', onFirstInteract);
+        window.removeEventListener('keydown', onFirstInteract);
+      };
+      // Prefer idle; fall back to a short timer and first interaction
+      if ('requestIdleCallback' in window) {
+        // @ts-ignore
+        (window as any).requestIdleCallback(() => setReady(true), { timeout: 3000 });
+      } else {
+        timeout = setTimeout(() => setReady(true), 2500);
+      }
+      window.addEventListener('scroll', onFirstInteract, { passive: true, once: true });
+      window.addEventListener('pointerdown', onFirstInteract, { once: true });
+      window.addEventListener('keydown', onFirstInteract, { once: true });
+      return () => {
+        if (timeout) clearTimeout(timeout);
+        window.removeEventListener('scroll', onFirstInteract);
+        window.removeEventListener('pointerdown', onFirstInteract);
+        window.removeEventListener('keydown', onFirstInteract);
+      };
+    }, []);
+    return ready ? <LazyChatBot /> : null;
+  }
 
   return (
     <html lang="en">
@@ -101,8 +136,7 @@ export default function RootLayout({
         {/* Preconnect to Cloudinary for faster image loading (LCP optimization) */}
         <link rel="preconnect" href="https://res.cloudinary.com" />
         <link rel="dns-prefetch" href="//images.unsplash.com" />
-        {/* Cloudinary Media Library for admin image selection */}
-        <Script src="https://media-library.cloudinary.com/global/all.js" strategy="lazyOnload" />
+  {/* Removed global Cloudinary Media Library (only needed in admin). */}
         {/* Explicit favicon for modern browsers */}
         <link rel="icon" href="/icon.svg" type="image/svg+xml" />
       </head>
@@ -145,8 +179,9 @@ export default function RootLayout({
           <ClientErrorBoundary label="page">
             <main id="main" className="min-h-screen">{children}</main>
           </ClientErrorBoundary>
+          {/* Interaction-based ChatBot mount for performance */}
           <ClientErrorBoundary label="chatbot">
-            <EnhancedChatBot />
+            <ChatBotMount />
           </ClientErrorBoundary>
           <ToasterClient />
         </QueryProvider>
