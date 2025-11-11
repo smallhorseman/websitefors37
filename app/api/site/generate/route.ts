@@ -35,10 +35,10 @@ export async function POST(req: Request) {
 
     const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({
-      model: "gemini-2.5-flash",
+      model: "gemini-2.0-flash-exp",
       generationConfig: {
-        maxOutputTokens: 4096,
-        temperature: 0.65,
+        maxOutputTokens: 8192,
+        temperature: 0.7,
       },
     });
 
@@ -57,35 +57,215 @@ export async function POST(req: Request) {
       "seoFooter",
     ];
 
-    const sysPrompt = `You are an expert UX/UI landing page architect for Studio37 Photography in Pinehurst, TX.
-Design a conversion-oriented page based on the user's brief.
+    const sysPrompt = `You are an expert UX/UI landing page architect and professional copywriter for Studio37 Photography in Pinehurst, TX.
+Your task is to design a high-converting, beautifully structured page based on the user's brief.
 
-Return ONLY valid JSON (no markdown fences). The JSON schema is:
+CRITICAL: Return ONLY valid JSON (no markdown code fences, no commentary). 
+
+JSON Schema:
 {
-  "title": "string",
-  "suggestedSlug": "kebab-case-string",
-  "notes": "string",
+  "title": "string - SEO optimized page title",
+  "suggestedSlug": "kebab-case-url-slug",
+  "notes": "string - brief internal note about the page purpose",
   "components": [
-    // ordered list of components. Allowed types: ${allowedTypes.join(", ")}
-    { "id": "string", "type": "hero", "data": { "title": "string", "subtitle": "string", "backgroundImage": "string", "buttonText": "string", "buttonLink": "/book-a-session", "alignment": "left|center|right", "overlay": 0 } },
-    { "id": "string", "type": "text", "data": { "content": "html or markdown", "alignment": "left|center|right", "size": "sm|md|lg|xl" } },
-    { "id": "string", "type": "servicesGrid", "data": { "heading": "string", "subheading": "string", "services": [{ "image": "string", "title": "string", "description": "string", "features": ["string"], "link": "/services" }], "columns": 2 } },
-    { "id": "string", "type": "testimonials", "data": { "testimonials": [{ "quote": "string", "author": "string", "subtext": "string" }] } },
-    { "id": "string", "type": "faq", "data": { "heading": "string", "items": [{ "question": "string", "answer": "string" }] } },
-    { "id": "string", "type": "pricingTable", "data": { "heading": "string", "subheading": "string", "plans": [{ "title": "string", "price": "string", "features": ["string"], "ctaText": "string", "ctaLink": "/book-a-session" }], "columns": 3 } },
-    { "id": "string", "type": "ctaBanner", "data": { "heading": "string", "primaryButtonText": "string", "primaryButtonLink": "/book-a-session" } },
-    { "id": "string", "type": "mapEmbed", "data": { "address": "Pinehurst, TX", "lat": 30.1737, "lng": -95.6886, "zoom": 11, "height": "md" } },
-    { "id": "string", "type": "seoFooter", "data": { "content": "markdown", "includeSchema": false } }
+    // Build a complete, well-structured page with rich content
+    // HERO - Always start with a compelling hero
+    { 
+      "id": "unique-id", 
+      "type": "hero", 
+      "data": { 
+        "title": "Compelling headline (5-8 words)", 
+        "subtitle": "Supporting subheadline that expands on the promise (15-25 words)", 
+        "backgroundImage": "https://images.unsplash.com/photo-[relevant-photography-id]", 
+        "buttonText": "Clear CTA verb + value", 
+        "buttonLink": "/book-a-session", 
+        "alignment": "left|center|right", 
+        "overlay": 50-70 
+      } 
+    },
+    
+    // TEXT - Rich introductory content
+    { 
+      "id": "unique-id", 
+      "type": "text", 
+      "data": { 
+        "content": "<p>Write engaging, benefit-focused copy. Use 2-3 paragraphs. Include emotional appeal and value props.</p><p>Second paragraph builds credibility and shows expertise.</p>", 
+        "alignment": "center", 
+        "size": "md" 
+      } 
+    },
+    
+    // SERVICES GRID - Showcase offerings with detail
+    { 
+      "id": "unique-id", 
+      "type": "servicesGrid", 
+      "data": { 
+        "heading": "Descriptive heading for services section", 
+        "subheading": "Supporting text explaining value proposition", 
+        "services": [
+          { 
+            "image": "https://images.unsplash.com/photo-[id]", 
+            "title": "Service Name", 
+            "description": "2-3 sentences explaining this service, benefits, ideal clients, and outcomes. Be specific and compelling.", 
+            "features": ["Feature 1", "Feature 2", "Feature 3", "Feature 4"], 
+            "link": "/services" 
+          }
+          // Include 3-6 services based on brief
+        ], 
+        "columns": 3 
+      } 
+    },
+    
+    // GALLERY HIGHLIGHTS - If relevant to brief
+    { 
+      "id": "unique-id", 
+      "type": "galleryHighlights", 
+      "data": { 
+        "heading": "Recent Work", 
+        "subheading": "Browse our portfolio" 
+      } 
+    },
+    
+    // TESTIMONIALS - Social proof
+    { 
+      "id": "unique-id", 
+      "type": "testimonials", 
+      "data": { 
+        "testimonials": [
+          { 
+            "quote": "Write realistic, detailed testimonial highlighting specific benefits and emotional outcomes (30-60 words)", 
+            "author": "Client Name", 
+            "subtext": "Session Type or Location" 
+          }
+          // Include 3-5 testimonials
+        ] 
+      } 
+    },
+    
+    // FAQ - Address objections
+    { 
+      "id": "unique-id", 
+      "type": "faq", 
+      "data": { 
+        "heading": "Frequently Asked Questions", 
+        "items": [
+          { 
+            "question": "Common question about booking, pricing, or process", 
+            "answer": "Detailed, helpful answer that removes friction and builds confidence. 2-4 sentences." 
+          }
+          // Include 5-8 relevant FAQs based on brief
+        ] 
+      } 
+    },
+    
+    // PRICING TABLE - Clear investment info
+    { 
+      "id": "unique-id", 
+      "type": "pricingTable", 
+      "data": { 
+        "heading": "Session Investment", 
+        "subheading": "Transparent pricing with exceptional value", 
+        "plans": [
+          { 
+            "title": "Package Name", 
+            "price": "$XXX", 
+            "features": [
+              "Specific deliverable 1", 
+              "Specific deliverable 2", 
+              "Specific deliverable 3", 
+              "Specific deliverable 4", 
+              "Specific deliverable 5"
+            ], 
+            "ctaText": "Book [Package Name]", 
+            "ctaLink": "/book-a-session" 
+          }
+          // Include 3-4 pricing tiers if mentioned in brief
+        ], 
+        "columns": 3 
+      } 
+    },
+    
+    // TEXT - Additional value/trust section
+    { 
+      "id": "unique-id", 
+      "type": "text", 
+      "data": { 
+        "content": "<h2>Why Choose Studio37?</h2><p>Write compelling reasons, unique differentiators, awards, experience, or guarantees.</p>", 
+        "alignment": "left", 
+        "size": "md" 
+      } 
+    },
+    
+    // MAP EMBED - Location context
+    { 
+      "id": "unique-id", 
+      "type": "mapEmbed", 
+      "data": { 
+        "address": "Pinehurst, TX", 
+        "lat": 30.1737, 
+        "lng": -95.6886, 
+        "zoom": 11, 
+        "height": "md" 
+      } 
+    },
+    
+    // CTA BANNER - Final conversion push
+    { 
+      "id": "unique-id", 
+      "type": "ctaBanner", 
+      "data": { 
+        "heading": "Compelling final CTA headline with urgency or value", 
+        "primaryButtonText": "Clear action verb + benefit", 
+        "primaryButtonLink": "/book-a-session" 
+      } 
+    },
+    
+    // SEO FOOTER - Local SEO boost
+    { 
+      "id": "unique-id", 
+      "type": "seoFooter", 
+      "data": { 
+        "content": "**Studio37 Photography – Pinehurst, TX**\\n\\nWrite 2-3 paragraphs with local keywords, service areas, specialties. Include nearby cities served.", 
+        "includeSchema": true 
+      } 
+    }
   ]
 }
 
-Rules:
-- Use only allowed component types and fields above.
-- Supply reasonable defaults for missing images/links.
-- Keep a balanced structure: hero → intro text → services → testimonials/faq → pricing → map → CTA → seoFooter.
-- Business/brand context: Studio37 Photography, Pinehurst, TX. Use internal links where natural ("/services", "/book-a-session", "/contact").
-- Writing tone: ${style || "friendly, premium, trustworthy"}. Target length: ${wordCount || 500}-800 words across text components.
-`;
+CONTENT WRITING GUIDELINES:
+- Writing tone: ${style || "friendly, premium, trustworthy"}
+- Target total word count: ${wordCount || 650}-1000 words across all text/description fields
+- Use benefit-focused language, not feature lists
+- Include specific details, numbers, and outcomes
+- Write for the target audience mentioned in the brief
+- Use power words and emotional triggers appropriate for photography
+- Every service/pricing tier should have 4-6 specific features/deliverables
+- Testimonials should feel authentic and detailed (not generic)
+- FAQs should address real objections and build trust
+- All copy should support the conversion goal
+
+BUSINESS CONTEXT:
+- Studio37 Photography, based in Pinehurst, TX
+- Serves Montgomery County, The Woodlands, Houston area
+- Specializes in: weddings, portraits, families, events, commercial work
+- Brand values: timeless quality, personal connection, artistic excellence
+- Use internal links: "/services", "/book-a-session", "/contact", "/gallery", "/about"
+
+IMAGE SELECTION:
+- Choose high-quality Unsplash photography URLs
+- Match images to the specific service/content type
+- Use diverse, professional photography scenes
+- Hero images should be dramatic and engaging
+
+STRUCTURE RULES:
+1. ALWAYS include: hero → intro text → services/offerings → social proof → pricing → final CTA
+2. Include 8-15 total components for a complete page
+3. Vary component types to maintain engagement
+4. Place testimonials BEFORE pricing to build trust
+5. Use text components to break up visual sections with storytelling
+6. End with map (local context) + CTA + SEO footer
+
+RESPOND WITH ONLY THE COMPLETE JSON - NO OTHER TEXT.`;
 
     let aiText = "";
     try {
