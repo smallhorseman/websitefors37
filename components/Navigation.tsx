@@ -25,6 +25,8 @@ export default function Navigation() {
   const [navItems, setNavItems] = useState<NavigationItem[]>([])
   const [dropdownStates, setDropdownStates] = useState<Record<string, boolean>>({})
   const [mobileDropdownStates, setMobileDropdownStates] = useState<Record<string, boolean>>({})
+  // Small hover-intent close delays so menus don't vanish while moving cursor
+  const dropdownCloseTimers = React.useRef<Record<string, ReturnType<typeof setTimeout> | null>>({})
   // Badge concept (light/dark) as default fallbacks
   const DEFAULT_LOGO_LIGHT = '/brand/studio37-badge-light.svg'
   const DEFAULT_LOGO_DARK = '/brand/studio37-badge-dark.svg'
@@ -145,13 +147,30 @@ export default function Navigation() {
               // Dropdown menu item
               if (item.children && item.children.length > 0) {
                 const isDropdownOpen = dropdownStates[item.id] || false
-                
+
+                const handleEnter = () => {
+                  // Cancel any pending close timer and open
+                  const t = dropdownCloseTimers.current[item.id]
+                  if (t) clearTimeout(t)
+                  dropdownCloseTimers.current[item.id] = null
+                  setDropdownStates(prev => ({ ...prev, [item.id]: true }))
+                }
+
+                const handleLeave = () => {
+                  // Delay close slightly to allow cursor to traverse the gap
+                  const t = setTimeout(() => {
+                    setDropdownStates(prev => ({ ...prev, [item.id]: false }))
+                    dropdownCloseTimers.current[item.id] = null
+                  }, 180)
+                  dropdownCloseTimers.current[item.id] = t
+                }
+
                 return (
                   <div
                     key={item.id}
                     className="relative"
-                    onMouseEnter={() => setDropdownStates(prev => ({ ...prev, [item.id]: true }))}
-                    onMouseLeave={() => setDropdownStates(prev => ({ ...prev, [item.id]: false }))}
+                    onMouseEnter={handleEnter}
+                    onMouseLeave={handleLeave}
                   >
                     <button
                       className={`transition-colors font-medium px-2 py-1 rounded flex items-center gap-1 ${
@@ -165,7 +184,13 @@ export default function Navigation() {
                     </button>
                     
                     {isDropdownOpen && (
-                      <div className="absolute top-full left-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+                      <div
+                        className="absolute top-full left-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50"
+                        onMouseEnter={handleEnter}
+                        onMouseLeave={handleLeave}
+                        role="menu"
+                        aria-label={`${item.label} submenu`}
+                      >
                         {item.children.map((child) => (
                           <Link
                             key={child.id}
