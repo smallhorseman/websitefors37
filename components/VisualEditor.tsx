@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useRef } from "react";
+import dynamic from 'next/dynamic'
 import {
   DragDropContext,
   Droppable,
@@ -75,6 +76,12 @@ import {
 import Image from "next/image";
 import ImageUploader from "./ImageUploader";
 import MobilePreviewToggle from "./MobilePreviewToggle";
+
+// Cloudinary media library (loaded only when invoked)
+const CloudinaryMediaLibrary = dynamic(() => import('@/components/CloudinaryMediaLibrary'), {
+  ssr: false,
+  loading: () => null
+})
 
 // Component types
 type ComponentType =
@@ -12607,10 +12614,18 @@ function HeroProperties({
           title="Background image URL"
           placeholder="Paste image URL here"
         />
-        <div className="mt-2 mb-2 text-xs text-gray-500">or upload:</div>
-        <ImageUploader
-          onImageUrl={(url) => handleUpdate({ backgroundImage: url })}
-        />
+        <div className="flex flex-wrap items-center gap-2 mb-2">
+          <span className="text-xs text-gray-500">Upload or select:</span>
+          <ImageUploader onImageUrl={(url) => handleUpdate({ backgroundImage: url })} />
+          <button
+            type="button"
+            onClick={() => setShowCloudinary(true)}
+            className="px-3 py-1.5 text-xs bg-blue-600 text-white rounded hover:bg-blue-700"
+            title="Browse Cloudinary"
+          >
+            📷 Browse Cloudinary
+          </button>
+        </div>
         {localData.backgroundImage && (
           <div className="mt-2 relative aspect-video">
             <Image
@@ -12743,6 +12758,20 @@ function HeroProperties({
       </div>
     </div>
   );
+
+  // Cloudinary modal (rendered at root of component to overlay panel)
+  const [showCloudinary, setShowCloudinary] = React.useState(false);
+  if (showCloudinary) {
+    return (
+      <CloudinaryMediaLibrary
+        onSelect={(result) => {
+          handleUpdate({ backgroundImage: result.url });
+          setShowCloudinary(false);
+        }}
+        onClose={() => setShowCloudinary(false)}
+      />
+    )
+  }
 }
 
 // Before/After Properties
@@ -14842,6 +14871,8 @@ function ImageProperties({
     };
   }, []);
 
+  const [showCloudinary, setShowCloudinary] = React.useState(false);
+
   return (
     <div className="space-y-4">
       <div>
@@ -14855,6 +14886,17 @@ function ImageProperties({
           placeholder="Enter image URL"
           aria-label="Image URL"
         />
+        <div className="flex flex-wrap items-center gap-2 mt-2">
+          <ImageUploader onImageUrl={(url) => handleUpdate({ url })} />
+          <button
+            type="button"
+            onClick={() => setShowCloudinary(true)}
+            className="px-3 py-1.5 text-xs bg-blue-600 text-white rounded hover:bg-blue-700"
+            title="Browse Cloudinary"
+          >
+            📷 Browse Cloudinary
+          </button>
+        </div>
       </div>
       <div>
         <label className="block text-sm font-medium mb-1">Alt Text</label>
@@ -14877,8 +14919,6 @@ function ImageProperties({
           title="Image caption"
           placeholder="Enter caption"
         />
-        <div className="mt-2 mb-2 text-xs text-gray-500">or upload:</div>
-        <ImageUploader onImageUrl={(url) => handleUpdate({ url })} />
       </div>
       <div>
         <label className="block text-sm font-medium mb-1">
@@ -14927,6 +14967,18 @@ function ImageProperties({
       </div>
     </div>
   );
+
+  if (showCloudinary) {
+    return (
+      <CloudinaryMediaLibrary
+        onSelect={(result) => {
+          handleUpdate({ url: result.url, alt: localData.alt });
+          setShowCloudinary(false);
+        }}
+        onClose={() => setShowCloudinary(false)}
+      />
+    )
+  }
 }
 
 function ButtonProperties({
