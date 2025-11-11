@@ -328,6 +328,17 @@ export default function AdminDashboard() {
                 <h2 className="text-lg font-semibold text-gray-900">Quick Actions</h2>
               </div>
               <div className="p-6 space-y-4">
+                <Link href="/admin/content" className="block w-full text-left p-4 rounded-lg border-2 border-dashed border-gray-200 hover:border-primary-300 hover:bg-primary-50 transition-colors group">
+                  <div className="flex items-center gap-3">
+                    <div className="bg-primary-100 group-hover:bg-primary-200 p-2 rounded-lg">
+                      <FileText className="h-5 w-5 text-primary-600" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-gray-900">Manage Content</p>
+                      <p className="text-sm text-gray-600">Create and edit pages (Enhanced CMS)</p>
+                    </div>
+                  </div>
+                </Link>
                 <Link href="/admin/leads" className="block w-full text-left p-4 rounded-lg border-2 border-dashed border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-colors group">
                   <div className="flex items-center gap-3">
                     <div className="bg-blue-100 group-hover:bg-blue-200 p-2 rounded-lg">

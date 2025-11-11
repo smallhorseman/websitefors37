@@ -1,4 +1,4 @@
-import EnhancedContentManagement from '@/components/EnhancedContentManagement'
+import ContentAdminUnified from '@/components/ContentAdminUnified'
 
 export const metadata = {
   title: 'Enhanced Content Management | Admin Dashboard',
@@ -8,5 +8,5 @@ export const metadata = {
 export const dynamic = 'force-dynamic'
 
 export default function EnhancedContentPage() {
-  return <EnhancedContentManagement />
+  return <ContentAdminUnified />
 }
