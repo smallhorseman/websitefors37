@@ -30,8 +30,8 @@ export default function Navigation() {
   // Badge concept (light/dark) as default fallbacks
   const DEFAULT_LOGO_LIGHT = '/brand/studio37-badge-light.svg'
   const DEFAULT_LOGO_DARK = '/brand/studio37-badge-dark.svg'
-  // User-requested default brand logo (Cloudinary)
-  const DEFAULT_BRAND_LOGO = 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1756077115/My%20Brand/IMG_2115_mtuowt.png'
+  // User-requested default brand logo (Cloudinary) - optimized
+  const DEFAULT_BRAND_LOGO = 'https://res.cloudinary.com/dmjxho2rl/image/upload/f_auto,q_auto:good,w_200,c_limit/v1756077115/My%20Brand/IMG_2115_mtuowt.png'
   
   // Avoid hydration mismatch by only rendering after mount
   useEffect(() => {

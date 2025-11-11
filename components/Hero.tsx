@@ -30,6 +30,7 @@ export default function Hero() {
         minHeight: heroMinHeight,
         contain: 'layout style paint', // Performance: contain layout to prevent reflow
       }}
+      aria-label="Hero section - Studio 37 Photography"
     >
       {/* Background Image - static for performance */}
       <div className="absolute inset-0 z-0" style={{ contain: 'strict' }}>
@@ -42,7 +43,7 @@ export default function Hero() {
             fill
             priority
             fetchPriority="high"
-            quality={55}
+            quality={75}
             sizes="100vw"
             className="object-cover"
             placeholder="blur"
@@ -90,15 +91,17 @@ export default function Hero() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <Link
               href="/book-a-session"
-              className="btn-primary text-lg px-8 py-4 inline-flex items-center"
+              className="btn-primary text-lg px-8 py-4 inline-flex items-center focus:outline-none focus:ring-4 focus:ring-amber-500 focus:ring-offset-2"
+              aria-label="Book your photography session"
             >
               Book Your Session
-              <ArrowRight className="ml-2 h-5 w-5" />
+              <ArrowRight className="ml-2 h-5 w-5" aria-hidden="true" />
             </Link>
 
             <Link
               href="/gallery"
-              className="btn-secondary text-lg px-8 py-4 bg-white/10 hover:bg-white/20 text-white border border-amber-200/30 hover:border-amber-200/50 transition-colors"
+              className="btn-secondary text-lg px-8 py-4 bg-white/10 hover:bg-white/20 text-white border border-amber-200/30 hover:border-amber-200/50 transition-colors focus:outline-none focus:ring-4 focus:ring-white focus:ring-offset-2"
+              aria-label="View our photography portfolio"
             >
               View Portfolio
             </Link>
@@ -110,7 +113,7 @@ export default function Hero() {
       <div className="absolute inset-8 border border-amber-200/20 pointer-events-none z-10 hidden md:block"></div>
 
       {/* Animated scroll indicator - pure CSS */}
-      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20 animate-bounce-slow">
+      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20 animate-bounce-slow" aria-hidden="true">
         <div className="w-6 h-10 border-2 border-amber-200/50 rounded-full flex justify-center">
           <div className="w-1 h-3 bg-amber-200/70 rounded-full mt-2"></div>
         </div>
