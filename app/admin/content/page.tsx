@@ -1,7 +1,8 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { Loader2, Plus, Trash2, Edit, Settings, X, ExternalLink, FileText } from 'lucide-react'
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { Loader2, Plus, Trash2, Edit, Settings, X, ExternalLink, FileText, RefreshCw } from 'lucide-react'
 import MarkdownEditor from '@/components/MarkdownEditor'
 import { revalidateContent } from '@/lib/revalidate'
 import dynamic from 'next/dynamic'
@@ -39,6 +40,7 @@ interface Category {
 }
 
 export default function ContentManagementPage() {
+  const supabase = createClientComponentClient()
   const [pages, setPages] = useState<ContentPage[]>([])
   const [categories, setCategories] = useState<Category[]>([])
   const [loading, setLoading] = useState(true)
@@ -79,7 +81,6 @@ export default function ContentManagementPage() {
   useEffect(() => {
     const fetchSettings = async () => {
       try {
-        const { supabase } = await import('@/lib/supabase')
         const { data, error } = await supabase.from('settings').select('id, book_session_bg_url').maybeSingle()
         if (error) throw error
         setBookingBgUrl(data?.book_session_bg_url || '')
@@ -94,7 +95,6 @@ export default function ContentManagementPage() {
     setSavingBgUrl(true)
     setSettingsError(null)
     try {
-      const { supabase } = await import('@/lib/supabase')
       // Find existing settings row (if any)
       const { data: existing, error: fetchErr } = await supabase
         .from('settings')
@@ -126,7 +126,6 @@ export default function ContentManagementPage() {
   // Fetch categories
   const fetchCategories = async () => {
     try {
-      const { supabase } = await import('@/lib/supabase')
       const { data, error } = await supabase
         .from('content_categories')
         .select('*')
@@ -144,8 +143,7 @@ export default function ContentManagementPage() {
     setLoading(true)
     setError(null)
     try {
-      const { supabase } = await import('@/lib/supabase')
-
+      // Force fresh data - no cache
       const { data, error } = await supabase
         .from('content_pages')
         .select('*')
@@ -227,8 +225,6 @@ export default function ContentManagementPage() {
     setError(null)
     
     try {
-      const { supabase } = await import('@/lib/supabase')
-      
       // Calculate SEO score
       const seoScore = calculateSEOScore(pageForm)
       const pageData = {
@@ -307,8 +303,6 @@ export default function ContentManagementPage() {
     }
     
     try {
-      const { supabase } = await import('@/lib/supabase')
-
       const { error } = await supabase
         .from('content_pages')
         .delete()
@@ -372,8 +366,6 @@ export default function ContentManagementPage() {
   // Toggle page publish status
   const togglePublish = async (page: ContentPage) => {
     try {
-      const { supabase } = await import('@/lib/supabase')
-
       const { error } = await supabase
         .from('content_pages')
         .update({ published: !page.published })
@@ -450,13 +442,24 @@ export default function ContentManagementPage() {
       </div>
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-xl font-semibold">Content Management</h1>
-        <button 
-          onClick={createNewPage}
-          className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 flex items-center gap-2"
-        >
-          <Plus className="h-4 w-4" />
-          New Page
-        </button>
+        <div className="flex gap-2">
+          <button 
+            onClick={fetchPages}
+            disabled={loading}
+            className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 flex items-center gap-2 disabled:opacity-50"
+            title="Refresh page list"
+          >
+            <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+            Refresh
+          </button>
+          <button 
+            onClick={createNewPage}
+            className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 flex items-center gap-2"
+          >
+            <Plus className="h-4 w-4" />
+            New Page
+          </button>
+        </div>
       </div>
 
       <div className="mb-6 flex flex-col md:flex-row gap-4">
