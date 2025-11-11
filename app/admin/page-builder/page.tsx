@@ -674,6 +674,7 @@ export default function PageBuilderPage() {
             content: mdx,
             meta_description: derivedMeta,
             published: true,
+            show_navbar: true,
             updated_at: new Date().toISOString(),
           },
           { onConflict: 'slug' }

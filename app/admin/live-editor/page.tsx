@@ -229,6 +229,7 @@ export default function LiveEditorPage() {
         setPageMeta((prev) => ({
           ...prev,
           title: slug,
+          show_navbar: true, // Default navbar to visible for new pages
         }))
       }
     } catch (e) {
