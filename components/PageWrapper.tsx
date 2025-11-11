@@ -10,23 +10,33 @@ interface PageWrapperProps {
 
 export default function PageWrapper({ showNav, children, className = '' }: PageWrapperProps) {
   useEffect(() => {
-    if (!showNav) {
-      // Hide navigation when showNav is false
-      const style = document.createElement('style')
-      style.id = 'hide-nav-style'
+    const styleId = 'hide-nav-style'
+    const removeStyle = () => {
+      const existing = document.getElementById(styleId)
+      if (existing) existing.remove()
+    }
+
+    if (showNav) {
+      // Ensure any previous hide style is removed when nav should be visible
+      removeStyle()
+      return
+    }
+
+    // Hide navigation when showNav is false
+    let style = document.getElementById(styleId) as HTMLStyleElement | null
+    if (!style) {
+      style = document.createElement('style')
+      style.id = styleId
       style.textContent = `
         #site-navigation { display: none !important; }
         body { padding-top: 0 !important; }
       `
       document.head.appendChild(style)
+    }
 
-      return () => {
-        // Cleanup: remove style when component unmounts
-        const existingStyle = document.getElementById('hide-nav-style')
-        if (existingStyle) {
-          existingStyle.remove()
-        }
-      }
+    return () => {
+      // Cleanup when this wrapper unmounts or deps change
+      removeStyle()
     }
   }, [showNav])
 
