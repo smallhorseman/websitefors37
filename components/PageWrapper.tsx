@@ -15,7 +15,7 @@ export default function PageWrapper({ showNav, children, className = '' }: PageW
       const style = document.createElement('style')
       style.id = 'hide-nav-style'
       style.textContent = `
-        header nav { display: none !important; }
+        #site-navigation { display: none !important; }
         body { padding-top: 0 !important; }
       `
       document.head.appendChild(style)

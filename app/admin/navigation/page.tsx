@@ -32,6 +32,8 @@ interface NavigationItem {
 export default function NavigationEditor() {
   const [items, setItems] = useState<NavigationItem[]>([])
   const [originalItems, setOriginalItems] = useState<NavigationItem[]>([])
+  const [logoUrl, setLogoUrl] = useState<string>('')
+  const [originalLogoUrl, setOriginalLogoUrl] = useState<string>('')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
@@ -51,7 +53,7 @@ export default function NavigationEditor() {
     try {
       const { data, error } = await supabase
         .from('settings')
-        .select('navigation_items')
+        .select('navigation_items, logo_url')
         .single()
 
       if (error) throw error
@@ -60,6 +62,12 @@ export default function NavigationEditor() {
       const sorted = navItems.sort((a, b) => a.order - b.order)
       setItems(sorted)
       setOriginalItems(JSON.parse(JSON.stringify(sorted)))
+      const fetchedLogo = (data?.logo_url as string) || ''
+      // If no logo set, initialize with provided Cloudinary URL (user request)
+      const defaultCloudinaryLogo = 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1756077115/My%20Brand/IMG_2115_mtuowt.png'
+      const effectiveLogo = fetchedLogo || defaultCloudinaryLogo
+      setLogoUrl(effectiveLogo)
+      setOriginalLogoUrl(effectiveLogo)
     } catch (e: any) {
       console.error('Load error:', e)
       setMessage({ type: 'error', text: e?.message || 'Failed to load navigation' })
@@ -76,6 +84,9 @@ export default function NavigationEditor() {
       ]
       setItems(defaultNav)
       setOriginalItems(JSON.parse(JSON.stringify(defaultNav)))
+      // Fallback default logo
+      setLogoUrl('https://res.cloudinary.com/dmjxho2rl/image/upload/v1756077115/My%20Brand/IMG_2115_mtuowt.png')
+      setOriginalLogoUrl('https://res.cloudinary.com/dmjxho2rl/image/upload/v1756077115/My%20Brand/IMG_2115_mtuowt.png')
     } finally {
       setLoading(false)
     }
@@ -103,7 +114,7 @@ export default function NavigationEditor() {
         // Update using the actual ID we got back
         const { error } = await supabase
           .from('settings')
-          .update({ navigation_items: reorderedItems })
+          .update({ navigation_items: reorderedItems, logo_url: logoUrl })
           .match({ id: existing.id })
         
         if (error) throw error
@@ -111,13 +122,14 @@ export default function NavigationEditor() {
         // No settings row exists, insert one
         const { error } = await supabase
           .from('settings')
-          .insert([{ navigation_items: reorderedItems }])
+          .insert([{ navigation_items: reorderedItems, logo_url: logoUrl }])
         
         if (error) throw error
       }
 
       setItems(reorderedItems)
       setOriginalItems(JSON.parse(JSON.stringify(reorderedItems)))
+      setOriginalLogoUrl(logoUrl)
       setMessage({ type: 'success', text: '✅ Navigation saved successfully!' })
     } catch (e: any) {
       console.error('Save error:', e)
@@ -229,7 +241,7 @@ export default function NavigationEditor() {
     setDraggedIndex(null)
   }
 
-  const hasChanges = JSON.stringify(items) !== JSON.stringify(originalItems)
+  const hasChanges = JSON.stringify(items) !== JSON.stringify(originalItems) || logoUrl !== originalLogoUrl
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -302,6 +314,50 @@ export default function NavigationEditor() {
           </div>
         ) : (
           <>
+            {/* Logo Configuration */}
+            <div className="mb-6 bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+              <h2 className="text-lg font-semibold text-gray-900 mb-2">Site Logo</h2>
+              <p className="text-sm text-gray-600 mb-4">Paste a Cloudinary (or other) image URL to use as your navigation logo. Recommended transparent PNG/SVG around 140×40. You can also click the quick-set button below.</p>
+              <div className="flex flex-col sm:flex-row gap-4 items-start">
+                <div className="flex-1 w-full">
+                  <input
+                    type="text"
+                    value={logoUrl}
+                    onChange={(e) => setLogoUrl(e.target.value.trim())}
+                    placeholder="https://res.cloudinary.com/.../logo.png"
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 text-sm"
+                  />
+                  <div className="mt-2 flex gap-2 flex-wrap">
+                    <button
+                      type="button"
+                      onClick={() => setLogoUrl('https://res.cloudinary.com/dmjxho2rl/image/upload/v1756077115/My%20Brand/IMG_2115_mtuowt.png')}
+                      className="px-3 py-1 text-xs bg-amber-50 border border-amber-200 rounded hover:bg-amber-100 text-amber-700"
+                    >Use Provided Logo</button>
+                    <button
+                      type="button"
+                      onClick={() => setLogoUrl('')}
+                      className="px-3 py-1 text-xs bg-gray-50 border border-gray-200 rounded hover:bg-gray-100 text-gray-600"
+                    >Clear</button>
+                  </div>
+                </div>
+                <div className="w-[160px] flex flex-col items-center gap-2">
+                  <div className="border rounded-lg p-2 bg-gray-50 w-full flex items-center justify-center h-16">
+                    {logoUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={logoUrl}
+                        alt="Logo preview"
+                        className="max-h-12 w-auto object-contain"
+                        referrerPolicy="strict-origin-when-cross-origin"
+                      />
+                    ) : (
+                      <span className="text-xs text-gray-400">No logo</span>
+                    )}
+                  </div>
+                  <span className="text-[10px] text-gray-500">Preview</span>
+                </div>
+              </div>
+            </div>
             {/* Add Button */}
             <div className="mb-4">
               <button

@@ -30,6 +30,8 @@ export default function Navigation() {
   // Badge concept (light/dark) as default fallbacks
   const DEFAULT_LOGO_LIGHT = '/brand/studio37-badge-light.svg'
   const DEFAULT_LOGO_DARK = '/brand/studio37-badge-dark.svg'
+  // User-requested default brand logo (Cloudinary)
+  const DEFAULT_BRAND_LOGO = 'https://res.cloudinary.com/dmjxho2rl/image/upload/v1756077115/My%20Brand/IMG_2115_mtuowt.png'
   
   // Avoid hydration mismatch by only rendering after mount
   useEffect(() => {
@@ -84,19 +86,22 @@ export default function Navigation() {
     return () => { mounted = false }
   }, [isMounted])
 
-  // Derive which logo to show based on scroll and DB value without refetching
+  // Derive which logo to show based on DB value and scroll state
   useEffect(() => {
-    // If DB provided a custom logo, prefer it unless it matches an outdated asset pattern
-    if (dbLogoUrl && !/(studio37-logo)/i.test(dbLogoUrl)) {
+    // Prefer DB-provided logo; else use brand default; else fallback badges
+    if (dbLogoUrl) {
       setLogoUrl(dbLogoUrl)
-      return
+    } else if (DEFAULT_BRAND_LOGO) {
+      setLogoUrl(DEFAULT_BRAND_LOGO)
+    } else {
+      // Fallback to badge variants depending on scroll state for contrast
+      setLogoUrl(scrolled ? DEFAULT_LOGO_LIGHT : DEFAULT_LOGO_DARK)
     }
-    // Fallback to badge variants depending on scroll state for contrast
-    setLogoUrl(scrolled ? DEFAULT_LOGO_LIGHT : DEFAULT_LOGO_DARK)
   }, [dbLogoUrl, scrolled])
 
   return (
     <nav 
+      id="site-navigation"
       className={`fixed w-full z-50 transition-all duration-300 ${
         scrolled ? 'bg-white/90 backdrop-blur-md shadow-md' : 'bg-transparent'
       }`}
