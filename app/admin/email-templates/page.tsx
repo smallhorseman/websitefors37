@@ -8,9 +8,11 @@ interface EmailTemplate {
   id: string
   name: string
   slug: string
-  description: string
+  subject: string
+  category: string
   is_active: boolean
-  subject_line: string
+  html_content: string
+  text_content: string
   created_at: string
   updated_at: string
 }
@@ -79,23 +81,21 @@ export default function EmailTemplatesPage() {
   }
 
   const getTemplateIcon = (slug: string) => {
-    switch (slug) {
-      case 'contact-form-confirmation': return '✉️'
-      case 'booking-request-confirmation': return '📅'
-      case 'coupon-delivery': return '🎁'
-      case 'newsletter-welcome': return '📰'
-      default: return '📧'
-    }
+     if (slug.includes('welcome')) return '✉️'
+     if (slug.includes('reminder')) return '📅'
+     if (slug.includes('ready') || slug.includes('delivery')) return '🎁'
+     if (slug.includes('newsletter')) return '📰'
+     if (slug.includes('confirmation')) return '✅'
+     return '📧'
   }
 
   const getTemplateColor = (slug: string) => {
-    switch (slug) {
-      case 'contact-form-confirmation': return 'from-green-500 to-emerald-600'
-      case 'booking-request-confirmation': return 'from-amber-500 to-orange-600'
-      case 'coupon-delivery': return 'from-pink-500 to-purple-600'
-      case 'newsletter-welcome': return 'from-blue-500 to-cyan-600'
-      default: return 'from-gray-500 to-gray-600'
-    }
+     if (slug.includes('welcome')) return 'from-green-500 to-emerald-600'
+     if (slug.includes('reminder')) return 'from-amber-500 to-orange-600'
+     if (slug.includes('ready') || slug.includes('delivery')) return 'from-pink-500 to-purple-600'
+     if (slug.includes('newsletter')) return 'from-blue-500 to-cyan-600'
+     if (slug.includes('confirmation')) return 'from-teal-500 to-cyan-600'
+     return 'from-gray-500 to-gray-600'
   }
 
   if (loading) {
@@ -151,7 +151,7 @@ export default function EmailTemplatesPage() {
                       <span className="text-4xl">{getTemplateIcon(template.slug)}</span>
                       <div>
                         <h3 className="text-xl font-bold">{template.name}</h3>
-                        <p className="text-sm opacity-90 mt-1">{template.description}</p>
+                          <p className="text-sm opacity-90 mt-1">{template.category}</p>
                       </div>
                     </div>
                     <button
@@ -174,7 +174,7 @@ export default function EmailTemplatesPage() {
                     <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
                       Subject Line
                     </label>
-                    <p className="mt-1 text-gray-900">{template.subject_line}</p>
+                      <p className="mt-1 text-gray-900">{template.subject}</p>
                   </div>
 
                   {/* Stats */}
