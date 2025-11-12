@@ -45,9 +45,9 @@ export const metadata = {
   },
   verification: {
     google: process.env.GOOGLE_SITE_VERIFICATION,
-  },
-  other: {
-    "twilio-domain-verification": "a41a3d624e3ac9cb94868de50be953d2",
+    other: {
+      'twilio-domain-verification': 'a41a3d624e3ac9cb94868de50be953d2',
+    },
   },
   robots: {
     index: true,
