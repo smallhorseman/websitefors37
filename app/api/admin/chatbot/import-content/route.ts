@@ -1,41 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { createLogger } from "@/lib/logger";
+import { requireAuth } from "@/lib/auth";
 
 const log = createLogger("api/admin/chatbot/import-content");
-
-// Admin authentication check
-async function isAuthenticated(req: NextRequest): Promise<boolean> {
-  try {
-    const cookieHeader = req.headers.get("cookie");
-    if (!cookieHeader) return false;
-
-    const sessionCookie = cookieHeader
-      .split(";")
-      .find((c) => c.trim().startsWith("admin_session="));
-    if (!sessionCookie) return false;
-
-    const token = sessionCookie.split("=")[1];
-    if (!token) return false;
-
-    const { createClient: createServerClient } = await import("@supabase/supabase-js");
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
-
-    const { data } = await supabase
-      .from("admin_sessions")
-      .select("id")
-      .eq("session_token", token)
-      .gt("expires_at", new Date().toISOString())
-      .single();
-
-    return !!data;
-  } catch {
-    return false;
-  }
-}
 
 /**
  * Import website content into chatbot training
@@ -43,9 +11,10 @@ async function isAuthenticated(req: NextRequest): Promise<boolean> {
  */
 export async function POST(req: NextRequest) {
   try {
-    // Verify admin authentication
-    const authenticated = await isAuthenticated(req);
-    if (!authenticated) {
+    // Verify admin authentication using shared auth util (token hash based)
+    try {
+      await requireAuth();
+    } catch {
       log.warn("Unauthorized import attempt");
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
