@@ -6,6 +6,17 @@
 -- Enable UUID extension if not already enabled
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
+-- Define/replace helper trigger function
+CREATE OR REPLACE FUNCTION public.update_updated_at_column()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  NEW.updated_at = NOW();
+  RETURN NEW;
+END;
+$$;
+
 -- =====================================================
 -- EMAIL MARKETING TABLES
 -- =====================================================
@@ -74,7 +85,8 @@ CREATE TABLE email_campaigns (
 CREATE INDEX idx_email_campaigns_status ON email_campaigns(status);
 CREATE INDEX idx_email_campaigns_scheduled_at ON email_campaigns(scheduled_at);
 CREATE INDEX idx_email_campaigns_created_at ON email_campaigns(created_at DESC);
-CREATE GIN INDEX idx_email_campaigns_tags ON email_campaigns USING GIN(tags);
+-- Correct GIN index syntax (no 'CREATE GIN INDEX')
+CREATE INDEX idx_email_campaigns_tags ON email_campaigns USING GIN (tags);
 
 -- Email Campaign Sends (tracking individual sends)
 CREATE TABLE email_campaign_sends (
@@ -184,7 +196,7 @@ CREATE TABLE sms_campaigns (
 CREATE INDEX idx_sms_campaigns_status ON sms_campaigns(status);
 CREATE INDEX idx_sms_campaigns_scheduled_at ON sms_campaigns(scheduled_at);
 CREATE INDEX idx_sms_campaigns_created_at ON sms_campaigns(created_at DESC);
-CREATE GIN INDEX idx_sms_campaigns_tags ON sms_campaigns USING GIN(tags);
+CREATE INDEX idx_sms_campaigns_tags ON sms_campaigns USING GIN (tags);
 
 -- SMS Campaign Sends
 CREATE TABLE sms_campaign_sends (
@@ -306,7 +318,7 @@ CREATE INDEX idx_projects_client_id ON client_projects(client_user_id);
 CREATE INDEX idx_projects_appointment_id ON client_projects(appointment_id);
 CREATE INDEX idx_projects_status ON client_projects(status);
 CREATE INDEX idx_projects_session_date ON client_projects(session_date);
-CREATE GIN INDEX idx_projects_tags ON client_projects USING GIN(tags);
+CREATE INDEX idx_projects_tags ON client_projects USING GIN (tags);
 
 -- Client Messages (two-way communication between studio and clients)
 CREATE TABLE client_messages (
