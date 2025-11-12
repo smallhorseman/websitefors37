@@ -8,7 +8,6 @@ import {
   Preview,
   Text,
   Section,
-  Button,
   Hr,
 } from '@react-email/components'
 
@@ -56,30 +55,38 @@ export default function BookingRequestConfirmationEmail({
           <Section style={requestBox}>
             <Heading as="h2" style={h2}>Your Request Summary</Heading>
             
-            <div style={detailRow}>
-              <span style={label}>Service:</span>
-              <span style={value}>{sessionType}</span>
-            </div>
+            <table style={{width: '100%'}}>
+              <tr>
+                <td style={label}>Service:</td>
+                <td style={{...value, textAlign: 'right' as const}}>{sessionType}</td>
+              </tr>
+            </table>
             
             {preferredDate && (
-              <div style={detailRow}>
-                <span style={label}>Preferred Date:</span>
-                <span style={value}>{preferredDate}</span>
-              </div>
+              <table style={{width: '100%', marginTop: '10px'}}>
+                <tr>
+                  <td style={label}>Preferred Date:</td>
+                  <td style={{...value, textAlign: 'right' as const}}>{preferredDate}</td>
+                </tr>
+              </table>
             )}
             
             {guestCount && (
-              <div style={detailRow}>
-                <span style={label}>Guest Count:</span>
-                <span style={value}>{guestCount}</span>
-              </div>
+              <table style={{width: '100%', marginTop: '10px'}}>
+                <tr>
+                  <td style={label}>Guest Count:</td>
+                  <td style={{...value, textAlign: 'right' as const}}>{guestCount}</td>
+                </tr>
+              </table>
             )}
             
             {budget && (
-              <div style={detailRow}>
-                <span style={label}>Budget Range:</span>
-                <span style={value}>${budget}</span>
-              </div>
+              <table style={{width: '100%', marginTop: '10px'}}>
+                <tr>
+                  <td style={label}>Budget Range:</td>
+                  <td style={{...value, textAlign: 'right' as const}}>${budget}</td>
+                </tr>
+              </table>
             )}
 
             <div style={contactInfo}>
@@ -100,37 +107,59 @@ export default function BookingRequestConfirmationEmail({
 
           <Section style={nextStepsSection}>
             <Heading as="h3" style={h3}>What Happens Next?</Heading>
-            <div style={timeline}>
-              <div style={timelineItem}>
-                <div style={stepNumber}>1</div>
-                <div style={stepContent}>
-                  <Text style={stepTitle}>Within 24 Hours</Text>
-                  <Text style={stepDesc}>We'll email you a personalized quote with package options</Text>
-                </div>
-              </div>
-              
-              <div style={timelineItem}>
-                <div style={stepNumber}>2</div>
-                <div style={stepContent}>
-                  <Text style={stepTitle}>Consultation Call</Text>
-                  <Text style={stepDesc}>We'll schedule a quick call to discuss your vision</Text>
-                </div>
-              </div>
-              
-              <div style={timelineItem}>
-                <div style={stepNumber}>3</div>
-                <div style={stepContent}>
-                  <Text style={stepTitle}>Book Your Date</Text>
-                  <Text style={stepDesc}>Reserve your session with a deposit</Text>
-                </div>
-              </div>
-            </div>
+            <table style={{width: '100%', marginTop: '20px'}}>
+              <tr>
+                <td style={{verticalAlign: 'top', paddingBottom: '20px'}}>
+                  <table>
+                    <tr>
+                      <td style={{width: '40px', verticalAlign: 'top'}}>
+                        <div style={stepNumber}>1</div>
+                      </td>
+                      <td style={{verticalAlign: 'top', paddingLeft: '16px'}}>
+                        <Text style={stepTitle}>Within 24 Hours</Text>
+                        <Text style={stepDesc}>We'll email you a personalized quote with package options</Text>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+              <tr>
+                <td style={{verticalAlign: 'top', paddingBottom: '20px'}}>
+                  <table>
+                    <tr>
+                      <td style={{width: '40px', verticalAlign: 'top'}}>
+                        <div style={stepNumber}>2</div>
+                      </td>
+                      <td style={{verticalAlign: 'top', paddingLeft: '16px'}}>
+                        <Text style={stepTitle}>Consultation Call</Text>
+                        <Text style={stepDesc}>We'll schedule a quick call to discuss your vision</Text>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+              <tr>
+                <td style={{verticalAlign: 'top'}}>
+                  <table>
+                    <tr>
+                      <td style={{width: '40px', verticalAlign: 'top'}}>
+                        <div style={stepNumber}>3</div>
+                      </td>
+                      <td style={{verticalAlign: 'top', paddingLeft: '16px'}}>
+                        <Text style={stepTitle}>Book Your Date</Text>
+                        <Text style={stepDesc}>Reserve your session with a deposit</Text>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+            </table>
           </Section>
 
           <div style={ctaContainer}>
-            <Button href="https://www.studio37.cc/gallery" style={button}>
+            <Link href="https://www.studio37.cc/gallery" style={button}>
               View Our Portfolio
-            </Button>
+            </Link>
           </div>
 
           <Section style={urgentBox}>
@@ -284,10 +313,9 @@ const stepNumber = {
   color: '#ffffff',
   fontSize: '18px',
   fontWeight: 'bold',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  flexShrink: '0',
+  display: 'inline-block',
+  lineHeight: '36px',
+  textAlign: 'center' as const,
 }
 
 const stepContent = {
@@ -323,6 +351,7 @@ const button = {
   textAlign: 'center' as const,
   display: 'inline-block',
   padding: '14px 32px',
+  border: 'none',
 }
 
 const urgentBox = {
