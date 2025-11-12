@@ -41,6 +41,9 @@ async function scrapeWebsiteContent(): Promise<TrainingEntry[]> {
   
   console.log('🔍 Fetching website content from Supabase...');
   
+  // Add service-specific content from static pages
+  entries.push(...getServicePageContent());
+  
   // Fetch content pages (About, Services, etc.)
   const { data: contentPages } = await supabase
     .from('content_pages')
@@ -163,6 +166,141 @@ async function scrapeWebsiteContent(): Promise<TrainingEntry[]> {
   entries.push(...getCuratedEntries());
   
   console.log(`\n✓ Generated ${entries.length} training entries`);
+  return entries;
+}
+
+/**
+ * Get category from page slug
+ */
+function getCategoryFromSlug(slug: string): string {
+  if (slug.includes('service')) return 'services';
+  if (slug.includes('about')) return 'general';
+  if (slug.includes('pricing') || slug.includes('package')) return 'pricing';
+  if (slug.includes('policy') || slug.includes('terms')) return 'policies';
+  if (slug.includes('faq')) return 'general';
+  return 'general';
+}
+
+/**
+ * Extract service page content from static pages
+ * These are the detailed service pages like /services/portrait-photography
+ */
+function getServicePageContent(): TrainingEntry[] {
+  console.log('📄 Adding service page content...');
+  
+  const services = [
+    {
+      name: 'Portrait Photography',
+      slug: 'portrait-photography',
+      types: ['Family Portraits', 'Senior Portraits', 'Headshots', 'Maternity Sessions'],
+      description: 'Professional portrait photography in Pinehurst, Texas. From family sessions to senior portraits, we create timeless images you\'ll treasure forever.',
+      packages: {
+        mini: { price: '$200', duration: '30 minutes', photos: '15+ edited photos', features: ['Digital gallery'] },
+        standard: { price: '$350', duration: '60 minutes', photos: '30+ edited photos', features: ['Multiple outfits/looks', 'Digital gallery'] },
+        extended: { price: '$500', duration: '90 minutes', photos: '50+ edited photos', features: ['Multiple locations', 'Multiple outfits', 'Digital gallery', 'Print credit'] }
+      },
+      serviceAreas: ['Pinehurst TX', 'The Woodlands TX', 'Montgomery TX', 'Spring TX', 'Tomball TX', 'Magnolia TX', 'Conroe TX', 'Houston TX']
+    },
+    {
+      name: 'Wedding Photography',
+      slug: 'wedding-photography',
+      types: ['Full Day Coverage', 'Engagement Sessions', 'Bridal Portraits', 'Ceremony Only'],
+      description: 'Award-winning wedding photography capturing your special day with artistry and emotion. Serving Pinehurst, The Woodlands, and greater Houston area.',
+      packages: {
+        essential: { price: '$1,800', duration: '6 hours', photos: '300+ edited photos', features: ['Two photographers', 'Online gallery', 'Print release'] },
+        premium: { price: '$2,800', duration: '8 hours', photos: '500+ edited photos', features: ['Two photographers', 'Engagement session', 'Online gallery', 'Print release', 'Premium album'] },
+        luxury: { price: '$4,200', duration: '10 hours', photos: '700+ edited photos', features: ['Two photographers', 'Engagement session', 'Bridal session', 'Premium album', 'Parent albums', 'Print release'] }
+      },
+      serviceAreas: ['Pinehurst TX', 'The Woodlands TX', 'Montgomery County TX', 'Houston TX', 'Destination weddings available']
+    },
+    {
+      name: 'Event Photography',
+      slug: 'event-photography',
+      types: ['Corporate Events', 'Birthday Parties', 'Graduations', 'Special Occasions'],
+      description: 'Professional event photography capturing every special moment. Corporate events, birthday parties, graduations, and more throughout Montgomery County.',
+      packages: {
+        basic: { price: '$400', duration: '2 hours', photos: '100+ edited photos', features: ['Digital gallery', 'Online sharing'] },
+        standard: { price: '$700', duration: '4 hours', photos: '200+ edited photos', features: ['Digital gallery', 'Online sharing', 'Same-week delivery'] },
+        full: { price: '$1,000', duration: '6 hours', photos: '300+ edited photos', features: ['Digital gallery', 'Online sharing', 'Same-week delivery', 'Print credit'] }
+      },
+      serviceAreas: ['Pinehurst TX', 'The Woodlands TX', 'Montgomery County', 'Houston area']
+    },
+    {
+      name: 'Commercial Photography',
+      slug: 'commercial-photography',
+      types: ['Real Estate', 'Product Photography', 'Business Headshots', 'Brand Photography'],
+      description: 'Professional commercial photography for businesses in Pinehurst and The Woodlands. Real estate, products, headshots, and brand imagery.',
+      packages: {
+        headshots: { price: '$150/person', duration: '30 minutes', photos: '5+ edited photos', features: ['Professional retouching', 'Multiple backgrounds', 'Digital delivery'] },
+        product: { price: '$300', duration: 'Per session', photos: '10-20 images', features: ['White background', 'Lifestyle shots', 'E-commerce ready'] },
+        realEstate: { price: '$200', duration: 'Per property', photos: '25+ photos', features: ['Interior & exterior', 'HDR processing', '24-hour delivery'] },
+        brand: { price: '$800', duration: '4 hours', photos: '50+ images', features: ['Multiple looks', 'Location scouting', 'Brand consultation', 'Social media ready'] }
+      },
+      serviceAreas: ['Pinehurst TX', 'The Woodlands TX', 'Montgomery County', 'Greater Houston']
+    }
+  ];
+
+  const entries: TrainingEntry[] = [];
+
+  for (const service of services) {
+    // Main service description
+    entries.push({
+      category: 'services',
+      question: `Tell me about your ${service.name.toLowerCase()} services`,
+      answer: `${service.description}\n\nWe offer:\n${service.types.map(t => `• ${t}`).join('\n')}\n\n[Learn more about our ${service.name.toLowerCase()}](${SITE_URL}/services/${service.slug})`,
+      keywords: extractKeywords(service.name + ' ' + service.types.join(' ')),
+      is_active: true,
+      source_url: `${SITE_URL}/services/${service.slug}`,
+    });
+
+    // Package pricing questions
+    const packageList = Object.entries(service.packages).map(([name, pkg]: [string, any]) => 
+      `**${name.charAt(0).toUpperCase() + name.slice(1)} Package** (${pkg.price}): ${pkg.duration} • ${pkg.photos} • ${pkg.features.join(', ')}`
+    ).join('\n\n');
+
+    entries.push({
+      category: 'pricing',
+      question: `How much does ${service.name.toLowerCase()} cost?`,
+      answer: `Our ${service.name.toLowerCase()} packages range from ${Object.values(service.packages as any)[0].price} to ${Object.values(service.packages as any)[Object.values(service.packages).length - 1].price}. Here's a breakdown:\n\n${packageList}\n\nAll packages include professional editing and digital delivery. [View full details](${SITE_URL}/services/${service.slug}) or [contact us](${SITE_URL}/contact) for custom quotes!`,
+      keywords: [...extractKeywords(service.name), 'pricing', 'cost', 'price', 'package', 'how much'],
+      is_active: true,
+      source_url: `${SITE_URL}/services/${service.slug}`,
+    });
+
+    // What's included questions
+    entries.push({
+      category: 'pricing',
+      question: `What's included in your ${service.name.toLowerCase()} packages?`,
+      answer: `Great question! Our ${service.name.toLowerCase()} packages include:\n\n${packageList}\n\nAll photos are professionally edited and delivered through a private online gallery. You'll receive high-resolution digital files with print rights. [Book a consultation](${SITE_URL}/book-a-session) to discuss which package is right for you!`,
+      keywords: [...extractKeywords(service.name), 'included', 'what you get', 'package details', 'deliverables'],
+      is_active: true,
+      source_url: `${SITE_URL}/services/${service.slug}`,
+    });
+
+    // Service types/specializations
+    for (const type of service.types) {
+      entries.push({
+        category: 'services',
+        question: `Do you offer ${type.toLowerCase()}?`,
+        answer: `Yes! ${type} is one of our specialties in ${service.name.toLowerCase()}. ${service.description.split('.')[0]}. [View our ${service.name.toLowerCase()} portfolio](${SITE_URL}/gallery) or [schedule a consultation](${SITE_URL}/book-a-session) to discuss your ${type.toLowerCase()} needs!`,
+        keywords: extractKeywords(type + ' ' + service.name),
+        is_active: true,
+        source_url: `${SITE_URL}/services/${service.slug}`,
+      });
+    }
+
+    // Service area coverage
+    entries.push({
+      category: 'general',
+      question: `Do you provide ${service.name.toLowerCase()} in my area?`,
+      answer: `We provide ${service.name.toLowerCase()} services throughout ${service.serviceAreas.slice(0, 3).join(', ')}, and surrounding areas including ${service.serviceAreas.slice(3).join(', ')}. [Contact us](${SITE_URL}/contact) to confirm we serve your location!`,
+      keywords: [...extractKeywords(service.name), 'location', 'area', 'travel', 'where', 'serve'],
+      is_active: true,
+      source_url: `${SITE_URL}/services/${service.slug}`,
+    });
+  }
+
+  console.log(`✓ Generated ${entries.length} service page entries`);
   return entries;
 }
 
