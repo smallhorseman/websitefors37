@@ -3,6 +3,8 @@ export const dynamic = 'force-dynamic'
 import Link from 'next/link'
 import { supabaseAdmin } from '@/lib/supabaseAdmin'
 
+// Fixed: Direct Supabase query instead of fetch for server component
+
 type EmailTemplate = {
   id: string
   name?: string
