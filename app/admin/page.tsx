@@ -426,6 +426,31 @@ export default function AdminPage() {
               </div>
             </Link>
 
+            {/* Email Templates */}
+            <Link
+              href="/admin/email-templates"
+              className="bg-white overflow-hidden shadow rounded-lg hover:shadow-md transition-shadow border-2 border-indigo-500"
+            >
+              <div className="p-5">
+                <div className="flex items-center">
+                  <div className="flex-shrink-0">
+                    <div className="w-8 h-8 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-full flex items-center justify-center">
+                      <span className="text-white font-bold">✉️</span>
+                    </div>
+                  </div>
+                  <div className="ml-5 w-0 flex-1">
+                    <h3 className="text-lg font-medium text-gray-900 flex items-center gap-2">
+                      Email Templates
+                      <span className="px-2 py-0.5 bg-indigo-100 text-indigo-800 text-xs font-semibold rounded">NEW</span>
+                    </h3>
+                    <p className="text-sm text-gray-500">
+                      Manage auto-response email templates
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </Link>
+
             {/* SMS Inbox */}
             <Link
               href="/admin/inbox"
