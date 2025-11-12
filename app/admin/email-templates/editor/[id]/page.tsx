@@ -1,6 +1,7 @@
 export const dynamic = 'force-dynamic'
 
 import Link from 'next/link'
+import { supabaseAdmin } from '@/lib/supabaseAdmin'
 
 type EmailTemplate = {
   id: string
@@ -11,22 +12,23 @@ type EmailTemplate = {
   updated_at?: string
 }
 
-type TemplateResponse = { success?: boolean; template?: EmailTemplate; error?: string }
-
-async function getTemplate(id: string): Promise<TemplateResponse | null> {
+async function getTemplate(id: string): Promise<EmailTemplate | null> {
   try {
-    // If an API exists at this path, use it; otherwise the page will still render gracefully.
-    const res = await fetch(`/api/admin/email-templates/${id}`, { cache: 'no-store' })
-    if (!res.ok) return null
-    return res.json()
+    const { data, error } = await supabaseAdmin
+      .from('email_templates')
+      .select('*')
+      .eq('id', id)
+      .single()
+
+    if (error || !data) return null
+    return data
   } catch {
     return null
   }
 }
 
 export default async function EmailTemplateEditor({ params }: { params: { id: string } }) {
-  const data = await getTemplate(params.id)
-  const template = data?.template
+  const template = await getTemplate(params.id)
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-6">
