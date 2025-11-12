@@ -49,6 +49,7 @@ export default function ChatbotTrainingPage() {
   });
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [importing, setImporting] = useState(false);
   const [message, setMessage] = useState("");
 
   const categories = [
@@ -176,21 +177,68 @@ export default function ChatbotTrainingPage() {
     }
   };
 
+  const handleImportContent = async () => {
+    if (!confirm("This will re-import all website content into chatbot training. Existing auto-imported entries will be replaced. Continue?")) {
+      return;
+    }
+
+    setImporting(true);
+    setMessage("Importing content... This may take a minute.");
+
+    try {
+      const response = await fetch("/api/admin/chatbot/import-content", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Import failed: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+
+      setMessage(`Import successful! ${data.imported} training entries imported. ✅`);
+      
+      // Reload training data
+      await loadTrainingData();
+      
+      setTimeout(() => setMessage(""), 5000);
+    } catch (error) {
+      console.error("Error importing content:", error);
+      setMessage(`Import failed: ${error instanceof Error ? error.message : "Unknown error"} ❌`);
+    } finally {
+      setImporting(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <div className="flex items-center gap-3 mb-2">
-            <Brain className="w-8 h-8 text-purple-600" />
-            <h1 className="text-3xl font-bold text-gray-900">
-              AI Chatbot Training
-            </h1>
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-3">
+              <Brain className="w-8 h-8 text-purple-600" />
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900">
+                  AI Chatbot Training
+                </h1>
+                <p className="text-gray-600 mt-1">
+                  Train your chatbot with custom Q&A pairs and configure its personality
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={handleImportContent}
+              disabled={importing}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+            >
+              <RefreshCw className={`w-5 h-5 ${importing ? "animate-spin" : ""}`} />
+              {importing ? "Importing..." : "Import Website Content"}
+            </button>
           </div>
-          <p className="text-gray-600">
-            Train your chatbot with custom Q&A pairs and configure its
-            personality
-          </p>
         </div>
 
         {/* Success/Error Message */}

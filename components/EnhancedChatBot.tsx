@@ -33,6 +33,15 @@ interface LeadData {
   message?: string;
 }
 
+interface QuoteFormData {
+  service: string;
+  hours?: string;
+  headcount?: string;
+  location?: string;
+  eventDate?: string;
+  additionalNotes?: string;
+}
+
 const FAQ_QUICK_REPLIES = [
   "Wedding packages",
   "Portrait sessions",
@@ -117,6 +126,15 @@ export default function EnhancedChatBot() {
   const [showFAQ, setShowFAQ] = useState(true);
   const [servicePageUrl, setServicePageUrl] = useState<string | null>(null);
   const [serviceDetail, setServiceDetail] = useState<string | null>(null);
+  const [showQuoteForm, setShowQuoteForm] = useState(false);
+  const [quoteFormData, setQuoteFormData] = useState<QuoteFormData>({
+    service: "",
+    hours: "",
+    headcount: "",
+    location: "",
+    eventDate: "",
+    additionalNotes: "",
+  });
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Avoid hydration issues by only rendering after client mount
@@ -286,7 +304,13 @@ export default function EnhancedChatBot() {
     }
     if (reply === "Get a quote") {
       const inferred = serviceDetail || leadData.service || "photography";
-      setInputValue(`I'd like a quote for ${inferred}.`);
+      // Instead of auto-prompting, show quote builder form
+      setQuoteFormData((prev) => ({
+        ...prev,
+        service: inferred,
+      }));
+      setShowQuoteForm(true);
+      return;
     } else {
       setInputValue(reply);
     }
@@ -325,6 +349,78 @@ export default function EnhancedChatBot() {
       console.log("Lead saved successfully");
     } catch (error) {
       console.error("Error saving lead:", error);
+    }
+  };
+
+  const handleQuoteFormSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setShowQuoteForm(false);
+
+    try {
+      const { supabase } = await import("@/lib/supabase");
+
+      // Build structured metadata
+      const metadata = {
+        service: quoteFormData.service,
+        hours: quoteFormData.hours,
+        headcount: quoteFormData.headcount,
+        location: quoteFormData.location,
+        eventDate: quoteFormData.eventDate,
+        additionalNotes: quoteFormData.additionalNotes,
+        requestedAt: new Date().toISOString(),
+      };
+
+      const conversationSummary = messages
+        .slice(-6)
+        .map(m => `[${m.sender}] ${m.text}`)
+        .join("\n");
+
+      const detailedMessage = `**Quote Request**
+Service: ${quoteFormData.service}
+${quoteFormData.hours ? `Hours needed: ${quoteFormData.hours}` : ''}
+${quoteFormData.headcount ? `Headcount: ${quoteFormData.headcount}` : ''}
+${quoteFormData.location ? `Location: ${quoteFormData.location}` : ''}
+${quoteFormData.eventDate ? `Event Date: ${quoteFormData.eventDate}` : ''}
+${quoteFormData.additionalNotes ? `Additional Notes: ${quoteFormData.additionalNotes}` : ''}
+
+--- Conversation Context ---
+${conversationSummary}`;
+
+      await supabase.from("leads").insert([
+        {
+          name: leadData.name || "Chat Quote Request",
+          email: leadData.email,
+          phone: leadData.phone,
+          service_interest: quoteFormData.service,
+          message: detailedMessage,
+          source: "chatbot-quote-form",
+          status: "new",
+          // If your leads table supports JSON metadata column:
+          // metadata: metadata,
+        },
+      ]);
+
+      // Add confirmation message
+      addBotMessage(
+        `Thank you! I've received your quote request for ${quoteFormData.service}. Our team will review the details and get back to you within 24 hours with a custom quote.\n\n${leadData.email ? `We'll email you at ${leadData.email}` : leadData.phone ? `We'll call you at ${leadData.phone}` : 'Please share your contact info so we can reach you!'}`
+      );
+
+      // Reset form
+      setQuoteFormData({
+        service: "",
+        hours: "",
+        headcount: "",
+        location: "",
+        eventDate: "",
+        additionalNotes: "",
+      });
+
+      console.log("Quote request saved successfully");
+    } catch (error) {
+      console.error("Error saving quote request:", error);
+      addBotMessage(
+        "I had trouble submitting your quote request. Please try again or [contact us directly](https://studio37.cc/contact)."
+      );
     }
   };
 
@@ -424,6 +520,135 @@ export default function EnhancedChatBot() {
 
             {/* Messages */}
             <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50">
+              {/* Quote Form Modal */}
+              {showQuoteForm && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="bg-white rounded-xl shadow-lg border-2 border-purple-200 p-4 mb-4"
+                >
+                  <div className="flex justify-between items-center mb-3">
+                    <h4 className="font-semibold text-gray-800 flex items-center gap-2">
+                      <DollarSign className="h-5 w-5 text-purple-600" />
+                      Get a Custom Quote
+                    </h4>
+                    <button
+                      onClick={() => setShowQuoteForm(false)}
+                      className="text-gray-400 hover:text-gray-600"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                  
+                  <form onSubmit={handleQuoteFormSubmit} className="space-y-3">
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">
+                        Service Type *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={quoteFormData.service}
+                        onChange={(e) =>
+                          setQuoteFormData({ ...quoteFormData, service: e.target.value })
+                        }
+                        placeholder="Wedding, Portrait, Event, etc."
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">
+                          Hours Needed
+                        </label>
+                        <input
+                          type="text"
+                          value={quoteFormData.hours}
+                          onChange={(e) =>
+                            setQuoteFormData({ ...quoteFormData, hours: e.target.value })
+                          }
+                          placeholder="e.g., 4-6 hours"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">
+                          Headcount
+                        </label>
+                        <input
+                          type="text"
+                          value={quoteFormData.headcount}
+                          onChange={(e) =>
+                            setQuoteFormData({ ...quoteFormData, headcount: e.target.value })
+                          }
+                          placeholder="e.g., 50-100"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">
+                        Location
+                      </label>
+                      <input
+                        type="text"
+                        value={quoteFormData.location}
+                        onChange={(e) =>
+                          setQuoteFormData({ ...quoteFormData, location: e.target.value })
+                        }
+                        placeholder="Venue or city"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">
+                        Event Date
+                      </label>
+                      <input
+                        type="date"
+                        value={quoteFormData.eventDate}
+                        onChange={(e) =>
+                          setQuoteFormData({ ...quoteFormData, eventDate: e.target.value })
+                        }
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">
+                        Additional Notes
+                      </label>
+                      <textarea
+                        value={quoteFormData.additionalNotes}
+                        onChange={(e) =>
+                          setQuoteFormData({ ...quoteFormData, additionalNotes: e.target.value })
+                        }
+                        placeholder="Any special requirements or questions..."
+                        rows={2}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
+                      />
+                    </div>
+
+                    {!leadData.email && !leadData.phone && (
+                      <div className="bg-amber-50 border border-amber-200 rounded-lg p-2 text-xs text-amber-800">
+                        💡 Don't forget to share your email or phone so we can send you the quote!
+                      </div>
+                    )}
+
+                    <button
+                      type="submit"
+                      className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-2.5 rounded-lg font-medium hover:shadow-lg transition-all"
+                    >
+                      Submit Quote Request
+                    </button>
+                  </form>
+                </motion.div>
+              )}
+
               {messages.map((message) => (
                 <div key={message.id}>
                   <div
