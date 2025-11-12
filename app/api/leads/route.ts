@@ -96,6 +96,17 @@ async function sendAutoResponseEmail(lead: any, payload: any) {
   })
 }
 
+// CORS headers for cross-origin requests
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type',
+}
+
+export async function OPTIONS(req: NextRequest) {
+  return new NextResponse(null, { status: 204, headers: corsHeaders })
+}
+
 export async function POST(req: NextRequest) {
   try {
     // Rate limit: 5 form posts per 5 minutes per IP
@@ -107,6 +118,7 @@ export async function POST(req: NextRequest) {
       return new NextResponse(JSON.stringify({ error: 'Too many submissions. Please try later.' }), {
         status: 429,
         headers: {
+          ...corsHeaders,
           'Content-Type': 'application/json',
           'Retry-After': String(retryAfter)
         }
@@ -117,7 +129,10 @@ export async function POST(req: NextRequest) {
     const parsed = LeadSchema.safeParse(json)
     if (!parsed.success) {
       log.warn('Validation failed', { issues: parsed.error.flatten() })
-      return NextResponse.json({ error: 'Invalid form data', details: parsed.error.flatten() }, { status: 400 })
+      return NextResponse.json({ error: 'Invalid form data', details: parsed.error.flatten() }, { 
+        status: 400,
+        headers: corsHeaders
+      })
     }
 
     const payload = parsed.data
@@ -141,7 +156,10 @@ export async function POST(req: NextRequest) {
 
     if (error) {
       log.error('Lead insert error', { email: payload.email, service: payload.service_interest }, error)
-      return NextResponse.json({ error: 'Failed to submit lead' }, { status: 500 })
+      return NextResponse.json({ error: 'Failed to submit lead' }, { 
+        status: 500,
+        headers: corsHeaders
+      })
     }
 
     // Send auto-response email (fire and forget - don't block response)
@@ -149,9 +167,12 @@ export async function POST(req: NextRequest) {
       log.error('Auto-response email failed', { leadId: insertedLead.id }, err)
     })
 
-    return NextResponse.json({ success: true })
+    return NextResponse.json({ success: true }, { headers: corsHeaders })
   } catch (e: any) {
     log.error('Lead submission failed', undefined, e)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ error: 'Internal server error' }, { 
+      status: 500,
+      headers: corsHeaders
+    })
   }
 }
