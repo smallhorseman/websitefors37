@@ -18,7 +18,8 @@
     "repo:lint": "turbo run lint",
     "repo:typecheck": "turbo run typecheck",
     "web:dev": "turbo run dev --filter=web",
-    "workflow:dev": "turbo run dev --filter=workflow"
+    "workflow:dev": "turbo run dev --filter=workflow",
+    "import:training": "tsx scripts/import-website-content.ts"
   },
   "dependencies": {
     "resend": "^4.0.1",
