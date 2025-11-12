@@ -174,16 +174,17 @@ export default function CommercialHighlightGallery() {
             </div>
 
             {/* Slideshow Indicators */}
-            <div className="flex justify-center mt-6 space-x-2">
+            <div className="flex justify-center mt-6 space-x-3">
               {commercialHighlights.map((_, index) => (
                 <button
                   key={index}
                   onClick={() => setCurrentImageIndex(index)}
-                  className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                  className={`w-3 h-3 rounded-full transition-all duration-300 p-3 ${
                     index === currentImageIndex 
                       ? 'bg-amber-600 scale-125' 
                       : 'bg-gray-300 hover:bg-gray-400'
                   }`}
+                  style={{ minWidth: '44px', minHeight: '44px' }}
                   aria-label={`Go to slide ${index + 1}`}
                 />
               ))}

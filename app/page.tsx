@@ -18,12 +18,14 @@ const Services = dynamic(() => import("@/components/Services"), {
 const CommercialHighlightGallery = dynamic(
   () => import("@/components/CommercialHighlightGallery"),
   {
+    ssr: false,
     loading: () => <div className="h-96 bg-white" style={{ contentVisibility: 'auto' }} />,
   }
 );
 const PortraitHighlightGallery = dynamic(
   () => import("@/components/PortraitHighlightGallery"),
   {
+    ssr: false,
     loading: () => <div className="h-96 bg-gray-50" style={{ contentVisibility: 'auto' }} />,
   }
 );
