@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useDashboardData } from "@/hooks/useDashboardData";
+import NotificationCenter from "@/components/NotificationCenter";
 
 interface User {
   id: string;
@@ -77,10 +78,11 @@ export default function AdminPage() {
       <div className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
-            <h1 className="text-3xl font-bold text-gray-900">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
               Studio37 Admin Dashboard
             </h1>
-            <div className="flex items-center gap-3">
+            <div className="hidden lg:flex items-center gap-3">
+              <NotificationCenter />
               <Link
                 href="/admin/chatbot-training"
                 className="bg-pink-600 text-white px-4 py-2 rounded hover:bg-pink-700 transition duration-200"
@@ -445,6 +447,31 @@ export default function AdminPage() {
                     </h3>
                     <p className="text-sm text-gray-500">
                       Manage auto-response email templates
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </Link>
+
+            {/* Analytics Dashboard */}
+            <Link
+              href="/admin/analytics"
+              className="bg-white overflow-hidden shadow rounded-lg hover:shadow-md transition-shadow border-2 border-blue-500"
+            >
+              <div className="p-5">
+                <div className="flex items-center">
+                  <div className="flex-shrink-0">
+                    <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-full flex items-center justify-center">
+                      <span className="text-white font-bold">📊</span>
+                    </div>
+                  </div>
+                  <div className="ml-5 w-0 flex-1">
+                    <h3 className="text-lg font-medium text-gray-900 flex items-center gap-2">
+                      Analytics Dashboard
+                      <span className="px-2 py-0.5 bg-blue-100 text-blue-800 text-xs font-semibold rounded">NEW</span>
+                    </h3>
+                    <p className="text-sm text-gray-500">
+                      View charts, trends, and performance metrics
                     </p>
                   </div>
                 </div>
