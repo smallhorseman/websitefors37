@@ -419,7 +419,13 @@ export default function EnhancedChatBot() {
                       }`}
                     >
                       <p className="whitespace-pre-wrap text-sm">
-                        {message.text}
+                        {message.sender === 'bot' ? (
+                          <span className="space-y-1 inline">
+                            {renderMessageWithLinks(message.text)}
+                          </span>
+                        ) : (
+                          message.text
+                        )}
                       </p>
                     </div>
                   </div>
