@@ -170,6 +170,13 @@ ${context ? `**Recent conversation:**\n${context}` : ""}
 - Avoid repetition - if info was already discussed, build on it
 - Match customer's communication style (formal vs casual)
 - Use emojis sparingly and appropriately (✨📸💍 for weddings, etc.)
+- **Include clickable links** when relevant using markdown format: [link text](https://url)
+  - Gallery/Portfolio: [view our gallery](https://studio37.cc/gallery)
+  - Services: [our services](https://studio37.cc/services)
+  - Booking: [book a consultation](https://studio37.cc/book-a-session)
+  - Contact: [contact us](https://studio37.cc/contact)
+  - About: [learn more about us](https://studio37.cc/about)
+  - Blog: [read our blog](https://studio37.cc/blog)
 
 Respond now:`;
     let result;

@@ -11,6 +11,65 @@ interface Message {
   timestamp: Date
 }
 
+// Helper to render text with clickable links
+function renderMessageWithLinks(text: string) {
+  // Match markdown-style links [text](url) and plain URLs
+  const markdownLinkRegex = /\[([^\]]+)\]\(([^)]+)\)/g
+  const urlRegex = /(https?:\/\/[^\s]+)/g
+  
+  let lastIndex = 0
+  const parts: React.ReactNode[] = []
+  let match: RegExpExecArray | null
+  
+  // First, process markdown-style links
+  const textWithMarkers = text.replace(markdownLinkRegex, (full, linkText, url) => {
+    return `___MARKDOWN_LINK___${linkText}|||${url}___END_LINK___`
+  })
+  
+  // Split by markers and process each part
+  const segments = textWithMarkers.split(/___MARKDOWN_LINK___|___END_LINK___/)
+  
+  segments.forEach((segment, index) => {
+    if (segment.includes('|||')) {
+      // This is a markdown link
+      const [linkText, url] = segment.split('|||')
+      parts.push(
+        <a
+          key={`link-${index}`}
+          href={url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-blue-600 underline hover:text-blue-800"
+        >
+          {linkText}
+        </a>
+      )
+    } else {
+      // Process plain URLs in this segment
+      const urlParts = segment.split(urlRegex)
+      urlParts.forEach((part, i) => {
+        if (urlRegex.test(part)) {
+          parts.push(
+            <a
+              key={`url-${index}-${i}`}
+              href={part}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-600 underline hover:text-blue-800"
+            >
+              {part}
+            </a>
+          )
+        } else if (part) {
+          parts.push(<span key={`text-${index}-${i}`}>{part}</span>)
+        }
+      })
+    }
+  })
+  
+  return parts.length > 0 ? parts : text
+}
+
 interface LeadData {
   name?: string
   email?: string
@@ -35,7 +94,7 @@ const CHAT_FLOW: Record<string, ChatFlowStep> = {
     next: 'service'
   },
   service: {
-    text: "Nice to meet you! What type of photography service are you looking for?",
+    text: "Nice to meet you! What type of photography service are you looking for? You can also [view our gallery](https://studio37.cc/gallery) for inspiration.",
     field: 'service',
     options: ['Wedding', 'Portrait', 'Event', 'Commercial', 'Other'],
     next: 'budget'
@@ -68,7 +127,7 @@ const CHAT_FLOW: Record<string, ChatFlowStep> = {
     next: 'complete'
   },
   complete: {
-    text: "Thank you! We'll be in touch within 24 hours with a personalized quote.",
+    text: "Thank you! We'll be in touch within 24 hours with a personalized quote. In the meantime, check out [our services](https://studio37.cc/services) or [book a consultation](https://studio37.cc/book-a-session).",
     field: null,
     next: null
   }
@@ -225,7 +284,13 @@ export default function ChatBot() {
                         : 'bg-gray-100 text-gray-800'
                     }`}
                   >
-                    {message.text}
+                    {message.sender === 'bot' ? (
+                      <div className="space-y-1">
+                        {renderMessageWithLinks(message.text)}
+                      </div>
+                    ) : (
+                      message.text
+                    )}
                   </div>
                 </div>
               ))}

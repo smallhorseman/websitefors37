@@ -49,6 +49,64 @@ const SERVICE_ICONS: Record<string, typeof Camera> = {
   commercial: DollarSign,
 };
 
+// Helper to render text with clickable links
+function renderMessageWithLinks(text: string) {
+  // Match markdown-style links [text](url) and plain URLs
+  const markdownLinkRegex = /\[([^\]]+)\]\(([^)]+)\)/g
+  const urlRegex = /(https?:\/\/[^\s]+)/g
+  
+  let lastIndex = 0
+  const parts: React.ReactNode[] = []
+  
+  // First, process markdown-style links
+  const textWithMarkers = text.replace(markdownLinkRegex, (full, linkText, url) => {
+    return `___MARKDOWN_LINK___${linkText}|||${url}___END_LINK___`
+  })
+  
+  // Split by markers and process each part
+  const segments = textWithMarkers.split(/___MARKDOWN_LINK___|___END_LINK___/)
+  
+  segments.forEach((segment, index) => {
+    if (segment.includes('|||')) {
+      // This is a markdown link
+      const [linkText, url] = segment.split('|||')
+      parts.push(
+        <a
+          key={`link-${index}`}
+          href={url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-purple-600 underline hover:text-purple-800 font-medium"
+        >
+          {linkText}
+        </a>
+      )
+    } else {
+      // Process plain URLs in this segment
+      const urlParts = segment.split(urlRegex)
+      urlParts.forEach((part, i) => {
+        if (urlRegex.test(part)) {
+          parts.push(
+            <a
+              key={`url-${index}-${i}`}
+              href={part}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-purple-600 underline hover:text-purple-800 font-medium"
+            >
+              {part}
+            </a>
+          )
+        } else if (part) {
+          parts.push(<span key={`text-${index}-${i}`}>{part}</span>)
+        }
+      })
+    }
+  })
+  
+  return parts.length > 0 ? parts : text
+}
+
 export default function EnhancedChatBot() {
   const [isMounted, setIsMounted] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
