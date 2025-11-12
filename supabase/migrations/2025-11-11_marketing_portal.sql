@@ -421,48 +421,58 @@ CREATE TRIGGER update_marketing_prefs_updated_at BEFORE UPDATE ON marketing_pref
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- =====================================================
--- SEED DATA: Sample Templates
+-- SEED DATA: Sample Templates (idempotent inserts)
 -- =====================================================
 
 -- Email Templates
-INSERT INTO email_templates (name, slug, subject, html_content, text_content, category, variables) VALUES
-('Welcome Email', 'welcome-email', 'Welcome to Studio37 Photography!', 
+INSERT INTO email_templates (name, slug, subject, html_content, text_content, category, variables)
+SELECT 'Welcome Email', 'welcome-email', 'Welcome to Studio37 Photography!', 
 '<h1>Welcome {{firstName}}!</h1><p>Thank you for your interest in Studio37 Photography. We''re excited to work with you on your {{serviceType}} project!</p><p>Next steps:</p><ul><li>Review your consultation notes</li><li>Check available dates</li><li>View our portfolio</li></ul><p>Best regards,<br>Studio37 Team</p>',
 'Welcome {{firstName}}! Thank you for your interest in Studio37 Photography. We''re excited to work with you on your {{serviceType}} project!',
 'onboarding',
-'[{"name":"firstName","default":"there"},{"name":"serviceType","default":"photography"}]'::jsonb),
+'[{"name":"firstName","default":"there"},{"name":"serviceType","default":"photography"}]'::jsonb
+WHERE NOT EXISTS (SELECT 1 FROM email_templates WHERE slug = 'welcome-email');
 
-('Session Reminder', 'session-reminder', 'Your Photo Session is Coming Up!',
+INSERT INTO email_templates (name, slug, subject, html_content, text_content, category, variables)
+SELECT 'Session Reminder', 'session-reminder', 'Your Photo Session is Coming Up!',
 '<h2>Hi {{firstName}},</h2><p>This is a friendly reminder that your {{sessionType}} session is scheduled for:</p><p><strong>Date:</strong> {{sessionDate}}<br><strong>Time:</strong> {{sessionTime}}<br><strong>Location:</strong> {{location}}</p><p>What to bring:</p><ul><li>Outfit changes (if planned)</li><li>Props or personal items</li><li>Your excitement! 📸</li></ul><p>See you soon!</p>',
 'Hi {{firstName}}, Your {{sessionType}} session is on {{sessionDate}} at {{sessionTime}}. Location: {{location}}. See you there!',
 'reminders',
-'[{"name":"firstName","default":""},{"name":"sessionType","default":"photo"},{"name":"sessionDate","default":""},{"name":"sessionTime","default":""},{"name":"location","default":"Studio37"}]'::jsonb),
+'[{"name":"firstName","default":""},{"name":"sessionType","default":"photo"},{"name":"sessionDate","default":""},{"name":"sessionTime","default":""},{"name":"location","default":"Studio37"}]'::jsonb
+WHERE NOT EXISTS (SELECT 1 FROM email_templates WHERE slug = 'session-reminder');
 
-('Photos Ready', 'photos-ready', 'Your Photos Are Ready! 🎉',
+INSERT INTO email_templates (name, slug, subject, html_content, text_content, category, variables)
+SELECT 'Photos Ready', 'photos-ready', 'Your Photos Are Ready! 🎉',
 '<h1>Great News {{firstName}}!</h1><p>Your photos from your {{sessionType}} session are now ready to view!</p><p><a href="{{galleryLink}}" style="background:#b46e14;color:white;padding:12px 24px;text-decoration:none;border-radius:4px;display:inline-block;margin:20px 0;">View Your Gallery</a></p><p>Your gallery will be available for {{expiryDays}} days. Don''t forget to download your favorites!</p><p>Love your photos? We''d appreciate a review!</p>',
 'Hi {{firstName}}! Your photos from your {{sessionType}} session are ready! View them here: {{galleryLink}}',
 'delivery',
-'[{"name":"firstName","default":""},{"name":"sessionType","default":""},{"name":"galleryLink","default":""},{"name":"expiryDays","default":"30"}]'::jsonb);
+'[{"name":"firstName","default":""},{"name":"sessionType","default":""},{"name":"galleryLink","default":""},{"name":"expiryDays","default":"30"}]'::jsonb
+WHERE NOT EXISTS (SELECT 1 FROM email_templates WHERE slug = 'photos-ready');
 
 -- SMS Templates
-INSERT INTO sms_templates (name, slug, message_body, category, variables, character_count, estimated_segments) VALUES
-('Appointment Confirmation', 'appointment-confirmation', 
+INSERT INTO sms_templates (name, slug, message_body, category, variables, character_count, estimated_segments)
+SELECT 'Appointment Confirmation', 'appointment-confirmation', 
 'Hi {{firstName}}! Your {{sessionType}} session is confirmed for {{date}} at {{time}}. Reply CONFIRM to acknowledge. - Studio37',
 'confirmations',
 '[{"name":"firstName","default":""},{"name":"sessionType","default":"photo"},{"name":"date","default":""},{"name":"time","default":""}]'::jsonb,
-120, 1),
+120, 1
+WHERE NOT EXISTS (SELECT 1 FROM sms_templates WHERE slug = 'appointment-confirmation');
 
-('Session Reminder 24h', 'session-reminder-24h',
+INSERT INTO sms_templates (name, slug, message_body, category, variables, character_count, estimated_segments)
+SELECT 'Session Reminder 24h', 'session-reminder-24h',
 'Reminder: Your photo session is tomorrow at {{time}}! Location: {{location}}. Reply with any questions. - Studio37',
 'reminders',
 '[{"name":"time","default":""},{"name":"location","default":"our studio"}]'::jsonb,
-110, 1),
+110, 1
+WHERE NOT EXISTS (SELECT 1 FROM sms_templates WHERE slug = 'session-reminder-24h');
 
-('Gallery Ready', 'gallery-ready',
+INSERT INTO sms_templates (name, slug, message_body, category, variables, character_count, estimated_segments)
+SELECT 'Gallery Ready', 'gallery-ready',
 '{{firstName}}, your photos are ready! 🎉 View your gallery: {{shortLink}} - Studio37',
 'delivery',
 '[{"name":"firstName","default":""},{"name":"shortLink","default":""}]'::jsonb,
-80, 1);
+80, 1
+WHERE NOT EXISTS (SELECT 1 FROM sms_templates WHERE slug = 'gallery-ready');
 
 -- =====================================================
 -- COMMENTS & DOCUMENTATION

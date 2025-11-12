@@ -6,8 +6,8 @@ type EmailTemplate = {
   id: string
   name?: string
   subject?: string
-  body_html?: string
-  body_text?: string
+  html_content?: string
+  text_content?: string
   updated_at?: string
 }
 
@@ -68,7 +68,7 @@ export default async function EmailTemplateEditor({ params }: { params: { id: st
             <h2 className="mb-3 text-lg font-medium">Preview</h2>
             <div className="rounded border bg-white p-3">
               {/* Basic preview; in the future, wire to a rich editor */}
-              <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: template.body_html || '<p>—</p>' }} />
+              <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: template.html_content || '<p>—</p>' }} />
             </div>
           </section>
         </div>
