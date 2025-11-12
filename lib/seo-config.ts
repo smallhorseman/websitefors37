@@ -14,7 +14,7 @@ export const businessInfo = {
   contact: {
     phone: '832-713-9944',
     email: 'sales@studio37.cc',
-    website: 'https://studio37.cc'
+    website: 'https://www.studio37.cc'
   },
   geo: {
     latitude: 30.1647,  // Approximate coordinates for Pinehurst, TX

@@ -7,7 +7,7 @@ export const revalidate = 3600
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co'
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-key'
-const baseUrl = businessInfo.contact.website
+const baseUrl = 'https://www.studio37.cc'
 
 // Priority levels for different content types
 const PRIORITIES = {
