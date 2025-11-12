@@ -17,6 +17,82 @@ const LeadSchema = z.object({
   source: z.string().optional().default('web-form')
 })
 
+/**
+ * Send auto-response email based on form type
+ * Determines template based on service_interest and source
+ */
+async function sendAutoResponseEmail(lead: any, payload: any) {
+  // Determine template slug based on context
+  let templateSlug = 'contact-form-confirmation'
+  
+  // If service interest suggests booking/quote, use booking template
+  const bookingKeywords = ['wedding', 'event', 'portrait', 'session', 'photoshoot', 'commercial']
+  const isBookingRequest = bookingKeywords.some(kw => 
+    payload.service_interest?.toLowerCase().includes(kw) ||
+    payload.message?.toLowerCase().includes(kw)
+  )
+  
+  if (isBookingRequest || payload.event_date) {
+    templateSlug = 'booking-request-confirmation'
+  }
+
+  // Get template ID from database
+  const { data: template } = await supabaseAdmin
+    .from('email_templates')
+    .select('id')
+    .eq('slug', templateSlug)
+    .eq('is_active', true)
+    .single()
+
+  if (!template) {
+    log.warn('Auto-response template not found', { slug: templateSlug })
+    return
+  }
+
+  // Split name into first/last
+  const nameParts = payload.name.split(' ')
+  const firstName = nameParts[0] || ''
+  const lastName = nameParts.slice(1).join(' ') || ''
+
+  // Prepare variables based on template type
+  const variables: Record<string, any> = {
+    firstName,
+    lastName,
+    email: payload.email,
+    phone: payload.phone || '',
+    message: payload.message,
+    submittedAt: new Date().toLocaleString()
+  }
+
+  if (templateSlug === 'booking-request-confirmation') {
+    variables.sessionType = payload.service_interest
+    variables.preferredDate = payload.event_date || 'To be determined'
+    variables.budget = payload.budget_range || 'Not specified'
+    variables.details = payload.message
+  }
+
+  // Send email via marketing API
+  await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'https://www.studio37.cc'}/api/marketing/email/send`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      to: payload.email,
+      subject: templateSlug === 'booking-request-confirmation' 
+        ? 'We Received Your Booking Request!' 
+        : 'Thanks for Contacting Studio37!',
+      templateId: template.id,
+      variables,
+      leadId: lead.id
+    })
+  })
+
+  log.info('Auto-response email sent', { 
+    leadId: lead.id, 
+    email: payload.email, 
+    template: templateSlug 
+  })
+}
+
 export async function POST(req: NextRequest) {
   try {
     // Rate limit: 5 form posts per 5 minutes per IP
@@ -43,7 +119,8 @@ export async function POST(req: NextRequest) {
 
     const payload = parsed.data
 
-    const { error } = await supabaseAdmin.from('leads').insert([
+    // Insert the lead
+    const { data: insertedLead, error } = await supabaseAdmin.from('leads').insert([
       {
         name: payload.name,
         email: payload.email,
@@ -56,11 +133,18 @@ export async function POST(req: NextRequest) {
         source: payload.source || 'web-form'
       }
     ])
+      .select()
+      .single()
 
     if (error) {
       log.error('Lead insert error', { email: payload.email, service: payload.service_interest }, error)
       return NextResponse.json({ error: 'Failed to submit lead' }, { status: 500 })
     }
+
+    // Send auto-response email (fire and forget - don't block response)
+    sendAutoResponseEmail(insertedLead, payload).catch(err => {
+      log.error('Auto-response email failed', { leadId: insertedLead.id }, err)
+    })
 
     return NextResponse.json({ success: true })
   } catch (e: any) {

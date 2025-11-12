@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { createClient } from '@/lib/supabase'
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { MessageSquare, Send, Search, Archive, Tag, Phone, User } from 'lucide-react'
 
 interface Conversation {
@@ -26,7 +26,7 @@ interface Message {
 }
 
 export default function InboxPage() {
-  const supabase = createClient()
+  const supabase = createClientComponentClient()
   const [conversations, setConversations] = useState<Conversation[]>([])
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null)
   const [messages, setMessages] = useState<Message[]>([])
