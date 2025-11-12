@@ -3,6 +3,7 @@ import { Resend } from "resend";
 import { supabase } from "@/lib/supabase";
 import { createLogger } from "@/lib/logger";
 import { getClientIp, rateLimit } from "@/lib/rateLimit";
+import { renderEmailTemplate, hasReactEmailTemplate, renderHtmlTemplate } from "@/lib/emailRenderer";
 
 const log = createLogger("api/marketing/email/send");
 
@@ -82,9 +83,17 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      // Replace variables in template
-      emailHtml = renderTemplate(template.html_content, variables);
-      emailText = renderTemplate(template.text_content || "", variables);
+      // Try React Email rendering first, fallback to simple substitution
+      if (hasReactEmailTemplate(template.slug)) {
+        log.info(`Rendering with React Email: ${template.slug}`)
+        emailHtml = await renderEmailTemplate(template.slug, variables)
+        // React Email generates both HTML and plain text automatically
+      } else {
+        log.info(`Rendering with simple substitution: ${template.slug}`)
+        // Fallback: simple variable substitution
+        emailHtml = renderHtmlTemplate(template.html_content, variables)
+        emailText = renderHtmlTemplate(template.text_content || "", variables)
+      }
     }
 
     if (!emailHtml && !emailText) {
@@ -184,16 +193,6 @@ export async function POST(req: NextRequest) {
       { status: 500 }
     );
   }
-}
-
-// Helper: Replace {{variables}} in template
-function renderTemplate(template: string, variables: Record<string, any>): string {
-  let result = template;
-  Object.entries(variables).forEach(([key, value]) => {
-    const regex = new RegExp(`{{\\s*${key}\\s*}}`, "g");
-    result = result.replace(regex, String(value || ""));
-  });
-  return result;
 }
 
 // Helper: Track campaign send in database

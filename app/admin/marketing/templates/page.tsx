@@ -1,7 +1,8 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
-import { Plus, Mail, MessageSquare, Loader2, Edit, Trash2, Save, X } from 'lucide-react'
+import { Plus, Mail, MessageSquare, Loader2, Edit, Trash2, Save, X, Eye } from 'lucide-react'
+import Link from 'next/link'
 
 type Template = any & { type: 'email' | 'sms' }
 
@@ -187,7 +188,12 @@ export default function TemplatesPage() {
                 </div>
                 <div className="flex flex-col gap-2 ml-4">
                   {editId!==tpl.id && (
-                    <button onClick={()=>startEdit(tpl)} className="border border-gray-300 text-gray-700 px-3 py-1 rounded hover:bg-gray-50 flex items-center gap-1 text-sm"><Edit className="h-4 w-4" /> Edit</button>
+                    <>
+                      <button onClick={()=>startEdit(tpl)} className="border border-gray-300 text-gray-700 px-3 py-1 rounded hover:bg-gray-50 flex items-center gap-1 text-sm"><Edit className="h-4 w-4" /> Edit</button>
+                      {tpl.type === 'email' && (
+                        <Link href={`/admin/marketing/preview?templateId=${tpl.id}`} className="border border-amber-300 text-amber-700 px-3 py-1 rounded hover:bg-amber-50 flex items-center gap-1 text-sm text-center"><Eye className="h-4 w-4" /> Preview</Link>
+                      )}
+                    </>
                   )}
                   <button onClick={()=>deleteTemplate(tpl.id)} className="border border-red-300 text-red-600 px-3 py-1 rounded hover:bg-red-50 flex items-center gap-1 text-sm"><Trash2 className="h-4 w-4" /> Delete</button>
                 </div>
