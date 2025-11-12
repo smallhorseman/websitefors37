@@ -215,6 +215,158 @@ export interface GalleryHighlightItem {
   created_at: string
 }
 
+// Marketing & Client Portal Types
+export interface EmailTemplate {
+  id: string
+  name: string
+  slug: string
+  subject: string
+  html_content: string
+  text_content?: string
+  category: string
+  variables?: Record<string, any>
+  is_active: boolean
+  preview_text?: string
+  created_by?: string
+  created_at: string
+  updated_at: string
+}
+
+export interface EmailCampaign {
+  id: string
+  name: string
+  template_id?: string
+  subject: string
+  html_content: string
+  text_content?: string
+  status: 'draft' | 'scheduled' | 'sending' | 'sent' | 'paused' | 'cancelled'
+  target_type: 'all' | 'segment' | 'individual'
+  target_criteria?: Record<string, any>
+  recipient_ids?: string[]
+  scheduled_at?: string
+  sent_at?: string
+  total_recipients: number
+  total_sent: number
+  total_delivered: number
+  total_opened: number
+  total_clicked: number
+  total_bounced: number
+  total_unsubscribed: number
+  from_name?: string
+  from_email?: string
+  reply_to?: string
+  tags?: string[]
+  notes?: string
+  created_by?: string
+  created_at: string
+  updated_at: string
+}
+
+export interface SMSCampaign {
+  id: string
+  name: string
+  template_id?: string
+  message_body: string
+  status: 'draft' | 'scheduled' | 'sending' | 'sent' | 'paused' | 'cancelled'
+  target_type: 'all' | 'segment' | 'individual'
+  target_criteria?: Record<string, any>
+  recipient_ids?: string[]
+  scheduled_at?: string
+  sent_at?: string
+  total_recipients: number
+  total_sent: number
+  total_delivered: number
+  total_failed: number
+  total_clicked: number
+  total_replied: number
+  from_number?: string
+  estimated_cost_cents?: number
+  actual_cost_cents?: number
+  tags?: string[]
+  notes?: string
+  created_by?: string
+  created_at: string
+  updated_at: string
+}
+
+export interface ClientPortalUser {
+  id: string
+  lead_id?: string
+  email: string
+  first_name?: string
+  last_name?: string
+  phone?: string
+  avatar_url?: string
+  is_active: boolean
+  email_verified: boolean
+  preferences?: Record<string, any>
+  last_login_at?: string
+  login_count: number
+  created_at: string
+  updated_at: string
+}
+
+export interface ClientProject {
+  id: string
+  client_user_id: string
+  appointment_id?: string
+  name: string
+  type: string
+  description?: string
+  status: 'pending' | 'scheduled' | 'in-progress' | 'review' | 'completed' | 'delivered' | 'archived'
+  session_date?: string
+  due_date?: string
+  completed_at?: string
+  package_name?: string
+  total_amount_cents?: number
+  paid_amount_cents: number
+  payment_status: 'pending' | 'partial' | 'paid' | 'refunded'
+  gallery_id?: string
+  file_urls?: any[]
+  cover_image_url?: string
+  metadata?: Record<string, any>
+  tags?: string[]
+  notes?: string
+  created_by?: string
+  created_at: string
+  updated_at: string
+}
+
+export interface ClientMessage {
+  id: string
+  project_id?: string
+  client_user_id: string
+  subject?: string
+  message_body: string
+  message_type: 'message' | 'notification' | 'approval-request' | 'system'
+  sender_type: 'client' | 'admin' | 'system'
+  sender_id?: string
+  sender_name?: string
+  attachments?: any[]
+  is_read: boolean
+  read_at?: string
+  is_starred: boolean
+  parent_message_id?: string
+  thread_id?: string
+  created_at: string
+  updated_at: string
+}
+
+export interface MarketingPreferences {
+  id: string
+  lead_id?: string
+  email: string
+  email_marketing: boolean
+  sms_marketing: boolean
+  promotional_emails: boolean
+  transactional_emails: boolean
+  newsletter: boolean
+  unsubscribed_at?: string
+  unsubscribe_reason?: string
+  created_at: string
+  updated_at: string
+}
+
 // Utility function for paginated data
 export async function getPaginatedData<T>(
   table: string,
