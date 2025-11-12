@@ -37,161 +37,175 @@ export default function BookingRequestConfirmationEmail({
   return (
     <Html>
       <Head />
-      <Preview>Your booking request is being reviewed - Studio37</Preview>
+      <Preview>We received your booking request - Studio37 will respond within 24 hours</Preview>
       <Body style={main}>
         <Container style={container}>
-          <div style={header}>
+          {/* Header */}
+          <Section style={header}>
             <Heading style={h1}>Booking Request Received! 🎉</Heading>
-          </div>
+          </Section>
           
-          <Text style={text}>
-            Hi {firstName},
-          </Text>
-
-          <Text style={text}>
-            Exciting! We've received your {sessionType} booking request. Our team is reviewing the details and will send you a custom quote within 24 hours.
-          </Text>
-
-          <Section style={requestBox}>
-            <Heading as="h2" style={h2}>Your Request Summary</Heading>
-            
-            <table style={{width: '100%', borderCollapse: 'collapse' as const}}>
-              <tbody>
-                <tr>
-                  <td style={label}>Service:</td>
-                  <td style={{...value, textAlign: 'right' as const}}>{sessionType}</td>
-                </tr>
-              </tbody>
-            </table>
-            
-            {preferredDate && (
-              <table style={{width: '100%', marginTop: '10px', borderCollapse: 'collapse' as const}}>
-                <tbody>
-                  <tr>
-                    <td style={label}>Preferred Date:</td>
-                    <td style={{...value, textAlign: 'right' as const}}>{preferredDate}</td>
-                  </tr>
-                </tbody>
-              </table>
-            )}
-            
-            {guestCount && (
-              <table style={{width: '100%', marginTop: '10px', borderCollapse: 'collapse' as const}}>
-                <tbody>
-                  <tr>
-                    <td style={label}>Guest Count:</td>
-                    <td style={{...value, textAlign: 'right' as const}}>{guestCount}</td>
-                  </tr>
-                </tbody>
-              </table>
-            )}
-            
-            {budget && (
-              <table style={{width: '100%', marginTop: '10px', borderCollapse: 'collapse' as const}}>
-                <tbody>
-                  <tr>
-                    <td style={label}>Budget Range:</td>
-                    <td style={{...value, textAlign: 'right' as const}}>${budget}</td>
-                  </tr>
-                </tbody>
-              </table>
-            )}
-
-            <div style={contactInfo}>
-              <Text style={contactText}>
-                <strong>Contact:</strong><br />
-                {email}<br />
-                {phone}
-              </Text>
-            </div>
-
-            {details && (
-              <div style={notesSection}>
-                <Text style={notesLabel}>Additional Details:</Text>
-                <Text style={notesText}>{details}</Text>
-              </div>
-            )}
-          </Section>
-
-          <Section style={nextStepsSection}>
-            <Heading as="h3" style={h3}>What Happens Next?</Heading>
-            <table style={{width: '100%', marginTop: '20px', borderCollapse: 'collapse' as const}}>
-              <tbody>
-                <tr>
-                  <td style={{verticalAlign: 'top', paddingBottom: '20px'}}>
-                    <table style={{width: '100%'}}>
-                      <tbody>
-                        <tr>
-                          <td style={{width: '50px', verticalAlign: 'top', paddingRight: '16px'}}>
-                            <div style={stepNumber}>1</div>
-                          </td>
-                          <td style={{verticalAlign: 'top'}}>
-                            <Text style={stepTitle}>Within 24 Hours</Text>
-                            <Text style={stepDesc}>We'll email you a personalized quote with package options</Text>
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </td>
-                </tr>
-                <tr>
-                  <td style={{verticalAlign: 'top', paddingBottom: '20px'}}>
-                    <table style={{width: '100%'}}>
-                      <tbody>
-                        <tr>
-                          <td style={{width: '50px', verticalAlign: 'top', paddingRight: '16px'}}>
-                            <div style={stepNumber}>2</div>
-                          </td>
-                          <td style={{verticalAlign: 'top'}}>
-                            <Text style={stepTitle}>Consultation Call</Text>
-                            <Text style={stepDesc}>We'll schedule a quick call to discuss your vision</Text>
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </td>
-                </tr>
-                <tr>
-                  <td style={{verticalAlign: 'top'}}>
-                    <table style={{width: '100%'}}>
-                      <tbody>
-                        <tr>
-                          <td style={{width: '50px', verticalAlign: 'top', paddingRight: '16px'}}>
-                            <div style={stepNumber}>3</div>
-                          </td>
-                          <td style={{verticalAlign: 'top'}}>
-                            <Text style={stepTitle}>Book Your Date</Text>
-                            <Text style={stepDesc}>Reserve your session with a deposit</Text>
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </Section>
-
-          <div style={ctaContainer}>
-            <Link href="https://www.studio37.cc/gallery" style={button}>
-              View Our Portfolio
-            </Link>
-          </div>
-
-          <Section style={urgentBox}>
-            <Text style={urgentText}>
-              <strong>Date almost booked?</strong> Call us for immediate availability:<br />
-              <Link href="tel:8327139944" style={phoneLink}>832-713-9944</Link>
+          {/* Greeting */}
+          <Section style={section}>
+            <Text style={greeting}>Hi {firstName},</Text>
+            <Text style={paragraph}>
+              Thank you for choosing Studio37! We've received your <strong>{sessionType}</strong> booking request and our team is excited to work with you.
             </Text>
           </Section>
 
-          <Hr style={hr} />
+          {/* Summary Box */}
+          <Section style={summaryBox}>
+            <Heading as="h2" style={h2}>📋 Your Request Summary</Heading>
+            
+            <table width="100%" style={detailsTable}>
+              <tbody>
+                <tr>
+                  <td style={detailLabel}>Service</td>
+                  <td style={detailValue}>{sessionType}</td>
+                </tr>
+                {preferredDate && (
+                  <tr>
+                    <td style={detailLabel}>Preferred Date</td>
+                    <td style={detailValue}>{preferredDate}</td>
+                  </tr>
+                )}
+                {budget && (
+                  <tr>
+                    <td style={detailLabel}>Budget Range</td>
+                    <td style={detailValue}>${budget}</td>
+                  </tr>
+                )}
+                {guestCount && (
+                  <tr>
+                    <td style={detailLabel}>Guest Count</td>
+                    <td style={detailValue}>{guestCount}</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
 
+            <Hr style={divider} />
+
+            <table width="100%" style={{marginTop: '16px'}}>
+              <tbody>
+                <tr>
+                  <td>
+                    <Text style={contactLabel}>Your Contact Info:</Text>
+                    <Text style={contactDetail}>{email}</Text>
+                    <Text style={contactDetail}>{phone}</Text>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+
+            {details && (
+              <>
+                <Hr style={divider} />
+                <Text style={notesLabel}>Additional Details:</Text>
+                <Text style={notesText}>{details}</Text>
+              </>
+            )}
+          </Section>
+
+          {/* Next Steps */}
+          <Section style={section}>
+            <Heading as="h2" style={h2}>⏱️ What Happens Next?</Heading>
+            
+            <table width="100%" style={{marginTop: '24px'}}>
+              <tbody>
+                <tr>
+                  <td style={{paddingBottom: '20px'}}>
+                    <table width="100%">
+                      <tbody>
+                        <tr>
+                          <td width="60" style={{verticalAlign: 'top', paddingRight: '16px'}}>
+                            <div style={stepBadge}>
+                              <Text style={stepNumber}>1</Text>
+                            </div>
+                          </td>
+                          <td style={{verticalAlign: 'top'}}>
+                            <Text style={stepTitle}>Within 24 Hours</Text>
+                            <Text style={stepDescription}>
+                              We'll email you a personalized quote with detailed package options tailored to your needs.
+                            </Text>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </td>
+                </tr>
+                <tr>
+                  <td style={{paddingBottom: '20px'}}>
+                    <table width="100%">
+                      <tbody>
+                        <tr>
+                          <td width="60" style={{verticalAlign: 'top', paddingRight: '16px'}}>
+                            <div style={stepBadge}>
+                              <Text style={stepNumber}>2</Text>
+                            </div>
+                          </td>
+                          <td style={{verticalAlign: 'top'}}>
+                            <Text style={stepTitle}>Consultation Call</Text>
+                            <Text style={stepDescription}>
+                              We'll schedule a quick call to discuss your vision, answer questions, and ensure we capture your perfect moments.
+                            </Text>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <table width="100%">
+                      <tbody>
+                        <tr>
+                          <td width="60" style={{verticalAlign: 'top', paddingRight: '16px'}}>
+                            <div style={stepBadge}>
+                              <Text style={stepNumber}>3</Text>
+                            </div>
+                          </td>
+                          <td style={{verticalAlign: 'top'}}>
+                            <Text style={stepTitle}>Secure Your Date</Text>
+                            <Text style={stepDescription}>
+                              Reserve your session with a deposit and we'll start planning your perfect shoot!
+                            </Text>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </Section>
+
+          {/* CTA */}
+          <Section style={{textAlign: 'center' as const, margin: '40px 0'}}>
+            <Link href="https://www.studio37.cc/gallery" style={primaryButton}>
+              View Our Portfolio
+            </Link>
+          </Section>
+
+          {/* Urgent Contact */}
+          <Section style={urgentBox}>
+            <Text style={{margin: 0, fontSize: '15px', color: '#991b1b', textAlign: 'center' as const}}>
+              <strong>Need immediate assistance?</strong>
+            </Text>
+            <Text style={{margin: '8px 0 0 0', fontSize: '14px', color: '#374151', textAlign: 'center' as const}}>
+              Call us directly at <Link href="tel:8327139944" style={phoneLink}>832-713-9944</Link>
+            </Text>
+          </Section>
+
+          {/* Footer */}
+          <Hr style={{borderColor: '#e5e7eb', margin: '40px 0'}} />
+          
           <Text style={footer}>
-            Studio37 Photography<br />
+            <strong>Studio37 Photography</strong><br />
             1701 Goodson Loop Unit 80, Pinehurst, TX 77362<br />
-            <Link href="https://www.studio37.cc">www.studio37.cc</Link> |{' '}
-            <Link href="mailto:sales@studio37.cc">sales@studio37.cc</Link>
+            <Link href="https://www.studio37.cc" style={footerLink}>www.studio37.cc</Link> • {' '}
+            <Link href="mailto:sales@studio37.cc" style={footerLink}>sales@studio37.cc</Link> • {' '}
+            <Link href="tel:8327139944" style={footerLink}>832-713-9944</Link>
           </Text>
         </Container>
       </Body>
@@ -200,208 +214,195 @@ export default function BookingRequestConfirmationEmail({
 }
 
 const main = {
-  backgroundColor: '#f6f9fc',
+  backgroundColor: '#f9fafb',
   fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Ubuntu,sans-serif',
 }
 
 const container = {
   backgroundColor: '#ffffff',
   margin: '0 auto',
-  padding: '20px 0 48px',
-  marginBottom: '64px',
+  padding: '0',
   maxWidth: '600px',
+  border: '1px solid #e5e7eb',
 }
 
 const header = {
   background: 'linear-gradient(135deg, #b46e14 0%, #d97706 100%)',
-  padding: '24px 40px',
+  padding: '40px 24px',
   textAlign: 'center' as const,
+}
+
+const section = {
+  padding: '0 32px',
+  margin: '32px 0',
 }
 
 const h1 = {
   color: '#ffffff',
-  fontSize: '28px',
+  fontSize: '32px',
   fontWeight: '700',
   margin: '0',
+  lineHeight: '1.2',
 }
 
 const h2 = {
-  color: '#1f2937',
+  color: '#111827',
   fontSize: '20px',
+  fontWeight: '700',
+  margin: '0 0 20px 0',
+}
+
+const greeting = {
+  color: '#111827',
+  fontSize: '18px',
   fontWeight: '600',
   margin: '0 0 16px 0',
 }
 
-const h3 = {
-  color: '#1f2937',
-  fontSize: '18px',
-  fontWeight: '600',
-  margin: '0 0 20px 0',
-}
-
-const text = {
-  color: '#374151',
+const paragraph = {
+  color: '#4b5563',
   fontSize: '16px',
-  lineHeight: '26px',
-  padding: '0 40px',
-  margin: '16px 0',
-}
-
-const requestBox = {
-  backgroundColor: '#fef3c7',
-  border: '2px solid #f59e0b',
-  borderRadius: '8px',
-  padding: '24px',
-  margin: '24px 40px',
-}
-
-const detailRow = {
-  display: 'flex',
-  justifyContent: 'space-between',
-  marginBottom: '10px',
-  fontSize: '15px',
-}
-
-const label = {
-  color: '#6b7280',
-  fontWeight: '500',
-}
-
-const value = {
-  color: '#1f2937',
-  fontWeight: '600',
-}
-
-const contactInfo = {
-  marginTop: '16px',
-  paddingTop: '16px',
-  borderTop: '1px solid #fbbf24',
-}
-
-const contactText = {
-  color: '#374151',
-  fontSize: '14px',
+  lineHeight: '24px',
   margin: '0',
 }
 
-const notesSection = {
-  marginTop: '16px',
-  paddingTop: '16px',
-  borderTop: '1px solid #fbbf24',
+const summaryBox = {
+  backgroundColor: '#fffbeb',
+  border: '2px solid #fbbf24',
+  borderRadius: '12px',
+  padding: '28px',
+  margin: '32px',
+}
+
+const detailsTable = {
+  width: '100%',
+  borderCollapse: 'collapse' as const,
+  marginBottom: '8px',
+}
+
+const detailLabel = {
+  color: '#6b7280',
+  fontSize: '14px',
+  fontWeight: '500',
+  padding: '8px 0',
+  textAlign: 'left' as const,
+}
+
+const detailValue = {
+  color: '#111827',
+  fontSize: '16px',
+  fontWeight: '600',
+  padding: '8px 0',
+  textAlign: 'right' as const,
+}
+
+const divider = {
+  borderColor: '#fbbf24',
+  borderWidth: '1px',
+  margin: '16px 0',
+}
+
+const contactLabel = {
+  color: '#6b7280',
+  fontSize: '13px',
+  fontWeight: '600',
+  textTransform: 'uppercase' as const,
+  letterSpacing: '0.5px',
+  margin: '0 0 8px 0',
+}
+
+const contactDetail = {
+  color: '#374151',
+  fontSize: '15px',
+  margin: '4px 0',
 }
 
 const notesLabel = {
   color: '#6b7280',
   fontSize: '13px',
   fontWeight: '600',
-  margin: '0 0 8px 0',
+  textTransform: 'uppercase' as const,
+  letterSpacing: '0.5px',
+  margin: '16px 0 8px 0',
 }
 
 const notesText = {
   color: '#374151',
   fontSize: '14px',
-  lineHeight: '20px',
+  lineHeight: '22px',
   margin: '0',
   whiteSpace: 'pre-wrap' as const,
 }
 
-const nextStepsSection = {
-  padding: '0 40px',
-  margin: '32px 0',
-}
-
-const timeline = {
-  marginTop: '20px',
-}
-
-const timelineItem = {
-  display: 'flex',
-  gap: '16px',
-  marginBottom: '20px',
-  alignItems: 'flex-start',
+const stepBadge = {
+  width: '48px',
+  height: '48px',
+  borderRadius: '50%',
+  backgroundColor: '#b46e14',
+  display: 'inline-block',
+  textAlign: 'center' as const,
 }
 
 const stepNumber = {
-  width: '36px',
-  height: '36px',
-  borderRadius: '50%',
-  backgroundColor: '#b46e14',
   color: '#ffffff',
-  fontSize: '18px',
-  fontWeight: 'bold',
-  display: 'inline-block',
-  lineHeight: '36px',
-  textAlign: 'center' as const,
-}
-
-const stepContent = {
-  flex: '1',
-}
-
-const stepTitle = {
-  color: '#1f2937',
-  fontSize: '15px',
-  fontWeight: '600',
-  margin: '0 0 4px 0',
-}
-
-const stepDesc = {
-  color: '#6b7280',
-  fontSize: '14px',
-  lineHeight: '20px',
+  fontSize: '24px',
+  fontWeight: '700',
+  lineHeight: '48px',
   margin: '0',
 }
 
-const ctaContainer = {
-  textAlign: 'center' as const,
-  margin: '32px 0',
+const stepTitle = {
+  color: '#111827',
+  fontSize: '16px',
+  fontWeight: '700',
+  margin: '0 0 6px 0',
 }
 
-const button = {
+const stepDescription = {
+  color: '#6b7280',
+  fontSize: '14px',
+  lineHeight: '22px',
+  margin: '0',
+}
+
+const primaryButton = {
   backgroundColor: '#b46e14',
-  borderRadius: '6px',
-  color: '#fff',
+  borderRadius: '8px',
+  color: '#ffffff',
   fontSize: '16px',
-  fontWeight: 'bold',
+  fontWeight: '700',
   textDecoration: 'none',
   textAlign: 'center' as const,
   display: 'inline-block',
-  padding: '14px 32px',
+  padding: '16px 40px',
   border: 'none',
 }
 
 const urgentBox = {
-  backgroundColor: '#fee2e2',
-  border: '1px solid #ef4444',
-  borderRadius: '6px',
-  padding: '16px',
-  margin: '24px 40px',
-  textAlign: 'center' as const,
-}
-
-const urgentText = {
-  color: '#1f2937',
-  fontSize: '14px',
-  margin: '0',
+  backgroundColor: '#fef2f2',
+  border: '1px solid #fecaca',
+  borderRadius: '8px',
+  padding: '20px',
+  margin: '32px',
 }
 
 const phoneLink = {
   color: '#dc2626',
-  fontSize: '18px',
+  fontSize: '16px',
   fontWeight: '700',
   textDecoration: 'none',
 }
 
-const hr = {
-  borderColor: '#e5e7eb',
-  margin: '32px 40px',
+const footer = {
+  color: '#9ca3af',
+  fontSize: '13px',
+  lineHeight: '20px',
+  textAlign: 'center' as const,
+  padding: '0 32px 32px',
+  margin: '0',
 }
 
-const footer = {
+const footerLink = {
   color: '#6b7280',
-  fontSize: '12px',
-  lineHeight: '20px',
-  padding: '0 40px',
-  textAlign: 'center' as const,
-  marginTop: '32px',
+  textDecoration: 'none',
 }
