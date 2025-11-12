@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
-import { supabase } from "@/lib/supabase";
+import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { createLogger } from "@/lib/logger";
 import { getClientIp, rateLimit } from "@/lib/rateLimit";
 import { renderEmailTemplate, hasReactEmailTemplate, renderHtmlTemplate } from "@/lib/emailRenderer";
@@ -70,13 +70,14 @@ export async function POST(req: NextRequest) {
 
     // If template ID provided, fetch and render template
     if (templateId) {
-      const { data: template, error: templateError } = await supabase
+      const { data: template, error: templateError } = await supabaseAdmin
         .from("email_templates")
         .select("*")
         .eq("id", templateId)
         .single();
 
       if (templateError || !template) {
+        log.error("Template fetch failed", { templateId, error: templateError });
         return NextResponse.json(
           { error: "Template not found" },
           { status: 404 }
@@ -216,7 +217,7 @@ async function trackCampaignSend(
       ...(status === "sent" && { sent_at: new Date().toISOString() }),
     };
 
-    await supabase.from("email_campaign_sends").insert(sendData);
+    await supabaseAdmin.from("email_campaign_sends").insert(sendData);
 
     // Update campaign totals
     const updateField =
@@ -227,7 +228,7 @@ async function trackCampaignSend(
         : null;
 
     if (updateField) {
-      await supabase.rpc("increment_campaign_stat", {
+      await supabaseAdmin.rpc("increment_campaign_stat", {
         campaign_id: campaignId,
         stat_field: updateField,
       });
