@@ -47,43 +47,21 @@ export default function NewsletterWelcomeEmail({
 
           <Section style={highlightBox}>
             <Text style={highlightTitle}>✨ What to Expect</Text>
-            <table style={{width: '100%', borderSpacing: 0}}>
-              <tr>
-                <td>
-                  <Text style={{...text, padding: '4px 0', margin: 0}}>
-                    <strong>Exclusive Photography Tips</strong> – Master lighting, posing, and composition
-                  </Text>
-                </td>
-              </tr>
-              <tr>
-                <td>
-                  <Text style={{...text, padding: '4px 0', margin: 0}}>
-                    <strong>Behind-the-Scenes Stories</strong> – See how we create stunning images
-                  </Text>
-                </td>
-              </tr>
-              <tr>
-                <td>
-                  <Text style={{...text, padding: '4px 0', margin: 0}}>
-                    <strong>Special Offers & Discounts</strong> – Newsletter-only deals just for you
-                  </Text>
-                </td>
-              </tr>
-              <tr>
-                <td>
-                  <Text style={{...text, padding: '4px 0', margin: 0}}>
-                    <strong>New Gallery Showcases</strong> – First look at our latest work
-                  </Text>
-                </td>
-              </tr>
-              <tr>
-                <td>
-                  <Text style={{...text, padding: '4px 0', margin: 0}}>
-                    <strong>Photography Trends & Inspiration</strong> – Stay ahead of the curve
-                  </Text>
-                </td>
-              </tr>
-            </table>
+            <Text style={{...text, padding: '8px 0', margin: 0, textAlign: 'left' as const}}>
+              <strong>Exclusive Photography Tips</strong> – Master lighting, posing, and composition
+            </Text>
+            <Text style={{...text, padding: '8px 0', margin: 0, textAlign: 'left' as const}}>
+              <strong>Behind-the-Scenes Stories</strong> – See how we create stunning images
+            </Text>
+            <Text style={{...text, padding: '8px 0', margin: 0, textAlign: 'left' as const}}>
+              <strong>Special Offers & Discounts</strong> – Newsletter-only deals just for you
+            </Text>
+            <Text style={{...text, padding: '8px 0', margin: 0, textAlign: 'left' as const}}>
+              <strong>New Gallery Showcases</strong> – First look at our latest work
+            </Text>
+            <Text style={{...text, padding: '8px 0', margin: 0, textAlign: 'left' as const}}>
+              <strong>Photography Trends & Inspiration</strong> – Stay ahead of the curve
+            </Text>
           </Section>
 
           <Section style={frequencyBox}>
@@ -97,19 +75,19 @@ export default function NewsletterWelcomeEmail({
             <Text style={socialText}>
               Get daily inspiration and see our latest work:
             </Text>
-            <table style={{width: '100%', margin: '16px auto', maxWidth: '400px'}}>
+            <table align="center" style={{margin: '16px auto 0'}}>
               <tr>
-                <td align="center" style={{padding: '6px'}}>
+                <td style={{padding: '0 6px'}}>
                   <Link href="https://www.instagram.com/studio37photography" style={socialButton}>
                     📷 Instagram
                   </Link>
                 </td>
-                <td align="center" style={{padding: '6px'}}>
+                <td style={{padding: '0 6px'}}>
                   <Link href="https://www.facebook.com/studio37photography" style={socialButton}>
                     📘 Facebook
                   </Link>
                 </td>
-                <td align="center" style={{padding: '6px'}}>
+                <td style={{padding: '0 6px'}}>
                   <Link href="https://www.pinterest.com/studio37photography" style={socialButton}>
                     📌 Pinterest
                   </Link>
