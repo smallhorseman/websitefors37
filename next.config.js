@@ -82,18 +82,7 @@ const nextConfig = {
     optimizePackageImports: ['lucide-react', 'react-hot-toast', '@supabase/auth-helpers-nextjs'], // Tree-shake large packages (framer-motion removed - now only in dynamic imports)
   },
   async redirects() {
-    return [
-      {
-        source: "/portfolio",
-        destination: "/gallery",
-        permanent: true,
-      },
-      {
-        source: "/portfolio/:path*",
-        destination: "/gallery/:path*",
-        permanent: true,
-      },
-    ];
+    return [];
   },
   // Headers for performance and security
   async headers() {

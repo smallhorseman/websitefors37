@@ -84,12 +84,12 @@ JSON Schema:
       } 
     },
     
-    // TEXT - Rich introductory content
+    // TEXT - Rich introductory content (ALWAYS USE HTML TAGS)
     { 
       "id": "unique-id", 
       "type": "text", 
       "data": { 
-        "content": "<p>Write engaging, benefit-focused copy. Use 2-3 paragraphs. Include emotional appeal and value props.</p><p>Second paragraph builds credibility and shows expertise.</p>", 
+        "content": "<h2>Section Heading</h2><p>Write engaging, benefit-focused copy. Use 2-3 paragraphs. Include emotional appeal and value props. ALWAYS wrap text in proper HTML tags: <p> for paragraphs, <h2>/<h3> for headings, <strong> for emphasis, <ul><li> for lists.</p><p>Second paragraph builds credibility and shows expertise. Never use plain text or markdown - ONLY HTML.</p>", 
         "alignment": "center", 
         "size": "md" 
       } 
@@ -185,12 +185,12 @@ JSON Schema:
       } 
     },
     
-    // TEXT - Additional value/trust section
+    // TEXT - Additional value/trust section (ALWAYS USE HTML)
     { 
       "id": "unique-id", 
       "type": "text", 
       "data": { 
-        "content": "<h2>Why Choose Studio37?</h2><p>Write compelling reasons, unique differentiators, awards, experience, or guarantees.</p>", 
+        "content": "<h2>Why Choose Studio37?</h2><p>Write compelling reasons, unique differentiators, awards, experience, or guarantees. Use proper HTML formatting with <p> tags for paragraphs, <strong> for emphasis, and <ul><li> for bullet lists if needed.</p>", 
         "alignment": "left", 
         "size": "md" 
       } 
@@ -220,12 +220,12 @@ JSON Schema:
       } 
     },
     
-    // SEO FOOTER - Local SEO boost
+    // SEO FOOTER - Local SEO boost (HTML FORMATTED)
     { 
       "id": "unique-id", 
       "type": "seoFooter", 
       "data": { 
-        "content": "**Studio37 Photography – Pinehurst, TX**\\n\\nWrite 2-3 paragraphs with local keywords, service areas, specialties. Include nearby cities served.", 
+        "content": "<p><strong>Studio37 Photography – Pinehurst, TX</strong></p><p>Write 2-3 paragraphs with local keywords, service areas, specialties. Include nearby cities served. Use HTML tags: <p> for paragraphs, <strong> for business name/location, <a href='/contact'> for links if relevant.</p>", 
         "includeSchema": true 
       } 
     }
@@ -235,6 +235,14 @@ JSON Schema:
 CONTENT WRITING GUIDELINES:
 - Writing tone: ${style || "friendly, premium, trustworthy"}
 - Target total word count: ${wordCount || 650}-1000 words across all text/description fields
+- **CRITICAL: ALL text content MUST use proper HTML formatting**
+  - Use <p> tags for paragraphs
+  - Use <h2>, <h3>, <h4> for headings
+  - Use <strong> or <em> for emphasis
+  - Use <ul><li> for unordered lists, <ol><li> for ordered lists
+  - Use <a href="/link"> for internal links
+  - NEVER use markdown syntax (**, ##, -, etc.)
+  - NEVER use plain text without HTML tags
 - Use benefit-focused language, not feature lists
 - Include specific details, numbers, and outcomes
 - Write for the target audience mentioned in the brief
