@@ -93,41 +93,85 @@ export async function POST(req: Request) {
     }
 
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
-    // Build prompt with custom training data
+    const model = genAI.getGenerativeModel({
+      model: "gemini-2.0-flash-exp",
+      generationConfig: {
+        temperature: 0.8,
+        topP: 0.95,
+        topK: 40,
+        maxOutputTokens: 2048,
+      },
+    });
+
+    // Build comprehensive prompt with custom training data
     const systemInstructions =
       chatbotSettings?.system_instructions ||
-      "You are a friendly customer service assistant for Studio37 Photography in Pinehurst, TX.";
+      "You are an expert customer service assistant for Studio37 Photography in Pinehurst, TX.";
 
-    const personality = chatbotSettings?.personality || "friendly";
-    const tone = chatbotSettings?.tone || "professional";
+    const personality = chatbotSettings?.personality || "warm and professional";
+    const tone = chatbotSettings?.tone || "conversational";
 
     // Format training examples for context
     const trainingContext =
       trainingExamples.length > 0
-        ? `\n\nTrained Q&A Examples:\n${trainingExamples
-            .map((ex) => `Q: ${ex.question}\nA: ${ex.answer}`)
+        ? `\n\n### Trained Q&A Knowledge Base:\n${trainingExamples
+            .map((ex) => `**Q:** ${ex.question}\n**A:** ${ex.answer}\n**Category:** ${ex.category || 'general'}`)
             .join("\n\n")}`
         : "";
 
     const prompt = `${systemInstructions}
 
-Personality: ${personality}
-Tone: ${tone}
+## Your Role
+You are the AI assistant for Studio37 Photography, a professional photography studio in Pinehurst, TX specializing in weddings, portraits, events, and commercial work. Your goal is to provide helpful information, qualify leads, and guide potential clients toward booking.
 
-Services: Wedding, Portrait, Event, Commercial, Headshot photography
-Packages: $800-$5000+ depending on service
+## Personality & Tone
+- **Personality:** ${personality}
+- **Tone:** ${tone}
+- **Style:** Engaging, knowledgeable, and empathetic. Mirror the customer's energy level.
+
+## Services & Pricing
+- **Wedding Photography:** $2,500-$5,000+ (full-day coverage, engagement session, albums)
+- **Portrait Sessions:** $800-$2,000 (family, senior, maternity, newborn)
+- **Event Photography:** $1,200-$3,500 (corporate, birthday, graduation)
+- **Commercial Photography:** $1,500-$5,000+ (product, real estate, brand)
+- **Headshots:** $300-$800 (individual or team packages)
+
+All packages include professional editing, online gallery, and print rights.
+
+## Key Information
+- **Location:** Pinehurst, TX (serving Houston metro area)
+- **Experience:** 10+ years professional photography
+- **Specialties:** Natural light, candid moments, storytelling
+- **Availability:** Book 6-12 months in advance for weddings
+- **Contact:** Book consultations via website or call directly
 ${trainingContext}
-${
-  leadData && Object.keys(leadData).length > 0
-    ? `\nKnown about customer: ${JSON.stringify(leadData)}`
-    : ""
-}
-${context ? `\nRecent conversation:\n${context}` : ""}
 
-Customer says: "${message}"
+## Lead Qualification Strategy
+1. **Identify service interest** - Ask what type of photography they need
+2. **Understand timeline** - When is their event/session?
+3. **Budget awareness** - Gauge budget expectations without being pushy
+4. **Capture contact info** - Gently ask for email/phone for follow-up
+5. **Drive booking** - Encourage consultation or package selection
 
-Respond naturally in 2-3 sentences using the ${personality} personality and ${tone} tone. Use the training examples above as reference for similar questions. Don't repeat information already discussed. Be helpful and conversational.`;
+## Current Context
+${leadData && Object.keys(leadData).length > 0 ? `**Known about customer:**\n${Object.entries(leadData).map(([k, v]) => `- ${k}: ${v}`).join('\n')}` : "First interaction with this customer."}
+
+${context ? `**Recent conversation:**\n${context}` : ""}
+
+## Customer Message
+"${message}"
+
+## Response Guidelines
+- Keep responses concise (2-4 sentences max)
+- Be specific about pricing when asked, but mention packages vary
+- Use the trained Q&A examples to answer similar questions
+- If customer shares email/phone, acknowledge it warmly
+- If discussing services, suggest next steps (consultation, availability check)
+- Avoid repetition - if info was already discussed, build on it
+- Match customer's communication style (formal vs casual)
+- Use emojis sparingly and appropriately (✨📸💍 for weddings, etc.)
+
+Respond now:`;
     let result;
     try {
       result = await model.generateContent(prompt);
@@ -140,39 +184,86 @@ Respond naturally in 2-3 sentences using the ${personality} personality and ${to
     }
     const response = result.response.text().trim();
 
-    // Try to detect if user provided important information
+    // Enhanced lead information detection
     const detectedInfo: any = {};
-
-    // Simple keyword detection
     const lowerMessage = message.toLowerCase();
 
-    // Service detection
-    if (lowerMessage.includes("wedding")) detectedInfo.service = "wedding";
-    else if (
-      lowerMessage.includes("portrait") ||
-      lowerMessage.includes("headshot")
-    )
-      detectedInfo.service = "portrait";
-    else if (lowerMessage.includes("event")) detectedInfo.service = "event";
-    else if (
-      lowerMessage.includes("commercial") ||
-      lowerMessage.includes("product")
-    )
-      detectedInfo.service = "commercial";
+    // Service detection with more keywords
+    const servicePatterns = {
+      wedding: /\b(wedding|bride|groom|engagement|ceremony|reception|bridal)\b/i,
+      portrait: /\b(portrait|family|senior|maternity|newborn|baby|graduation)\b/i,
+      event: /\b(event|party|birthday|corporate|conference|celebration)\b/i,
+      commercial: /\b(commercial|product|real estate|business|brand|headshot)\b/i,
+    };
 
-    // Budget detection
-    if (lowerMessage.match(/\$?\d{3,5}/)) {
-      const match = message.match(/\$?(\d{3,5})/);
-      if (match) detectedInfo.budget = `$${match[1]}`;
+    for (const [service, pattern] of Object.entries(servicePatterns)) {
+      if (pattern.test(lowerMessage)) {
+        detectedInfo.service = service;
+        break;
+      }
+    }
+
+    // Budget detection with ranges
+    const budgetMatch = message.match(/\$?\s?(\d{1,3}(,\d{3})*(\.\d{2})?)/);
+    if (budgetMatch) {
+      const amount = parseInt(budgetMatch[1].replace(/,/g, ""));
+      if (amount >= 500 && amount <= 50000) {
+        detectedInfo.budget = `$${amount.toLocaleString()}`;
+      }
+    } else if (lowerMessage.includes("budget") || lowerMessage.includes("price")) {
+      // User mentioned budget/price but didn't give amount - mark for follow-up
+      detectedInfo.budgetInquiry = true;
+    }
+
+    // Name detection
+    const namePatterns = [
+      /my name is ([A-Z][a-z]+(?: [A-Z][a-z]+)?)/i,
+      /i'?m ([A-Z][a-z]+(?: [A-Z][a-z]+)?)/i,
+      /this is ([A-Z][a-z]+(?: [A-Z][a-z]+)?)/i,
+    ];
+    for (const pattern of namePatterns) {
+      const match = message.match(pattern);
+      if (match) {
+        detectedInfo.name = match[1];
+        break;
+      }
     }
 
     // Email detection
-    const emailMatch = message.match(/[\w.-]+@[\w.-]+\.\w+/);
-    if (emailMatch) detectedInfo.email = emailMatch[0];
+    const emailMatch = message.match(/[\w.-]+@[\w.-]+\.\w{2,}/);
+    if (emailMatch) {
+      detectedInfo.email = emailMatch[0];
+    }
 
-    // Phone detection
-    const phoneMatch = message.match(/(\d{3}[-.]?\d{3}[-.]?\d{4})/);
-    if (phoneMatch) detectedInfo.phone = phoneMatch[1];
+    // Phone detection (more flexible formats)
+    const phoneMatch = message.match(/(\+?1?\s*\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4})/);
+    if (phoneMatch) {
+      detectedInfo.phone = phoneMatch[1].replace(/\s+/g, ' ').trim();
+    }
+
+    // Date/Timeline detection
+    const datePatterns = [
+      /\b(january|february|march|april|may|june|july|august|september|october|november|december)\s+\d{1,2}(?:st|nd|rd|th)?,?\s+\d{4}\b/i,
+      /\b\d{1,2}\/\d{1,2}\/\d{2,4}\b/,
+      /\bin\s+(\d+)\s+(weeks?|months?|days?)\b/i,
+      /\bnext\s+(week|month|year|spring|summer|fall|winter)\b/i,
+    ];
+    for (const pattern of datePatterns) {
+      const match = message.match(pattern);
+      if (match) {
+        detectedInfo.eventDate = match[0];
+        break;
+      }
+    }
+
+    // Intent detection
+    if (/\b(book|schedule|reserve|consultation|available|availability)\b/i.test(lowerMessage)) {
+      detectedInfo.intent = "booking";
+    } else if (/\b(price|pricing|cost|package|rate|quote)\b/i.test(lowerMessage)) {
+      detectedInfo.intent = "pricing";
+    } else if (/\b(portfolio|work|examples|photos|style)\b/i.test(lowerMessage)) {
+      detectedInfo.intent = "portfolio";
+    }
 
     return NextResponse.json({
       response,

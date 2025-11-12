@@ -27,17 +27,19 @@ interface LeadData {
   phone?: string;
   service?: string;
   budget?: string;
+  budgetInquiry?: boolean;
   eventDate?: string;
+  intent?: string;
   message?: string;
 }
 
 const FAQ_QUICK_REPLIES = [
-  "Pricing information",
   "Wedding packages",
   "Portrait sessions",
+  "Event coverage",
+  "View portfolio",
   "Check availability",
-  "What to expect",
-  "Book a consultation",
+  "Get pricing",
 ];
 
 const SERVICE_ICONS: Record<string, typeof Camera> = {
@@ -95,7 +97,7 @@ export default function EnhancedChatBot() {
     setIsOpen(true);
     if (messages.length === 0) {
       addBotMessage(
-        "Hi! 👋 I'm here to help you with your photography needs at Studio37.\n\nWhat can I help you with today?",
+        "Hi! 👋 I'm the Studio37 AI assistant. I'm here to help you find the perfect photography package.\n\nWhat brings you here today?",
         FAQ_QUICK_REPLIES
       );
     }
@@ -133,7 +135,7 @@ export default function EnhancedChatBot() {
         body: JSON.stringify({
           message: userMessage,
           context: messages
-            .slice(-4)
+            .slice(-8) // Increased from 4 to 8 for better context
             .map((m) => `${m.sender}: ${m.text}`)
             .join("\n"),
           leadData,
@@ -148,12 +150,19 @@ export default function EnhancedChatBot() {
           setLeadData((prev) => ({ ...prev, ...data.detectedInfo }));
         }
 
-        // Determine quick replies based on conversation
+        // Determine quick replies based on conversation state and detected info
         let quickReplies: string[] | undefined;
-        if (!leadData.service && !data.detectedInfo?.service) {
+        
+        if (data.detectedInfo?.intent === 'booking' && !leadData.email) {
+          quickReplies = ["Share my email", "Call me instead", "Check calendar"];
+        } else if (data.detectedInfo?.intent === 'pricing' && !leadData.service) {
+          quickReplies = ["Wedding packages", "Portrait pricing", "Event rates"];
+        } else if (!leadData.service && !data.detectedInfo?.service) {
           quickReplies = ["Wedding", "Portrait", "Event", "Commercial"];
-        } else if (!leadData.email) {
-          quickReplies = ["Book a consultation", "Tell me more"];
+        } else if (leadData.service && !leadData.email && !leadData.phone) {
+          quickReplies = ["Get a quote", "See portfolio", "Book consultation"];
+        } else if ((leadData.email || leadData.phone) && !leadData.eventDate) {
+          quickReplies = ["Schedule in next 3 months", "Later this year", "Just browsing"];
         }
 
         addBotMessage(data.response, quickReplies);
@@ -212,6 +221,12 @@ export default function EnhancedChatBot() {
     try {
       const { supabase } = await import("@/lib/supabase");
 
+      // Build detailed message from conversation context
+      const conversationSummary = messages
+        .slice(-6)
+        .map(m => `[${m.sender}] ${m.text}`)
+        .join("\n");
+
       await supabase.from("leads").insert([
         {
           name: data.name || "Chat Lead",
@@ -219,11 +234,15 @@ export default function EnhancedChatBot() {
           phone: data.phone,
           service_interest: data.service,
           budget_range: data.budget,
-          message: data.message || `Event date: ${data.eventDate || "TBD"}`,
+          message: data.message 
+            ? `${data.message}\n\nEvent date: ${data.eventDate || "TBD"}\nIntent: ${data.intent || "general inquiry"}\n\n--- Conversation ---\n${conversationSummary}`
+            : `Event date: ${data.eventDate || "TBD"}\nIntent: ${data.intent || "general inquiry"}\n\n--- Conversation ---\n${conversationSummary}`,
           source: "chatbot",
           status: "new",
         },
       ]);
+      
+      console.log("Lead saved successfully");
     } catch (error) {
       console.error("Error saving lead:", error);
     }
@@ -279,12 +298,24 @@ export default function EnhancedChatBot() {
             </div>
 
             {/* Lead info banner */}
-            {(leadData.service || leadData.email) && (
+            {(leadData.service || leadData.email || leadData.name || leadData.intent) && (
               <div className="bg-purple-50 px-4 py-2 border-b border-purple-100 text-xs">
                 <div className="flex items-center gap-2 flex-wrap">
+                  {leadData.name && (
+                    <span className="px-2 py-0.5 bg-indigo-200 text-indigo-800 rounded-full font-medium">
+                      {leadData.name}
+                    </span>
+                  )}
                   {leadData.service && (
                     <span className="px-2 py-0.5 bg-purple-200 text-purple-800 rounded-full">
                       {leadData.service}
+                    </span>
+                  )}
+                  {leadData.intent && (
+                    <span className="px-2 py-0.5 bg-amber-200 text-amber-800 rounded-full">
+                      {leadData.intent === 'booking' ? '📅 Wants to book' : 
+                       leadData.intent === 'pricing' ? '💰 Pricing info' :
+                       leadData.intent === 'portfolio' ? '🖼️ Viewing work' : leadData.intent}
                     </span>
                   )}
                   {leadData.budget && (
@@ -292,9 +323,19 @@ export default function EnhancedChatBot() {
                       {leadData.budget}
                     </span>
                   )}
+                  {leadData.eventDate && (
+                    <span className="px-2 py-0.5 bg-pink-200 text-pink-800 rounded-full">
+                      {leadData.eventDate}
+                    </span>
+                  )}
                   {leadData.email && (
                     <span className="px-2 py-0.5 bg-blue-200 text-blue-800 rounded-full truncate max-w-[150px]">
-                      {leadData.email}
+                      ✉️ {leadData.email}
+                    </span>
+                  )}
+                  {leadData.phone && (
+                    <span className="px-2 py-0.5 bg-teal-200 text-teal-800 rounded-full">
+                      📞 {leadData.phone}
                     </span>
                   )}
                 </div>
