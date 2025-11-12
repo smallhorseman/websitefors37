@@ -2,9 +2,6 @@
 
 'use client';
 import React, { useState, useEffect } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
-
-
 
 export default function DiscountNewsletterModal() {
   const [open, setOpen] = useState(false);
@@ -13,7 +10,6 @@ export default function DiscountNewsletterModal() {
   const [phone, setPhone] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const supabase = createClientComponentClient();
 
   useEffect(() => {
     // Don't show modal on admin pages (check window.location to avoid extra bundle)
@@ -32,15 +28,33 @@ export default function DiscountNewsletterModal() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    // Insert lead into Supabase CRM
-    const { error } = await supabase
-      .from('leads')
-      .insert({ name, email, phone });
-    if (error) {
+    
+    // Submit via API to trigger auto-response email
+    try {
+      const response = await fetch('/api/leads', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name,
+          email,
+          phone,
+          service_interest: 'newsletter',
+          message: 'Subscribed via newsletter modal for 15% discount offer',
+          source: 'newsletter-modal'
+        })
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok || !data.success) {
+        setError('Sorry, there was a problem saving your info. Please try again.');
+        return;
+      }
+      
+      setSubmitted(true);
+    } catch (err) {
       setError('Sorry, there was a problem saving your info. Please try again.');
-      return;
     }
-    setSubmitted(true);
   };
 
   if (!open) return null;
