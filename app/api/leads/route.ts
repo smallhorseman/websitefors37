@@ -32,10 +32,13 @@ async function sendAutoResponseEmail(lead: any, payload: any) {
     payload.message?.toLowerCase().includes(kw)
   )
   
-  if (isBookingRequest || payload.event_date) {
-    templateSlug = 'booking-request-confirmation'
-  }
 
+  // If source is newsletter signup, use newsletter welcome template
+  if (payload.source === "newsletter-modal" || payload.service_interest === "newsletter") {
+    templateSlug = "newsletter-welcome"
+  } else if (isBookingRequest || payload.event_date) {
+    templateSlug = "booking-request-confirmation"
+  }
   // Get template ID from database
   const { data: template } = await supabaseAdmin
     .from('email_templates')
