@@ -115,6 +115,8 @@ export default function EnhancedChatBot() {
   const [leadData, setLeadData] = useState<LeadData>({});
   const [isTyping, setIsTyping] = useState(false);
   const [showFAQ, setShowFAQ] = useState(true);
+  const [servicePageUrl, setServicePageUrl] = useState<string | null>(null);
+  const [serviceDetail, setServiceDetail] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Avoid hydration issues by only rendering after client mount
@@ -206,10 +208,12 @@ export default function EnhancedChatBot() {
         // Update lead data with detected info
         if (data.detectedInfo) {
           setLeadData((prev) => ({ ...prev, ...data.detectedInfo }));
+          if (data.detectedInfo.pageUrl) setServicePageUrl(data.detectedInfo.pageUrl);
+          if (data.detectedInfo.serviceDetail) setServiceDetail(data.detectedInfo.serviceDetail);
         }
 
-        // Determine quick replies based on conversation state and detected info
-        let quickReplies: string[] | undefined;
+  // Determine quick replies based on conversation state and detected info
+  let quickReplies: string[] | undefined;
         
         if (data.detectedInfo?.intent === 'booking' && !leadData.email) {
           quickReplies = ["Share my email", "Call me instead", "Check calendar"];
@@ -221,6 +225,15 @@ export default function EnhancedChatBot() {
           quickReplies = ["Get a quote", "See portfolio", "Book consultation"];
         } else if ((leadData.email || leadData.phone) && !leadData.eventDate) {
           quickReplies = ["Schedule in next 3 months", "Later this year", "Just browsing"];
+        }
+
+        // If API surfaced a relevant service page, add contextual quick actions
+        if (data.detectedInfo?.pageUrl) {
+          const viewDetails = "View details";
+          const getQuote = "Get a quote";
+          const base = quickReplies || [];
+          const merged = Array.from(new Set([...base, viewDetails, getQuote]));
+          quickReplies = merged;
         }
 
         addBotMessage(data.response, quickReplies);
@@ -267,7 +280,16 @@ export default function EnhancedChatBot() {
   };
 
   const handleQuickReply = (reply: string) => {
-    setInputValue(reply);
+    if (reply === "View details" && servicePageUrl) {
+      window.open(servicePageUrl, "_blank");
+      return;
+    }
+    if (reply === "Get a quote") {
+      const inferred = serviceDetail || leadData.service || "photography";
+      setInputValue(`I'd like a quote for ${inferred}.`);
+    } else {
+      setInputValue(reply);
+    }
     // Auto-submit
     setTimeout(() => {
       const form = document.getElementById("chat-form") as HTMLFormElement;

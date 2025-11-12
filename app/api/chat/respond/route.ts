@@ -63,9 +63,10 @@ export async function POST(req: Request) {
       // ignore settings read errors, allow call to continue
     }
 
-    // Load chatbot settings and training data
-    let chatbotSettings = null;
-    let trainingExamples: any[] = [];
+  // Load chatbot settings and training data
+  let chatbotSettings = null;
+  // We'll fetch a larger set of training entries and locally rank the most relevant
+  let trainingExamples: any[] = [];
 
     try {
       const { data: settings } = await supabase
@@ -76,9 +77,9 @@ export async function POST(req: Request) {
 
       const { data: examples } = await supabase
         .from("chatbot_training")
-        .select("question, answer, category")
-        .limit(50);
-      trainingExamples = examples || [];
+        .select("question, answer, category, keywords, source_url, is_active")
+        .limit(400);
+      trainingExamples = (examples || []).filter((e: any) => e?.is_active !== false);
     } catch {
       // Use defaults if tables don't exist yet
     }
@@ -111,13 +112,61 @@ export async function POST(req: Request) {
     const personality = chatbotSettings?.personality || "warm and professional";
     const tone = chatbotSettings?.tone || "conversational";
 
-    // Format training examples for context
+    // Rank training examples by simple keyword overlap against user message and recent context
+    function tokenize(text: string) {
+      return (text || "")
+        .toLowerCase()
+        .split(/[^a-z0-9+]+/)
+        .filter(Boolean);
+    }
+
+    const userTokens = new Set(
+      tokenize([
+        message,
+        context || "",
+      ].join("\n"))
+    );
+
+    const intentPricing = /\b(price|pricing|cost|quote|rate|package|packages)\b/i.test(message);
+
+    type Ranked = any & { __score?: number };
+    const ranked: Ranked[] = trainingExamples.map((ex: any) => {
+      const kw = Array.isArray(ex.keywords) ? ex.keywords : [];
+      const questionTokens = tokenize(ex.question || "");
+      const answerTokens = tokenize((ex.answer || "").slice(0, 500));
+
+      let score = 0;
+      // keyword matches weight higher
+      for (const k of kw) if (userTokens.has(String(k).toLowerCase())) score += 3;
+      for (const t of questionTokens) if (userTokens.has(t)) score += 2;
+      for (const t of answerTokens) if (userTokens.has(t)) score += 1;
+      if (intentPricing && (ex.category === 'pricing')) score += 5;
+      if (/services?/.test(ex.category || '')) score += 1; // slight bias toward services
+      return { ...ex, __score: score };
+    });
+
+    ranked.sort((a, b) => (b.__score || 0) - (a.__score || 0));
+    const topRelevant = ranked.slice(0, 8).filter(r => (r.__score || 0) > 0);
+
+    // Build context block with only the most relevant items
     const trainingContext =
-      trainingExamples.length > 0
-        ? `\n\n### Trained Q&A Knowledge Base:\n${trainingExamples
-            .map((ex) => `**Q:** ${ex.question}\n**A:** ${ex.answer}\n**Category:** ${ex.category || 'general'}`)
+      topRelevant.length > 0
+        ? `\n\n### Relevant Knowledge Base Excerpts:\n${topRelevant
+            .map((ex) => `**Q:** ${ex.question}\n**A:** ${ex.answer}${ex.source_url ? `\n**Source:** ${ex.source_url}` : ''}`)
             .join("\n\n")}`
         : "";
+
+    // Collate a compact list of source links to encourage the model to cite URLs
+    const linkHints = Array.from(
+      new Set(
+        topRelevant
+          .map((ex) => ex?.source_url)
+          .filter((u) => typeof u === "string" && u.length > 0)
+      )
+    )
+      .slice(0, 5)
+      .map((u) => `- ${u}`)
+      .join("\n");
 
     const prompt = `${systemInstructions}
 
@@ -145,6 +194,7 @@ All packages include professional editing, online gallery, and print rights.
 - **Availability:** Book 6-12 months in advance for weddings
 - **Contact:** Book consultations via website or call directly
 ${trainingContext}
+${linkHints ? `\n\n### Knowledge Sources (links)\n${linkHints}` : ''}
 
 ## Lead Qualification Strategy
 1. **Identify service interest** - Ask what type of photography they need
@@ -191,8 +241,8 @@ Respond now:`;
     }
     const response = result.response.text().trim();
 
-    // Enhanced lead information detection
-    const detectedInfo: any = {};
+  // Enhanced lead information detection
+  const detectedInfo: any = {};
     const lowerMessage = message.toLowerCase();
 
     // Service detection with more keywords
@@ -270,6 +320,17 @@ Respond now:`;
       detectedInfo.intent = "pricing";
     } else if (/\b(portfolio|work|examples|photos|style)\b/i.test(lowerMessage)) {
       detectedInfo.intent = "portfolio";
+    }
+
+    // If we have a clearly relevant service/pricing entry, expose its page URL
+    const topWithUrl = topRelevant.find((r) => r.source_url);
+    if (topWithUrl && typeof topWithUrl.source_url === 'string') {
+      try {
+        const u = new URL(topWithUrl.source_url);
+        detectedInfo.pageUrl = topWithUrl.source_url;
+        const slug = u.pathname.replace(/^\/+|\/+$/g, '');
+        if (slug && !detectedInfo.serviceDetail) detectedInfo.serviceDetail = slug;
+      } catch {}
     }
 
     return NextResponse.json({
