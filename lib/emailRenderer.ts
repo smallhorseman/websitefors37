@@ -6,6 +6,10 @@ import BookingConfirmationEmail from '@/emails/BookingConfirmationEmail'
 import PaymentReminderEmail from '@/emails/PaymentReminderEmail'
 import ReviewRequestEmail from '@/emails/ReviewRequestEmail'
 import ReschedulingEmail from '@/emails/ReschedulingEmail'
+import ContactFormConfirmationEmail from '@/emails/ContactFormConfirmationEmail'
+import BookingRequestConfirmationEmail from '@/emails/BookingRequestConfirmationEmail'
+import CouponDeliveryEmail from '@/emails/CouponDeliveryEmail'
+import NewsletterWelcomeEmail from '@/emails/NewsletterWelcomeEmail'
 
 /**
  * Map of template slugs to React Email components
@@ -19,6 +23,10 @@ const EMAIL_TEMPLATES = {
   'payment-reminder': PaymentReminderEmail,
   'review-request': ReviewRequestEmail,
   'rescheduling': ReschedulingEmail,
+  'contact-form-confirmation': ContactFormConfirmationEmail,
+  'booking-request-confirmation': BookingRequestConfirmationEmail,
+  'coupon-delivery': CouponDeliveryEmail,
+  'newsletter-welcome': NewsletterWelcomeEmail,
 }
 
 export type EmailTemplateSlug = keyof typeof EMAIL_TEMPLATES
