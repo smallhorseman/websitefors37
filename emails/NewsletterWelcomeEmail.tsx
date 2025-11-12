@@ -8,9 +8,7 @@ import {
   Preview,
   Text,
   Section,
-  Button,
   Hr,
-  Img,
 } from '@react-email/components'
 
 interface NewsletterWelcomeEmailProps {
@@ -49,13 +47,43 @@ export default function NewsletterWelcomeEmail({
 
           <Section style={highlightBox}>
             <Text style={highlightTitle}>✨ What to Expect</Text>
-            <ul style={benefitsList}>
-              <li><strong>Exclusive Photography Tips</strong> – Master lighting, posing, and composition</li>
-              <li><strong>Behind-the-Scenes Stories</strong> – See how we create stunning images</li>
-              <li><strong>Special Offers & Discounts</strong> – Newsletter-only deals just for you</li>
-              <li><strong>New Gallery Showcases</strong> – First look at our latest work</li>
-              <li><strong>Photography Trends & Inspiration</strong> – Stay ahead of the curve</li>
-            </ul>
+            <table style={{width: '100%', borderSpacing: 0}}>
+              <tr>
+                <td>
+                  <Text style={{...text, padding: '4px 0', margin: 0}}>
+                    <strong>Exclusive Photography Tips</strong> – Master lighting, posing, and composition
+                  </Text>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <Text style={{...text, padding: '4px 0', margin: 0}}>
+                    <strong>Behind-the-Scenes Stories</strong> – See how we create stunning images
+                  </Text>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <Text style={{...text, padding: '4px 0', margin: 0}}>
+                    <strong>Special Offers & Discounts</strong> – Newsletter-only deals just for you
+                  </Text>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <Text style={{...text, padding: '4px 0', margin: 0}}>
+                    <strong>New Gallery Showcases</strong> – First look at our latest work
+                  </Text>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <Text style={{...text, padding: '4px 0', margin: 0}}>
+                    <strong>Photography Trends & Inspiration</strong> – Stay ahead of the curve
+                  </Text>
+                </td>
+              </tr>
+            </table>
           </Section>
 
           <Section style={frequencyBox}>
@@ -69,23 +97,31 @@ export default function NewsletterWelcomeEmail({
             <Text style={socialText}>
               Get daily inspiration and see our latest work:
             </Text>
-            <div style={socialLinks}>
-              <Link href="https://www.instagram.com/studio37photography" style={socialButton}>
-                📷 Instagram
-              </Link>
-              <Link href="https://www.facebook.com/studio37photography" style={socialButton}>
-                📘 Facebook
-              </Link>
-              <Link href="https://www.pinterest.com/studio37photography" style={socialButton}>
-                📌 Pinterest
-              </Link>
-            </div>
+            <table style={{width: '100%', margin: '16px auto', maxWidth: '400px'}}>
+              <tr>
+                <td align="center" style={{padding: '6px'}}>
+                  <Link href="https://www.instagram.com/studio37photography" style={socialButton}>
+                    📷 Instagram
+                  </Link>
+                </td>
+                <td align="center" style={{padding: '6px'}}>
+                  <Link href="https://www.facebook.com/studio37photography" style={socialButton}>
+                    📘 Facebook
+                  </Link>
+                </td>
+                <td align="center" style={{padding: '6px'}}>
+                  <Link href="https://www.pinterest.com/studio37photography" style={socialButton}>
+                    📌 Pinterest
+                  </Link>
+                </td>
+              </tr>
+            </table>
           </Section>
 
           <div style={ctaContainer}>
-            <Button href="https://www.studio37.cc/blog" style={button}>
+            <Link href="https://www.studio37.cc/blog" style={button}>
               Explore Our Blog
-            </Button>
+            </Link>
           </div>
 
           <Section style={bonusBox}>
@@ -94,9 +130,9 @@ export default function NewsletterWelcomeEmail({
               As a thank you for subscribing, enjoy <strong>10% off</strong> your first session when you book within 30 days!
             </Text>
             <div style={{textAlign: 'center' as const, marginTop: '16px'}}>
-              <Button href="https://www.studio37.cc/book-a-session" style={bonusButton}>
+              <Link href="https://www.studio37.cc/book-a-session" style={bonusButton}>
                 Book Now & Save
-              </Button>
+              </Link>
             </div>
           </Section>
 
@@ -200,9 +236,9 @@ const benefitsList = {
   color: '#374151',
   fontSize: '15px',
   lineHeight: '28px',
-  marginLeft: '20px',
-  paddingLeft: '0',
-  listStyleType: 'none',
+  margin: '0',
+  padding: '0',
+  listStyleType: 'none' as const,
 }
 
 const frequencyBox = {
@@ -267,6 +303,7 @@ const button = {
   display: 'inline-block',
   padding: '16px 40px',
   boxShadow: '0 4px 6px rgba(59, 130, 246, 0.3)',
+  border: 'none',
 }
 
 const bonusBox = {
@@ -302,6 +339,7 @@ const bonusButton = {
   textAlign: 'center' as const,
   display: 'inline-block',
   padding: '12px 32px',
+  border: 'none',
 }
 
 const hr = {
