@@ -44,70 +44,67 @@ END$$;
 CREATE INDEX IF NOT EXISTS idx_leads_score ON public.leads(lead_score DESC);
 CREATE INDEX IF NOT EXISTS idx_leads_last_activity ON public.leads(last_activity_at DESC);
 
--- Function to calculate lead score
-CREATE OR REPLACE FUNCTION calculate_lead_score(lead_row leads)
-RETURNS INTEGER
+-- Function to calculate lead score (returns score and details via OUT params)
+CREATE OR REPLACE FUNCTION calculate_lead_score(lead_row leads, OUT score INTEGER, OUT details JSONB)
 LANGUAGE plpgsql
 AS $$
 DECLARE
-  score INTEGER := 0;
-  details JSONB := '{}'::jsonb;
   days_since_created INTEGER;
   days_since_activity INTEGER;
   comm_count INTEGER;
 BEGIN
-  -- Base score: 10 points
-  score := 10;
-  details := jsonb_set(details, '{base}', '10');
+  -- Initialize
+  score := 10; -- Base score
+  details := jsonb_build_object('base', 10);
 
   -- Source scoring
   CASE lead_row.source
     WHEN 'referral' THEN 
       score := score + 20;
-      details := jsonb_set(details, '{source}', '20');
+      details := details || jsonb_build_object('source', 20);
     WHEN 'chatbot-quote-form' THEN 
       score := score + 15;
-      details := jsonb_set(details, '{source}', '15');
+      details := details || jsonb_build_object('source', 15);
     WHEN 'google' THEN 
       score := score + 15;
-      details := jsonb_set(details, '{source}', '15');
+      details := details || jsonb_build_object('source', 15);
     WHEN 'social-media' THEN 
       score := score + 10;
-      details := jsonb_set(details, '{source}', '10');
+      details := details || jsonb_build_object('source', 10);
     ELSE 
       score := score + 5;
-      details := jsonb_set(details, '{source}', '5');
+      details := details || jsonb_build_object('source', 5);
   END CASE;
 
   -- Budget range scoring
   IF lead_row.budget_range IS NOT NULL THEN
     IF lead_row.budget_range LIKE '%5000%' OR lead_row.budget_range LIKE '%10000%' THEN
       score := score + 25;
-      details := jsonb_set(details, '{budget}', '25');
+      details := details || jsonb_build_object('budget', 25);
     ELSIF lead_row.budget_range LIKE '%3000%' OR lead_row.budget_range LIKE '%4000%' THEN
       score := score + 20;
-      details := jsonb_set(details, '{budget}', '20');
+      details := details || jsonb_build_object('budget', 20);
     ELSIF lead_row.budget_range LIKE '%2000%' THEN
       score := score + 15;
-      details := jsonb_set(details, '{budget}', '15');
+      details := details || jsonb_build_object('budget', 15);
     ELSE
       score := score + 10;
-      details := jsonb_set(details, '{budget}', '10');
+      details := details || jsonb_build_object('budget', 10);
     END IF;
   END IF;
 
   -- Event date proximity (if exists)
   IF lead_row.event_date IS NOT NULL THEN
-    days_since_created := EXTRACT(EPOCH FROM (lead_row.event_date - lead_row.created_at::date)) / 86400;
+    days_since_created := EXTRACT(EPOCH FROM (lead_row.event_date::timestamp - lead_row.created_at)) / 86400;
     IF days_since_created > 0 AND days_since_created <= 30 THEN
-      score := score + 30; -- Event in next 30 days = urgent
-      details := jsonb_set(details, '{event_proximity}', '30');
+      score := score + 30;
+      details := details || jsonb_build_object('event_proximity', 30);
     ELSIF days_since_created > 30 AND days_since_created <= 90 THEN
-      score := score + 20; -- Event in next 90 days
-      details := jsonb_set(details, '{event_proximity}', '20');
+      score := score + 20;
+      details := details || jsonb_build_object('event_proximity', 20);
     ELSIF days_since_created > 90 AND days_since_created <= 180 THEN
-      score := score + 10; -- Event in next 6 months
-      details := jsonb_set(details, '{event_proximity}', '10');
+      score := score + 10;
+      details := details || jsonb_build_object('event_proximity', 10);
     END IF;
   END IF;
 
@@ -115,33 +112,33 @@ BEGIN
   CASE lead_row.status
     WHEN 'qualified' THEN 
       score := score + 15;
-      details := jsonb_set(details, '{status}', '15');
+      details := details || jsonb_build_object('status', 15);
     WHEN 'contacted' THEN 
       score := score + 10;
-      details := jsonb_set(details, '{status}', '10');
+      details := details || jsonb_build_object('status', 10);
     WHEN 'converted' THEN 
       score := score + 30;
-      details := jsonb_set(details, '{status}', '30');
+      details := details || jsonb_build_object('status', 30);
     ELSE 
       score := score + 5;
-      details := jsonb_set(details, '{status}', '5');
+      details := details || jsonb_build_object('status', 5);
   END CASE;
 
   -- Communication frequency (check communication_logs if table exists)
-  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'communication_logs') THEN
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'communication_logs') THEN
     SELECT COUNT(*) INTO comm_count
     FROM communication_logs
     WHERE lead_id = lead_row.id;
     
     IF comm_count >= 5 THEN
       score := score + 15;
-      details := jsonb_set(details, '{engagement}', '15');
+      details := details || jsonb_build_object('engagement', 15);
     ELSIF comm_count >= 3 THEN
       score := score + 10;
-      details := jsonb_set(details, '{engagement}', '10');
+      details := details || jsonb_build_object('engagement', 10);
     ELSIF comm_count >= 1 THEN
       score := score + 5;
-      details := jsonb_set(details, '{engagement}', '5');
+      details := details || jsonb_build_object('engagement', 5);
     END IF;
   END IF;
 
@@ -149,21 +146,16 @@ BEGIN
   days_since_activity := EXTRACT(EPOCH FROM (NOW() - COALESCE(lead_row.last_activity_at, lead_row.created_at))) / 86400;
   IF days_since_activity > 60 THEN
     score := score - 20;
-    details := jsonb_set(details, '{recency_penalty}', '-20');
+    details := details || jsonb_build_object('recency_penalty', -20);
   ELSIF days_since_activity > 30 THEN
     score := score - 10;
-    details := jsonb_set(details, '{recency_penalty}', '-10');
+    details := details || jsonb_build_object('recency_penalty', -10);
   END IF;
 
   -- Ensure score is never negative
   IF score < 0 THEN
     score := 0;
   END IF;
-
-  -- Store score details
-  UPDATE leads SET score_details = details WHERE id = lead_row.id;
-
-  RETURN score;
 END;
 $$;
 
@@ -172,9 +164,17 @@ CREATE OR REPLACE FUNCTION trigger_update_lead_score()
 RETURNS TRIGGER
 LANGUAGE plpgsql
 AS $$
+DECLARE
+  calc_score INTEGER;
+  calc_details JSONB;
 BEGIN
-  NEW.lead_score := calculate_lead_score(NEW);
+  -- Calculate score without triggering another update
+  SELECT * INTO calc_score, calc_details FROM calculate_lead_score(NEW);
+  
+  NEW.lead_score := calc_score;
+  NEW.score_details := calc_details;
   NEW.last_activity_at := NOW();
+  
   RETURN NEW;
 END;
 $$;
@@ -186,8 +186,22 @@ CREATE TRIGGER update_lead_score_trigger
   FOR EACH ROW
   EXECUTE FUNCTION trigger_update_lead_score();
 
--- Backfill scores for existing leads
-UPDATE public.leads SET lead_score = calculate_lead_score(leads.*);
+-- Backfill scores for existing leads (one-time safe update)
+DO $$
+DECLARE
+  lead_record leads%ROWTYPE;
+  calc_score INTEGER;
+  calc_details JSONB;
+BEGIN
+  FOR lead_record IN SELECT * FROM public.leads LOOP
+    SELECT score, details INTO calc_score, calc_details FROM calculate_lead_score(lead_record);
+    UPDATE public.leads 
+    SET lead_score = calc_score, 
+        score_details = calc_details,
+        last_activity_at = COALESCE(last_activity_at, NOW())
+    WHERE id = lead_record.id;
+  END LOOP;
+END $$;
 
 -- Add comment
 COMMENT ON COLUMN public.leads.lead_score IS 'Auto-calculated lead score based on source, budget, status, engagement, and recency';

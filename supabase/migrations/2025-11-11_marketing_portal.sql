@@ -22,7 +22,7 @@ $$;
 -- =====================================================
 
 -- Email Templates
-CREATE TABLE email_templates (
+CREATE TABLE IF NOT EXISTS email_templates (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   name VARCHAR(255) NOT NULL,
   slug VARCHAR(255) NOT NULL UNIQUE,
@@ -38,12 +38,12 @@ CREATE TABLE email_templates (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX idx_email_templates_slug ON email_templates(slug);
-CREATE INDEX idx_email_templates_category ON email_templates(category);
-CREATE INDEX idx_email_templates_active ON email_templates(is_active);
+CREATE INDEX IF NOT EXISTS idx_email_templates_slug ON email_templates(slug);
+CREATE INDEX IF NOT EXISTS idx_email_templates_category ON email_templates(category);
+CREATE INDEX IF NOT EXISTS idx_email_templates_active ON email_templates(is_active);
 
 -- Email Campaigns
-CREATE TABLE email_campaigns (
+CREATE TABLE IF NOT EXISTS email_campaigns (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   name VARCHAR(255) NOT NULL,
   template_id UUID REFERENCES email_templates(id) ON DELETE SET NULL,
@@ -82,14 +82,14 @@ CREATE TABLE email_campaigns (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX idx_email_campaigns_status ON email_campaigns(status);
-CREATE INDEX idx_email_campaigns_scheduled_at ON email_campaigns(scheduled_at);
-CREATE INDEX idx_email_campaigns_created_at ON email_campaigns(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_email_campaigns_status ON email_campaigns(status);
+CREATE INDEX IF NOT EXISTS idx_email_campaigns_scheduled_at ON email_campaigns(scheduled_at);
+CREATE INDEX IF NOT EXISTS idx_email_campaigns_created_at ON email_campaigns(created_at DESC);
 -- Correct GIN index syntax (no 'CREATE GIN INDEX')
-CREATE INDEX idx_email_campaigns_tags ON email_campaigns USING GIN (tags);
+CREATE INDEX IF NOT EXISTS idx_email_campaigns_tags ON email_campaigns USING GIN (tags);
 
 -- Email Campaign Sends (tracking individual sends)
-CREATE TABLE email_campaign_sends (
+CREATE TABLE IF NOT EXISTS email_campaign_sends (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   campaign_id UUID NOT NULL REFERENCES email_campaigns(id) ON DELETE CASCADE,
   lead_id UUID REFERENCES leads(id) ON DELETE SET NULL,
@@ -122,17 +122,17 @@ CREATE TABLE email_campaign_sends (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX idx_campaign_sends_campaign_id ON email_campaign_sends(campaign_id);
-CREATE INDEX idx_campaign_sends_lead_id ON email_campaign_sends(lead_id);
-CREATE INDEX idx_campaign_sends_status ON email_campaign_sends(status);
-CREATE INDEX idx_campaign_sends_provider_id ON email_campaign_sends(provider_message_id);
+CREATE INDEX IF NOT EXISTS idx_campaign_sends_campaign_id ON email_campaign_sends(campaign_id);
+CREATE INDEX IF NOT EXISTS idx_campaign_sends_lead_id ON email_campaign_sends(lead_id);
+CREATE INDEX IF NOT EXISTS idx_campaign_sends_status ON email_campaign_sends(status);
+CREATE INDEX IF NOT EXISTS idx_campaign_sends_provider_id ON email_campaign_sends(provider_message_id);
 
 -- =====================================================
 -- SMS MARKETING TABLES
 -- =====================================================
 
 -- SMS Templates
-CREATE TABLE sms_templates (
+CREATE TABLE IF NOT EXISTS sms_templates (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   name VARCHAR(255) NOT NULL,
   slug VARCHAR(255) NOT NULL UNIQUE,
@@ -150,12 +150,12 @@ CREATE TABLE sms_templates (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX idx_sms_templates_slug ON sms_templates(slug);
-CREATE INDEX idx_sms_templates_category ON sms_templates(category);
-CREATE INDEX idx_sms_templates_active ON sms_templates(is_active);
+CREATE INDEX IF NOT EXISTS idx_sms_templates_slug ON sms_templates(slug);
+CREATE INDEX IF NOT EXISTS idx_sms_templates_category ON sms_templates(category);
+CREATE INDEX IF NOT EXISTS idx_sms_templates_active ON sms_templates(is_active);
 
 -- SMS Campaigns
-CREATE TABLE sms_campaigns (
+CREATE TABLE IF NOT EXISTS sms_campaigns (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   name VARCHAR(255) NOT NULL,
   template_id UUID REFERENCES sms_templates(id) ON DELETE SET NULL,
@@ -193,13 +193,13 @@ CREATE TABLE sms_campaigns (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX idx_sms_campaigns_status ON sms_campaigns(status);
-CREATE INDEX idx_sms_campaigns_scheduled_at ON sms_campaigns(scheduled_at);
-CREATE INDEX idx_sms_campaigns_created_at ON sms_campaigns(created_at DESC);
-CREATE INDEX idx_sms_campaigns_tags ON sms_campaigns USING GIN (tags);
+CREATE INDEX IF NOT EXISTS idx_sms_campaigns_status ON sms_campaigns(status);
+CREATE INDEX IF NOT EXISTS idx_sms_campaigns_scheduled_at ON sms_campaigns(scheduled_at);
+CREATE INDEX IF NOT EXISTS idx_sms_campaigns_created_at ON sms_campaigns(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_sms_campaigns_tags ON sms_campaigns USING GIN (tags);
 
 -- SMS Campaign Sends
-CREATE TABLE sms_campaign_sends (
+CREATE TABLE IF NOT EXISTS sms_campaign_sends (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   campaign_id UUID NOT NULL REFERENCES sms_campaigns(id) ON DELETE CASCADE,
   lead_id UUID REFERENCES leads(id) ON DELETE SET NULL,
@@ -234,17 +234,17 @@ CREATE TABLE sms_campaign_sends (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX idx_sms_sends_campaign_id ON sms_campaign_sends(campaign_id);
-CREATE INDEX idx_sms_sends_lead_id ON sms_campaign_sends(lead_id);
-CREATE INDEX idx_sms_sends_status ON sms_campaign_sends(status);
-CREATE INDEX idx_sms_sends_provider_sid ON sms_campaign_sends(provider_message_sid);
+CREATE INDEX IF NOT EXISTS idx_sms_sends_campaign_id ON sms_campaign_sends(campaign_id);
+CREATE INDEX IF NOT EXISTS idx_sms_sends_lead_id ON sms_campaign_sends(lead_id);
+CREATE INDEX IF NOT EXISTS idx_sms_sends_status ON sms_campaign_sends(status);
+CREATE INDEX IF NOT EXISTS idx_sms_sends_provider_sid ON sms_campaign_sends(provider_message_sid);
 
 -- =====================================================
 -- CLIENT PORTAL TABLES
 -- =====================================================
 
 -- Client Portal Users (separate from leads, linked to them)
-CREATE TABLE client_portal_users (
+CREATE TABLE IF NOT EXISTS client_portal_users (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   lead_id UUID UNIQUE REFERENCES leads(id) ON DELETE CASCADE,
   email VARCHAR(255) NOT NULL UNIQUE,
@@ -272,12 +272,12 @@ CREATE TABLE client_portal_users (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX idx_portal_users_email ON client_portal_users(email);
-CREATE INDEX idx_portal_users_lead_id ON client_portal_users(lead_id);
-CREATE INDEX idx_portal_users_active ON client_portal_users(is_active);
+CREATE INDEX IF NOT EXISTS idx_portal_users_email ON client_portal_users(email);
+CREATE INDEX IF NOT EXISTS idx_portal_users_lead_id ON client_portal_users(lead_id);
+CREATE INDEX IF NOT EXISTS idx_portal_users_active ON client_portal_users(is_active);
 
 -- Client Projects (photography sessions/bookings accessible via portal)
-CREATE TABLE client_projects (
+CREATE TABLE IF NOT EXISTS client_projects (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   client_user_id UUID NOT NULL REFERENCES client_portal_users(id) ON DELETE CASCADE,
   appointment_id UUID REFERENCES appointments(id) ON DELETE SET NULL,
@@ -314,14 +314,14 @@ CREATE TABLE client_projects (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX idx_projects_client_id ON client_projects(client_user_id);
-CREATE INDEX idx_projects_appointment_id ON client_projects(appointment_id);
-CREATE INDEX idx_projects_status ON client_projects(status);
-CREATE INDEX idx_projects_session_date ON client_projects(session_date);
-CREATE INDEX idx_projects_tags ON client_projects USING GIN (tags);
+CREATE INDEX IF NOT EXISTS idx_projects_client_id ON client_projects(client_user_id);
+CREATE INDEX IF NOT EXISTS idx_projects_appointment_id ON client_projects(appointment_id);
+CREATE INDEX IF NOT EXISTS idx_projects_status ON client_projects(status);
+CREATE INDEX IF NOT EXISTS idx_projects_session_date ON client_projects(session_date);
+CREATE INDEX IF NOT EXISTS idx_projects_tags ON client_projects USING GIN (tags);
 
 -- Client Messages (two-way communication between studio and clients)
-CREATE TABLE client_messages (
+CREATE TABLE IF NOT EXISTS client_messages (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   project_id UUID REFERENCES client_projects(id) ON DELETE CASCADE,
   client_user_id UUID REFERENCES client_portal_users(id) ON DELETE CASCADE,
@@ -352,18 +352,18 @@ CREATE TABLE client_messages (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX idx_messages_project_id ON client_messages(project_id);
-CREATE INDEX idx_messages_client_id ON client_messages(client_user_id);
-CREATE INDEX idx_messages_sender_type ON client_messages(sender_type);
-CREATE INDEX idx_messages_thread_id ON client_messages(thread_id);
-CREATE INDEX idx_messages_created_at ON client_messages(created_at DESC);
-CREATE INDEX idx_messages_is_read ON client_messages(is_read);
+CREATE INDEX IF NOT EXISTS idx_messages_project_id ON client_messages(project_id);
+CREATE INDEX IF NOT EXISTS idx_messages_client_id ON client_messages(client_user_id);
+CREATE INDEX IF NOT EXISTS idx_messages_sender_type ON client_messages(sender_type);
+CREATE INDEX IF NOT EXISTS idx_messages_thread_id ON client_messages(thread_id);
+CREATE INDEX IF NOT EXISTS idx_messages_created_at ON client_messages(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_messages_is_read ON client_messages(is_read);
 
 -- =====================================================
 -- UNSUBSCRIBE / PREFERENCES TABLE
 -- =====================================================
 
-CREATE TABLE marketing_preferences (
+CREATE TABLE IF NOT EXISTS marketing_preferences (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   lead_id UUID UNIQUE REFERENCES leads(id) ON DELETE CASCADE,
   email VARCHAR(255) NOT NULL UNIQUE,
@@ -383,44 +383,50 @@ CREATE TABLE marketing_preferences (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX idx_marketing_prefs_email ON marketing_preferences(email);
-CREATE INDEX idx_marketing_prefs_lead_id ON marketing_preferences(lead_id);
+CREATE INDEX IF NOT EXISTS idx_marketing_prefs_email ON marketing_preferences(email);
+CREATE INDEX IF NOT EXISTS idx_marketing_prefs_lead_id ON marketing_preferences(lead_id);
 
--- =====================================================
--- TRIGGERS FOR UPDATED_AT
--- =====================================================
 
+DROP TRIGGER IF EXISTS update_email_templates_updated_at ON email_templates;
 CREATE TRIGGER update_email_templates_updated_at BEFORE UPDATE ON email_templates
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_email_campaigns_updated_at ON email_campaigns;
 CREATE TRIGGER update_email_campaigns_updated_at BEFORE UPDATE ON email_campaigns
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_email_sends_updated_at ON email_campaign_sends;
 CREATE TRIGGER update_email_sends_updated_at BEFORE UPDATE ON email_campaign_sends
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_sms_templates_updated_at ON sms_templates;
 CREATE TRIGGER update_sms_templates_updated_at BEFORE UPDATE ON sms_templates
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_sms_campaigns_updated_at ON sms_campaigns;
 CREATE TRIGGER update_sms_campaigns_updated_at BEFORE UPDATE ON sms_campaigns
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_sms_sends_updated_at ON sms_campaign_sends;
 CREATE TRIGGER update_sms_sends_updated_at BEFORE UPDATE ON sms_campaign_sends
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_portal_users_updated_at ON client_portal_users;
 CREATE TRIGGER update_portal_users_updated_at BEFORE UPDATE ON client_portal_users
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_projects_updated_at ON client_projects;
 CREATE TRIGGER update_projects_updated_at BEFORE UPDATE ON client_projects
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_messages_updated_at ON client_messages;
 CREATE TRIGGER update_messages_updated_at BEFORE UPDATE ON client_messages
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_marketing_prefs_updated_at ON marketing_preferences;
 CREATE TRIGGER update_marketing_prefs_updated_at BEFORE UPDATE ON marketing_preferences
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
--- =====================================================
 -- SEED DATA: Sample Templates (idempotent inserts)
 -- =====================================================
 
@@ -505,32 +511,34 @@ ALTER TABLE marketing_preferences ENABLE ROW LEVEL SECURITY;
 -- Admin full access (assumes you have an admin role or auth.uid() check)
 -- Client users can only see their own data
 
--- Client portal users can read their own profile
+DROP POLICY IF EXISTS "Users can view own profile" ON client_portal_users;
 CREATE POLICY "Users can view own profile" ON client_portal_users
   FOR SELECT USING (auth.uid()::uuid = id);
 
+DROP POLICY IF EXISTS "Users can update own profile" ON client_portal_users;
 CREATE POLICY "Users can update own profile" ON client_portal_users
   FOR UPDATE USING (auth.uid()::uuid = id);
 
--- Clients can view their own projects
+DROP POLICY IF EXISTS "Users can view own projects" ON client_projects;
 CREATE POLICY "Users can view own projects" ON client_projects
   FOR SELECT USING (client_user_id = auth.uid()::uuid);
 
--- Clients can view messages in their projects
+DROP POLICY IF EXISTS "Users can view own messages" ON client_messages;
 CREATE POLICY "Users can view own messages" ON client_messages
   FOR SELECT USING (client_user_id = auth.uid()::uuid);
 
+DROP POLICY IF EXISTS "Users can send messages" ON client_messages;
 CREATE POLICY "Users can send messages" ON client_messages
   FOR INSERT WITH CHECK (client_user_id = auth.uid()::uuid AND sender_type = 'client');
 
--- Marketing preferences - users can view/update their own
+DROP POLICY IF EXISTS "Users can view own preferences" ON marketing_preferences;
 CREATE POLICY "Users can view own preferences" ON marketing_preferences
   FOR SELECT USING (email = (SELECT email FROM client_portal_users WHERE id = auth.uid()::uuid));
 
+DROP POLICY IF EXISTS "Users can update own preferences" ON marketing_preferences;
 CREATE POLICY "Users can update own preferences" ON marketing_preferences
   FOR UPDATE USING (email = (SELECT email FROM client_portal_users WHERE id = auth.uid()::uuid));
 
--- =====================================================
 -- COMPLETED MIGRATION
 -- =====================================================
 -- Run this migration with: 
