@@ -502,6 +502,81 @@ export default function AdminPage() {
               </div>
             </Link>
 
+            {/* Calendar View */}
+            <Link
+              href="/admin/calendar"
+              className="bg-white overflow-hidden shadow rounded-lg hover:shadow-md transition-shadow border-2 border-purple-500"
+            >
+              <div className="p-5">
+                <div className="flex items-center">
+                  <div className="flex-shrink-0">
+                    <div className="w-8 h-8 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full flex items-center justify-center">
+                      <span className="text-white font-bold">🗓️</span>
+                    </div>
+                  </div>
+                  <div className="ml-5 w-0 flex-1">
+                    <h3 className="text-lg font-medium text-gray-900 flex items-center gap-2">
+                      Calendar View
+                      <span className="px-2 py-0.5 bg-purple-100 text-purple-800 text-xs font-semibold rounded">NEW</span>
+                    </h3>
+                    <p className="text-sm text-gray-500">
+                      Visual booking calendar with drag-drop
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </Link>
+
+            {/* Client Portals */}
+            <Link
+              href="/admin/client-portals"
+              className="bg-white overflow-hidden shadow rounded-lg hover:shadow-md transition-shadow border-2 border-teal-500"
+            >
+              <div className="p-5">
+                <div className="flex items-center">
+                  <div className="flex-shrink-0">
+                    <div className="w-8 h-8 bg-gradient-to-r from-teal-600 to-cyan-600 rounded-full flex items-center justify-center">
+                      <span className="text-white font-bold">💼</span>
+                    </div>
+                  </div>
+                  <div className="ml-5 w-0 flex-1">
+                    <h3 className="text-lg font-medium text-gray-900 flex items-center gap-2">
+                      Client Portals
+                      <span className="px-2 py-0.5 bg-teal-100 text-teal-800 text-xs font-semibold rounded">NEW</span>
+                    </h3>
+                    <p className="text-sm text-gray-500">
+                      Secure client portal link management
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </Link>
+
+            {/* Theme Customizer */}
+            <Link
+              href="/admin/theme-customizer"
+              className="bg-white overflow-hidden shadow rounded-lg hover:shadow-md transition-shadow border-2 border-amber-500"
+            >
+              <div className="p-5">
+                <div className="flex items-center">
+                  <div className="flex-shrink-0">
+                    <div className="w-8 h-8 bg-gradient-to-r from-amber-600 to-orange-600 rounded-full flex items-center justify-center">
+                      <span className="text-white font-bold">🎨</span>
+                    </div>
+                  </div>
+                  <div className="ml-5 w-0 flex-1">
+                    <h3 className="text-lg font-medium text-gray-900 flex items-center gap-2">
+                      Theme Customizer
+                      <span className="px-2 py-0.5 bg-amber-100 text-amber-800 text-xs font-semibold rounded">NEW</span>
+                    </h3>
+                    <p className="text-sm text-gray-500">
+                      Customize colors, fonts, and branding
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </Link>
+
             {/* SMS Inbox */}
             <Link
               href="/admin/inbox"
