@@ -28,48 +28,146 @@ CREATE INDEX IF NOT EXISTS idx_chatbot_training_created_at ON public.chatbot_tra
 ALTER TABLE public.chatbot_training ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.chatbot_settings ENABLE ROW LEVEL SECURITY;
 
--- Create policies for authenticated users (admin access)
-CREATE POLICY "Enable read access for authenticated users" ON public.chatbot_training
-  FOR SELECT USING (true);
+-- Create policies for authenticated users (admin access) - idempotent
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE policyname = 'Enable read access for authenticated users'
+      AND schemaname = 'public'
+      AND tablename = 'chatbot_training'
+  ) THEN
+    CREATE POLICY "Enable read access for authenticated users" ON public.chatbot_training
+      FOR SELECT USING (true);
+  END IF;
+END$$;
 
-CREATE POLICY "Enable insert access for authenticated users" ON public.chatbot_training
-  FOR INSERT WITH CHECK (true);
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE policyname = 'Enable insert access for authenticated users'
+      AND schemaname = 'public'
+      AND tablename = 'chatbot_training'
+  ) THEN
+    CREATE POLICY "Enable insert access for authenticated users" ON public.chatbot_training
+      FOR INSERT WITH CHECK (true);
+  END IF;
+END$$;
 
-CREATE POLICY "Enable update access for authenticated users" ON public.chatbot_training
-  FOR UPDATE USING (true);
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE policyname = 'Enable update access for authenticated users'
+      AND schemaname = 'public'
+      AND tablename = 'chatbot_training'
+  ) THEN
+    CREATE POLICY "Enable update access for authenticated users" ON public.chatbot_training
+      FOR UPDATE USING (true);
+  END IF;
+END$$;
 
-CREATE POLICY "Enable delete access for authenticated users" ON public.chatbot_training
-  FOR DELETE USING (true);
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE policyname = 'Enable delete access for authenticated users'
+      AND schemaname = 'public'
+      AND tablename = 'chatbot_training'
+  ) THEN
+    CREATE POLICY "Enable delete access for authenticated users" ON public.chatbot_training
+      FOR DELETE USING (true);
+  END IF;
+END$$;
 
-CREATE POLICY "Enable read access for settings" ON public.chatbot_settings
-  FOR SELECT USING (true);
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE policyname = 'Enable read access for settings'
+      AND schemaname = 'public'
+      AND tablename = 'chatbot_settings'
+  ) THEN
+    CREATE POLICY "Enable read access for settings" ON public.chatbot_settings
+      FOR SELECT USING (true);
+  END IF;
+END$$;
 
-CREATE POLICY "Enable insert access for settings" ON public.chatbot_settings
-  FOR INSERT WITH CHECK (true);
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE policyname = 'Enable insert access for settings'
+      AND schemaname = 'public'
+      AND tablename = 'chatbot_settings'
+  ) THEN
+    CREATE POLICY "Enable insert access for settings" ON public.chatbot_settings
+      FOR INSERT WITH CHECK (true);
+  END IF;
+END$$;
 
-CREATE POLICY "Enable update access for settings" ON public.chatbot_settings
-  FOR UPDATE USING (true);
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE policyname = 'Enable update access for settings'
+      AND schemaname = 'public'
+      AND tablename = 'chatbot_settings'
+  ) THEN
+    CREATE POLICY "Enable update access for settings" ON public.chatbot_settings
+      FOR UPDATE USING (true);
+  END IF;
+END$$;
 
--- Insert default settings row
+-- Insert default settings row (idempotent)
 INSERT INTO public.chatbot_settings (personality, tone, greeting_message, fallback_message, system_instructions)
-VALUES (
+SELECT 
   'friendly',
   'professional',
   'Hi! 👋 I''m here to help you with your photography needs at Studio37.\n\nWhat can I help you with today?',
   'I''m here to help! Our team can answer any questions. Would you like to book a consultation or learn about our services?',
   'You are a friendly customer service assistant for Studio37 Photography in Pinehurst, TX.'
-)
-ON CONFLICT DO NOTHING;
+WHERE NOT EXISTS (
+  SELECT 1 FROM public.chatbot_settings
+);
 
--- Add some default training examples
-INSERT INTO public.chatbot_training (question, answer, category) VALUES
-('What services do you offer?', 'We offer wedding photography, portrait sessions, event photography, commercial shoots, and professional headshots. Each package is customized to your needs!', 'services'),
-('How much does a wedding package cost?', 'Our wedding packages typically range from $2,000 to $5,000+ depending on coverage hours, deliverables, and add-ons. I''d love to discuss your specific needs - would you like to schedule a consultation?', 'pricing'),
-('What areas do you serve?', 'We''re based in Pinehurst, TX and serve the greater Houston area including The Woodlands, Conroe, and surrounding communities. We also travel for destination weddings!', 'general'),
-('How do I book a session?', 'You can book by filling out our contact form, calling us directly, or using our online booking calendar. We typically require a deposit to secure your date. What type of session are you interested in?', 'booking'),
-('Do you do engagement photos?', 'Absolutely! Engagement sessions are a great way to get comfortable with the camera before your big day. They''re often included in our wedding packages or available as a standalone session.', 'services'),
-('What''s your turnaround time?', 'For portraits and events, you can expect your edited photos within 2-3 weeks. Weddings typically take 4-6 weeks due to the larger volume of images. We always deliver high-quality, professionally edited photos!', 'general')
-ON CONFLICT DO NOTHING;
+-- Add some default training examples (idempotent)
+INSERT INTO public.chatbot_training (question, answer, category)
+SELECT 'What services do you offer?', 'We offer wedding photography, portrait sessions, event photography, commercial shoots, and professional headshots. Each package is customized to your needs!', 'services'
+WHERE NOT EXISTS (
+  SELECT 1 FROM public.chatbot_training WHERE question = 'What services do you offer?'
+);
+
+INSERT INTO public.chatbot_training (question, answer, category)
+SELECT 'How much does a wedding package cost?', 'Our wedding packages typically range from $2,000 to $5,000+ depending on coverage hours, deliverables, and add-ons. I''d love to discuss your specific needs - would you like to schedule a consultation?', 'pricing'
+WHERE NOT EXISTS (
+  SELECT 1 FROM public.chatbot_training WHERE question = 'How much does a wedding package cost?'
+);
+
+INSERT INTO public.chatbot_training (question, answer, category)
+SELECT 'What areas do you serve?', 'We''re based in Pinehurst, TX and serve the greater Houston area including The Woodlands, Conroe, and surrounding communities. We also travel for destination weddings!', 'general'
+WHERE NOT EXISTS (
+  SELECT 1 FROM public.chatbot_training WHERE question = 'What areas do you serve?'
+);
+
+INSERT INTO public.chatbot_training (question, answer, category)
+SELECT 'How do I book a session?', 'You can book by filling out our contact form, calling us directly, or using our online booking calendar. We typically require a deposit to secure your date. What type of session are you interested in?', 'booking'
+WHERE NOT EXISTS (
+  SELECT 1 FROM public.chatbot_training WHERE question = 'How do I book a session?'
+);
+
+INSERT INTO public.chatbot_training (question, answer, category)
+SELECT 'Do you do engagement photos?', 'Absolutely! Engagement sessions are a great way to get comfortable with the camera before your big day. They''re often included in our wedding packages or available as a standalone session.', 'services'
+WHERE NOT EXISTS (
+  SELECT 1 FROM public.chatbot_training WHERE question = 'Do you do engagement photos?'
+);
+
+INSERT INTO public.chatbot_training (question, answer, category)
+SELECT 'What''s your turnaround time?', 'For portraits and events, you can expect your edited photos within 2-3 weeks. Weddings typically take 4-6 weeks due to the larger volume of images. We always deliver high-quality, professionally edited photos!', 'general'
+WHERE NOT EXISTS (
+  SELECT 1 FROM public.chatbot_training WHERE question = 'What''s your turnaround time?'
+);
 
 COMMENT ON TABLE public.chatbot_training IS 'Stores Q&A training examples for the AI chatbot';
 COMMENT ON TABLE public.chatbot_settings IS 'Stores chatbot personality and configuration settings';

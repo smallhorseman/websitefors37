@@ -158,17 +158,39 @@ export async function POST(req: NextRequest) {
     // Add curated FAQs
     entries.push(...getCuratedEntries(SITE_URL));
 
-    // Clear existing auto-imported entries
-    await supabase
-      .from("chatbot_training")
-      .delete()
-      .not("source_url", "is", null);
+    // Clear existing auto-imported entries (fallback to full delete if column missing)
+    let cleared = false;
+    {
+      const { error: deleteAutoError } = await supabase
+        .from("chatbot_training")
+        .delete()
+        .not("source_url", "is", null);
+      if (!deleteAutoError) {
+        cleared = true;
+      } else {
+        // If column doesn't exist (undefined_column 42703), fallback to full delete
+        if ((deleteAutoError as any)?.code === '42703') {
+          const { error: deleteAllError } = await supabase
+            .from("chatbot_training")
+            .delete()
+            .neq('id', '00000000-0000-0000-0000-000000000000'); // delete all rows
+          if (!deleteAllError) cleared = true;
+        }
+      }
+    }
+
+    // Prepare minimal schema-compatible rows (question, answer, category)
+    const minimalEntries = entries.map((e) => ({
+      question: e.question,
+      answer: e.answer,
+      category: e.category || 'general',
+    }));
 
     // Insert new entries in batches
     const batchSize = 50;
     let imported = 0;
-    for (let i = 0; i < entries.length; i += batchSize) {
-      const batch = entries.slice(i, i + batchSize);
+    for (let i = 0; i < minimalEntries.length; i += batchSize) {
+      const batch = minimalEntries.slice(i, i + batchSize);
       const { error } = await supabase.from("chatbot_training").insert(batch);
 
       if (error) {
@@ -178,13 +200,14 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    log.info("Import completed", { total: entries.length, imported });
+    log.info("Import completed", { total: minimalEntries.length, imported, cleared });
 
     return NextResponse.json({
       success: true,
       message: `Successfully imported ${imported} training entries`,
-      total: entries.length,
+      total: minimalEntries.length,
       imported,
+      cleared,
     });
   } catch (err: any) {
     log.error("Import failed", undefined, err);
