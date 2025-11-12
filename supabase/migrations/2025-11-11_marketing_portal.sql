@@ -437,7 +437,8 @@ SELECT 'Welcome Email', 'welcome-email', 'Welcome to Studio37 Photography!',
 'Welcome {{firstName}}! Thank you for your interest in Studio37 Photography. We''re excited to work with you on your {{serviceType}} project!',
 'onboarding',
 '[{"name":"firstName","default":"there"},{"name":"serviceType","default":"photography"}]'::jsonb
-WHERE NOT EXISTS (SELECT 1 FROM email_templates WHERE slug = 'welcome-email');
+WHERE NOT EXISTS (SELECT 1 FROM email_templates WHERE slug = 'welcome-email')
+ON CONFLICT (slug) DO NOTHING;
 
 INSERT INTO email_templates (name, slug, subject, html_content, text_content, category, variables)
 SELECT 'Session Reminder', 'session-reminder', 'Your Photo Session is Coming Up!',
@@ -445,7 +446,8 @@ SELECT 'Session Reminder', 'session-reminder', 'Your Photo Session is Coming Up!
 'Hi {{firstName}}, Your {{sessionType}} session is on {{sessionDate}} at {{sessionTime}}. Location: {{location}}. See you there!',
 'reminders',
 '[{"name":"firstName","default":""},{"name":"sessionType","default":"photo"},{"name":"sessionDate","default":""},{"name":"sessionTime","default":""},{"name":"location","default":"Studio37"}]'::jsonb
-WHERE NOT EXISTS (SELECT 1 FROM email_templates WHERE slug = 'session-reminder');
+WHERE NOT EXISTS (SELECT 1 FROM email_templates WHERE slug = 'session-reminder')
+ON CONFLICT (slug) DO NOTHING;
 
 INSERT INTO email_templates (name, slug, subject, html_content, text_content, category, variables)
 SELECT 'Photos Ready', 'photos-ready', 'Your Photos Are Ready! 🎉',
@@ -453,7 +455,8 @@ SELECT 'Photos Ready', 'photos-ready', 'Your Photos Are Ready! 🎉',
 'Hi {{firstName}}! Your photos from your {{sessionType}} session are ready! View them here: {{galleryLink}}',
 'delivery',
 '[{"name":"firstName","default":""},{"name":"sessionType","default":""},{"name":"galleryLink","default":""},{"name":"expiryDays","default":"30"}]'::jsonb
-WHERE NOT EXISTS (SELECT 1 FROM email_templates WHERE slug = 'photos-ready');
+WHERE NOT EXISTS (SELECT 1 FROM email_templates WHERE slug = 'photos-ready')
+ON CONFLICT (slug) DO NOTHING;
 
 -- SMS Templates
 INSERT INTO sms_templates (name, slug, message_body, category, variables, character_count, estimated_segments)
@@ -462,7 +465,8 @@ SELECT 'Appointment Confirmation', 'appointment-confirmation',
 'confirmations',
 '[{"name":"firstName","default":""},{"name":"sessionType","default":"photo"},{"name":"date","default":""},{"name":"time","default":""}]'::jsonb,
 120, 1
-WHERE NOT EXISTS (SELECT 1 FROM sms_templates WHERE slug = 'appointment-confirmation');
+WHERE NOT EXISTS (SELECT 1 FROM sms_templates WHERE slug = 'appointment-confirmation')
+ON CONFLICT (slug) DO NOTHING;
 
 INSERT INTO sms_templates (name, slug, message_body, category, variables, character_count, estimated_segments)
 SELECT 'Session Reminder 24h', 'session-reminder-24h',
@@ -470,7 +474,8 @@ SELECT 'Session Reminder 24h', 'session-reminder-24h',
 'reminders',
 '[{"name":"time","default":""},{"name":"location","default":"our studio"}]'::jsonb,
 110, 1
-WHERE NOT EXISTS (SELECT 1 FROM sms_templates WHERE slug = 'session-reminder-24h');
+WHERE NOT EXISTS (SELECT 1 FROM sms_templates WHERE slug = 'session-reminder-24h')
+ON CONFLICT (slug) DO NOTHING;
 
 INSERT INTO sms_templates (name, slug, message_body, category, variables, character_count, estimated_segments)
 SELECT 'Gallery Ready', 'gallery-ready',
@@ -478,7 +483,8 @@ SELECT 'Gallery Ready', 'gallery-ready',
 'delivery',
 '[{"name":"firstName","default":""},{"name":"shortLink","default":""}]'::jsonb,
 80, 1
-WHERE NOT EXISTS (SELECT 1 FROM sms_templates WHERE slug = 'gallery-ready');
+WHERE NOT EXISTS (SELECT 1 FROM sms_templates WHERE slug = 'gallery-ready')
+ON CONFLICT (slug) DO NOTHING;
 
 -- =====================================================
 -- COMMENTS & DOCUMENTATION
