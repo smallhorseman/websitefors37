@@ -1,5 +1,4 @@
-import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
+import { supabaseAdmin } from '@/lib/supabaseAdmin'
 import Link from 'next/link'
 
 export const dynamic = 'force-dynamic'
@@ -31,9 +30,7 @@ interface ClientUser {
 }
 
 async function getClientUser(userId: string): Promise<ClientUser | null> {
-  const supabase = createServerComponentClient({ cookies })
-  
-  const { data, error } = await supabase
+  const { data, error } = await supabaseAdmin
     .from('client_portal_users')
     .select('id, email, first_name, last_name')
     .eq('id', userId)
@@ -44,9 +41,7 @@ async function getClientUser(userId: string): Promise<ClientUser | null> {
 }
 
 async function getClientProjects(userId: string): Promise<Project[]> {
-  const supabase = createServerComponentClient({ cookies })
-  
-  const { data, error } = await supabase
+  const { data, error } = await supabaseAdmin
     .from('client_projects')
     .select('*')
     .eq('client_user_id', userId)
