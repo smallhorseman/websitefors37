@@ -153,19 +153,19 @@ export default function LeadCaptureForm() {
         <div className="grid md:grid-cols-2 gap-6">
           <div>
             <label htmlFor="budget-select" className="block text-sm font-medium text-gray-700 mb-2">
-              Budget Range
+              Package Interest <span className="text-gray-400 text-xs">(Optional)</span>
             </label>
             <select
               {...register('budget_range')}
               id="budget-select"
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
             >
-              <option value="">Select budget range</option>
-              <option value="under-1000">Under $1,000</option>
-              <option value="1000-2500">$1,000 - $2,500</option>
-              <option value="2500-5000">$2,500 - $5,000</option>
-              <option value="5000-10000">$5,000 - $10,000</option>
-              <option value="over-10000">Over $10,000</option>
+              <option value="">Select a package</option>
+              <option value="mini-reel">Mini Reel - Starting at $75</option>
+              <option value="full-episode">Full Episode - Starting at $150</option>
+              <option value="movie-premier">Movie Premier - Starting at $300</option>
+              <option value="hourly">Hourly Rate</option>
+              <option value="custom">Custom Package</option>
             </select>
           </div>
 
