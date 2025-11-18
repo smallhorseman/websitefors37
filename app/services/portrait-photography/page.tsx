@@ -79,45 +79,49 @@ export default function PortraitPhotographyPage() {
           </div>
           
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            <div className="text-center">
-              <div className="bg-primary-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Link href="/family-photography" className="group text-center rounded-lg p-4 transition-colors hover:bg-primary-50 focus:outline-none focus:ring-2 focus:ring-primary-300">
+              <div className="bg-primary-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-105 transition-transform">
                 <Users className="h-8 w-8 text-primary-600" />
               </div>
-              <h3 className="text-xl font-semibold mb-2">Family Portraits</h3>
+              <h3 className="text-xl font-semibold mb-2 group-hover:text-primary-700">Family Portraits</h3>
               <p className="text-gray-600">
                 Beautiful family photos that capture your bonds and create lasting memories for generations.
               </p>
-            </div>
+              <span className="inline-flex items-center gap-1 mt-3 text-sm font-medium text-primary-600 group-hover:underline">View Family Photography <ArrowRight className="h-4 w-4" /></span>
+            </Link>
             
-            <div className="text-center">
-              <div className="bg-primary-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Link href="/senior-portraits" className="group text-center rounded-lg p-4 transition-colors hover:bg-primary-50 focus:outline-none focus:ring-2 focus:ring-primary-300">
+              <div className="bg-primary-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-105 transition-transform">
                 <Star className="h-8 w-8 text-primary-600" />
               </div>
-              <h3 className="text-xl font-semibold mb-2">Senior Portraits</h3>
+              <h3 className="text-xl font-semibold mb-2 group-hover:text-primary-700">Senior Portraits</h3>
               <p className="text-gray-600">
                 Celebrate this milestone with stunning senior portraits that showcase personality and style.
               </p>
-            </div>
+              <span className="inline-flex items-center gap-1 mt-3 text-sm font-medium text-primary-600 group-hover:underline">View Senior Portraits <ArrowRight className="h-4 w-4" /></span>
+            </Link>
             
-            <div className="text-center">
-              <div className="bg-primary-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Link href="/professional-headshots" className="group text-center rounded-lg p-4 transition-colors hover:bg-primary-50 focus:outline-none focus:ring-2 focus:ring-primary-300">
+              <div className="bg-primary-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-105 transition-transform">
                 <Camera className="h-8 w-8 text-primary-600" />
               </div>
-              <h3 className="text-xl font-semibold mb-2">Professional Headshots</h3>
+              <h3 className="text-xl font-semibold mb-2 group-hover:text-primary-700">Professional Headshots</h3>
               <p className="text-gray-600">
                 Make a great first impression with professional headshots for business and personal use.
               </p>
-            </div>
+              <span className="inline-flex items-center gap-1 mt-3 text-sm font-medium text-primary-600 group-hover:underline">View Headshot Info <ArrowRight className="h-4 w-4" /></span>
+            </Link>
             
-            <div className="text-center">
-              <div className="bg-primary-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Link href="/maternity-sessions" className="group text-center rounded-lg p-4 transition-colors hover:bg-primary-50 focus:outline-none focus:ring-2 focus:ring-primary-300">
+              <div className="bg-primary-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-105 transition-transform">
                 <Clock className="h-8 w-8 text-primary-600" />
               </div>
-              <h3 className="text-xl font-semibold mb-2">Maternity Sessions</h3>
+              <h3 className="text-xl font-semibold mb-2 group-hover:text-primary-700">Maternity Sessions</h3>
               <p className="text-gray-600">
                 Capture the beauty and excitement of expecting with elegant maternity photography.
               </p>
-            </div>
+              <span className="inline-flex items-center gap-1 mt-3 text-sm font-medium text-primary-600 group-hover:underline">View Maternity Sessions <ArrowRight className="h-4 w-4" /></span>
+            </Link>
           </div>
         </div>
       </section>
