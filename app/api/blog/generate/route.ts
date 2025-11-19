@@ -290,15 +290,30 @@ Return the response in this exact JSON format (no markdown code blocks):
     try {
       const blogData = JSON.parse(responseText);
 
-      // Fix escaped newlines in content/title/excerpt
+      // Fix all forms of escaped newlines and formatting
       if (blogData.content && typeof blogData.content === 'string') {
-        blogData.content = blogData.content.replace(/\\n/g, '\n');
+        // Replace all forms of escaped newlines
+        blogData.content = blogData.content
+          .replace(/\\n\\n/g, '\n\n')  // Double newlines first
+          .replace(/\\n/g, '\n')       // Then single newlines
+          .replace(/\\t/g, '\t')       // Fix tabs
+          .replace(/\\r/g, '')         // Remove carriage returns
+          .trim();
       }
       if (blogData.title && typeof blogData.title === 'string') {
-        blogData.title = blogData.title.replace(/\\n/g, '\n');
+        blogData.title = blogData.title
+          .replace(/\\n/g, ' ')        // Replace newlines with spaces in titles
+          .trim();
       }
       if (blogData.excerpt && typeof blogData.excerpt === 'string') {
-        blogData.excerpt = blogData.excerpt.replace(/\\n/g, '\n');
+        blogData.excerpt = blogData.excerpt
+          .replace(/\\n/g, ' ')        // Replace newlines with spaces in excerpts
+          .trim();
+      }
+      if (blogData.metaDescription && typeof blogData.metaDescription === 'string') {
+        blogData.metaDescription = blogData.metaDescription
+          .replace(/\\n/g, ' ')        // Replace newlines with spaces in meta
+          .trim();
       }
 
       // Apply formatting template if missing leading H1
@@ -309,19 +324,29 @@ Return the response in this exact JSON format (no markdown code blocks):
       if (!hasHeader && titleStr) {
         contentStr = `# ${titleStr}\n\n${introStr ? '> ' + introStr + '\n\n' : ''}---\n\n` + contentStr;
       }
-  // Enforce section headings structure then internal links
-  blogData.content = ensureLinks(ensureSectionHeadings(contentStr));
+      
+      // Enforce section headings structure then internal links
+      blogData.content = ensureLinks(ensureSectionHeadings(contentStr));
 
       return NextResponse.json(blogData);
     } catch (parseError) {
       // If JSON parsing fails, return a structured fallback
       console.error("Failed to parse AI response as JSON:", parseError);
       console.error("Raw response:", responseText.substring(0, 500));
+      
+      // Fix newlines in raw response text before using as fallback
+      let fallbackContent = String(responseText || "")
+        .replace(/\\n\\n/g, '\n\n')
+        .replace(/\\n/g, '\n')
+        .replace(/\\t/g, '\t')
+        .replace(/\\r/g, '')
+        .trim();
+      
       return NextResponse.json({
         title: topic,
         metaDescription: `Learn about ${topic} with Studio37 Photography in Pinehurst, TX. Expert tips and professional insights.`,
         content: (() => {
-          let fc = String(responseText || "");
+          let fc = fallbackContent;
           const ft = String(topic || "");
           const fi = `Learn about ${topic} with Studio37 Photography in Pinehurst, TX. Expert tips and professional insights.`;
           const startsWithHeader = /^#\s/.test(fc.trim());

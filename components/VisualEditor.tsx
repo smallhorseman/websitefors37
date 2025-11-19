@@ -15756,27 +15756,66 @@ function TestimonialsProperties({
   data: TestimonialsComponent["data"];
   onUpdate: (data: any) => void;
 }) {
+  // Local state to prevent parent re-renders during typing
+  const [localData, setLocalData] = React.useState(data);
+  const updateTimeoutRef = React.useRef<NodeJS.Timeout>();
+
+  // Sync local state when testimonials array changes (component switch or external update)
+  React.useEffect(() => {
+    setLocalData(data);
+  }, [data.testimonials?.length, data.animation]);
+
+  // Debounced parent update
+  const scheduleUpdate = (newData: TestimonialsComponent["data"]) => {
+    if (updateTimeoutRef.current) clearTimeout(updateTimeoutRef.current);
+    updateTimeoutRef.current = setTimeout(() => {
+      onUpdate(newData);
+    }, 300);
+  };
+
+  React.useEffect(() => {
+    return () => {
+      if (updateTimeoutRef.current) clearTimeout(updateTimeoutRef.current);
+    };
+  }, []);
+
   const addTestimonial = () => {
-    onUpdate({
+    const newData = {
+      ...localData,
       testimonials: [
-        ...(data.testimonials || []),
+        ...(localData.testimonials || []),
         { quote: "", author: "", subtext: "", avatar: "" },
       ],
-    });
+    };
+    setLocalData(newData);
+    onUpdate(newData); // Immediate for structural changes
   };
+
   const removeTestimonial = (idx: number) => {
-    onUpdate({
-      testimonials: data.testimonials?.filter((_, i) => i !== idx) || [],
-    });
+    const newData = {
+      ...localData,
+      testimonials: localData.testimonials?.filter((_, i) => i !== idx) || [],
+    };
+    setLocalData(newData);
+    onUpdate(newData); // Immediate for structural changes
   };
+
   const updateTestimonial = (
     idx: number,
     field: keyof (typeof data.testimonials)[0],
     value: string
   ) => {
-    const newTestimonials = [...(data.testimonials || [])];
+    const newTestimonials = [...(localData.testimonials || [])];
     newTestimonials[idx] = { ...newTestimonials[idx], [field]: value };
-    onUpdate({ testimonials: newTestimonials });
+    const newData = { ...localData, testimonials: newTestimonials };
+    setLocalData(newData);
+    scheduleUpdate(newData); // Debounced for text changes
+  };
+
+  const handleAnimationChange = (animation: string) => {
+    const newData = { ...localData, animation };
+    setLocalData(newData);
+    onUpdate(newData); // Immediate for dropdown changes
   };
 
   return (
@@ -15784,8 +15823,8 @@ function TestimonialsProperties({
       <div>
         <label className="block text-sm font-medium mb-1">Animation</label>
         <select
-          value={data.animation || "fade-in"}
-          onChange={(e) => onUpdate({ animation: e.target.value })}
+          value={localData.animation || "fade-in"}
+          onChange={(e) => handleAnimationChange(e.target.value)}
           className="w-full border rounded px-3 py-2"
         >
           <option value="none">None</option>
@@ -15806,7 +15845,7 @@ function TestimonialsProperties({
             + Add Testimonial
           </button>
         </div>
-        {data.testimonials?.map((t, idx) => (
+        {localData.testimonials?.map((t, idx) => (
           <div key={idx} className="border rounded p-3 mb-3 space-y-2">
             <div className="flex items-center justify-between">
               <h4 className="font-medium text-sm">Testimonial {idx + 1}</h4>
@@ -16723,14 +16762,40 @@ function CTABannerProperties({
   data: CTABannerComponent["data"];
   onUpdate: (data: any) => void;
 }) {
+  // Local state to prevent parent re-renders during typing
+  const [localData, setLocalData] = React.useState(data);
+  const updateTimeoutRef = React.useRef<NodeJS.Timeout>();
+
+  // Sync local state when data changes (component switch)
+  React.useEffect(() => {
+    setLocalData(data);
+  }, [data.heading, data.subheading, data.primaryButtonText, data.primaryButtonLink, data.secondaryButtonText, data.secondaryButtonLink]);
+
+  // Local update handler with debounce
+  const handleUpdate = (updates: Partial<CTABannerComponent["data"]>) => {
+    const newData = { ...localData, ...updates };
+    setLocalData(newData);
+    
+    if (updateTimeoutRef.current) clearTimeout(updateTimeoutRef.current);
+    updateTimeoutRef.current = setTimeout(() => {
+      onUpdate(newData);
+    }, 300);
+  };
+
+  React.useEffect(() => {
+    return () => {
+      if (updateTimeoutRef.current) clearTimeout(updateTimeoutRef.current);
+    };
+  }, []);
+
   return (
     <div className="space-y-4">
       <div>
         <label className="block text-sm font-medium mb-1">Heading</label>
         <input
           type="text"
-          value={data.heading || ""}
-          onChange={(e) => onUpdate({ heading: e.target.value })}
+          value={localData.heading || ""}
+          onChange={(e) => handleUpdate({ heading: e.target.value })}
           className="w-full border rounded px-3 py-2"
           placeholder="Ready to get started?"
         />
@@ -16738,8 +16803,8 @@ function CTABannerProperties({
       <div>
         <label className="block text-sm font-medium mb-1">Subheading</label>
         <textarea
-          value={data.subheading || ""}
-          onChange={(e) => onUpdate({ subheading: e.target.value })}
+          value={localData.subheading || ""}
+          onChange={(e) => handleUpdate({ subheading: e.target.value })}
           className="w-full border rounded px-3 py-2"
           rows={2}
           placeholder="Let's make something amazing together"
@@ -16752,8 +16817,8 @@ function CTABannerProperties({
           </label>
           <input
             type="text"
-            value={data.primaryButtonText || ""}
-            onChange={(e) => onUpdate({ primaryButtonText: e.target.value })}
+            value={localData.primaryButtonText || ""}
+            onChange={(e) => handleUpdate({ primaryButtonText: e.target.value })}
             className="w-full border rounded px-3 py-2"
             placeholder="Book Now"
           />
@@ -16764,8 +16829,8 @@ function CTABannerProperties({
           </label>
           <input
             type="url"
-            value={data.primaryButtonLink || ""}
-            onChange={(e) => onUpdate({ primaryButtonLink: e.target.value })}
+            value={localData.primaryButtonLink || ""}
+            onChange={(e) => handleUpdate({ primaryButtonLink: e.target.value })}
             className="w-full border rounded px-3 py-2"
             placeholder="/book-a-session"
           />
@@ -16778,8 +16843,8 @@ function CTABannerProperties({
           </label>
           <input
             type="text"
-            value={data.secondaryButtonText || ""}
-            onChange={(e) => onUpdate({ secondaryButtonText: e.target.value })}
+            value={localData.secondaryButtonText || ""}
+            onChange={(e) => handleUpdate({ secondaryButtonText: e.target.value })}
             className="w-full border rounded px-3 py-2"
             placeholder="Learn More"
           />
@@ -16790,8 +16855,8 @@ function CTABannerProperties({
           </label>
           <input
             type="url"
-            value={data.secondaryButtonLink || ""}
-            onChange={(e) => onUpdate({ secondaryButtonLink: e.target.value })}
+            value={localData.secondaryButtonLink || ""}
+            onChange={(e) => handleUpdate({ secondaryButtonLink: e.target.value })}
             className="w-full border rounded px-3 py-2"
             placeholder="/about"
           />
