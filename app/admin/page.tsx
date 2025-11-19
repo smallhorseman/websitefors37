@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import NotificationCenter from "@/components/NotificationCenter";
+import PageList from "@/components/admin/PageList";
 
 interface User {
   id: string;
@@ -715,6 +716,11 @@ export default function AdminPage() {
 
           {/* Recent Activity Section */}
           <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Live Pages Quick Access */}
+            <div className="lg:col-span-2">
+              <PageList />
+            </div>
+
             {/* Recent Leads */}
             <div className="bg-white shadow rounded-lg">
               <div className="px-6 py-4 border-b border-gray-200">

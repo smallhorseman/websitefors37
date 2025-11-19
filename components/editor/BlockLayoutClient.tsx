@@ -68,6 +68,49 @@ export default function BlockLayoutClient({ path }: { path: string }) {
     })
   }
 
+  function cloneBlock(id: string) {
+    const blk = blocks.find(b => b.id === id)
+    if (!blk) return
+    const newId = prompt('Enter a unique id for the cloned block:', `${id}-copy`) || ''
+    if (!newId) return
+    if (blocks.some(b => b.id === newId)) {
+      alert('A block with that id already exists.')
+      return
+    }
+    setBlocks(prev => [...prev, { ...blk, id: newId }])
+  }
+
+  const [draggedId, setDraggedId] = React.useState<string | null>(null)
+
+  function handleDragStart(e: React.DragEvent, id: string) {
+    setDraggedId(id)
+    e.dataTransfer.effectAllowed = 'move'
+  }
+
+  function handleDragOver(e: React.DragEvent) {
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'move'
+  }
+
+  function handleDrop(e: React.DragEvent, targetId: string) {
+    e.preventDefault()
+    if (!draggedId || draggedId === targetId) return
+    setBlocks(prev => {
+      const fromIdx = prev.findIndex(b => b.id === draggedId)
+      const toIdx = prev.findIndex(b => b.id === targetId)
+      if (fromIdx < 0 || toIdx < 0) return prev
+      const copy = prev.slice()
+      const [item] = copy.splice(fromIdx, 1)
+      copy.splice(toIdx, 0, item)
+      return copy
+    })
+    setDraggedId(null)
+  }
+
+  function handleDragEnd() {
+    setDraggedId(null)
+  }
+
   function updateProps(id: string) {
     const blk = blocks.find(b => b.id === id)
     if (!blk) return
@@ -142,7 +185,15 @@ export default function BlockLayoutClient({ path }: { path: string }) {
             )}
             <ul className="space-y-2">
               {blocks.map((b, idx) => (
-                <li key={b.id} className="border rounded p-3 flex items-center justify-between">
+                <li 
+                  key={b.id} 
+                  className={`border rounded p-3 flex items-center justify-between cursor-move ${draggedId === b.id ? 'opacity-50' : ''}`}
+                  draggable
+                  onDragStart={(e) => handleDragStart(e, b.id)}
+                  onDragOver={handleDragOver}
+                  onDrop={(e) => handleDrop(e, b.id)}
+                  onDragEnd={handleDragEnd}
+                >
                   <div className="flex items-center gap-3">
                     <span className="text-xs text-gray-500 w-6">{idx+1}</span>
                     <input value={b.id} readOnly className="text-sm bg-gray-50 border rounded px-2 py-1 w-40" />
@@ -152,6 +203,7 @@ export default function BlockLayoutClient({ path }: { path: string }) {
                   </div>
                   <div className="flex items-center gap-2">
                     <button onClick={() => updateProps(b.id)} className="px-2 py-1 text-xs rounded border">Props</button>
+                    <button onClick={() => cloneBlock(b.id)} className="px-2 py-1 text-xs rounded border text-blue-600">Clone</button>
                     <button onClick={() => move(b.id, -1)} disabled={idx===0} className="px-2 py-1 text-xs rounded border">Up</button>
                     <button onClick={() => move(b.id, 1)} disabled={idx===blocks.length-1} className="px-2 py-1 text-xs rounded border">Down</button>
                     <button onClick={() => removeBlock(b.id)} className="px-2 py-1 text-xs rounded border text-red-600">Remove</button>

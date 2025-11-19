@@ -97,11 +97,75 @@ export default function EditorFormClient() {
     animation: 'fade-in',
   })
 
+  const [servicesGrid, setServicesGrid] = useState({
+    heading: '',
+    subheading: '',
+    servicesJson: '[]',
+    columns: '3',
+    animation: 'fade-in',
+  })
+
+  const [stats, setStats] = useState({
+    heading: '',
+    statsJson: '[]',
+    columns: '3',
+    style: 'default',
+    animation: 'fade-in',
+  })
+
+  const [ctaBanner, setCtaBanner] = useState({
+    heading: '',
+    subheading: '',
+    primaryButtonText: '',
+    primaryButtonLink: '',
+    secondaryButtonText: '',
+    secondaryButtonLink: '',
+    backgroundImage: '',
+    backgroundColor: '#0f172a',
+    overlay: '60',
+    textColor: 'text-white',
+    fullBleed: 'true',
+    animation: 'fade-in',
+  })
+
+  const [iconFeatures, setIconFeatures] = useState({
+    heading: '',
+    subheading: '',
+    featuresJson: '[]',
+    columns: '4',
+    animation: 'fade-in',
+  })
+
+  const [newsletter, setNewsletter] = useState({
+    heading: 'Subscribe to our newsletter',
+    subheading: '',
+    disclaimer: '',
+    style: 'card',
+    animation: 'fade-in',
+  })
+
+  const [pricingTable, setPricingTable] = useState({
+    heading: '',
+    subheading: '',
+    plansJson: '[]',
+    columns: '3',
+    animation: 'fade-in',
+    style: 'light',
+    variant: 'card',
+    showFeatureChecks: 'true',
+  })
+
   const isHero = block === 'HeroBlock'
   const isCalc = block === 'PricingCalculatorBlock'
   const isText = block === 'TextBlock'
   const isImage = block === 'ImageBlock'
   const isFaq = block === 'FAQBlock'
+  const isServicesGrid = block === 'ServicesGridBlock'
+  const isStats = block === 'StatsBlock'
+  const isCtaBanner = block === 'CTABannerBlock'
+  const isIconFeatures = block === 'IconFeaturesBlock'
+  const isNewsletter = block === 'NewsletterBlock'
+  const isPricingTable = block === 'PricingTableBlock'
 
   const payload = useMemo(() => {
     if (isHero) return hero
@@ -119,8 +183,34 @@ export default function EditorFormClient() {
       const itemsB64 = typeof window !== 'undefined' ? btoa(unescape(encodeURIComponent(safeJson))) : ''
       return { heading: faqBlock.heading, itemsB64, columns: faqBlock.columns, animation: faqBlock.animation }
     }
+    if (isServicesGrid) {
+      let safeJson = '[]'
+      try { JSON.parse(servicesGrid.servicesJson || '[]'); safeJson = servicesGrid.servicesJson || '[]' } catch {}
+      const servicesB64 = typeof window !== 'undefined' ? btoa(unescape(encodeURIComponent(safeJson))) : ''
+      return { heading: servicesGrid.heading, subheading: servicesGrid.subheading, servicesB64, columns: servicesGrid.columns, animation: servicesGrid.animation }
+    }
+    if (isStats) {
+      let safeJson = '[]'
+      try { JSON.parse(stats.statsJson || '[]'); safeJson = stats.statsJson || '[]' } catch {}
+      const statsB64 = typeof window !== 'undefined' ? btoa(unescape(encodeURIComponent(safeJson))) : ''
+      return { heading: stats.heading, statsB64, columns: stats.columns, style: stats.style, animation: stats.animation }
+    }
+    if (isCtaBanner) return { ...ctaBanner }
+    if (isIconFeatures) {
+      let safeJson = '[]'
+      try { JSON.parse(iconFeatures.featuresJson || '[]'); safeJson = iconFeatures.featuresJson || '[]' } catch {}
+      const featuresB64 = typeof window !== 'undefined' ? btoa(unescape(encodeURIComponent(safeJson))) : ''
+      return { heading: iconFeatures.heading, subheading: iconFeatures.subheading, featuresB64, columns: iconFeatures.columns, animation: iconFeatures.animation }
+    }
+    if (isNewsletter) return { ...newsletter }
+    if (isPricingTable) {
+      let safeJson = '[]'
+      try { JSON.parse(pricingTable.plansJson || '[]'); safeJson = pricingTable.plansJson || '[]' } catch {}
+      const plansB64 = typeof window !== 'undefined' ? btoa(unescape(encodeURIComponent(safeJson))) : ''
+      return { heading: pricingTable.heading, subheading: pricingTable.subheading, plansB64, columns: pricingTable.columns, animation: pricingTable.animation, style: pricingTable.style, variant: pricingTable.variant, showFeatureChecks: pricingTable.showFeatureChecks }
+    }
     return {}
-  }, [isHero, isCalc, isText, isImage, isFaq, hero, calc, textBlock, imageBlock, faqBlock])
+  }, [isHero, isCalc, isText, isImage, isFaq, isServicesGrid, isStats, isCtaBanner, isIconFeatures, isNewsletter, isPricingTable, hero, calc, textBlock, imageBlock, faqBlock, servicesGrid, stats, ctaBanner, iconFeatures, newsletter, pricingTable])
 
   async function save() {
     const res = await fetch('/api/editor/save', {
@@ -232,8 +322,78 @@ export default function EditorFormClient() {
         </div>
       )}
 
-      {!isHero && !isCalc && (
-        <div className="text-gray-600 text-sm">No editor schema for this block yet. I can add it next.</div>
+      {isServicesGrid && (
+        <div className="grid gap-4">
+          <TextInput label="Heading" value={servicesGrid.heading} onChange={(v:any)=>setServicesGrid({...servicesGrid, heading: v})} placeholder="Our Services" />
+          <TextInput label="Subheading" value={servicesGrid.subheading} onChange={(v:any)=>setServicesGrid({...servicesGrid, subheading: v})} placeholder="Optional subheading" />
+          <TextArea label="Services JSON (array of {image, title, description, features[], link?})" value={servicesGrid.servicesJson} onChange={(v:any)=>setServicesGrid({...servicesGrid, servicesJson: v})} placeholder='[{"image":"...","title":"...","description":"...","features":["..."],"link":"/..."}]' />
+          <TextInput label="Columns (2|3|4)" value={servicesGrid.columns} onChange={(v:any)=>setServicesGrid({...servicesGrid, columns: v})} placeholder="3" />
+          <TextInput label="Animation" value={servicesGrid.animation} onChange={(v:any)=>setServicesGrid({...servicesGrid, animation: v})} />
+        </div>
+      )}
+
+      {isStats && (
+        <div className="grid gap-4">
+          <TextInput label="Heading" value={stats.heading} onChange={(v:any)=>setStats({...stats, heading: v})} placeholder="By the Numbers" />
+          <TextArea label="Stats JSON (array of {icon, number, label, suffix?})" value={stats.statsJson} onChange={(v:any)=>setStats({...stats, statsJson: v})} placeholder='[{"icon":"📷","number":"1000","label":"Happy Clients","suffix":"+"}]' />
+          <TextInput label="Columns (2|3|4)" value={stats.columns} onChange={(v:any)=>setStats({...stats, columns: v})} placeholder="3" />
+          <TextInput label="Style (default|cards|minimal)" value={stats.style} onChange={(v:any)=>setStats({...stats, style: v})} />
+          <TextInput label="Animation" value={stats.animation} onChange={(v:any)=>setStats({...stats, animation: v})} />
+        </div>
+      )}
+
+      {isCtaBanner && (
+        <div className="grid md:grid-cols-2 gap-4">
+          <TextInput label="Heading" value={ctaBanner.heading} onChange={(v:any)=>setCtaBanner({...ctaBanner, heading: v})} placeholder="Ready to get started?" />
+          <TextInput label="Subheading" value={ctaBanner.subheading} onChange={(v:any)=>setCtaBanner({...ctaBanner, subheading: v})} placeholder="Optional subheading" />
+          <TextInput label="Primary Button Text" value={ctaBanner.primaryButtonText} onChange={(v:any)=>setCtaBanner({...ctaBanner, primaryButtonText: v})} placeholder="Book Now" />
+          <TextInput label="Primary Button Link" value={ctaBanner.primaryButtonLink} onChange={(v:any)=>setCtaBanner({...ctaBanner, primaryButtonLink: v})} placeholder="/book" />
+          <TextInput label="Secondary Button Text" value={ctaBanner.secondaryButtonText} onChange={(v:any)=>setCtaBanner({...ctaBanner, secondaryButtonText: v})} placeholder="Learn More" />
+          <TextInput label="Secondary Button Link" value={ctaBanner.secondaryButtonLink} onChange={(v:any)=>setCtaBanner({...ctaBanner, secondaryButtonLink: v})} placeholder="/services" />
+          <TextInput label="Background Image URL" value={ctaBanner.backgroundImage} onChange={(v:any)=>setCtaBanner({...ctaBanner, backgroundImage: v})} />
+          <TextInput label="Background Color (hex)" value={ctaBanner.backgroundColor} onChange={(v:any)=>setCtaBanner({...ctaBanner, backgroundColor: v})} placeholder="#0f172a" />
+          <TextInput label="Overlay (0-100)" value={ctaBanner.overlay} onChange={(v:any)=>setCtaBanner({...ctaBanner, overlay: v})} placeholder="60" />
+          <TextInput label="Text Color" value={ctaBanner.textColor} onChange={(v:any)=>setCtaBanner({...ctaBanner, textColor: v})} placeholder="text-white" />
+          <TextInput label="Full Bleed (true|false)" value={ctaBanner.fullBleed} onChange={(v:any)=>setCtaBanner({...ctaBanner, fullBleed: v})} />
+          <TextInput label="Animation" value={ctaBanner.animation} onChange={(v:any)=>setCtaBanner({...ctaBanner, animation: v})} />
+        </div>
+      )}
+
+      {isIconFeatures && (
+        <div className="grid gap-4">
+          <TextInput label="Heading" value={iconFeatures.heading} onChange={(v:any)=>setIconFeatures({...iconFeatures, heading: v})} placeholder="Why Choose Us" />
+          <TextInput label="Subheading" value={iconFeatures.subheading} onChange={(v:any)=>setIconFeatures({...iconFeatures, subheading: v})} placeholder="Optional subheading" />
+          <TextArea label="Features JSON (array of {icon, title, description})" value={iconFeatures.featuresJson} onChange={(v:any)=>setIconFeatures({...iconFeatures, featuresJson: v})} placeholder='[{"icon":"📷","title":"Professional","description":"High-quality results"}]' />
+          <TextInput label="Columns (2|3|4)" value={iconFeatures.columns} onChange={(v:any)=>setIconFeatures({...iconFeatures, columns: v})} placeholder="4" />
+          <TextInput label="Animation" value={iconFeatures.animation} onChange={(v:any)=>setIconFeatures({...iconFeatures, animation: v})} />
+        </div>
+      )}
+
+      {isNewsletter && (
+        <div className="grid gap-4">
+          <TextInput label="Heading" value={newsletter.heading} onChange={(v:any)=>setNewsletter({...newsletter, heading: v})} placeholder="Subscribe to our newsletter" />
+          <TextInput label="Subheading" value={newsletter.subheading} onChange={(v:any)=>setNewsletter({...newsletter, subheading: v})} placeholder="Optional subheading" />
+          <TextArea label="Disclaimer" value={newsletter.disclaimer} onChange={(v:any)=>setNewsletter({...newsletter, disclaimer: v})} placeholder="We respect your privacy." />
+          <TextInput label="Style (card|banner)" value={newsletter.style} onChange={(v:any)=>setNewsletter({...newsletter, style: v})} />
+          <TextInput label="Animation" value={newsletter.animation} onChange={(v:any)=>setNewsletter({...newsletter, animation: v})} />
+        </div>
+      )}
+
+      {isPricingTable && (
+        <div className="grid gap-4">
+          <TextInput label="Heading" value={pricingTable.heading} onChange={(v:any)=>setPricingTable({...pricingTable, heading: v})} placeholder="Pricing Plans" />
+          <TextInput label="Subheading" value={pricingTable.subheading} onChange={(v:any)=>setPricingTable({...pricingTable, subheading: v})} placeholder="Choose the right plan for you" />
+          <TextArea label="Plans JSON (array of {title, price, period?, features[], ctaText?, ctaLink?, highlight?})" value={pricingTable.plansJson} onChange={(v:any)=>setPricingTable({...pricingTable, plansJson: v})} placeholder='[{"title":"Basic","price":"$99","period":"month","features":["..."],"ctaText":"Get Started","ctaLink":"/book","highlight":false}]' />
+          <TextInput label="Columns (2|3|4)" value={pricingTable.columns} onChange={(v:any)=>setPricingTable({...pricingTable, columns: v})} placeholder="3" />
+          <TextInput label="Style (light|dark)" value={pricingTable.style} onChange={(v:any)=>setPricingTable({...pricingTable, style: v})} />
+          <TextInput label="Variant (card|flat)" value={pricingTable.variant} onChange={(v:any)=>setPricingTable({...pricingTable, variant: v})} />
+          <TextInput label="Show Feature Checks (true|false)" value={pricingTable.showFeatureChecks} onChange={(v:any)=>setPricingTable({...pricingTable, showFeatureChecks: v})} />
+          <TextInput label="Animation" value={pricingTable.animation} onChange={(v:any)=>setPricingTable({...pricingTable, animation: v})} />
+        </div>
+      )}
+
+      {!isHero && !isCalc && !isText && !isImage && !isFaq && !isServicesGrid && !isStats && !isCtaBanner && !isIconFeatures && !isNewsletter && !isPricingTable && (
+        <div className="text-gray-600 text-sm">No editor schema for this block yet. Use the layout editor to configure props as JSON.</div>
       )}
 
       <div className="mt-6 flex gap-3">
