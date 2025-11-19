@@ -8,6 +8,7 @@ import WidgetEmbedClient from './blocks/WidgetEmbedClient'
 import LeadCaptureForm from './LeadCaptureForm'
 import NewsletterInlineClient from './blocks/NewsletterInlineClient'
 import PricingCalculator from './PricingCalculator'
+import EditableChrome from './editor/EditableChrome'
 
 // Server components used by MDX to render VisualEditor output faithfully
 
@@ -127,7 +128,8 @@ export function HeroBlock({
   const sectionBase = `relative min-h-[50vh] md:min-h-[60vh] lg:min-h-[70vh] flex items-center justify-center text-white overflow-hidden ${animation === 'fade-in' ? 'animate-fadeIn' : animation === 'slide-up' ? 'animate-slideUp' : animation === 'zoom' ? 'animate-zoom' : ''}`
   
   const section = (
-    <section className={`${sectionBase} ${isFullBleed ? '' : 'rounded-lg'}`}>
+    <section className={`${sectionBase} ${isFullBleed ? '' : 'rounded-lg'} relative`}>
+      <EditableChrome label="Hero" block="HeroBlock" />
       {backgroundImage && (
         <Image src={backgroundImage} alt="" fill className="object-cover" />
       )}
@@ -983,7 +985,8 @@ export function PricingCalculatorBlock({
   const pplNum = Number(people || 1)
   const show = String(showBookCta) !== 'false'
   return (
-    <div className="py-16 md:py-20 px-6 md:px-8 bg-white">
+    <div className="py-16 md:py-20 px-6 md:px-8 bg-white relative">
+      <EditableChrome label="Pricing Calculator" block="PricingCalculatorBlock" />
       <div className="max-w-5xl mx-auto">
         <PricingCalculator
           defaultCategory={initialCategory}
