@@ -37,30 +37,33 @@ const playfair = Playfair_Display({
   subsets: ["latin"],
   variable: "--font-playfair",
   display: "swap",
-  preload: true,
+  weight: ["400", "700"], // Only load essential weights
+  preload: false, // Not critical for initial render
   fallback: ['georgia', 'serif'],
 });
 
-// Serif Fonts
+// Serif Fonts - use optional display for non-critical fonts
 const cormorant = Cormorant_Garamond({
   subsets: ["latin"],
   variable: "--font-cormorant",
-  weight: ["300", "400", "500", "600", "700"],
-  display: "swap",
+  weight: ["400", "600"], // Reduced from 5 weights to 2
+  display: "optional", // Don't block render
   fallback: ['georgia', 'serif'],
 });
 
 const lora = Lora({
   subsets: ["latin"],
   variable: "--font-lora",
-  display: "swap",
+  display: "optional", // Don't block render
+  weight: ["400", "600"], // Limit weights
   fallback: ['georgia', 'serif'],
 });
 
 const crimson = Crimson_Pro({
   subsets: ["latin"],
   variable: "--font-crimson",
-  display: "swap",
+  display: "optional", // Don't block render
+  weight: ["400", "600"], // Limit weights
   fallback: ['georgia', 'serif'],
 });
 
@@ -68,7 +71,7 @@ const libreBaskerville = Libre_Baskerville({
   subsets: ["latin"],
   variable: "--font-libre",
   weight: ["400", "700"],
-  display: "swap",
+  display: "optional", // Don't block render
   fallback: ['georgia', 'serif'],
 });
 
@@ -76,36 +79,41 @@ const libreBaskerville = Libre_Baskerville({
 const montserrat = Montserrat({
   subsets: ["latin"],
   variable: "--font-montserrat",
-  display: "swap",
+  display: "optional", // Don't block render
+  weight: ["400", "600"], // Limit weights
   fallback: ['system-ui', 'arial'],
 });
 
 const raleway = Raleway({
   subsets: ["latin"],
   variable: "--font-raleway",
-  display: "swap",
+  display: "optional", // Don't block render
+  weight: ["400", "600"], // Limit weights
   fallback: ['system-ui', 'arial'],
 });
 
 const nunito = Nunito({
   subsets: ["latin"],
   variable: "--font-nunito",
-  display: "swap",
+  display: "optional", // Don't block render
+  weight: ["400", "600"], // Limit weights
   fallback: ['system-ui', 'arial'],
 });
 
 const workSans = Work_Sans({
   subsets: ["latin"],
   variable: "--font-worksans",
-  display: "swap",
+  display: "optional", // Don't block render
+  weight: ["400", "600"], // Limit weights
   fallback: ['system-ui', 'arial'],
 });
 
-// Display Fonts
+// Display Fonts - load on demand
 const cinzel = Cinzel({
   subsets: ["latin"],
   variable: "--font-cinzel",
-  display: "swap",
+  display: "optional", // Don't block render
+  weight: ["400", "600"], // Limit weights
   fallback: ['georgia', 'serif'],
 });
 
@@ -113,7 +121,7 @@ const greatVibes = Great_Vibes({
   subsets: ["latin"],
   variable: "--font-greatvibes",
   weight: "400",
-  display: "swap",
+  display: "optional", // Don't block render
   fallback: ['cursive'],
 });
 
@@ -121,7 +129,7 @@ const bebasNeue = Bebas_Neue({
   subsets: ["latin"],
   variable: "--font-bebas",
   weight: "400",
-  display: "swap",
+  display: "optional", // Don't block render
   fallback: ['impact', 'sans-serif'],
 });
 

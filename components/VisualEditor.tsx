@@ -76,7 +76,20 @@ import {
 import Image from "next/image";
 import ImageUploader from "./ImageUploader";
 import MobilePreviewToggle from "./MobilePreviewToggle";
-import { ColorPicker, FontPicker, TextColorPicker } from './editor/ThemeControls';
+
+// Lazy load theme controls to reduce initial bundle
+const ThemeControls = dynamic(() => import('./editor/ThemeControls').then(mod => ({
+  default: () => ({
+    ColorPicker: mod.ColorPicker,
+    FontPicker: mod.FontPicker,
+    TextColorPicker: mod.TextColorPicker,
+  })
+})), { ssr: false });
+
+// Individual lazy-loaded components for when we need them
+const ColorPickerLazy = dynamic(() => import('./editor/ThemeControls').then(m => ({ default: m.ColorPicker })), { ssr: false });
+const FontPickerLazy = dynamic(() => import('./editor/ThemeControls').then(m => ({ default: m.FontPicker })), { ssr: false });
+const TextColorPickerLazy = dynamic(() => import('./editor/ThemeControls').then(m => ({ default: m.TextColorPicker })), { ssr: false });
 
 // Cloudinary media library (loaded only when invoked)
 const CloudinaryMediaLibrary = dynamic(() => import('@/components/CloudinaryMediaLibrary'), {
@@ -14847,21 +14860,21 @@ function TextProperties({
       <div className="border-t pt-4 mt-4">
         <h4 className="text-sm font-semibold mb-3 text-gray-700">Theme & Styling</h4>
         
-        <FontPicker
+        <FontPickerLazy
           label="Font Family"
           value={localData.fontFamily}
           onChange={(fontFamily) => handleUpdate({ fontFamily })}
           type="body"
         />
 
-        <TextColorPicker
+        <TextColorPickerLazy
           label="Text Color"
           value={localData.textColor}
           onChange={(textColor) => handleUpdate({ textColor })}
           background="light"
         />
 
-        <ColorPicker
+        <ColorPickerLazy
           label="Background Color"
           value={localData.backgroundColor}
           onChange={(backgroundColor) => handleUpdate({ backgroundColor })}
