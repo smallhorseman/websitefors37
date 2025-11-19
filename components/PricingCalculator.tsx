@@ -119,7 +119,7 @@ export default function PricingCalculator({
               </button>
             ))}
           </div>
-          <p className="text-xs text-gray-500 mt-2 flex items-center gap-1"><Info className="h-3 w-3" /> All sessions billed at $400/hr (minimum $100). 6+ people: $50 per person over 5.</p>
+          <p className="text-xs text-gray-500 mt-2 flex items-center gap-1"><Info className="h-3 w-3" /> Transparent pro‑rata pricing. 6+ people: $50 per person over 5.</p>
         </div>
 
         {/* People */}
@@ -154,7 +154,7 @@ export default function PricingCalculator({
               <option key={m} value={m}>{m} minutes</option>
             ))}
           </select>
-          <p className="text-xs text-gray-500 mt-2">Billed pro‑rata: {formatUsd(hourlyRate)} per hour.</p>
+          <p className="text-xs text-gray-500 mt-2">Billed pro‑rata by minutes.</p>
         </div>
       </div>
 
@@ -209,7 +209,7 @@ export default function PricingCalculator({
                 <li>Type: {category === "solo" ? "Solo" : category === "couple" ? "Couples" : "Family"}</li>
                 <li>People: {people}</li>
                 <li>Duration: {minutes} minutes</li>
-                <li>Hourly: {formatUsd(hourlyRate)}</li>
+                {/* Hourly rate hidden per request */}
                 {extraPersonFee>0 && <li>Group surcharge: {formatUsd(extraPersonFee)}</li>}
               </ul>
               <div className="border-t mt-3 pt-3 flex items-center justify-between">
