@@ -85,6 +85,29 @@ export default async function DynamicPage({ params }: { params: { slug: string }
   if (isBuilderPage) {
     // Dynamic import of MDX components for builder pages only.
     const { MDXBuilderComponents } = await import('@/components/BuilderRuntime')
+    const { getPageConfigs } = await import('@/lib/pageConfigs')
+    
+    // Fetch page-level overrides for current path
+    const currentPath = `/${params.slug}`
+    const configs = await getPageConfigs(currentPath)
+    
+    // Wrap components to inject _overrides prop based on block anchorId
+    const wrappedComponents = Object.fromEntries(
+      Object.entries(MDXBuilderComponents).map(([name, Component]) => [
+        name,
+        (props: any) => {
+          // Match anchorId convention from BuilderRuntime
+          let anchorId = props.id || props.anchorId
+          if (!anchorId) {
+            if (name === 'HeroBlock') anchorId = 'hero'
+            else if (name === 'PricingCalculatorBlock') anchorId = 'pricing-calculator'
+          }
+          const override = anchorId ? configs.get(anchorId) : null
+          return <Component {...props} _overrides={override?.props || null} />
+        }
+      ])
+    )
+    
     // Builder-managed page: render full-width with no constraints
     return (
       <PageWrapper showNav={showNav} className={`min-h-screen ${showNav ? 'pt-16' : ''}`}>
@@ -98,8 +121,7 @@ export default async function DynamicPage({ params }: { params: { slug: string }
                   : [[rehypeHighlight, {}] as any]
               }
             }}
-            // MDXBuilderComponents is only present when imported dynamically above
-            components={MDXBuilderComponents as any}
+            components={wrappedComponents as any}
           />
         ) : (
           <div className="container mx-auto px-4 py-16">

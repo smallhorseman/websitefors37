@@ -9,6 +9,7 @@ import LeadCaptureForm from './LeadCaptureForm'
 import NewsletterInlineClient from './blocks/NewsletterInlineClient'
 import PricingCalculator from './PricingCalculator'
 import EditableChrome from './editor/EditableChrome'
+import { getBlockOverride } from '@/lib/pageConfigs'
 
 // Server components used by MDX to render VisualEditor output faithfully
 
@@ -99,6 +100,7 @@ export function HeroBlock({
   buttonAnimation = 'none',
   fullBleed = false,
   overlapHeader = true,
+  _overrides,
 }: {
   title?: string
   subtitle?: string
@@ -116,7 +118,18 @@ export function HeroBlock({
   buttonAnimation?: string
   fullBleed?: boolean | string
   overlapHeader?: boolean | string
+  _overrides?: Record<string, any> | null
 }) {
+  // Merge overrides if present
+  const overrideProps = _overrides || {}
+  const finalTitle = overrideProps.title ?? title
+  const finalSubtitle = overrideProps.subtitle ?? subtitle
+  const finalBackgroundImage = overrideProps.backgroundImage ?? backgroundImage
+  const finalButtonText = overrideProps.buttonText ?? buttonText
+  const finalButtonLink = overrideProps.buttonLink ?? buttonLink
+  const finalAlignment = overrideProps.alignment ?? alignment
+  const finalOverlay = overrideProps.overlay ?? overlay
+
   const buttonStyleClasses: Record<string, string> = {
     primary: 'btn-primary',
     secondary: 'btn-secondary bg-white/10 hover:bg-white/20 border border-amber-200/30',
@@ -130,23 +143,23 @@ export function HeroBlock({
   const section = (
     <section className={`${sectionBase} ${isFullBleed ? '' : 'rounded-lg'} relative`}>
       <EditableChrome label="Hero" block="HeroBlock" anchorId="hero" />
-      {backgroundImage && (
-        <Image src={backgroundImage} alt="" fill className="object-cover" />
+      {finalBackgroundImage && (
+        <Image src={finalBackgroundImage} alt="" fill className="object-cover" />
       )}
       <div
         className="absolute inset-0 bg-black/60"
-        style={{ backgroundColor: `rgba(0,0,0,${Math.min(Math.max(Number(overlay ?? 50), 0), 100) / 100})` }}
+        style={{ backgroundColor: `rgba(0,0,0,${Math.min(Math.max(Number(finalOverlay ?? 50), 0), 100) / 100})` }}
       />
-      <div className={`relative z-10 max-w-4xl w-full px-6 text-${alignment}`}>
-        {title && <h1 className={`text-4xl md:text-5xl lg:text-6xl font-bold mb-3 ${titleColor}`} dangerouslySetInnerHTML={{ __html: title }} />}
-        {subtitle && <p className={`text-lg md:text-xl mb-6 opacity-90 ${subtitleColor}`} dangerouslySetInnerHTML={{ __html: subtitle }} />}
+      <div className={`relative z-10 max-w-4xl w-full px-6 text-${finalAlignment}`}>
+        {finalTitle && <h1 className={`text-4xl md:text-5xl lg:text-6xl font-bold mb-3 ${titleColor}`} dangerouslySetInnerHTML={{ __html: finalTitle }} />}
+        {finalSubtitle && <p className={`text-lg md:text-xl mb-6 opacity-90 ${subtitleColor}`} dangerouslySetInnerHTML={{ __html: finalSubtitle }} />}
         <div className="flex flex-wrap gap-4 justify-center items-center">
-          {buttonText && (
+          {finalButtonText && (
             <a
-              href={buttonLink || '#'}
+              href={finalButtonLink || '#'}
               className={`inline-block px-6 py-3 rounded-lg transition no-underline ${buttonStyleClasses[buttonStyle] || buttonStyleClasses.primary} ${hoverZoom}`}
             >
-              {buttonText}
+              {finalButtonText}
             </a>
           )}
           {secondaryButtonText && (
@@ -973,17 +986,26 @@ export function PricingCalculatorBlock({
   category = 'solo',
   minutes = '60',
   people = '1',
-  showBookCta = 'true'
+  showBookCta = 'true',
+  _overrides,
 }: {
   category?: string
   minutes?: string | number
   people?: string | number
   showBookCta?: string | boolean
+  _overrides?: Record<string, any> | null
 }) {
-  const initialCategory = (['solo','couple','family'].includes(String(category)) ? String(category) : 'solo') as any
-  const minsNum = Number(minutes || 60)
-  const pplNum = Number(people || 1)
-  const show = String(showBookCta) !== 'false'
+  // Merge overrides if present
+  const overrideProps = _overrides || {}
+  const finalCategory = overrideProps.category ?? category
+  const finalMinutes = overrideProps.minutes ?? minutes
+  const finalPeople = overrideProps.people ?? people
+  const finalShowBookCta = overrideProps.showBookCta ?? showBookCta
+
+  const initialCategory = (['solo','couple','family'].includes(String(finalCategory)) ? String(finalCategory) : 'solo') as any
+  const minsNum = Number(finalMinutes || 60)
+  const pplNum = Number(finalPeople || 1)
+  const show = String(finalShowBookCta) !== 'false'
   return (
     <div className="py-16 md:py-20 px-6 md:px-8 bg-white relative">
       <EditableChrome label="Pricing Calculator" block="PricingCalculatorBlock" anchorId="pricing-calculator" />

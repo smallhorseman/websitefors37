@@ -86,6 +86,28 @@ export default async function HomePage() {
 
   if (page?.content) {
     const { MDXBuilderComponents } = await import("@/components/BuilderRuntime")
+    const { getPageConfigs } = await import("@/lib/pageConfigs")
+    
+    // Fetch page-level overrides for current path
+    const configs = await getPageConfigs("/")
+    
+    // Wrap components to inject _overrides prop based on block anchorId
+    const wrappedComponents = Object.fromEntries(
+      Object.entries(MDXBuilderComponents).map(([name, Component]) => [
+        name,
+        (props: any) => {
+          // Match anchorId convention from BuilderRuntime
+          let anchorId = props.id || props.anchorId
+          if (!anchorId) {
+            if (name === 'HeroBlock') anchorId = 'hero'
+            else if (name === 'PricingCalculatorBlock') anchorId = 'pricing-calculator'
+          }
+          const override = anchorId ? configs.get(anchorId) : null
+          return <Component {...props} _overrides={override?.props || null} />
+        }
+      ])
+    )
+    
     return (
       <div className="min-h-screen">
         <MDXRemote
@@ -97,7 +119,7 @@ export default async function HomePage() {
                 : [[rehypeHighlight, {}] as any],
             },
           }}
-          components={MDXBuilderComponents as any}
+          components={wrappedComponents as any}
         />
       </div>
     );
