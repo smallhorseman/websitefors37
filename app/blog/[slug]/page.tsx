@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { notFound } from 'next/navigation'
 import { Calendar, User, Tag, ArrowLeft } from 'lucide-react'
+import LeadSignupBlock from '@/components/LeadSignupBlock'
 import { MDXRemote } from 'next-mdx-remote/rsc'
 import rehypeHighlight from 'rehype-highlight'
 import rehypeRaw from 'rehype-raw'
@@ -145,7 +146,8 @@ export default async function BlogPostPage({ params }: { params: { slug: string 
       )}
 
       <div className="container mx-auto px-4 py-12">
-        <div className="max-w-3xl mx-auto">
+        <div className="grid lg:grid-cols-4 gap-10">
+          <div className="lg:col-span-3 max-w-3xl mx-auto w-full">
           {post.excerpt && (
             <div className="text-xl text-gray-600 mb-8 italic border-l-4 border-primary-500 pl-4 py-2">
               {post.excerpt}
@@ -163,27 +165,33 @@ export default async function BlogPostPage({ params }: { params: { slug: string 
             />
           </article>
           
-          {relatedPosts && relatedPosts.length > 0 && (
-            <div className="mt-16 pt-12 border-t">
-              <h3 className="text-2xl font-bold mb-6">Related Articles</h3>
-              <div className="grid md:grid-cols-3 gap-6">
-                {relatedPosts.map((relatedPost) => (
-                  <Link 
-                    key={relatedPost.id} 
-                    href={`/blog/${relatedPost.slug}`}
-                    className="p-4 border rounded-lg hover:shadow-md transition-shadow"
-                  >
-                    <p className="text-sm text-gray-500 mb-2">
-                      {new Date(relatedPost.published_at).toLocaleDateString()}
-                    </p>
-                    <h4 className="font-bold hover:text-primary-600 transition-colors">
-                      {relatedPost.title}
-                    </h4>
-                  </Link>
-                ))}
+            {relatedPosts && relatedPosts.length > 0 && (
+              <div className="mt-16 pt-12 border-t">
+                <h3 className="text-2xl font-bold mb-6">Related Articles</h3>
+                <div className="grid md:grid-cols-3 gap-6">
+                  {relatedPosts.map((relatedPost) => (
+                    <Link 
+                      key={relatedPost.id} 
+                      href={`/blog/${relatedPost.slug}`}
+                      className="p-4 border rounded-lg hover:shadow-md transition-shadow"
+                    >
+                      <p className="text-sm text-gray-500 mb-2">
+                        {new Date(relatedPost.published_at).toLocaleDateString()}
+                      </p>
+                      <h4 className="font-bold hover:text-primary-600 transition-colors">
+                        {relatedPost.title}
+                      </h4>
+                    </Link>
+                  ))}
+                </div>
               </div>
+            )}
+          </div>
+          <aside className="lg:col-span-1 space-y-6">
+            <div className="sticky top-24 space-y-6">
+              <LeadSignupBlock variantStrategy="random" />
             </div>
-          )}
+          </aside>
         </div>
       </div>
     </div>

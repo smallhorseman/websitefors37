@@ -153,6 +153,8 @@ const nextConfig = {
               "font-src 'self' data:",
               "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://www.google-analytics.com https://region.supabase.co",
               "frame-ancestors 'self'",
+              "frame-src 'self' https://app2.simpletexting.com",
+              "child-src 'self' https://app2.simpletexting.com",
               "object-src 'none'",
               "upgrade-insecure-requests"
             ].join('; '),

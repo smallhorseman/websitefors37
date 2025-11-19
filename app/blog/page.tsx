@@ -3,6 +3,7 @@ import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
 import Image from 'next/image'
 import { generateSEOMetadata } from '@/lib/seo-helpers'
+import LeadSignupBlock from '@/components/LeadSignupBlock'
 
 export const metadata = generateSEOMetadata({
   title: 'Photography Blog - Tips & Insights from Studio37 Pinehurst, TX',
@@ -50,43 +51,50 @@ export default async function BlogPage() {
             <p className="text-gray-500">No blog posts yet. Check back soon!</p>
           </div>
         ) : (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {posts.map((post: any) => (
-              <Link
-                key={post.id}
-                href={`/blog/${post.slug}`}
-                className="group block bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow"
-              >
-                {post.featured_image && (
-                  <div className="relative h-48 w-full">
-                    <Image
-                      src={post.featured_image}
-                      alt={post.title}
-                      fill
-                      sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                      className="object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                  </div>
-                )}
-                <div className="p-6">
-                  <h2 className="text-xl font-semibold mb-2 group-hover:text-primary-600 transition-colors">
-                    {post.title}
-                  </h2>
-                  {post.excerpt && (
-                    <p className="text-gray-600 line-clamp-3 mb-4">{post.excerpt}</p>
+          <div className="grid lg:grid-cols-4 gap-10">
+            <div className="lg:col-span-3 grid sm:grid-cols-2 xl:grid-cols-3 gap-8">
+              {posts.map((post: any) => (
+                <Link
+                  key={post.id}
+                  href={`/blog/${post.slug}`}
+                  className="group block bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow"
+                >
+                  {post.featured_image && (
+                    <div className="relative h-48 w-full">
+                      <Image
+                        src={post.featured_image}
+                        alt={post.title}
+                        fill
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                        className="object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                    </div>
                   )}
-                  <div className="flex justify-between items-center text-sm text-gray-500">
-                    <span>{post.author || 'Admin'}</span>
-                    <span>
-                      {post.published_at 
-                        ? new Date(post.published_at).toLocaleDateString() 
-                        : new Date(post.created_at || Date.now()).toLocaleDateString()
-                      }
-                    </span>
+                  <div className="p-6">
+                    <h2 className="text-xl font-semibold mb-2 group-hover:text-primary-600 transition-colors">
+                      {post.title}
+                    </h2>
+                    {post.excerpt && (
+                      <p className="text-gray-600 line-clamp-3 mb-4">{post.excerpt}</p>
+                    )}
+                    <div className="flex justify-between items-center text-sm text-gray-500">
+                      <span>{post.author || 'Admin'}</span>
+                      <span>
+                        {post.published_at 
+                          ? new Date(post.published_at).toLocaleDateString() 
+                          : new Date(post.created_at || Date.now()).toLocaleDateString()
+                        }
+                      </span>
+                    </div>
                   </div>
-                </div>
-              </Link>
-            ))}
+                </Link>
+              ))}
+            </div>
+            <aside className="lg:col-span-1 space-y-6">
+              <div className="sticky top-24 space-y-6">
+                <LeadSignupBlock variantStrategy="random" />
+              </div>
+            </aside>
           </div>
         )}
       </div>
