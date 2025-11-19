@@ -1,7 +1,7 @@
 "use client"
 
 import React from "react"
-import { useSearchParams } from "next/navigation"
+import { usePathname, useSearchParams } from "next/navigation"
 
 export interface EditableChromeProps {
   label: string
@@ -14,10 +14,11 @@ export interface EditableChromeProps {
 
 export default function EditableChrome({ label, block, payload, anchorId }: EditableChromeProps) {
   const params = useSearchParams()
+  const pathname = usePathname()
   const isEdit = params.get("edit") === "1"
   if (!isEdit) return null
 
-  const query = new URLSearchParams({ block, ...(anchorId ? { id: anchorId } : {}) })
+  const query = new URLSearchParams({ block, ...(anchorId ? { id: anchorId } : {}), path: pathname || "/" })
   const href = `/admin/editor?${query.toString()}`
 
   return (

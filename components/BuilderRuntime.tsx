@@ -129,7 +129,7 @@ export function HeroBlock({
   
   const section = (
     <section className={`${sectionBase} ${isFullBleed ? '' : 'rounded-lg'} relative`}>
-      <EditableChrome label="Hero" block="HeroBlock" />
+      <EditableChrome label="Hero" block="HeroBlock" anchorId="hero" />
       {backgroundImage && (
         <Image src={backgroundImage} alt="" fill className="object-cover" />
       )}
@@ -986,7 +986,7 @@ export function PricingCalculatorBlock({
   const show = String(showBookCta) !== 'false'
   return (
     <div className="py-16 md:py-20 px-6 md:px-8 bg-white relative">
-      <EditableChrome label="Pricing Calculator" block="PricingCalculatorBlock" />
+      <EditableChrome label="Pricing Calculator" block="PricingCalculatorBlock" anchorId="pricing-calculator" />
       <div className="max-w-5xl mx-auto">
         <PricingCalculator
           defaultCategory={initialCategory}
