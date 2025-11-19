@@ -148,10 +148,17 @@ export default function BookSessionPage() {
   const totalPrice = useMemo(() => {
     if (bookingOption === 'consultation') return 0
     if (bookingOption === 'custom') {
-      // Custom pricing formula
-      const basePricePerMin = 200 // $2 per minute
-      const peopleMultiplier = customType === 'solo' ? 1 : customType === 'couple' ? 1.5 : 2
-      return Math.round(customDuration * basePricePerMin * peopleMultiplier)
+      // Custom pricing formula - match PricingCalculator.tsx logic
+      const hourlyRate = 400_00 // $400/hr for all types
+      const proratedBase = Math.round((hourlyRate * customDuration) / 60)
+      
+      // Family group surcharge: $50 per person over 5
+      const extraPersonFee = customType === 'family' && customPeople > 5 
+        ? (customPeople - 5) * 50_00 
+        : 0
+      
+      const total = proratedBase + extraPersonFee
+      return Math.max(total, 100_00) // minimum $100
     }
     // Package pricing
     if (selectedType === 'consultation') return 0
@@ -563,77 +570,95 @@ export default function BookSessionPage() {
                     
                     {bookingOption === 'custom' && (
                       <div className="mt-4 pl-8 space-y-4">
-                        {/* Duration slider */}
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Duration: {customDuration} minutes
-                          </label>
-                          <input 
-                            type="range" 
-                            min="15" 
-                            max="180" 
-                            step="15"
-                            value={customDuration}
-                            onChange={(e) => setCustomDuration(parseInt(e.target.value))}
-                            className="w-full"
-                          />
-                          <div className="flex justify-between text-xs text-gray-500 mt-1">
-                            <span>15 min</span>
-                            <span>180 min</span>
-                          </div>
-                        </div>
-
                         {/* Type selector */}
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">Session Type</label>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">Portrait Type</label>
                           <div className="grid grid-cols-3 gap-2">
                             {(['solo', 'couple', 'family'] as const).map((type) => (
                               <button
                                 key={type}
                                 type="button"
                                 onClick={() => setCustomType(type)}
-                                className={`px-3 py-2 rounded text-sm font-medium capitalize transition-colors ${
+                                className={`px-3 py-2 rounded-lg border text-sm font-medium capitalize transition-colors ${
                                   customType === type 
-                                    ? 'bg-primary-600 text-white' 
-                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                    ? 'bg-primary-600 text-white border-primary-600' 
+                                    : 'bg-white border-gray-300 hover:border-primary-400'
                                 }`}
                               >
-                                {type}
+                                {type === 'solo' ? 'Solo' : type === 'couple' ? 'Couples' : 'Family'}
                               </button>
                             ))}
                           </div>
+                          {customType !== 'family' && customPeople > 2 && (
+                            <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-md px-2 py-1 mt-2">
+                              Tip: For 3+ people, switch to Family to get the correct family rate.
+                            </p>
+                          )}
                         </div>
 
                         {/* People count */}
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Number of People: {customPeople}
+                            Number of People
                           </label>
-                          <div className="flex items-center gap-3">
+                          <div className="flex items-center gap-2">
                             <button
                               type="button"
+                              aria-label="decrease people"
                               onClick={() => setCustomPeople(Math.max(1, customPeople - 1))}
-                              className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors"
+                              className="px-3 py-2 border border-gray-300 rounded-lg bg-white hover:bg-gray-50 transition-colors"
                             >
                               <Minus className="h-4 w-4" />
                             </button>
-                            <span className="text-2xl font-semibold w-12 text-center">{customPeople}</span>
+                            <input
+                              type="number"
+                              min={1}
+                              max={50}
+                              value={customPeople}
+                              onChange={(e) => setCustomPeople(Math.max(1, Math.min(50, parseInt(e.target.value) || 1)))}
+                              className="w-24 text-center border border-gray-300 rounded-lg px-3 py-2"
+                            />
                             <button
                               type="button"
-                              onClick={() => setCustomPeople(Math.min(20, customPeople + 1))}
-                              className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors"
+                              aria-label="increase people"
+                              onClick={() => setCustomPeople(Math.min(50, customPeople + 1))}
+                              className="px-3 py-2 border border-gray-300 rounded-lg bg-white hover:bg-gray-50 transition-colors"
                             >
                               <Plus className="h-4 w-4" />
                             </button>
                           </div>
                         </div>
 
-                        {/* Price display */}
-                        <div className="mt-4 p-3 bg-primary-100 rounded-lg border border-primary-200">
-                          <div className="text-sm text-gray-600">Estimated Price</div>
-                          <div className="text-2xl font-bold text-primary-600">
-                            ${(totalPrice / 100).toFixed(2)}
+                        {/* Duration selector */}
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Duration (minutes)
+                          </label>
+                          <select 
+                            value={customDuration}
+                            onChange={(e) => setCustomDuration(parseInt(e.target.value))}
+                            className="w-full border border-gray-300 rounded-lg px-3 py-2 bg-white"
+                          >
+                            {[15, 30, 45, 60, 75, 90, 120, 150, 180].map(mins => (
+                              <option key={mins} value={mins}>{mins} minutes</option>
+                            ))}
+                          </select>
+                          <p className="text-xs text-gray-500 mt-1">Billed pro-rata by minutes.</p>
+                        </div>
+
+                        {/* Price display with breakdown */}
+                        <div className="mt-4 bg-gray-50 border border-gray-200 rounded-lg p-4">
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="text-sm text-gray-600">Calculated session total</div>
+                            <div className="text-2xl font-extrabold text-gray-900">
+                              ${(totalPrice / 100).toFixed(2)}
+                            </div>
                           </div>
+                          {customType === 'family' && customPeople > 5 && (
+                            <p className="text-xs text-gray-500">
+                              Includes ${((customPeople - 5) * 50).toFixed(2)} group surcharge for {customPeople - 5} extra {customPeople - 5 === 1 ? 'person' : 'people'}.
+                            </p>
+                          )}
                         </div>
                       </div>
                     )}
