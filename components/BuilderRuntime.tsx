@@ -7,6 +7,7 @@ import TestimonialsClient from './blocks/TestimonialsClient'
 import WidgetEmbedClient from './blocks/WidgetEmbedClient'
 import LeadCaptureForm from './LeadCaptureForm'
 import NewsletterInlineClient from './blocks/NewsletterInlineClient'
+import PricingCalculator from './PricingCalculator'
 
 // Server components used by MDX to render VisualEditor output faithfully
 
@@ -962,4 +963,35 @@ export const MDXBuilderComponents = {
   NewsletterBlock,
   FAQBlock,
   PricingTableBlock,
+  PricingCalculatorBlock,
+}
+
+// Pricing Calculator wrapper for page builder
+export function PricingCalculatorBlock({
+  category = 'solo',
+  minutes = '60',
+  people = '1',
+  showBookCta = 'true'
+}: {
+  category?: string
+  minutes?: string | number
+  people?: string | number
+  showBookCta?: string | boolean
+}) {
+  const initialCategory = (['solo','couple','family'].includes(String(category)) ? String(category) : 'solo') as any
+  const minsNum = Number(minutes || 60)
+  const pplNum = Number(people || 1)
+  const show = String(showBookCta) !== 'false'
+  return (
+    <div className="py-16 md:py-20 px-6 md:px-8 bg-white">
+      <div className="max-w-5xl mx-auto">
+        <PricingCalculator
+          defaultCategory={initialCategory}
+          defaultMinutes={minsNum}
+          defaultPeople={pplNum}
+          showBookCta={show}
+        />
+      </div>
+    </div>
+  )
 }

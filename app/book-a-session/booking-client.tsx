@@ -96,6 +96,40 @@ export default function BookSessionPage() {
   const [success, setSuccess] = useState(false)
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({})
 
+  // Prefill from pricing calculator (query params)
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    try {
+      const params = new URLSearchParams(window.location.search)
+      const durStr = params.get('duration')
+      const pplStr = params.get('people')
+      const typeParam = params.get('type') // solo|couple|family|consultation
+      const priceStr = params.get('price_cents')
+
+      const dur = durStr ? parseInt(durStr, 10) : NaN
+      const ppl = pplStr ? parseInt(pplStr, 10) : NaN
+      const price = priceStr ? parseInt(priceStr, 10) : NaN
+
+      // Map duration to nearest package if available
+      if (!Number.isNaN(dur)) {
+        if (dur <= 15) setSelectedType('mini_reel')
+        else if (dur <= 30) setSelectedType('full_episode')
+        else if (dur <= 60) setSelectedType('movie_premier')
+        // For >60, keep current selection (user can choose manually)
+      }
+
+      // Add helpful note so the user sees their calculator context
+      const parts: string[] = []
+      if (typeParam) parts.push(`Type: ${typeParam}`)
+      if (!Number.isNaN(ppl)) parts.push(`People: ${ppl}`)
+      if (!Number.isNaN(dur)) parts.push(`Duration: ${dur} min`)
+      if (!Number.isNaN(price)) parts.push(`Estimated: $${(price/100).toFixed(2)}`)
+      if (parts.length) {
+        setNotes(prev => prev ? prev : `From pricing calculator → ${parts.join(' · ')}`)
+      }
+    } catch {}
+  }, [])
+
   const duration = useMemo(() => {
     if (selectedType === 'consultation') return CONSULTATION_DURATION
     const key = selectedType as Exclude<PackageKey, 'consultation'>

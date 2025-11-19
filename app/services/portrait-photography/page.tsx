@@ -5,6 +5,7 @@ import { generateSEOMetadata } from '@/lib/seo-helpers'
 import { generateServiceSchema } from '@/lib/seo-config'
 import PortraitHighlightGallery from '@/components/PortraitHighlightGallery'
 import { Users, Camera, Clock, Star, CheckCircle, ArrowRight } from 'lucide-react'
+import PricingCalculator from '@/components/PricingCalculator'
 
 export const metadata = generateSEOMetadata({
   title: 'Portrait Photography Pinehurst TX - Professional Portrait Sessions Studio37',
@@ -304,6 +305,19 @@ export default function PortraitPhotographyPage() {
               </Link>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* Pricing Calculator */}
+      <section className="py-16 bg-white">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-8">
+            <h2 className="text-3xl font-bold mb-3">Not sure which option is best?</h2>
+            <p className="text-gray-600 max-w-2xl mx-auto">
+              Use our instant calculator to compare custom hourly pricing against our portrait packages. For example, the Standard Session at $350 is a $25 savings vs. $375/hr.
+            </p>
+          </div>
+          <PricingCalculator className="max-w-5xl mx-auto" />
         </div>
       </section>
 
