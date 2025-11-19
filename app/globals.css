@@ -42,11 +42,18 @@
     pointer-events: none;
     z-index: 1000;
     mix-blend-mode: overlay;
+    will-change: transform; /* GPU acceleration */
+    backface-visibility: hidden; /* Reduce repaints */
   }
 
   /* Mobile: disable global film grain layer to reduce paint cost */
   @media (max-width: 640px) {
     body::after { display: none; }
+  }
+  
+  /* Tablet: reduce opacity for better performance */
+  @media (min-width: 641px) and (max-width: 1024px) {
+    body::after { opacity: 0.02; }
   }
 
   h1,

@@ -38,7 +38,7 @@ const playfair = Playfair_Display({
   variable: "--font-playfair",
   display: "swap",
   weight: ["400", "700"], // Only load essential weights
-  preload: false, // Not critical for initial render
+  preload: true, // Critical font
   fallback: ['georgia', 'serif'],
 });
 
@@ -48,6 +48,7 @@ const cormorant = Cormorant_Garamond({
   variable: "--font-cormorant",
   weight: ["400", "600"], // Reduced from 5 weights to 2
   display: "optional", // Don't block render
+  preload: false,
   fallback: ['georgia', 'serif'],
 });
 
@@ -149,6 +150,11 @@ export const metadata = {
   alternates: {
     canonical: "/",
   },
+  viewport: {
+    width: 'device-width',
+    initialScale: 1,
+    maximumScale: 5,
+  },
   verification: {
     google: process.env.GOOGLE_SITE_VERIFICATION,
     other: {
@@ -198,8 +204,10 @@ export default function RootLayout({
         />
         {/* Fonts are self-hosted via next/font; remove external Google Fonts preconnect to shrink network dependency tree */}
         {/* Preconnect to Cloudinary for faster image loading (LCP optimization) */}
-        <link rel="preconnect" href="https://res.cloudinary.com" />
+        <link rel="preconnect" href="https://res.cloudinary.com" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="//images.unsplash.com" />
+        {/* Preconnect to Supabase for faster API responses */}
+        <link rel="dns-prefetch" href={`//${process.env.NEXT_PUBLIC_SUPABASE_URL?.replace('https://', '')}`} />
         {/* Preload LCP hero image for faster rendering */}
         <link
           rel="preload"
@@ -212,7 +220,22 @@ export default function RootLayout({
         {/* Explicit favicon for modern browsers */}
         <link rel="icon" href="/icon.svg" type="image/svg+xml" />
       </head>
-      <body className={`${inter.variable} ${playfair.variable} ${cormorant.variable} ${lora.variable} ${crimson.variable} ${libreBaskerville.variable} ${montserrat.variable} ${raleway.variable} ${nunito.variable} ${workSans.variable} ${cinzel.variable} ${greatVibes.variable} ${bebasNeue.variable} font-sans`}>
+      <body className={`${inter.variable} ${playfair.variable} ${montserrat.variable} font-sans`}>
+        {/* Additional decorative fonts load as CSS variables but don't block render */}
+        <style jsx global>{`
+          :root {
+            ${cormorant.variable};
+            ${lora.variable};
+            ${crimson.variable};
+            ${libreBaskerville.variable};
+            ${raleway.variable};
+            ${nunito.variable};
+            ${workSans.variable};
+            ${cinzel.variable};
+            ${greatVibes.variable};
+            ${bebasNeue.variable};
+          }
+        `}</style>
         {/* Accessibility: Skip to content link */}
         <a
           href="#main"

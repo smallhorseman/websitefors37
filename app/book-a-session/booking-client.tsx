@@ -316,10 +316,18 @@ export default function BookSessionPage() {
     if (!selectedDate) return [] as string[]
     const d = new Date(selectedDate + 'T00:00:00')
     const windows = availabilityWindows(d)
-  const out: string[] = []
+    const out: string[] = []
     const step = 15 // minutes granularity
+    
+    // Limit slots for very long durations to prevent performance issues
+    const maxSlots = 100
+    
     for (const w of windows) {
+      if (out.length >= maxSlots) break
+      
       for (let t = new Date(w.start); addMinutes(t, duration) <= w.end; t = addMinutes(t, step)) {
+        if (out.length >= maxSlots) break
+        
         const slotStart = new Date(t)
         const slotEnd = addMinutes(slotStart, duration)
         // Check overlap against existing appointments
