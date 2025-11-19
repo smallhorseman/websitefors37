@@ -4,7 +4,7 @@
 
 [build.environment]
   NEXT_PUBLIC_SITE_URL = "https://studio37.cc"
-  SECRETS_SCAN_SMART_DETECTION_ENABLED = "false"
+  SECRETS_SCAN_SMART_DETECTION_ENABLED = "true"
   NODE_VERSION = "18"
   # Install happens at the repo root. No workspace filtering so the root app builds with shared packages.
 

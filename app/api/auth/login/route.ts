@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
     // Basic input validation
     if (typeof email !== 'string' || typeof password !== 'string') {
       log.warn('Invalid payload type')
-      return NextResponse.json({ error: 'Invalid payload' }, { status: 400 })
+      return NextResponse.json({ error: 'Invalid email or password' }, { status: 400 })
     }
 
     // Rate limit by client IP (5 attempts per 5 minutes)
@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
     if (!email || !password) {
       log.warn('Missing credentials')
       return NextResponse.json(
-        { error: 'Email and password required' },
+        { error: 'Invalid email or password' },
         { status: 400 }
       )
     }
@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
     if (error || !user) {
       log.warn('Invalid credentials attempt', { email })
       return NextResponse.json(
-        { error: 'Invalid credentials' },
+        { error: 'Invalid email or password' },
         { status: 401 }
       )
     }
@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
     if (!passwordMatch) {
       log.warn('Password mismatch', { email })
       return NextResponse.json(
-        { error: 'Invalid credentials' },
+        { error: 'Invalid email or password' },
         { status: 401 }
       )
     }

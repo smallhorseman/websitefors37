@@ -110,6 +110,53 @@ const nextConfig = {
             key: "Referrer-Policy",
             value: "origin-when-cross-origin",
           },
+          // Security: HSTS (HTTPS only) - safe on Netlify with automatic HTTPS
+          {
+            key: "Strict-Transport-Security",
+            value: "max-age=31536000; includeSubDomains; preload",
+          },
+          // Security: Permissions Policy - disable powerful features by default
+          {
+            key: "Permissions-Policy",
+            value: [
+              "geolocation=()",
+              "camera=()",
+              "microphone=()",
+              "payment=()",
+              "accelerometer=()",
+              "autoplay=()",
+              "usb=()",
+              "magnetometer=()",
+              "gyroscope=()"
+            ].join(", "),
+          },
+          // Security: Cross-Origin policies
+          {
+            key: "Cross-Origin-Opener-Policy",
+            value: "same-origin",
+          },
+          {
+            key: "Cross-Origin-Resource-Policy",
+            value: "same-origin",
+          },
+          // Security: Content Security Policy (moderate defaults compatible with Next.js)
+          {
+            key: "Content-Security-Policy",
+            value: [
+              "default-src 'self'",
+              "base-uri 'self'",
+              "form-action 'self'",
+              // Next.js may inject inline scripts/styles; allow inline but prefer self
+              "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com",
+              "style-src 'self' 'unsafe-inline'",
+              "img-src 'self' data: blob: https://res.cloudinary.com https://images.unsplash.com https://*.supabase.co",
+              "font-src 'self' data:",
+              "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://www.google-analytics.com https://region.supabase.co",
+              "frame-ancestors 'self'",
+              "object-src 'none'",
+              "upgrade-insecure-requests"
+            ].join('; '),
+          },
         ],
       },
       {

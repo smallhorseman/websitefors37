@@ -324,6 +324,31 @@ Return the response in this exact JSON format (no markdown code blocks):
       .replace(/\n?```$/i, "")
       .trim();
 
+    // Helpers to clean and normalize AI text output
+    const decodeBasicEntities = (s: string): string => {
+      return s
+        .replace(/&amp;/g, "&")
+        .replace(/&lt;/g, "<")
+        .replace(/&gt;/g, ">")
+        .replace(/&quot;/g, '"')
+        .replace(/&#39;|&apos;/g, "'")
+        .replace(/&nbsp;/g, " ");
+    };
+    const normalizeCommonUnicode = (s: string): string => {
+      // Handle common unicode escapes sometimes double-escaped in LLM JSON
+      return s
+        // Dashes
+        .replace(/\\u2014|—/g, "—") // em dash
+        .replace(/\\u2013|–/g, "–") // en dash
+        // Quotes/apostrophes
+        .replace(/\\u2019|’/g, "’")
+        .replace(/\\u2018|‘/g, "‘")
+        .replace(/\\u201C|“/g, "“")
+        .replace(/\\u201D|”/g, "”")
+        // Ellipsis
+        .replace(/\\u2026|…/g, "…");
+    };
+
     // Helper: ensure required emoji section headings exist & ordered
     const ensureSectionHeadings = (md: string): string => {
       const required = [
@@ -397,25 +422,26 @@ Return the response in this exact JSON format (no markdown code blocks):
       // Fix all forms of escaped newlines and formatting
       if (blogData.content && typeof blogData.content === 'string') {
         // Replace all forms of escaped newlines
-        blogData.content = blogData.content
+        blogData.content = normalizeCommonUnicode(decodeBasicEntities(
+          blogData.content
           .replace(/\\n\\n/g, '\n\n')  // Double newlines first
           .replace(/\\n/g, '\n')       // Then single newlines
           .replace(/\\t/g, '\t')       // Fix tabs
           .replace(/\\r/g, '')         // Remove carriage returns
-          .trim();
+        )).trim();
       }
       if (blogData.title && typeof blogData.title === 'string') {
-        blogData.title = blogData.title
+        blogData.title = normalizeCommonUnicode(decodeBasicEntities(blogData.title))
           .replace(/\\n/g, ' ')        // Replace newlines with spaces in titles
           .trim();
       }
       if (blogData.excerpt && typeof blogData.excerpt === 'string') {
-        blogData.excerpt = blogData.excerpt
+        blogData.excerpt = normalizeCommonUnicode(decodeBasicEntities(blogData.excerpt))
           .replace(/\\n/g, ' ')        // Replace newlines with spaces in excerpts
           .trim();
       }
       if (blogData.metaDescription && typeof blogData.metaDescription === 'string') {
-        blogData.metaDescription = blogData.metaDescription
+        blogData.metaDescription = normalizeCommonUnicode(decodeBasicEntities(blogData.metaDescription))
           .replace(/\\n/g, ' ')        // Replace newlines with spaces in meta
           .trim();
       }
@@ -439,12 +465,12 @@ Return the response in this exact JSON format (no markdown code blocks):
       console.error("Raw response:", responseText.substring(0, 500));
       
       // Fix newlines in raw response text before using as fallback
-      let fallbackContent = String(responseText || "")
+      let fallbackContent = normalizeCommonUnicode(decodeBasicEntities(String(responseText || "")
         .replace(/\\n\\n/g, '\n\n')
         .replace(/\\n/g, '\n')
         .replace(/\\t/g, '\t')
         .replace(/\\r/g, '')
-        .trim();
+      )).trim();
       
       return NextResponse.json({
         title: topic,
