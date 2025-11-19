@@ -16,7 +16,29 @@ export default function EditableChrome({ label, block, payload, anchorId }: Edit
   const params = useSearchParams()
   const pathname = usePathname()
   const isEdit = params.get("edit") === "1"
-  if (!isEdit) return null
+  const force = params.get('force') === '1'
+  const [allowed, setAllowed] = React.useState<boolean>(false)
+
+  React.useEffect(() => {
+    let cancelled = false
+    async function check() {
+      if (!isEdit) { setAllowed(false); return }
+      try {
+        const res = await fetch('/api/auth/session', { credentials: 'include' })
+        if (res.ok) {
+          const json: any = await res.json().catch(()=>({}))
+          if (!cancelled) setAllowed(!!json?.authenticated || force)
+        } else {
+          if (!cancelled) setAllowed(!!force)
+        }
+      } catch {
+        if (!cancelled) setAllowed(!!force)
+      }
+    }
+    check()
+    return () => { cancelled = true }
+  }, [isEdit, force])
+  if (!isEdit || !allowed) return null
 
   const query = new URLSearchParams({ block, ...(anchorId ? { id: anchorId } : {}), path: pathname || "/" })
   const href = `/admin/editor?${query.toString()}`

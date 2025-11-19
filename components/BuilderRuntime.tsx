@@ -194,11 +194,12 @@ export function HeroBlock({
   )
 }
 
-export function TextBlock({ contentB64, alignment = 'left', size = 'md', animation = 'none' }: {
+export function TextBlock({ contentB64, alignment = 'left', size = 'md', animation = 'none', _overrides }: {
   contentB64?: string
   alignment?: 'left' | 'center' | 'right'
   size?: 'sm' | 'md' | 'lg' | 'xl'
   animation?: string
+  _overrides?: Record<string, any> | null
 }) {
   const sizeClasses: Record<string, string> = {
     sm: 'text-sm',
@@ -206,22 +207,35 @@ export function TextBlock({ contentB64, alignment = 'left', size = 'md', animati
     lg: 'text-lg',
     xl: 'text-2xl',
   }
-  const content = contentB64 ? Buffer.from(contentB64, 'base64').toString('utf-8') : ''
+  const ov = _overrides || {}
+  const finalContentB64 = ov.contentB64 ?? contentB64
+  const finalAlignment = ov.alignment ?? alignment
+  const finalSize = ov.size ?? size
+  const finalAnimation = ov.animation ?? animation
+  const content = finalContentB64 ? Buffer.from(finalContentB64, 'base64').toString('utf-8') : ''
   return (
-    <div className={`py-12 md:py-16 px-6 md:px-8 bg-white ${sizeClasses[size || 'md']} text-${alignment} ${animation === 'fade-in' ? 'animate-fadeIn' : animation === 'slide-up' ? 'animate-slideUp' : animation === 'zoom' ? 'animate-zoom' : ''}`}>
+    <div className={`py-12 md:py-16 px-6 md:px-8 bg-white ${sizeClasses[finalSize || 'md']} text-${finalAlignment} ${finalAnimation === 'fade-in' ? 'animate-fadeIn' : finalAnimation === 'slide-up' ? 'animate-slideUp' : finalAnimation === 'zoom' ? 'animate-zoom' : ''}`}>
       {content && <div className="max-w-4xl mx-auto" dangerouslySetInnerHTML={{ __html: content }} />}
     </div>
   )
 }
 
-export function ImageBlock({ url, alt = '', caption, width = 'full', link, animation = 'none' }: {
+export function ImageBlock({ url, alt = '', caption, width = 'full', link, animation = 'none', _overrides }: {
   url?: string
   alt?: string
   caption?: string
   width?: 'full' | 'large' | 'medium' | 'small'
   link?: string
   animation?: string
+  _overrides?: Record<string, any> | null
 }) {
+  const ov = _overrides || {}
+  const finalUrl = ov.url ?? url
+  const finalAlt = ov.alt ?? alt
+  const finalCaption = ov.caption ?? caption
+  const finalWidth = ov.width ?? width
+  const finalLink = ov.link ?? link
+  const finalAnimation = ov.animation ?? animation
   const widthClasses: Record<string, string> = {
     small: 'max-w-md',
     medium: 'max-w-2xl',
@@ -238,20 +252,20 @@ export function ImageBlock({ url, alt = '', caption, width = 'full', link, anima
   }
   
   const imageElement = (
-    <div className={`mx-auto ${widthClasses[width || 'full']}`}>
-      {url && (
-        <div className={`relative aspect-video overflow-hidden ${animationClasses[animation || 'none']}`}>
-          <Image src={url} alt={alt} fill className="object-cover rounded-lg" />
+    <div className={`mx-auto ${widthClasses[finalWidth || 'full']}`}>
+      {finalUrl && (
+        <div className={`relative aspect-video overflow-hidden ${animationClasses[finalAnimation || 'none']}`}>
+          <Image src={finalUrl} alt={finalAlt} fill className="object-cover rounded-lg" />
         </div>
       )}
-      {caption && <p className="text-sm text-gray-600 mt-2 text-center">{caption}</p>}
+      {finalCaption && <p className="text-sm text-gray-600 mt-2 text-center">{finalCaption}</p>}
     </div>
   )
   
   return (
     <div className="py-12 md:py-16 px-6 md:px-8 bg-white">
-      {link ? (
-        <a href={link} className="block cursor-pointer">
+      {finalLink ? (
+        <a href={finalLink} className="block cursor-pointer">
           {imageElement}
         </a>
       ) : imageElement}
@@ -857,15 +871,20 @@ export function NewsletterBlock({ heading, subheading, disclaimer, style = 'card
 }
 
 // FAQ block - collapsible Q&A list, supports 1-2 columns
-export function FAQBlock({ itemsB64, heading, columns = '1', animation = 'fade-in' }: { itemsB64?: string, heading?: string, columns?: string | number, animation?: string }) {
-  const json = itemsB64 ? Buffer.from(itemsB64, 'base64').toString('utf-8') : '[]'
+export function FAQBlock({ itemsB64, heading, columns = '1', animation = 'fade-in', _overrides }: { itemsB64?: string, heading?: string, columns?: string | number, animation?: string, _overrides?: Record<string, any> | null }) {
+  const ov = _overrides || {}
+  const finalItemsB64 = ov.itemsB64 ?? itemsB64
+  const finalHeading = ov.heading ?? heading
+  const finalColumns = ov.columns ?? columns
+  const finalAnimation = ov.animation ?? animation
+  const json = finalItemsB64 ? Buffer.from(finalItemsB64, 'base64').toString('utf-8') : '[]'
   let items: Array<{ question: string; answer: string }> = []
   try { items = JSON.parse(json || '[]') } catch { items = [] }
-  const cols = Math.min(Math.max(Number(columns || 1), 1), 2)
+  const cols = Math.min(Math.max(Number(finalColumns || 1), 1), 2)
   const mid = Math.ceil(items.length / cols)
   const col1 = items.slice(0, cols === 2 ? mid : items.length)
   const col2 = cols === 2 ? items.slice(mid) : []
-  const animClass = animation === 'fade-in' ? 'animate-fadeIn' : animation === 'slide-up' ? 'animate-slideUp' : animation === 'zoom' ? 'animate-zoom' : ''
+  const animClass = finalAnimation === 'fade-in' ? 'animate-fadeIn' : finalAnimation === 'slide-up' ? 'animate-slideUp' : finalAnimation === 'zoom' ? 'animate-zoom' : ''
 
   const renderCol = (arr: typeof items) => (
     <div className="space-y-3">
@@ -884,7 +903,7 @@ export function FAQBlock({ itemsB64, heading, columns = '1', animation = 'fade-i
   return (
     <section className={`py-16 md:py-20 px-6 md:px-10 bg-white ${animClass}`}>
       <div className="max-w-5xl mx-auto">
-        {heading && <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">{heading}</h2>}
+        {finalHeading && <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">{finalHeading}</h2>}
         <div className={`grid grid-cols-1 ${cols === 2 ? 'md:grid-cols-2' : 'md:grid-cols-1'} gap-8`}>
           {renderCol(col1)}
           {col2.length > 0 && renderCol(col2)}

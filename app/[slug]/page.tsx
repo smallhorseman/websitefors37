@@ -55,7 +55,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
 export const revalidate = 600
 
 // Renamed function to avoid naming conflict with the imported ContentPage type
-export default async function DynamicPage({ params }: { params: { slug: string } }) {
+export default async function DynamicPage({ params, searchParams }: { params: { slug: string }, searchParams?: Record<string, string | string[]> }) {
   // Short-circuit static asset-like requests or invalid slugs
   if (!isValidSlug(params.slug)) {
     notFound()
@@ -84,26 +84,31 @@ export default async function DynamicPage({ params }: { params: { slug: string }
   
   if (isBuilderPage) {
     // Dynamic import of MDX components for builder pages only.
-    const { MDXBuilderComponents } = await import('@/components/BuilderRuntime')
-    const { getPageConfigs } = await import('@/lib/pageConfigs')
+  const { MDXBuilderComponents } = await import('@/components/BuilderRuntime')
+  const { getPageConfigs, selectProps } = await import('@/lib/pageConfigs')
+  const EditableChrome = (await import('@/components/editor/EditableChrome')).default
     
     // Fetch page-level overrides for current path
     const currentPath = `/${params.slug}`
-    const configs = await getPageConfigs(currentPath)
+  const configs = await getPageConfigs(currentPath)
+  const useDraft = (searchParams?.edit === '1')
     
     // Wrap components to inject _overrides prop based on block anchorId
+    const defaultAnchorIds: Record<string,string> = {
+      LogoBlock:'logo', HeroBlock:'hero', TextBlock:'text', ImageBlock:'image', ButtonBlock:'button', ColumnsBlock:'columns', SpacerBlock:'spacer', SeoFooterBlock:'seo-footer', BadgesBlock:'badges', SlideshowHeroBlock:'slideshow-hero', TestimonialsBlock:'testimonials', GalleryHighlightsBlock:'gallery-highlights', WidgetEmbedBlock:'widget-embed', ServicesGridBlock:'services-grid', StatsBlock:'stats', CTABannerBlock:'cta-banner', IconFeaturesBlock:'icon-features', ContactFormBlock:'contact-form', NewsletterBlock:'newsletter', FAQBlock:'faq', PricingTableBlock:'pricing-table', PricingCalculatorBlock:'pricing-calculator'
+    }
     const wrappedComponents = Object.fromEntries(
       Object.entries(MDXBuilderComponents).map(([name, Component]) => [
         name,
         (props: any) => {
-          // Match anchorId convention from BuilderRuntime
-          let anchorId = props.id || props.anchorId
-          if (!anchorId) {
-            if (name === 'HeroBlock') anchorId = 'hero'
-            else if (name === 'PricingCalculatorBlock') anchorId = 'pricing-calculator'
-          }
-          const override = anchorId ? configs.get(anchorId) : null
-          return <Component {...props} _overrides={override?.props || null} />
+          let anchorId = props.id || props.anchorId || defaultAnchorIds[name] || name
+          const override = anchorId ? configs.get(anchorId) : undefined
+          return (
+            <div className="relative">
+              <EditableChrome label={name.replace(/Block$/, '').replace(/([a-z])([A-Z])/g,'$1 $2')} block={name} anchorId={anchorId} />
+              <Component {...props} _overrides={selectProps(override as any, useDraft)} />
+            </div>
+          )
         }
       ])
     )
