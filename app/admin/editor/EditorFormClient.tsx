@@ -2,6 +2,15 @@
 
 import React, { useMemo, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { 
+  ColorPicker, 
+  FontPicker, 
+  TextSizePicker, 
+  TextColorPicker,
+  ButtonStylePicker,
+  SpacingPicker,
+  AnimationPicker 
+} from '@/components/editor/ThemeControls'
 
 function TextInput({ label, value, onChange, placeholder }: any) {
   return (
@@ -65,6 +74,11 @@ export default function EditorFormClient() {
     backgroundImage: '',
     alignment: 'center',
     overlay: 60,
+    backgroundColor: '',
+    textColor: 'text-white',
+    titleFont: 'font-serif',
+    subtitleFont: 'font-sans',
+    buttonStyle: 'btn-primary',
   })
 
   const [calc, setCalc] = useState({
@@ -79,6 +93,10 @@ export default function EditorFormClient() {
     alignment: 'left',
     size: 'md',
     animation: 'none',
+    backgroundColor: '',
+    textColor: 'text-gray-900',
+    fontFamily: 'font-sans',
+    padding: '16',
   })
 
   const [imageBlock, setImageBlock] = useState({
@@ -121,9 +139,11 @@ export default function EditorFormClient() {
     secondaryButtonText: '',
     secondaryButtonLink: '',
     backgroundImage: '',
-    backgroundColor: '#0f172a',
+    backgroundColor: 'bg-gray-800',
     overlay: '60',
     textColor: 'text-white',
+    headingFont: 'font-serif',
+    buttonStyle: 'btn-primary',
     fullBleed: 'true',
     animation: 'fade-in',
   })
@@ -267,15 +287,55 @@ export default function EditorFormClient() {
       </div>
 
       {isHero && (
-        <div className="grid md:grid-cols-2 gap-4">
-          <TextInput label="Title (HTML ok)" value={hero.title} onChange={(v:any)=>setHero({...hero, title: v})} />
-          <TextArea label="Subtitle (HTML ok)" value={hero.subtitle} onChange={(v:any)=>setHero({...hero, subtitle: v})} />
-          <TextInput label="Button Text" value={hero.buttonText} onChange={(v:any)=>setHero({...hero, buttonText: v})} />
-          <TextInput label="Button Link" value={hero.buttonLink} onChange={(v:any)=>setHero({...hero, buttonLink: v})} />
-          <TextInput label="Background Image URL" value={hero.backgroundImage} onChange={(v:any)=>setHero({...hero, backgroundImage: v})} />
-          <TextInput label="Alignment (left|center|right)" value={hero.alignment} onChange={(v:any)=>setHero({...hero, alignment: v})} />
-          <NumberInput label="Overlay (0-100)" value={hero.overlay} onChange={(v:any)=>setHero({...hero, overlay: v})} min={0} max={100} />
-        </div>
+        <>
+          <div className="mb-6">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">Content</h3>
+            <div className="grid md:grid-cols-2 gap-4">
+              <TextInput label="Title (HTML ok)" value={hero.title} onChange={(v:any)=>setHero({...hero, title: v})} />
+              <TextArea label="Subtitle (HTML ok)" value={hero.subtitle} onChange={(v:any)=>setHero({...hero, subtitle: v})} />
+              <TextInput label="Button Text" value={hero.buttonText} onChange={(v:any)=>setHero({...hero, buttonText: v})} />
+              <TextInput label="Button Link" value={hero.buttonLink} onChange={(v:any)=>setHero({...hero, buttonLink: v})} />
+              <TextInput label="Background Image URL" value={hero.backgroundImage} onChange={(v:any)=>setHero({...hero, backgroundImage: v})} />
+              <TextInput label="Alignment (left|center|right)" value={hero.alignment} onChange={(v:any)=>setHero({...hero, alignment: v})} />
+              <NumberInput label="Overlay (0-100)" value={hero.overlay} onChange={(v:any)=>setHero({...hero, overlay: v})} min={0} max={100} />
+            </div>
+          </div>
+
+          <div className="mb-6 border-t pt-6">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">Theme & Styling</h3>
+            <div className="grid md:grid-cols-2 gap-4">
+              <ColorPicker 
+                label="Background Color" 
+                value={hero.backgroundColor} 
+                onChange={(v)=>setHero({...hero, backgroundColor: v})}
+                allowTransparent
+              />
+              <TextColorPicker 
+                label="Text Color" 
+                value={hero.textColor} 
+                onChange={(v)=>setHero({...hero, textColor: v})}
+                background="dark"
+              />
+              <FontPicker 
+                label="Title Font" 
+                value={hero.titleFont} 
+                onChange={(v)=>setHero({...hero, titleFont: v})}
+                type="heading"
+              />
+              <FontPicker 
+                label="Subtitle Font" 
+                value={hero.subtitleFont} 
+                onChange={(v)=>setHero({...hero, subtitleFont: v})}
+                type="body"
+              />
+              <ButtonStylePicker 
+                label="Button Style" 
+                value={hero.buttonStyle} 
+                onChange={(v)=>setHero({...hero, buttonStyle: v})}
+              />
+            </div>
+          </div>
+        </>
       )}
 
       {isCalc && (
@@ -291,15 +351,52 @@ export default function EditorFormClient() {
       )}
 
       {isText && (
-        <div className="grid gap-4">
-          <TextArea label="HTML Content" value={textBlock.html} onChange={(v:any)=>setTextBlock({...textBlock, html: v})} placeholder="Enter HTML content; will be base64-encoded." />
-          <div className="grid md:grid-cols-3 gap-3">
-            <TextInput label="Alignment (left|center|right)" value={textBlock.alignment} onChange={(v:any)=>setTextBlock({...textBlock, alignment: v})} />
-            <TextInput label="Size (sm|md|lg|xl)" value={textBlock.size} onChange={(v:any)=>setTextBlock({...textBlock, size: v})} />
-            <TextInput label="Animation (none|fade-in|slide-up|zoom)" value={textBlock.animation} onChange={(v:any)=>setTextBlock({...textBlock, animation: v})} />
+        <>
+          <div className="mb-6">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">Content</h3>
+            <TextArea label="HTML Content" value={textBlock.html} onChange={(v:any)=>setTextBlock({...textBlock, html: v})} placeholder="Enter HTML content; will be base64-encoded." />
+            <div className="grid md:grid-cols-3 gap-3 mt-4">
+              <TextInput label="Alignment (left|center|right)" value={textBlock.alignment} onChange={(v:any)=>setTextBlock({...textBlock, alignment: v})} />
+              <TextInput label="Size (sm|md|lg|xl)" value={textBlock.size} onChange={(v:any)=>setTextBlock({...textBlock, size: v})} />
+            </div>
           </div>
-          <div className="text-xs text-gray-500 -mt-2">Tip: Paste simple HTML; it will be stored as base64 in contentB64.</div>
-        </div>
+
+          <div className="mb-6 border-t pt-6">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">Theme & Styling</h3>
+            <div className="grid md:grid-cols-2 gap-4">
+              <ColorPicker 
+                label="Background Color" 
+                value={textBlock.backgroundColor} 
+                onChange={(v)=>setTextBlock({...textBlock, backgroundColor: v})}
+                allowTransparent
+              />
+              <TextColorPicker 
+                label="Text Color" 
+                value={textBlock.textColor} 
+                onChange={(v)=>setTextBlock({...textBlock, textColor: v})}
+                background="light"
+              />
+              <FontPicker 
+                label="Font Family" 
+                value={textBlock.fontFamily} 
+                onChange={(v)=>setTextBlock({...textBlock, fontFamily: v})}
+                type="all"
+              />
+              <SpacingPicker 
+                label="Padding" 
+                value={textBlock.padding} 
+                onChange={(v)=>setTextBlock({...textBlock, padding: v})}
+                type="padding"
+              />
+              <AnimationPicker 
+                label="Animation" 
+                value={textBlock.animation} 
+                onChange={(v)=>setTextBlock({...textBlock, animation: v})}
+              />
+            </div>
+            <div className="text-xs text-gray-500 mt-2">Tip: Paste simple HTML; it will be stored as base64 in contentB64.</div>
+          </div>
+        </>
       )}
 
       {isImage && (
@@ -343,20 +440,55 @@ export default function EditorFormClient() {
       )}
 
       {isCtaBanner && (
-        <div className="grid md:grid-cols-2 gap-4">
-          <TextInput label="Heading" value={ctaBanner.heading} onChange={(v:any)=>setCtaBanner({...ctaBanner, heading: v})} placeholder="Ready to get started?" />
-          <TextInput label="Subheading" value={ctaBanner.subheading} onChange={(v:any)=>setCtaBanner({...ctaBanner, subheading: v})} placeholder="Optional subheading" />
-          <TextInput label="Primary Button Text" value={ctaBanner.primaryButtonText} onChange={(v:any)=>setCtaBanner({...ctaBanner, primaryButtonText: v})} placeholder="Book Now" />
-          <TextInput label="Primary Button Link" value={ctaBanner.primaryButtonLink} onChange={(v:any)=>setCtaBanner({...ctaBanner, primaryButtonLink: v})} placeholder="/book" />
-          <TextInput label="Secondary Button Text" value={ctaBanner.secondaryButtonText} onChange={(v:any)=>setCtaBanner({...ctaBanner, secondaryButtonText: v})} placeholder="Learn More" />
-          <TextInput label="Secondary Button Link" value={ctaBanner.secondaryButtonLink} onChange={(v:any)=>setCtaBanner({...ctaBanner, secondaryButtonLink: v})} placeholder="/services" />
-          <TextInput label="Background Image URL" value={ctaBanner.backgroundImage} onChange={(v:any)=>setCtaBanner({...ctaBanner, backgroundImage: v})} />
-          <TextInput label="Background Color (hex)" value={ctaBanner.backgroundColor} onChange={(v:any)=>setCtaBanner({...ctaBanner, backgroundColor: v})} placeholder="#0f172a" />
-          <TextInput label="Overlay (0-100)" value={ctaBanner.overlay} onChange={(v:any)=>setCtaBanner({...ctaBanner, overlay: v})} placeholder="60" />
-          <TextInput label="Text Color" value={ctaBanner.textColor} onChange={(v:any)=>setCtaBanner({...ctaBanner, textColor: v})} placeholder="text-white" />
-          <TextInput label="Full Bleed (true|false)" value={ctaBanner.fullBleed} onChange={(v:any)=>setCtaBanner({...ctaBanner, fullBleed: v})} />
-          <TextInput label="Animation" value={ctaBanner.animation} onChange={(v:any)=>setCtaBanner({...ctaBanner, animation: v})} />
-        </div>
+        <>
+          <div className="mb-6">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">Content</h3>
+            <div className="grid md:grid-cols-2 gap-4">
+              <TextInput label="Heading" value={ctaBanner.heading} onChange={(v:any)=>setCtaBanner({...ctaBanner, heading: v})} placeholder="Ready to get started?" />
+              <TextInput label="Subheading" value={ctaBanner.subheading} onChange={(v:any)=>setCtaBanner({...ctaBanner, subheading: v})} placeholder="Optional subheading" />
+              <TextInput label="Primary Button Text" value={ctaBanner.primaryButtonText} onChange={(v:any)=>setCtaBanner({...ctaBanner, primaryButtonText: v})} placeholder="Book Now" />
+              <TextInput label="Primary Button Link" value={ctaBanner.primaryButtonLink} onChange={(v:any)=>setCtaBanner({...ctaBanner, primaryButtonLink: v})} placeholder="/book" />
+              <TextInput label="Secondary Button Text" value={ctaBanner.secondaryButtonText} onChange={(v:any)=>setCtaBanner({...ctaBanner, secondaryButtonText: v})} placeholder="Learn More" />
+              <TextInput label="Secondary Button Link" value={ctaBanner.secondaryButtonLink} onChange={(v:any)=>setCtaBanner({...ctaBanner, secondaryButtonLink: v})} placeholder="/services" />
+              <TextInput label="Background Image URL" value={ctaBanner.backgroundImage} onChange={(v:any)=>setCtaBanner({...ctaBanner, backgroundImage: v})} />
+              <NumberInput label="Overlay (0-100)" value={Number(ctaBanner.overlay)} onChange={(v:any)=>setCtaBanner({...ctaBanner, overlay: String(v)})} min={0} max={100} />
+              <TextInput label="Full Bleed (true|false)" value={ctaBanner.fullBleed} onChange={(v:any)=>setCtaBanner({...ctaBanner, fullBleed: v})} />
+            </div>
+          </div>
+
+          <div className="mb-6 border-t pt-6">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">Theme & Styling</h3>
+            <div className="grid md:grid-cols-2 gap-4">
+              <ColorPicker 
+                label="Background Color" 
+                value={ctaBanner.backgroundColor} 
+                onChange={(v)=>setCtaBanner({...ctaBanner, backgroundColor: v})}
+              />
+              <TextColorPicker 
+                label="Text Color" 
+                value={ctaBanner.textColor} 
+                onChange={(v)=>setCtaBanner({...ctaBanner, textColor: v})}
+                background="dark"
+              />
+              <FontPicker 
+                label="Heading Font" 
+                value={ctaBanner.headingFont} 
+                onChange={(v)=>setCtaBanner({...ctaBanner, headingFont: v})}
+                type="heading"
+              />
+              <ButtonStylePicker 
+                label="Button Style" 
+                value={ctaBanner.buttonStyle} 
+                onChange={(v)=>setCtaBanner({...ctaBanner, buttonStyle: v})}
+              />
+              <AnimationPicker 
+                label="Animation" 
+                value={ctaBanner.animation} 
+                onChange={(v)=>setCtaBanner({...ctaBanner, animation: v})}
+              />
+            </div>
+          </div>
+        </>
       )}
 
       {isIconFeatures && (
