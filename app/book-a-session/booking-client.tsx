@@ -2,8 +2,27 @@
 
 import React, { useEffect, useMemo, useState } from 'react'
 import { supabase } from '@/lib/supabase'
-import { Loader2, Calendar, Clock, CheckCircle2, Plus, Minus, Mail, MapPin, Phone } from 'lucide-react'
 import Image from 'next/image'
+
+// Inline simple SVG icons to avoid lucide-react bundle (reduces ~50KB)
+const Loader2 = ({ className }: { className?: string }) => (
+  <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+)
+const Calendar = ({ className }: { className?: string }) => (
+  <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+)
+const Clock = ({ className }: { className?: string }) => (
+  <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+)
+const CheckCircle2 = ({ className }: { className?: string }) => (
+  <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
+)
+const Plus = ({ className }: { className?: string }) => (
+  <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+)
+const Minus = ({ className }: { className?: string }) => (
+  <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/></svg>
+)
 
 type PackageKey = 
   | 'consultation' 
@@ -478,37 +497,52 @@ export default function BookSessionPage() {
     link.click()
   }
 
-  // Fetch booking background image URL from settings
-  const [bgUrl, setBgUrl] = useState<string>('https://images.unsplash.com/photo-1423666639041-f56000c27a9a')
+  // Fetch booking background image URL from settings (lazy load)
+  const [bgUrl, setBgUrl] = useState<string>('')
+  const [bgLoaded, setBgLoaded] = useState(false)
+  
   useEffect(() => {
-    const fetchBg = async () => {
-      try {
-        const { data } = await supabase.from('settings').select('book_session_bg_url').maybeSingle()
-        if (data?.book_session_bg_url) {
-          setBgUrl(data.book_session_bg_url)
+    // Use default static color first for faster FCP
+    const timer = setTimeout(() => {
+      const fetchBg = async () => {
+        try {
+          const { data } = await supabase.from('settings').select('book_session_bg_url').maybeSingle()
+          if (data?.book_session_bg_url) {
+            setBgUrl(data.book_session_bg_url)
+          } else {
+            setBgUrl('https://images.unsplash.com/photo-1423666639041-f56000c27a9a?w=1920&q=75')
+          }
+        } catch {
+          setBgUrl('https://images.unsplash.com/photo-1423666639041-f56000c27a9a?w=1920&q=75')
         }
-      } catch {}
-    }
-    fetchBg()
+      }
+      fetchBg()
+    }, 100) // Delay background image load
+    
+    return () => clearTimeout(timer)
   }, [])
 
   return (
     <div className="relative min-h-screen flex flex-col">
-      {/* True Full-Page Background Image, fixed and always behind content */}
-      <div className="fixed top-0 left-0 w-screen h-screen -z-10 pointer-events-none">
-        <Image
-          src={bgUrl}
-          alt="Book a session background"
-          fill
-          className="object-cover"
-          priority
-          sizes="100vw"
-        />
-          <div
-            className="absolute inset-0 bg-black bg-opacity-50 backdrop-blur-sm"
-            aria-hidden="true"
-            role="presentation"
+      {/* Solid background loads first, image lazy loads */}
+      <div className="fixed top-0 left-0 w-screen h-screen -z-10 pointer-events-none bg-gradient-to-br from-gray-800 to-gray-900">
+        {bgUrl && (
+          <Image
+            src={bgUrl}
+            alt=""
+            fill
+            className="object-cover"
+            loading="lazy"
+            sizes="100vw"
+            quality={75}
+            onLoadingComplete={() => setBgLoaded(true)}
           />
+        )}
+        <div
+          className="absolute inset-0 bg-black bg-opacity-50 backdrop-blur-sm"
+          aria-hidden="true"
+          role="presentation"
+        />
       </div>
       <div className="container mx-auto px-4 py-12 max-w-5xl w-full flex-1 relative z-10">
         <div className="text-center mb-8">
