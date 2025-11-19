@@ -171,6 +171,9 @@ export default function EditorFormClient() {
         <div className="text-sm text-gray-500">Editing</div>
         <div className="text-lg font-semibold">{block}{id ? ` · ${id}` : ''}</div>
         <div className="text-xs text-gray-500 mt-1">Path: {path}</div>
+        <div className="mt-2">
+          <a href={`/admin/editor/layout?path=${encodeURIComponent(path)}${(typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('edit')==='1') ? '&edit=1' : ''}`} className="text-sm text-primary-700 underline">Open layout editor</a>
+        </div>
       </div>
 
       {isHero && (

@@ -10,6 +10,17 @@ export interface PageConfig {
   updated_at: string
 }
 
+export type LayoutBlock = {
+  id: string // anchor id
+  type: string // name of MDXBuilder component, e.g., 'HeroBlock'
+  props?: Record<string, any>
+}
+
+export type PageLayout = {
+  path: string
+  blocks: LayoutBlock[]
+}
+
 /**
  * Fetch all block overrides for a given page path from page_configs.
  * Returns a Map keyed by block_id for easy lookups.
@@ -47,4 +58,20 @@ export function selectProps(config: PageConfig | undefined, useDraft: boolean): 
   if (!config) return null
   if (useDraft && config.draft_props && Object.keys(config.draft_props || {}).length > 0) return config.draft_props as any
   return config.props || null
+}
+
+/** Fetch layout config (if any) for a page. Uses special block_id '__layout__'. */
+export async function getPageLayout(path: string, useDraft = false): Promise<PageLayout | null> {
+  const { data, error } = await supabaseAdmin
+    .from('page_configs')
+    .select('path, block_id, block_type, props, draft_props')
+    .eq('path', path)
+    .eq('block_id', '__layout__')
+    .maybeSingle()
+
+  if (error || !data) return null
+
+  const raw = (useDraft && (data as any).draft_props) ? (data as any).draft_props : (data as any).props
+  const blocks = Array.isArray(raw?.blocks) ? raw.blocks as LayoutBlock[] : []
+  return { path, blocks }
 }

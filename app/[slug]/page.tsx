@@ -84,15 +84,37 @@ export default async function DynamicPage({ params, searchParams }: { params: { 
   
   if (isBuilderPage) {
     // Dynamic import of MDX components for builder pages only.
-  const { MDXBuilderComponents } = await import('@/components/BuilderRuntime')
-  const { getPageConfigs, selectProps } = await import('@/lib/pageConfigs')
-  const EditableChrome = (await import('@/components/editor/EditableChrome')).default
-    
+    const { MDXBuilderComponents } = await import('@/components/BuilderRuntime')
+    const { getPageConfigs, selectProps, getPageLayout } = await import('@/lib/pageConfigs')
+    const EditableChrome = (await import('@/components/editor/EditableChrome')).default
+
     // Fetch page-level overrides for current path
     const currentPath = `/${params.slug}`
-  const configs = await getPageConfigs(currentPath)
-  const useDraft = (searchParams?.edit === '1')
-    
+    const useDraft = (searchParams?.edit === '1')
+    const [configs, layout] = await Promise.all([
+      getPageConfigs(currentPath),
+      getPageLayout(currentPath, useDraft)
+    ])
+
+    // If a persisted layout exists for this path, render from it instead of MDX
+    if (layout && Array.isArray(layout.blocks) && layout.blocks.length > 0) {
+      return (
+        <PageWrapper showNav={showNav} className={`min-h-screen ${showNav ? 'pt-16' : ''}`}>
+          {layout.blocks.map((blk, i) => {
+            const Comp: any = (MDXBuilderComponents as any)[blk.type]
+            if (!Comp) return null
+            const override = blk.id ? configs.get(blk.id) : undefined
+            return (
+              <div key={blk.id || i} className="relative">
+                <EditableChrome label={String(blk.type).replace(/Block$/, '').replace(/([a-z])([A-Z])/g,'$1 $2')} block={blk.type} anchorId={blk.id} />
+                <Comp {...(blk.props || {})} _overrides={selectProps(override as any, useDraft)} />
+              </div>
+            )
+          })}
+        </PageWrapper>
+      )
+    }
+
     // Wrap components to inject _overrides prop based on block anchorId
     const defaultAnchorIds: Record<string,string> = {
       LogoBlock:'logo', HeroBlock:'hero', TextBlock:'text', ImageBlock:'image', ButtonBlock:'button', ColumnsBlock:'columns', SpacerBlock:'spacer', SeoFooterBlock:'seo-footer', BadgesBlock:'badges', SlideshowHeroBlock:'slideshow-hero', TestimonialsBlock:'testimonials', GalleryHighlightsBlock:'gallery-highlights', WidgetEmbedBlock:'widget-embed', ServicesGridBlock:'services-grid', StatsBlock:'stats', CTABannerBlock:'cta-banner', IconFeaturesBlock:'icon-features', ContactFormBlock:'contact-form', NewsletterBlock:'newsletter', FAQBlock:'faq', PricingTableBlock:'pricing-table', PricingCalculatorBlock:'pricing-calculator'
