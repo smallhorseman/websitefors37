@@ -220,22 +220,8 @@ export default function RootLayout({
         {/* Explicit favicon for modern browsers */}
         <link rel="icon" href="/icon.svg" type="image/svg+xml" />
       </head>
-      <body className={`${inter.variable} ${playfair.variable} ${montserrat.variable} font-sans`}>
-        {/* Additional decorative fonts load as CSS variables but don't block render */}
-        <style jsx global>{`
-          :root {
-            ${cormorant.variable};
-            ${lora.variable};
-            ${crimson.variable};
-            ${libreBaskerville.variable};
-            ${raleway.variable};
-            ${nunito.variable};
-            ${workSans.variable};
-            ${cinzel.variable};
-            ${greatVibes.variable};
-            ${bebasNeue.variable};
-          }
-        `}</style>
+      <body className={`${inter.variable} ${playfair.variable} ${montserrat.variable} ${raleway.variable} ${nunito.variable} ${workSans.variable} font-sans`}>
+        {/* Load remaining decorative fonts as CSS variables only when needed */}
         {/* Accessibility: Skip to content link */}
         <a
           href="#main"

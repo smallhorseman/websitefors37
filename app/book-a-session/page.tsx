@@ -31,14 +31,8 @@ function BookingFallback() {
 
 export default function BookingPage() {
   return (
-    <>
-      {/* Preconnect to Supabase for faster API calls */}
-      <link rel="preconnect" href="https://images.unsplash.com" />
-      <link rel="dns-prefetch" href="https://images.unsplash.com" />
-      
-      <Suspense fallback={<BookingFallback />}>
-        <BookSessionPage />
-      </Suspense>
-    </>
+    <Suspense fallback={<BookingFallback />}>
+      <BookSessionPage />
+    </Suspense>
   )
 }
