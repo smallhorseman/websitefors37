@@ -1,6 +1,20 @@
 import React, { Suspense } from "react";
 import "./globals.css";
-import { Inter, Playfair_Display } from "next/font/google";
+import { 
+  Inter, 
+  Playfair_Display,
+  Cormorant_Garamond,
+  Lora,
+  Crimson_Pro,
+  Libre_Baskerville,
+  Montserrat,
+  Raleway,
+  Nunito,
+  Work_Sans,
+  Cinzel,
+  Great_Vibes,
+  Bebas_Neue
+} from "next/font/google";
 import dynamic from "next/dynamic";
 import Navigation from "@/components/Navigation";
 import QueryProvider from "@/components/QueryProvider";
@@ -25,6 +39,90 @@ const playfair = Playfair_Display({
   display: "swap",
   preload: true,
   fallback: ['georgia', 'serif'],
+});
+
+// Serif Fonts
+const cormorant = Cormorant_Garamond({
+  subsets: ["latin"],
+  variable: "--font-cormorant",
+  weight: ["300", "400", "500", "600", "700"],
+  display: "swap",
+  fallback: ['georgia', 'serif'],
+});
+
+const lora = Lora({
+  subsets: ["latin"],
+  variable: "--font-lora",
+  display: "swap",
+  fallback: ['georgia', 'serif'],
+});
+
+const crimson = Crimson_Pro({
+  subsets: ["latin"],
+  variable: "--font-crimson",
+  display: "swap",
+  fallback: ['georgia', 'serif'],
+});
+
+const libreBaskerville = Libre_Baskerville({
+  subsets: ["latin"],
+  variable: "--font-libre",
+  weight: ["400", "700"],
+  display: "swap",
+  fallback: ['georgia', 'serif'],
+});
+
+// Sans-serif Fonts
+const montserrat = Montserrat({
+  subsets: ["latin"],
+  variable: "--font-montserrat",
+  display: "swap",
+  fallback: ['system-ui', 'arial'],
+});
+
+const raleway = Raleway({
+  subsets: ["latin"],
+  variable: "--font-raleway",
+  display: "swap",
+  fallback: ['system-ui', 'arial'],
+});
+
+const nunito = Nunito({
+  subsets: ["latin"],
+  variable: "--font-nunito",
+  display: "swap",
+  fallback: ['system-ui', 'arial'],
+});
+
+const workSans = Work_Sans({
+  subsets: ["latin"],
+  variable: "--font-worksans",
+  display: "swap",
+  fallback: ['system-ui', 'arial'],
+});
+
+// Display Fonts
+const cinzel = Cinzel({
+  subsets: ["latin"],
+  variable: "--font-cinzel",
+  display: "swap",
+  fallback: ['georgia', 'serif'],
+});
+
+const greatVibes = Great_Vibes({
+  subsets: ["latin"],
+  variable: "--font-greatvibes",
+  weight: "400",
+  display: "swap",
+  fallback: ['cursive'],
+});
+
+const bebasNeue = Bebas_Neue({
+  subsets: ["latin"],
+  variable: "--font-bebas",
+  weight: "400",
+  display: "swap",
+  fallback: ['impact', 'sans-serif'],
 });
 
 export const metadata = {
@@ -106,7 +204,7 @@ export default function RootLayout({
         {/* Explicit favicon for modern browsers */}
         <link rel="icon" href="/icon.svg" type="image/svg+xml" />
       </head>
-      <body className={`${inter.variable} ${playfair.variable} font-sans`}>
+      <body className={`${inter.variable} ${playfair.variable} ${cormorant.variable} ${lora.variable} ${crimson.variable} ${libreBaskerville.variable} ${montserrat.variable} ${raleway.variable} ${nunito.variable} ${workSans.variable} ${cinzel.variable} ${greatVibes.variable} ${bebasNeue.variable} font-sans`}>
         {/* Accessibility: Skip to content link */}
         <a
           href="#main"

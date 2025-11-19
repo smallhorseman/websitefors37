@@ -14,12 +14,37 @@ module.exports = {
     'vintage-card',
     'retro-shadow',
     'retro-border',
+    // Font classes for theme editor
+    'font-serif',
+    'font-sans',
+    'font-cormorant',
+    'font-lora',
+    'font-crimson',
+    'font-libre',
+    'font-montserrat',
+    'font-raleway',
+    'font-nunito',
+    'font-worksans',
+    'font-cinzel',
+    'font-greatvibes',
+    'font-bebas',
   ],
   theme: {
     extend: {
       fontFamily: {
         sans: ['var(--font-inter)', 'Poppins', 'ui-sans-serif', 'system-ui'],
         serif: ['var(--font-playfair)', 'Playfair Display', 'ui-serif', 'Georgia'],
+        cormorant: ['var(--font-cormorant)', 'Georgia', 'serif'],
+        lora: ['var(--font-lora)', 'Georgia', 'serif'],
+        crimson: ['var(--font-crimson)', 'Georgia', 'serif'],
+        libre: ['var(--font-libre)', 'Georgia', 'serif'],
+        montserrat: ['var(--font-montserrat)', 'system-ui', 'sans-serif'],
+        raleway: ['var(--font-raleway)', 'system-ui', 'sans-serif'],
+        nunito: ['var(--font-nunito)', 'system-ui', 'sans-serif'],
+        worksans: ['var(--font-worksans)', 'system-ui', 'sans-serif'],
+        cinzel: ['var(--font-cinzel)', 'Georgia', 'serif'],
+        greatvibes: ['var(--font-greatvibes)', 'cursive'],
+        bebas: ['var(--font-bebas)', 'impact', 'sans-serif'],
       },
       colors: {
         primary: {

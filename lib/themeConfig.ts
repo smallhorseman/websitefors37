@@ -49,6 +49,13 @@ export const themeConfig = {
       label: 'Heading Fonts',
       options: [
         { name: 'Playfair Display (Brand)', value: 'var(--font-playfair)', class: 'font-serif' },
+        { name: 'Cormorant Garamond', value: 'var(--font-cormorant)', class: 'font-cormorant' },
+        { name: 'Lora', value: 'var(--font-lora)', class: 'font-lora' },
+        { name: 'Crimson Pro', value: 'var(--font-crimson)', class: 'font-crimson' },
+        { name: 'Libre Baskerville', value: 'var(--font-libre)', class: 'font-libre' },
+        { name: 'Cinzel (Display)', value: 'var(--font-cinzel)', class: 'font-cinzel' },
+        { name: 'Great Vibes (Script)', value: 'var(--font-greatvibes)', class: 'font-greatvibes' },
+        { name: 'Bebas Neue (Display)', value: 'var(--font-bebas)', class: 'font-bebas' },
         { name: 'Inter Bold', value: 'var(--font-inter)', class: 'font-sans font-bold' },
       ]
     },
@@ -56,7 +63,12 @@ export const themeConfig = {
       label: 'Body Fonts',
       options: [
         { name: 'Inter (Brand)', value: 'var(--font-inter)', class: 'font-sans' },
+        { name: 'Montserrat', value: 'var(--font-montserrat)', class: 'font-montserrat' },
+        { name: 'Raleway', value: 'var(--font-raleway)', class: 'font-raleway' },
+        { name: 'Nunito', value: 'var(--font-nunito)', class: 'font-nunito' },
+        { name: 'Work Sans', value: 'var(--font-worksans)', class: 'font-worksans' },
         { name: 'Playfair Display', value: 'var(--font-playfair)', class: 'font-serif' },
+        { name: 'Lora', value: 'var(--font-lora)', class: 'font-lora' },
       ]
     }
   },
