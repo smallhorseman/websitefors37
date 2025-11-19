@@ -95,11 +95,29 @@ export async function POST(req: Request) {
 
     const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({ 
-      model: "gemini-2.5-flash", // Stable, widely available model
+      model: "gemini-1.5-flash", // Stable, widely available model
       generationConfig: {
         maxOutputTokens: 4096,
         temperature: 0.7,
       },
+      safetySettings: [
+        {
+          category: "HARM_CATEGORY_HARASSMENT",
+          threshold: "BLOCK_ONLY_HIGH",
+        },
+        {
+          category: "HARM_CATEGORY_HATE_SPEECH",
+          threshold: "BLOCK_ONLY_HIGH",
+        },
+        {
+          category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+          threshold: "BLOCK_ONLY_HIGH",
+        },
+        {
+          category: "HARM_CATEGORY_DANGEROUS_CONTENT",
+          threshold: "BLOCK_ONLY_HIGH",
+        },
+      ],
     });
 
     const prompt = `You are an expert content strategist and senior copywriter for Studio37 Photography, a professional photography studio in Pinehurst, TX.
@@ -193,14 +211,40 @@ Return the response in this exact JSON format (no markdown code blocks):
       );
     }
 
+    // Check for safety/content filtering
+    const candidates = (result as any)?.candidates;
+    if (candidates && candidates.length > 0) {
+      const candidate = candidates[0];
+      if (candidate.finishReason && candidate.finishReason !== 'STOP') {
+        console.error("Content was blocked:", {
+          finishReason: candidate.finishReason,
+          safetyRatings: candidate.safetyRatings
+        });
+        return NextResponse.json(
+          { error: `Content generation blocked: ${candidate.finishReason}. Try adjusting your topic or keywords.` },
+          { status: 400 }
+        );
+      }
+    }
+
     let responseText;
     try {
       responseText = response.text().trim();
     } catch (textError: any) {
       console.error("Error extracting text from response:", textError);
       console.error("Response object:", JSON.stringify(response, null, 2));
+      
+      // Check if it was blocked
+      if (candidates && candidates.length > 0) {
+        const candidate = candidates[0];
+        console.error("Candidate info:", {
+          finishReason: candidate.finishReason,
+          safetyRatings: candidate.safetyRatings
+        });
+      }
+      
       return NextResponse.json(
-        { error: `Failed to extract response: ${textError.message}` },
+        { error: `Failed to extract response: ${textError.message}. The content may have been blocked by safety filters.` },
         { status: 500 }
       );
     }
@@ -208,8 +252,9 @@ Return the response in this exact JSON format (no markdown code blocks):
     // Check if response is empty
     if (!responseText) {
       console.error("Empty response from AI model");
+      console.error("Result candidates:", candidates);
       return NextResponse.json(
-        { error: "AI returned empty response" },
+        { error: "AI returned empty response. Try different keywords or a simpler topic." },
         { status: 500 }
       );
     }
