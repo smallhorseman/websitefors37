@@ -29,6 +29,62 @@ export async function POST(req: Request) {
       // ignore settings read errors, allow call to continue
     }
 
+    // Fetch site content for context
+    let siteContext = "";
+    try {
+      // Get about page content
+      const { data: aboutPage } = await supabase
+        .from("content_pages")
+        .select("content")
+        .eq("slug", "about")
+        .maybeSingle();
+      
+      // Get services information
+      const { data: servicesPages } = await supabase
+        .from("content_pages")
+        .select("title, content")
+        .in("slug", [
+          "services",
+          "wedding-photography",
+          "portrait-photography",
+          "commercial-photography",
+          "event-photography",
+          "family-photography",
+          "senior-portraits",
+          "professional-headshots",
+          "maternity-sessions"
+        ]);
+
+      // Get existing blog posts for tone/style reference
+      const { data: existingPosts } = await supabase
+        .from("blog_posts")
+        .select("title, excerpt, content")
+        .eq("published", true)
+        .limit(3);
+
+      if (aboutPage?.content) {
+        siteContext += `\n\nAbout Studio37:\n${aboutPage.content.substring(0, 500)}`;
+      }
+
+      if (servicesPages && servicesPages.length > 0) {
+        siteContext += "\n\nOur Services:\n";
+        servicesPages.forEach((page: any) => {
+          const excerpt = page.content?.substring(0, 200) || "";
+          siteContext += `- ${page.title}: ${excerpt}\n`;
+        });
+      }
+
+      if (existingPosts && existingPosts.length > 0) {
+        siteContext += "\n\nExisting Blog Style Reference:\n";
+        existingPosts.forEach((post: any) => {
+          siteContext += `- ${post.title}: ${post.excerpt || post.content?.substring(0, 150)}\n`;
+        });
+      }
+    } catch (contextError) {
+      console.error("Error fetching site context:", contextError);
+      // Continue without context if fetch fails
+    }
+
     const apiKey = process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY;
     if (!apiKey) {
       return NextResponse.json(
@@ -48,6 +104,29 @@ export async function POST(req: Request) {
 
     const prompt = `You are an expert content strategist and senior copywriter for Studio37 Photography, a professional photography studio in Pinehurst, TX.
 
+CRITICAL LINKING RULES - YOU MUST FOLLOW THESE:
+1. ONLY use links to www.studio37.cc domain (our website)
+2. NEVER link to www.studio37photography.com or any external photography sites
+3. NEVER mention or reference competitor websites
+4. Use these internal links ONLY:
+   - /services (general services page)
+   - /wedding-photography
+   - /portrait-photography
+   - /commercial-photography
+   - /event-photography
+   - /family-photography
+   - /senior-portraits
+   - /professional-headshots
+   - /maternity-sessions
+   - /book-a-session (booking page)
+   - /contact (contact page)
+   - /about (about us)
+   - /blog (blog home)
+   - /gallery (portfolio)
+
+SITE CONTEXT (use this real information - DO NOT make up information):
+${siteContext || "Studio37 Photography is a professional photography studio based in Pinehurst, TX, offering wedding, portrait, commercial, and event photography services."}
+
 Write a complete, SEO-optimized blog post about: ${topic}
 
 STRICT STRUCTURE REQUIREMENTS (must appear exactly as H2 headings in this order):
@@ -65,12 +144,15 @@ Additional Requirements:
 - Target keywords: ${keywords || "photography, Studio37, Pinehurst TX"}
 - Write in Markdown format (no HTML tags except inline code if needed)
 - Be engaging, informative, and actionable
-- Include relevant photography tips and insights
+- Include relevant photography tips and insights based on the site context provided
 - Mention Studio37 Photography and Pinehurst, TX naturally (brand mention at least twice)
-- Use internal linking opportunities (services, booking, contact) where natural
-- End with a clear call-to-action inviting booking
+- Use internal linking opportunities from the approved list above
+- End with a clear call-to-action linking to /book-a-session
 - Use short paragraphs (2-3 sentences max)
 - Avoid fluff, maintain clarity and professionalism
+- Base recommendations on actual Studio37 services mentioned in the context
+
+REMINDER: Only link to pages on www.studio37.cc. Do NOT reference external websites or competitors.
 
 Return the response in this exact JSON format (no markdown code blocks):
 {
@@ -178,20 +260,30 @@ Return the response in this exact JSON format (no markdown code blocks):
     // Helper to inject internal links & CTA if missing
     const ensureLinks = (md: string): string => {
       let out = md || "";
-      // Link brand mention
+      
+      // CRITICAL: Remove any references to competitor sites
+      out = out.replace(/www\.studio37photography\.com/gi, "www.studio37.cc");
+      out = out.replace(/studio37photography\.com/gi, "www.studio37.cc");
+      out = out.replace(/\[([^\]]+)\]\(https?:\/\/(?!www\.studio37\.cc)[^)]+\)/gi, "$1"); // Remove external links
+      
+      // Link brand mention to our site only
       if (!/\[Studio37 Photography\]\(/.test(out) && out.includes("Studio37 Photography")) {
-        out = out.replace(/Studio37 Photography/g, "[Studio37 Photography](/services)");
+        out = out.replace(/Studio37 Photography/g, "[Studio37 Photography](https://www.studio37.cc/services)");
       }
-      // Service links
-      if (!/\]\(\/services\)/.test(out)) {
-        out = out.replace(/\bwedding photography\b/gi, "[wedding photography](/services)");
-        out = out.replace(/\bcorporate (?:photography|services)\b/gi, "[corporate services](/services)");
-        out = out.replace(/\bportrait photography\b/gi, "[portrait photography](/services)");
+      
+      // Service links - all internal to www.studio37.cc
+      if (!/\]\(https:\/\/www\.studio37\.cc\/services\)/.test(out) && !/\]\(\/services\)/.test(out)) {
+        out = out.replace(/\bwedding photography\b/gi, "[wedding photography](/services/wedding-photography)");
+        out = out.replace(/\bcorporate (?:photography|services)\b/gi, "[corporate services](/services/commercial-photography)");
+        out = out.replace(/\bportrait photography\b/gi, "[portrait photography](/services/portrait-photography)");
+        out = out.replace(/\bfamily portraits?\b/gi, "[family portraits](/family-photography)");
       }
-      // Session booking CTA
-      if (!/book-a-session/.test(out)) {
-        out += "\n\nReady to create something beautiful? [Book a session](/book-a-session) or [contact us](/contact).";
+      
+      // Session booking CTA - only to our booking page
+      if (!/book-a-session/.test(out) && !/\/contact/.test(out)) {
+        out += "\n\n---\n\n**Ready to create something beautiful?** [Book a session with Studio37](https://www.studio37.cc/book-a-session) or [contact us](https://www.studio37.cc/contact) to discuss your photography needs.";
       }
+      
       return out;
     };
 

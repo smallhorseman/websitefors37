@@ -2,10 +2,17 @@
 
 import React, { useEffect, useMemo, useState } from 'react'
 import { supabase } from '@/lib/supabase'
-import { Loader2, Calendar, Clock, CheckCircle2 } from 'lucide-react'
+import { Loader2, Calendar, Clock, CheckCircle2, Plus, Minus, Mail, MapPin, Phone } from 'lucide-react'
 import Image from 'next/image'
 
 type PackageKey = 'consultation' | 'mini_reel' | 'full_episode' | 'movie_premier'
+
+interface AddOn {
+  id: string
+  name: string
+  priceCents: number
+  description: string
+}
 
 const PACKAGES: Record<Exclude<PackageKey, 'consultation'>, { name: string; duration: number; priceCents: number; description: string }> = {
   mini_reel: {
@@ -27,6 +34,13 @@ const PACKAGES: Record<Exclude<PackageKey, 'consultation'>, { name: string; dura
     description: '60 mins, 60 photos, 1-minute free behind-the-scenes video, free on-site Polaroid print.'
   }
 }
+
+const ADD_ONS: AddOn[] = [
+  { id: 'rush-editing', name: 'Rush Editing (48hr)', priceCents: 5000, description: 'Get your photos in 2 days instead of 2 weeks' },
+  { id: 'extra-outfit', name: 'Extra Outfit/Look', priceCents: 2500, description: 'Add another wardrobe change' },
+  { id: 'print-package', name: 'Premium Print Package', priceCents: 10000, description: '10x 8x10 professional prints' },
+  { id: 'digital-priority', name: 'Digital Priority Delivery', priceCents: 3000, description: 'High-res files available for instant download' }
+]
 
 // Assumption: consultation is 30 minutes if not specified
 const CONSULTATION_DURATION = 30
@@ -66,23 +80,43 @@ function overlaps(aStart: Date, aEnd: Date, bStart: Date, bEnd: Date) {
 }
 
 export default function BookSessionPage() {
+  const [currentStep, setCurrentStep] = useState(1) // 1=Package, 2=Details, 3=DateTime, 4=Review
   const [selectedType, setSelectedType] = useState<PackageKey>('consultation')
+  const [selectedAddOns, setSelectedAddOns] = useState<string[]>([])
   const [selectedDate, setSelectedDate] = useState<string>('')
   const [selectedTime, setSelectedTime] = useState<string>('')
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
   const [notes, setNotes] = useState('')
+  const [honeypot, setHoneypot] = useState('') // Anti-spam
   const [loadingSlots, setLoadingSlots] = useState(false)
   const [existingForDay, setExistingForDay] = useState<{ start_time: string; end_time: string; status: string }[]>([])
   const [submitting, setSubmitting] = useState(false)
   const [success, setSuccess] = useState(false)
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({})
 
   const duration = useMemo(() => {
     if (selectedType === 'consultation') return CONSULTATION_DURATION
     const key = selectedType as Exclude<PackageKey, 'consultation'>
     return PACKAGES[key].duration
   }, [selectedType])
+
+  const totalPrice = useMemo(() => {
+    if (selectedType === 'consultation') return 0
+    const packagePrice = PACKAGES[selectedType as Exclude<PackageKey, 'consultation'>].priceCents
+    const addOnsPrice = selectedAddOns.reduce((sum, id) => {
+      const addOn = ADD_ONS.find(a => a.id === id)
+      return sum + (addOn?.priceCents || 0)
+    }, 0)
+    return packagePrice + addOnsPrice
+  }, [selectedType, selectedAddOns])
+
+  const toggleAddOn = (id: string) => {
+    setSelectedAddOns(prev => 
+      prev.includes(id) ? prev.filter(a => a !== id) : [...prev, id]
+    )
+  }
 
   // Load existing appointments for the selected date
   useEffect(() => {
@@ -138,6 +172,26 @@ export default function BookSessionPage() {
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    // Honeypot check
+    if (honeypot) {
+      console.warn('Spam detected')
+      return
+    }
+
+    // Validation
+    const errors: Record<string, string> = {}
+    if (!name || name.length < 2) errors.name = 'Name is required'
+    if (!email || !/\S+@\S+\.\S+/.test(email)) errors.email = 'Valid email is required'
+    if (!selectedDate) errors.date = 'Please select a date'
+    if (!selectedTime) errors.time = 'Please select a time'
+    
+    if (Object.keys(errors).length > 0) {
+      setValidationErrors(errors)
+      return
+    }
+    
+    setValidationErrors({})
     if (!selectedDate || !selectedTime) return
     setSubmitting(true)
     try {
@@ -155,6 +209,7 @@ export default function BookSessionPage() {
       if (confErr) throw confErr
       if (conflicts && conflicts.length > 0) {
         alert('Sorry, that slot was just taken. Please pick another time.')
+        setSelectedTime('')
         return
       }
 
@@ -192,11 +247,11 @@ export default function BookSessionPage() {
         type: selectedType === 'consultation' ? 'consultation' : 'package',
   package_key: selectedType === 'consultation' ? null : selectedType,
   package_name: selectedType === 'consultation' ? null : PACKAGES[(selectedType as Exclude<PackageKey,'consultation'>)].name,
-  price_cents: selectedType === 'consultation' ? null : PACKAGES[(selectedType as Exclude<PackageKey,'consultation'>)].priceCents,
+  price_cents: selectedType === 'consultation' ? null : totalPrice,
         duration_minutes: duration,
         start_time: start.toISOString(),
         end_time: end.toISOString(),
-        notes,
+        notes: notes + (selectedAddOns.length > 0 ? `\n\nAdd-ons: ${selectedAddOns.map(id => ADD_ONS.find(a => a.id === id)?.name).join(', ')}` : ''),
         status: 'scheduled'
       }
 
@@ -204,12 +259,48 @@ export default function BookSessionPage() {
       if (apptErr) throw apptErr
 
       setSuccess(true)
+      setCurrentStep(5) // Success step
     } catch (err: any) {
       console.error(err)
       alert(err?.message || 'Failed to book. Please try again.')
     } finally {
       setSubmitting(false)
     }
+  }
+
+  // Generate .ics calendar file
+  const generateCalendarInvite = () => {
+    if (!selectedDate || !selectedTime || !name) return
+    
+    const start = new Date(`${selectedDate}T${selectedTime}:00`)
+    const end = addMinutes(start, duration)
+    
+    const formatICS = (date: Date) => {
+      return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z'
+    }
+    
+    const icsContent = [
+      'BEGIN:VCALENDAR',
+      'VERSION:2.0',
+      'PRODID:-//Studio37//Booking//EN',
+      'BEGIN:VEVENT',
+      `UID:${Date.now()}@studio37.cc`,
+      `DTSTAMP:${formatICS(new Date())}`,
+      `DTSTART:${formatICS(start)}`,
+      `DTEND:${formatICS(end)}`,
+      `SUMMARY:Studio37 - ${selectedType === 'consultation' ? 'Photography Consultation' : PACKAGES[selectedType as Exclude<PackageKey, 'consultation'>].name}`,
+      `DESCRIPTION:Your photography session with Studio37. Contact: ${email}`,
+      'LOCATION:Studio37, Pinehurst, TX',
+      'STATUS:CONFIRMED',
+      'END:VEVENT',
+      'END:VCALENDAR'
+    ].join('\r\n')
+    
+    const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' })
+    const link = document.createElement('a')
+    link.href = URL.createObjectURL(blob)
+    link.download = 'studio37-session.ics'
+    link.click()
   }
 
   // Fetch booking background image URL from settings
