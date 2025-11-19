@@ -5,10 +5,9 @@ import { Calculator, Users, Clock, Info, Sparkles, ChevronRight } from "lucide-r
 import Link from "next/link"
 
 // Assumptions (easy to tweak):
-// - Solo & Couples: $375/hr
-// - Family (3-5): $450/hr
-// - Family (6+): $500/hr + $50 per person over 5 (flat session surcharge)
-// - Packages (deals): 30m $200, 60m $350 (save $25 vs $375), 90m $500
+// - All types: $400/hr (minimum $100)
+// - Family (6+): $50 per person over 5 (flat session surcharge)
+// - Packages (deals): 30m $200, 60m $350, 90m $500
 // - Duration billed pro‑rata by minutes
 
 export type PortraitCategory = "solo" | "couple" | "family"
@@ -22,11 +21,12 @@ export interface PricingCalculatorProps {
 }
 
 const RATES = {
-  solo: 375_00, // cents per hour
-  couple: 375_00,
-  family_3_5: 450_00,
-  family_6_plus: 500_00,
+  solo: 400_00, // cents per hour
+  couple: 400_00,
+  family_3_5: 400_00,
+  family_6_plus: 400_00,
   extraPersonOver5: 50_00, // flat session surcharge per person over 5
+  min: 100_00, // minimum charge in cents
 }
 
 const PACKAGES = [
@@ -55,12 +55,8 @@ export default function PricingCalculator({
   const [minutes, setMinutes] = useState<number>(defaultMinutes)
 
   const hourlyRate = useMemo(() => {
-    if (category === "family") {
-      if (people <= 2) return RATES.solo // safety if user toggles counts weirdly
-      if (people <= 5) return RATES.family_3_5
-      return RATES.family_6_plus
-    }
-    return category === "solo" || people === 1 ? RATES.solo : RATES.couple
+    // All categories use $400/hr
+    return RATES.solo
   }, [category, people])
 
   const extraPersonFee = useMemo(() => {
@@ -71,7 +67,8 @@ export default function PricingCalculator({
 
   const proratedPrice = useMemo(() => {
     const base = Math.round((hourlyRate * minutes) / 60)
-    return base + extraPersonFee
+    const total = base + extraPersonFee
+    return Math.max(total, RATES.min)
   }, [hourlyRate, minutes, extraPersonFee])
 
   const eligibleForPackages = useMemo(() => category !== "family" && people <= 2, [category, people])
@@ -122,7 +119,7 @@ export default function PricingCalculator({
               </button>
             ))}
           </div>
-          <p className="text-xs text-gray-500 mt-2 flex items-center gap-1"><Info className="h-3 w-3" /> Solo/Couples billed at $375/hr. Family 3–5 at $450/hr. 6+ at $500/hr + $50 per person over 5.</p>
+          <p className="text-xs text-gray-500 mt-2 flex items-center gap-1"><Info className="h-3 w-3" /> All sessions billed at $400/hr (minimum $100). 6+ people: $50 per person over 5.</p>
         </div>
 
         {/* People */}
