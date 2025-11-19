@@ -239,20 +239,54 @@ export default function BookSessionPage() {
           sizes="100vw"
         />
           <div
-            className="absolute inset-0 bg-black bg-opacity-40 backdrop-blur-sm"
+            className="absolute inset-0 bg-black bg-opacity-50 backdrop-blur-sm"
             aria-hidden="true"
             role="presentation"
           />
       </div>
       <div className="container mx-auto px-4 py-12 max-w-5xl w-full flex-1 relative z-10">
-        <h1 className="text-4xl font-bold mb-2">Book a Session</h1>
-        <p className="text-gray-600 mb-8">Choose a consultation or one of our packages and pick a time that works for you.</p>
+        <div className="text-center mb-8">
+          <h1 className="text-5xl font-bold mb-3 text-white drop-shadow-lg">Book Your Session</h1>
+          <p className="text-xl text-gray-100 max-w-2xl mx-auto drop-shadow">
+            Start with a free consultation or choose from our photography packages. We'll find the perfect time that works for you.
+          </p>
+        </div>
 
         {success ? (
-          <div className="bg-white rounded-lg shadow p-8 text-center">
-            <CheckCircle2 className="h-12 w-12 text-green-600 mx-auto mb-4" />
-            <h2 className="text-2xl font-semibold mb-2">You're booked!</h2>
-            <p className="text-gray-600">We just saved your appointment. You’ll receive a confirmation email shortly.</p>
+          <div className="bg-white rounded-xl shadow-2xl p-12 text-center max-w-2xl mx-auto">
+            <div className="bg-green-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
+              <CheckCircle2 className="h-12 w-12 text-green-600" />
+            </div>
+            <h2 className="text-3xl font-bold mb-3 text-gray-900">You're All Set! 🎉</h2>
+            <p className="text-lg text-gray-600 mb-6">
+              Your session has been confirmed. We've sent a confirmation email with all the details to <strong>{email}</strong>.
+            </p>
+            <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6 text-left">
+              <p className="text-sm text-blue-900 font-medium mb-1">📅 Session Details:</p>
+              <p className="text-sm text-blue-800">
+                {selectedType === 'consultation' ? 'Free Consultation' : PACKAGES[selectedType as Exclude<PackageKey, 'consultation'>].name}
+                <br />
+                {new Date(selectedDate + 'T' + selectedTime).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })} at {selectedTime}
+              </p>
+            </div>
+            <p className="text-sm text-gray-500 mb-6">
+              Need to make changes? Contact us at <a href="tel:+18325551234" className="text-blue-600 hover:underline">(832) 555-1234</a>
+            </p>
+            <button 
+              onClick={() => {
+                setSuccess(false)
+                setName('')
+                setEmail('')
+                setPhone('')
+                setNotes('')
+                setSelectedDate('')
+                setSelectedTime('')
+                setSelectedType('consultation')
+              }}
+              className="btn-secondary px-6 py-3"
+            >
+              Book Another Session
+            </button>
           </div>
         ) : (
           <form
