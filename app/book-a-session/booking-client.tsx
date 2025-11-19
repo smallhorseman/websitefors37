@@ -79,8 +79,11 @@ function overlaps(aStart: Date, aEnd: Date, bStart: Date, bEnd: Date) {
   return aStart < bEnd && aEnd > bStart
 }
 
+type BookingOptionType = 'consultation' | 'packages' | 'custom'
+
 export default function BookSessionPage() {
   const [currentStep, setCurrentStep] = useState(1) // 1=Package, 2=Details, 3=DateTime, 4=Review
+  const [bookingOption, setBookingOption] = useState<BookingOptionType>('consultation') // Main option type
   const [selectedType, setSelectedType] = useState<PackageKey>('consultation')
   const [selectedAddOns, setSelectedAddOns] = useState<string[]>([])
   const [selectedDate, setSelectedDate] = useState<string>('')
@@ -95,6 +98,11 @@ export default function BookSessionPage() {
   const [submitting, setSubmitting] = useState(false)
   const [success, setSuccess] = useState(false)
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({})
+  
+  // Custom package calculator state
+  const [customDuration, setCustomDuration] = useState(30)
+  const [customPeople, setCustomPeople] = useState(1)
+  const [customType, setCustomType] = useState<'solo' | 'couple' | 'family'>('solo')
 
   // Prefill from pricing calculator (query params)
   useEffect(() => {
@@ -131,12 +139,21 @@ export default function BookSessionPage() {
   }, [])
 
   const duration = useMemo(() => {
+    if (bookingOption === 'custom') return customDuration
     if (selectedType === 'consultation') return CONSULTATION_DURATION
     const key = selectedType as Exclude<PackageKey, 'consultation'>
     return PACKAGES[key].duration
-  }, [selectedType])
+  }, [bookingOption, selectedType, customDuration])
 
   const totalPrice = useMemo(() => {
+    if (bookingOption === 'consultation') return 0
+    if (bookingOption === 'custom') {
+      // Custom pricing formula
+      const basePricePerMin = 200 // $2 per minute
+      const peopleMultiplier = customType === 'solo' ? 1 : customType === 'couple' ? 1.5 : 2
+      return Math.round(customDuration * basePricePerMin * peopleMultiplier)
+    }
+    // Package pricing
     if (selectedType === 'consultation') return 0
     const packagePrice = PACKAGES[selectedType as Exclude<PackageKey, 'consultation'>].priceCents
     const addOnsPrice = selectedAddOns.reduce((sum, id) => {
@@ -144,7 +161,7 @@ export default function BookSessionPage() {
       return sum + (addOn?.priceCents || 0)
     }, 0)
     return packagePrice + addOnsPrice
-  }, [selectedType, selectedAddOns])
+  }, [bookingOption, selectedType, selectedAddOns, customDuration, customPeople, customType])
 
   const toggleAddOn = (id: string) => {
     setSelectedAddOns(prev => 
@@ -259,12 +276,20 @@ export default function BookSessionPage() {
       if (existingLead?.id) {
         leadId = existingLead.id
       } else {
+        // Determine service interest based on booking option
+        let serviceInterest = 'consultation'
+        if (bookingOption === 'packages' && selectedType !== 'consultation') {
+          serviceInterest = PACKAGES[selectedType as Exclude<PackageKey, 'consultation'>].name
+        } else if (bookingOption === 'custom') {
+          serviceInterest = `Custom Package (${customDuration}min, ${customType}, ${customPeople} people)`
+        }
+        
         const { data: newLead, error: leadErr } = await supabase
           .from('leads')
           .insert([{ 
             name, email, phone, 
             message: notes,
-            service_interest: selectedType === 'consultation' ? 'consultation' : PACKAGES[selectedType].name,
+            service_interest: serviceInterest,
             status: 'converted'
           }])
           .select('id')
@@ -273,19 +298,34 @@ export default function BookSessionPage() {
         leadId = newLead.id
       }
 
-  const payload: Record<string, any> = {
+      // Build appointment payload based on booking option
+      let packageName = null
+      let packageKey = null
+      let appointmentType = 'consultation'
+      
+      if (bookingOption === 'packages' && selectedType !== 'consultation') {
+        appointmentType = 'package'
+        packageKey = selectedType
+        packageName = PACKAGES[selectedType as Exclude<PackageKey, 'consultation'>].name
+      } else if (bookingOption === 'custom') {
+        appointmentType = 'custom'
+        packageKey = 'custom'
+        packageName = `Custom Package (${customDuration}min)`
+      }
+
+      const payload: Record<string, any> = {
         lead_id: leadId,
         name,
         email,
         phone,
-        type: selectedType === 'consultation' ? 'consultation' : 'package',
-  package_key: selectedType === 'consultation' ? null : selectedType,
-  package_name: selectedType === 'consultation' ? null : PACKAGES[(selectedType as Exclude<PackageKey,'consultation'>)].name,
-  price_cents: selectedType === 'consultation' ? null : totalPrice,
+        type: appointmentType,
+        package_key: packageKey,
+        package_name: packageName,
+        price_cents: totalPrice > 0 ? totalPrice : null,
         duration_minutes: duration,
         start_time: start.toISOString(),
         end_time: end.toISOString(),
-        notes: notes + (selectedAddOns.length > 0 ? `\n\nAdd-ons: ${selectedAddOns.map(id => ADD_ONS.find(a => a.id === id)?.name).join(', ')}` : ''),
+        notes: notes + (selectedAddOns.length > 0 ? `\n\nAdd-ons: ${selectedAddOns.map(id => ADD_ONS.find(a => a.id === id)?.name).join(', ')}` : '') + (bookingOption === 'custom' ? `\n\nCustom Package: ${customType}, ${customPeople} people` : ''),
         status: 'scheduled'
       }
 
@@ -313,6 +353,13 @@ export default function BookSessionPage() {
       return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z'
     }
     
+    let sessionTitle = 'Photography Consultation'
+    if (bookingOption === 'packages' && selectedType !== 'consultation') {
+      sessionTitle = PACKAGES[selectedType as Exclude<PackageKey, 'consultation'>].name
+    } else if (bookingOption === 'custom') {
+      sessionTitle = `Custom Package (${customDuration}min)`
+    }
+    
     const icsContent = [
       'BEGIN:VCALENDAR',
       'VERSION:2.0',
@@ -322,7 +369,7 @@ export default function BookSessionPage() {
       `DTSTAMP:${formatICS(new Date())}`,
       `DTSTART:${formatICS(start)}`,
       `DTEND:${formatICS(end)}`,
-      `SUMMARY:Studio37 - ${selectedType === 'consultation' ? 'Photography Consultation' : PACKAGES[selectedType as Exclude<PackageKey, 'consultation'>].name}`,
+      `SUMMARY:Studio37 - ${sessionTitle}`,
       `DESCRIPTION:Your photography session with Studio37. Contact: ${email}`,
       'LOCATION:Studio37, Pinehurst, TX',
       'STATUS:CONFIRMED',
@@ -373,7 +420,7 @@ export default function BookSessionPage() {
         <div className="text-center mb-8">
           <h1 className="text-5xl font-bold mb-3 text-white drop-shadow-lg">Book Your Session</h1>
           <p className="text-xl text-gray-100 max-w-2xl mx-auto drop-shadow">
-            Start with a free consultation or choose from our photography packages. We'll find the perfect time that works for you.
+            Choose from a free consultation, our curated packages, or build your own custom session. We'll find the perfect time that works for you.
           </p>
         </div>
 
@@ -389,7 +436,12 @@ export default function BookSessionPage() {
             <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6 text-left">
               <p className="text-sm text-blue-900 font-medium mb-1">📅 Session Details:</p>
               <p className="text-sm text-blue-800">
-                {selectedType === 'consultation' ? 'Free Consultation' : PACKAGES[selectedType as Exclude<PackageKey, 'consultation'>].name}
+                {bookingOption === 'consultation' 
+                  ? 'Free Consultation (30 min)' 
+                  : bookingOption === 'packages' && selectedType !== 'consultation'
+                    ? `${PACKAGES[selectedType as Exclude<PackageKey, 'consultation'>].name} - $${(totalPrice/100).toFixed(2)}`
+                    : `Custom Package (${customDuration}min) - $${(totalPrice/100).toFixed(2)}`
+                }
                 <br />
                 {new Date(selectedDate + 'T' + selectedTime).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })} at {selectedTime}
               </p>
@@ -400,6 +452,7 @@ export default function BookSessionPage() {
             <button 
               onClick={() => {
                 setSuccess(false)
+                setBookingOption('consultation')
                 setName('')
                 setEmail('')
                 setPhone('')
@@ -407,6 +460,9 @@ export default function BookSessionPage() {
                 setSelectedDate('')
                 setSelectedTime('')
                 setSelectedType('consultation')
+                setCustomDuration(30)
+                setCustomPeople(1)
+                setCustomType('solo')
               }}
               className="btn-secondary px-6 py-3"
             >
@@ -418,28 +474,170 @@ export default function BookSessionPage() {
             onSubmit={onSubmit}
           >
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Package selector */}
+            {/* Package selector - New 3-option structure */}
             <div className="lg:col-span-1 space-y-4">
               <div className="bg-white rounded-lg shadow p-4">
-                <h3 className="font-semibold mb-3">Select type</h3>
-                <div className="space-y-2">
-                  <label className={`block border rounded p-3 cursor-pointer ${selectedType==='consultation'?'border-primary-500 bg-primary-50':'hover:bg-gray-50'}`}>
-                    <input name="package-type" type="radio" className="mr-2" checked={selectedType==='consultation'} onChange={()=>setSelectedType('consultation')} />
-                    Consultation (30 min)
-                  </label>
-                  {Object.entries(PACKAGES).map(([key, p]) => (
-                    <label key={key} className={`block border rounded p-3 cursor-pointer ${selectedType===key?'border-primary-500 bg-primary-50':'hover:bg-gray-50'}`}>
-                      <input name="package-type" type="radio" className="mr-2" checked={selectedType===key} onChange={()=>setSelectedType(key as PackageKey)} />
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <div className="font-medium">{p.name}</div>
-                          <div className="text-sm text-gray-500">{p.duration} min</div>
-                        </div>
-                        <div className="font-semibold">${(p.priceCents/100).toFixed(0)}</div>
+                <h3 className="font-semibold mb-3">Choose Booking Type</h3>
+                <div className="space-y-3">
+                  {/* Option 1: Consultation */}
+                  <label className={`block border-2 rounded-lg p-4 cursor-pointer transition-all ${bookingOption==='consultation'?'border-primary-500 bg-primary-50 shadow-md':'border-gray-200 hover:border-gray-300 hover:bg-gray-50'}`}>
+                    <div className="flex items-start">
+                      <input 
+                        name="booking-option" 
+                        type="radio" 
+                        className="mt-1 mr-3" 
+                        checked={bookingOption==='consultation'} 
+                        onChange={()=>{
+                          setBookingOption('consultation')
+                          setSelectedType('consultation')
+                        }} 
+                      />
+                      <div className="flex-1">
+                        <div className="font-semibold text-lg">Free Consultation</div>
+                        <div className="text-sm text-gray-600 mt-1">30-minute session to discuss your photography needs</div>
+                        <div className="text-primary-600 font-medium mt-2">Free</div>
                       </div>
-                      <p className="text-xs text-gray-500 mt-1">{p.description}</p>
+                    </div>
+                  </label>
+
+                  {/* Option 2: Packages with dropdown */}
+                  <div className={`border-2 rounded-lg p-4 transition-all ${bookingOption==='packages'?'border-primary-500 bg-primary-50 shadow-md':'border-gray-200'}`}>
+                    <label className="cursor-pointer">
+                      <div className="flex items-start">
+                        <input 
+                          name="booking-option" 
+                          type="radio" 
+                          className="mt-1 mr-3" 
+                          checked={bookingOption==='packages'} 
+                          onChange={()=>{
+                            setBookingOption('packages')
+                            setSelectedType('mini_reel')
+                          }} 
+                        />
+                        <div className="flex-1">
+                          <div className="font-semibold text-lg">Standard Packages</div>
+                          <div className="text-sm text-gray-600 mt-1">Choose from our pre-designed photography packages</div>
+                        </div>
+                      </div>
                     </label>
-                  ))}
+                    
+                    {bookingOption === 'packages' && (
+                      <div className="mt-4 pl-8">
+                        <select 
+                          className="w-full border rounded-lg px-3 py-2 bg-white"
+                          value={selectedType === 'consultation' ? 'mini_reel' : selectedType}
+                          onChange={(e) => setSelectedType(e.target.value as PackageKey)}
+                        >
+                          {Object.entries(PACKAGES).map(([key, p]) => (
+                            <option key={key} value={key}>
+                              {p.name} - ${(p.priceCents/100).toFixed(0)} ({p.duration} min)
+                            </option>
+                          ))}
+                        </select>
+                        {selectedType !== 'consultation' && (
+                          <div className="mt-3 p-3 bg-gray-50 rounded text-sm text-gray-700">
+                            {PACKAGES[selectedType as Exclude<PackageKey, 'consultation'>].description}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Option 3: Custom with calculator */}
+                  <div className={`border-2 rounded-lg p-4 transition-all ${bookingOption==='custom'?'border-primary-500 bg-primary-50 shadow-md':'border-gray-200'}`}>
+                    <label className="cursor-pointer">
+                      <div className="flex items-start">
+                        <input 
+                          name="booking-option" 
+                          type="radio" 
+                          className="mt-1 mr-3" 
+                          checked={bookingOption==='custom'} 
+                          onChange={()=>setBookingOption('custom')} 
+                        />
+                        <div className="flex-1">
+                          <div className="font-semibold text-lg">Custom Package</div>
+                          <div className="text-sm text-gray-600 mt-1">Build your own package with our calculator</div>
+                        </div>
+                      </div>
+                    </label>
+                    
+                    {bookingOption === 'custom' && (
+                      <div className="mt-4 pl-8 space-y-4">
+                        {/* Duration slider */}
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Duration: {customDuration} minutes
+                          </label>
+                          <input 
+                            type="range" 
+                            min="15" 
+                            max="180" 
+                            step="15"
+                            value={customDuration}
+                            onChange={(e) => setCustomDuration(parseInt(e.target.value))}
+                            className="w-full"
+                          />
+                          <div className="flex justify-between text-xs text-gray-500 mt-1">
+                            <span>15 min</span>
+                            <span>180 min</span>
+                          </div>
+                        </div>
+
+                        {/* Type selector */}
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">Session Type</label>
+                          <div className="grid grid-cols-3 gap-2">
+                            {(['solo', 'couple', 'family'] as const).map((type) => (
+                              <button
+                                key={type}
+                                type="button"
+                                onClick={() => setCustomType(type)}
+                                className={`px-3 py-2 rounded text-sm font-medium capitalize transition-colors ${
+                                  customType === type 
+                                    ? 'bg-primary-600 text-white' 
+                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                }`}
+                              >
+                                {type}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* People count */}
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Number of People: {customPeople}
+                          </label>
+                          <div className="flex items-center gap-3">
+                            <button
+                              type="button"
+                              onClick={() => setCustomPeople(Math.max(1, customPeople - 1))}
+                              className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors"
+                            >
+                              <Minus className="h-4 w-4" />
+                            </button>
+                            <span className="text-2xl font-semibold w-12 text-center">{customPeople}</span>
+                            <button
+                              type="button"
+                              onClick={() => setCustomPeople(Math.min(20, customPeople + 1))}
+                              className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors"
+                            >
+                              <Plus className="h-4 w-4" />
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Price display */}
+                        <div className="mt-4 p-3 bg-primary-100 rounded-lg border border-primary-200">
+                          <div className="text-sm text-gray-600">Estimated Price</div>
+                          <div className="text-2xl font-bold text-primary-600">
+                            ${(totalPrice / 100).toFixed(2)}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
 
