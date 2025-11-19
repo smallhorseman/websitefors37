@@ -84,13 +84,14 @@ export default async function HomePage({ searchParams }: { searchParams?: Record
     .eq("published", true)
     .maybeSingle();
 
+  const useDraft = (searchParams?.edit === '1')
+  const currentPath = "/"
+
   if (page?.content) {
     const { MDXBuilderComponents } = await import("@/components/BuilderRuntime")
     const { getPageConfigs, selectProps, getPageLayout } = await import("@/lib/pageConfigs")
     const EditableChrome = (await import("@/components/editor/EditableChrome")).default
 
-    const useDraft = (searchParams?.edit === '1')
-    const currentPath = "/"
     const [configs, layout] = await Promise.all([
       getPageConfigs(currentPath),
       getPageLayout(currentPath, useDraft)
@@ -151,6 +152,79 @@ export default async function HomePage({ searchParams }: { searchParams?: Record
         />
       </div>
     );
+  }
+
+  // Static fallback homepage - Check for layout override even without MDX content
+  if (useDraft) {
+    const { MDXBuilderComponents } = await import("@/components/BuilderRuntime")
+    const { getPageConfigs, selectProps, getPageLayout } = await import("@/lib/pageConfigs")
+    const EditableChrome = (await import("@/components/editor/EditableChrome")).default
+
+    const [configs, layout] = await Promise.all([
+      getPageConfigs(currentPath),
+      getPageLayout(currentPath, useDraft)
+    ])
+
+    // If a persisted layout exists, render from it
+    if (layout && Array.isArray(layout.blocks) && layout.blocks.length > 0) {
+      return (
+        <div className="min-h-screen">
+          {layout.blocks.map((blk, i) => {
+            const Comp: any = (MDXBuilderComponents as any)[blk.type]
+            if (!Comp) return null
+            const override = blk.id ? configs.get(blk.id) : undefined
+            return (
+              <div key={blk.id || i} className="relative">
+                <EditableChrome label={String(blk.type).replace(/Block$/, '').replace(/([a-z])([A-Z])/g,'$1 $2')} block={blk.type} anchorId={blk.id} />
+                <Comp {...(blk.props || {})} _overrides={selectProps(override as any, useDraft)} />
+              </div>
+            )
+          })}
+        </div>
+      )
+    }
+
+    // Show edit mode message when no layout exists yet
+    return (
+      <>
+        <div className="bg-yellow-50 border-b-2 border-yellow-400 px-4 py-3 text-center">
+          <p className="text-sm text-yellow-800">
+            <strong>Edit Mode Active</strong> — This page uses static components. 
+            <a href="/admin/editor/layout?path=/" className="underline ml-2 font-semibold">Create a layout</a> to add editable blocks, or 
+            <a href="/admin/content" className="underline ml-2 font-semibold">create MDX content</a> for this page.
+          </p>
+        </div>
+        <LocalBusinessSchema />
+        <Hero />
+        <LazyMount minHeight={400}>
+          <PortraitHighlightGallery />
+        </LazyMount>
+        <LazyMount minHeight={400}>
+          <Services />
+        </LazyMount>
+        <LazyMount minHeight={400}>
+          <CommercialHighlightGallery />
+        </LazyMount>
+        <section className="py-16 bg-gray-50">
+          <div className="container mx-auto px-4">
+            <div className="max-w-4xl mx-auto text-center mb-12">
+              <h2 className="text-3xl font-bold mb-4">
+                Ready to Capture Your Story?
+              </h2>
+              <p className="text-lg text-gray-700">
+                Let's discuss your photography needs and create something
+                beautiful together.
+              </p>
+            </div>
+            <LeadCaptureForm />
+          </div>
+        </section>
+        <LazyMount minHeight={400}>
+          <Testimonials />
+        </LazyMount>
+        <DiscountNewsletterModal />
+      </>
+    )
   }
 
   // Static fallback homepage
