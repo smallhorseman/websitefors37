@@ -87,38 +87,70 @@ export async function POST(req: Request) {
 
     const apiKey = process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY;
     if (!apiKey) {
+      console.error("Missing Google API Key - check environment variables");
       return NextResponse.json(
-        { error: "Missing GOOGLE_API_KEY" },
+        { error: "AI service not configured. Missing API key." },
         { status: 503 }
       );
     }
 
+    console.log("Initializing Gemini API with model: gemini-2.0-flash-exp");
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ 
-      model: "gemini-2.5-pro", // Latest pro model
-      generationConfig: {
-        maxOutputTokens: 4096,
-        temperature: 0.7,
-      },
-      safetySettings: [
-        {
-          category: "HARM_CATEGORY_HARASSMENT",
-          threshold: "BLOCK_ONLY_HIGH",
-        },
-        {
-          category: "HARM_CATEGORY_HATE_SPEECH",
-          threshold: "BLOCK_ONLY_HIGH",
-        },
-        {
-          category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
-          threshold: "BLOCK_ONLY_HIGH",
-        },
-        {
-          category: "HARM_CATEGORY_DANGEROUS_CONTENT",
-          threshold: "BLOCK_ONLY_HIGH",
-        },
-      ],
-    });
+    
+    // Try multiple models in order of preference
+    const modelsToTry = [
+      "gemini-2.0-flash-exp",
+      "gemini-1.5-pro-latest",
+      "gemini-1.5-pro", 
+      "gemini-pro"
+    ];
+    
+    let model;
+    let modelUsed = "";
+    
+    for (const modelName of modelsToTry) {
+      try {
+        model = genAI.getGenerativeModel({ 
+          model: modelName,
+          generationConfig: {
+            maxOutputTokens: 4096,
+            temperature: 0.7,
+          },
+          safetySettings: [
+            {
+              category: "HARM_CATEGORY_HARASSMENT",
+              threshold: "BLOCK_ONLY_HIGH",
+            },
+            {
+              category: "HARM_CATEGORY_HATE_SPEECH",
+              threshold: "BLOCK_ONLY_HIGH",
+            },
+            {
+              category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+              threshold: "BLOCK_ONLY_HIGH",
+            },
+            {
+              category: "HARM_CATEGORY_DANGEROUS_CONTENT",
+              threshold: "BLOCK_ONLY_HIGH",
+            },
+          ],
+        });
+        modelUsed = modelName;
+        console.log(`Using model: ${modelName}`);
+        break;
+      } catch (modelError) {
+        console.warn(`Failed to initialize model ${modelName}, trying next...`);
+        continue;
+      }
+    }
+    
+    if (!model) {
+      console.error("All models failed to initialize");
+      return NextResponse.json(
+        { error: "Could not initialize AI model. Please check API key and model availability." },
+        { status: 503 }
+      );
+    }
 
     const prompt = `You are an expert content strategist and senior copywriter for Studio37 Photography, a professional photography studio in Pinehurst, TX.
 
@@ -185,19 +217,46 @@ Return the response in this exact JSON format (no markdown code blocks):
 
     let result, response;
     try {
+      console.log("Generating content with Gemini API...");
       result = await model.generateContent(prompt);
       response = result.response;
+      console.log("Content generation successful");
     } catch (aiError: any) {
-      console.error("Gemini API error:", aiError);
+      console.error("Gemini API error details:", {
+        message: aiError?.message,
+        status: aiError?.status,
+        statusText: aiError?.statusText,
+        code: aiError?.code,
+        name: aiError?.name,
+        stack: aiError?.stack?.split('\n').slice(0, 3).join('\n')
+      });
+      
       const msg = String(aiError?.message || aiError || "");
-      if (msg.includes("reported as leaked") || msg.includes("403")) {
+      
+      // Check for specific error types
+      if (msg.includes("404") || msg.includes("not found") || msg.includes("does not exist")) {
         return NextResponse.json(
-          { error: "API key was reported as leaked. Please rotate the key in Netlify and redeploy.", code: "API_KEY_LEAKED" },
+          { error: "Model not available. Using gemini-1.5-pro - if this persists, check Google AI Studio for available models.", code: "MODEL_NOT_FOUND" },
+          { status: 503 }
+        );
+      }
+      
+      if (msg.includes("reported as leaked") || msg.includes("403") || msg.includes("PERMISSION_DENIED")) {
+        return NextResponse.json(
+          { error: "API key issue. Please check the key is valid and not leaked. Rotate in Netlify if needed.", code: "API_KEY_INVALID" },
           { status: 403 }
         );
       }
+      
+      if (msg.includes("quota") || msg.includes("RESOURCE_EXHAUSTED")) {
+        return NextResponse.json(
+          { error: "API quota exceeded. Please try again later or check your Google AI quota.", code: "QUOTA_EXCEEDED" },
+          { status: 429 }
+        );
+      }
+      
       return NextResponse.json(
-        { error: `Gemini API error: ${aiError?.message || aiError}` },
+        { error: `AI service error: ${aiError?.message || "Unknown error"}`, code: "AI_ERROR" },
         { status: 502 }
       );
     }
