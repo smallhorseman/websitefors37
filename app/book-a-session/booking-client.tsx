@@ -5,7 +5,24 @@ import { supabase } from '@/lib/supabase'
 import { Loader2, Calendar, Clock, CheckCircle2, Plus, Minus, Mail, MapPin, Phone } from 'lucide-react'
 import Image from 'next/image'
 
-type PackageKey = 'consultation' | 'mini_reel' | 'full_episode' | 'movie_premier'
+type PackageKey = 
+  | 'consultation' 
+  // Portrait packages
+  | 'portrait_mini' | 'portrait_standard' | 'portrait_extended'
+  // Wedding packages
+  | 'wedding_essential' | 'wedding_complete' | 'wedding_premium'
+  // Commercial packages
+  | 'commercial_starter' | 'commercial_professional' | 'commercial_enterprise'
+  // Event packages
+  | 'event_basic' | 'event_standard' | 'event_premium'
+
+interface Package {
+  name: string
+  duration: number
+  priceCents: number
+  description: string
+  category: string
+}
 
 interface AddOn {
   id: string
@@ -14,24 +31,94 @@ interface AddOn {
   description: string
 }
 
-const PACKAGES: Record<Exclude<PackageKey, 'consultation'>, { name: string; duration: number; priceCents: number; description: string }> = {
-  mini_reel: {
-    name: 'Mini Reel',
-    duration: 15,
-    priceCents: 7500,
-    description: '15 mins, 15 photos, 1-minute free behind-the-scenes video, free on-site Polaroid print.'
-  },
-  full_episode: {
-    name: 'Full Episode',
+const PACKAGES: Record<Exclude<PackageKey, 'consultation'>, Package> = {
+  // Portrait Photography
+  portrait_mini: {
+    name: 'Portrait Mini Session',
     duration: 30,
-    priceCents: 15000,
-    description: '30 mins, 30 photos, 1-minute free behind-the-scenes video, free on-site Polaroid print.'
+    priceCents: 20000,
+    description: '30 minute session, 15+ edited photos, digital gallery',
+    category: 'Portrait'
   },
-  movie_premier: {
-    name: 'Movie Premier',
+  portrait_standard: {
+    name: 'Portrait Standard Session',
     duration: 60,
-    priceCents: 30000,
-    description: '60 mins, 60 photos, 1-minute free behind-the-scenes video, free on-site Polaroid print.'
+    priceCents: 35000,
+    description: '60 minute session, 30+ edited photos, multiple outfits/looks, digital gallery',
+    category: 'Portrait'
+  },
+  portrait_extended: {
+    name: 'Portrait Extended Session',
+    duration: 90,
+    priceCents: 50000,
+    description: '90 minute session, 50+ edited photos, multiple locations, print release',
+    category: 'Portrait'
+  },
+  // Wedding Photography
+  wedding_essential: {
+    name: 'Wedding Essential',
+    duration: 240,
+    priceCents: 150000,
+    description: '4 hours coverage, 50+ edited photos, digital gallery',
+    category: 'Wedding'
+  },
+  wedding_complete: {
+    name: 'Wedding Complete',
+    duration: 480,
+    priceCents: 250000,
+    description: '8 hours coverage, 150+ edited photos, engagement session, digital gallery',
+    category: 'Wedding'
+  },
+  wedding_premium: {
+    name: 'Wedding Premium',
+    duration: 600,
+    priceCents: 350000,
+    description: 'Full day coverage, 300+ edited photos, engagement session, wedding album',
+    category: 'Wedding'
+  },
+  // Commercial Photography
+  commercial_starter: {
+    name: 'Commercial Starter',
+    duration: 120,
+    priceCents: 50000,
+    description: '2 hour session, 20+ edited images, high-res files, commercial usage rights',
+    category: 'Commercial'
+  },
+  commercial_professional: {
+    name: 'Commercial Professional',
+    duration: 240,
+    priceCents: 100000,
+    description: '4 hour session, 50+ edited images, multiple setups/locations, brand consultation',
+    category: 'Commercial'
+  },
+  commercial_enterprise: {
+    name: 'Commercial Enterprise',
+    duration: 480,
+    priceCents: 200000,
+    description: 'Full day coverage, 100+ edited images, multiple photographers, ongoing brand support',
+    category: 'Commercial'
+  },
+  // Event Photography
+  event_basic: {
+    name: 'Event Basic Coverage',
+    duration: 120,
+    priceCents: 40000,
+    description: '2 hours coverage, 50+ edited photos, digital gallery, 1 week delivery',
+    category: 'Event'
+  },
+  event_standard: {
+    name: 'Event Standard Coverage',
+    duration: 240,
+    priceCents: 70000,
+    description: '4 hours coverage, 100+ edited photos, digital gallery, event timeline planning',
+    category: 'Event'
+  },
+  event_premium: {
+    name: 'Event Premium Coverage',
+    duration: 480,
+    priceCents: 120000,
+    description: '8 hours coverage, 200+ edited photos, two photographers, USB drive included',
+    category: 'Event'
   }
 }
 
@@ -518,7 +605,7 @@ export default function BookSessionPage() {
                           checked={bookingOption==='packages'} 
                           onChange={()=>{
                             setBookingOption('packages')
-                            setSelectedType('mini_reel')
+                            setSelectedType('portrait_mini')
                           }} 
                         />
                         <div className="flex-1">
@@ -532,18 +619,34 @@ export default function BookSessionPage() {
                       <div className="mt-4 pl-8">
                         <select 
                           className="w-full border rounded-lg px-3 py-2 bg-white"
-                          value={selectedType === 'consultation' ? 'mini_reel' : selectedType}
+                          value={selectedType === 'consultation' ? 'portrait_mini' : selectedType}
                           onChange={(e) => setSelectedType(e.target.value as PackageKey)}
                         >
-                          {Object.entries(PACKAGES).map(([key, p]) => (
-                            <option key={key} value={key}>
-                              {p.name} - ${(p.priceCents/100).toFixed(0)} ({p.duration} min)
-                            </option>
-                          ))}
+                          <optgroup label="Portrait Photography">
+                            <option value="portrait_mini">Portrait Mini - $200 (30 min)</option>
+                            <option value="portrait_standard">Portrait Standard - $350 (60 min)</option>
+                            <option value="portrait_extended">Portrait Extended - $500 (90 min)</option>
+                          </optgroup>
+                          <optgroup label="Wedding Photography">
+                            <option value="wedding_essential">Wedding Essential - $1,500 (4 hrs)</option>
+                            <option value="wedding_complete">Wedding Complete - $2,500 (8 hrs)</option>
+                            <option value="wedding_premium">Wedding Premium - $3,500 (Full day)</option>
+                          </optgroup>
+                          <optgroup label="Commercial Photography">
+                            <option value="commercial_starter">Commercial Starter - $500 (2 hrs)</option>
+                            <option value="commercial_professional">Commercial Professional - $1,000 (4 hrs)</option>
+                            <option value="commercial_enterprise">Commercial Enterprise - $2,000 (Full day)</option>
+                          </optgroup>
+                          <optgroup label="Event Photography">
+                            <option value="event_basic">Event Basic - $400 (2 hrs)</option>
+                            <option value="event_standard">Event Standard - $700 (4 hrs)</option>
+                            <option value="event_premium">Event Premium - $1,200 (8 hrs)</option>
+                          </optgroup>
                         </select>
                         {selectedType !== 'consultation' && (
                           <div className="mt-3 p-3 bg-gray-50 rounded text-sm text-gray-700">
-                            {PACKAGES[selectedType as Exclude<PackageKey, 'consultation'>].description}
+                            <div className="font-medium mb-1">{PACKAGES[selectedType as Exclude<PackageKey, 'consultation'>].name}</div>
+                            <div className="text-xs text-gray-600">{PACKAGES[selectedType as Exclude<PackageKey, 'consultation'>].description}</div>
                           </div>
                         )}
                       </div>
