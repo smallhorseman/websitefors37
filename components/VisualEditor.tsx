@@ -76,6 +76,7 @@ import {
 import Image from "next/image";
 import ImageUploader from "./ImageUploader";
 import MobilePreviewToggle from "./MobilePreviewToggle";
+import { ColorPicker, FontPicker, TextColorPicker } from './editor/ThemeControls';
 
 // Cloudinary media library (loaded only when invoked)
 const CloudinaryMediaLibrary = dynamic(() => import('@/components/CloudinaryMediaLibrary'), {
@@ -181,6 +182,9 @@ interface TextComponent extends BaseComponent {
     alignment: "left" | "center" | "right";
     size: "sm" | "md" | "lg" | "xl";
     animation?: "none" | "fade-in" | "slide-up" | "zoom";
+    fontFamily?: string;
+    textColor?: string;
+    backgroundColor?: string;
   };
 }
 
@@ -9850,11 +9854,18 @@ function TextRenderer({ data }: { data: TextComponent["data"] }) {
       ? "animate-zoom"
       : "";
 
+  // Build style object for custom fonts and colors
+  const customStyles: React.CSSProperties = {};
+  if (data.fontFamily) {
+    customStyles.fontFamily = data.fontFamily;
+  }
+
   return (
     <div
       className={`p-8 text-${data.alignment} ${
         sizeClasses[data.size]
-      } ${animClass}`}
+      } ${animClass} ${data.textColor || ''} ${data.backgroundColor || ''}`}
+      style={customStyles}
     >
       <div dangerouslySetInnerHTML={{ __html: data.content }} />
     </div>
@@ -14830,6 +14841,33 @@ function TextProperties({
           <option value="slide-up">Slide Up</option>
           <option value="zoom">Zoom</option>
         </select>
+      </div>
+
+      {/* Theme & Styling */}
+      <div className="border-t pt-4 mt-4">
+        <h4 className="text-sm font-semibold mb-3 text-gray-700">Theme & Styling</h4>
+        
+        <FontPicker
+          label="Font Family"
+          value={localData.fontFamily}
+          onChange={(fontFamily) => handleUpdate({ fontFamily })}
+          type="body"
+        />
+
+        <TextColorPicker
+          label="Text Color"
+          value={localData.textColor}
+          onChange={(textColor) => handleUpdate({ textColor })}
+          background="light"
+        />
+
+        <ColorPicker
+          label="Background Color"
+          value={localData.backgroundColor}
+          onChange={(backgroundColor) => handleUpdate({ backgroundColor })}
+          allowTransparent
+          type="background"
+        />
       </div>
     </div>
   );
