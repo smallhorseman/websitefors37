@@ -10,6 +10,13 @@ import NewsletterInlineClient from './blocks/NewsletterInlineClient'
 import PricingCalculator from './PricingCalculator'
 import EditableChrome from './editor/EditableChrome'
 import { getBlockOverride } from '@/lib/pageConfigs'
+// Phase 2: Enhanced Blocks - New client components
+import VideoHeroClient from './blocks/VideoHeroClient'
+import BeforeAfterSliderClient from './blocks/BeforeAfterSliderClient'
+import TimelineClient from './blocks/TimelineClient'
+import MasonryGalleryClient from './blocks/MasonryGalleryClient'
+import AnimatedCounterStatsClient from './blocks/AnimatedCounterStatsClient'
+import InteractiveMapClient from './blocks/InteractiveMapClient'
 // Import client-only LeadSignupBlock and create a local binding so MDXBuilderComponents can reference it safely.
 import LeadSignupBlockClient from './blocks/LeadSignupBlockClient'
 const LeadSignupBlock = LeadSignupBlockClient
@@ -104,6 +111,9 @@ export function HeroBlock({
   buttonAnimation = 'none',
   fullBleed = false,
   overlapHeader = true,
+  variant = 'fullscreen',
+  scrollAnimation = 'none',
+  contentPosition = 'center',
   _overrides,
 }: {
   title?: string
@@ -122,6 +132,9 @@ export function HeroBlock({
   buttonAnimation?: string
   fullBleed?: boolean | string
   overlapHeader?: boolean | string
+  variant?: 'fullscreen' | 'split' | 'minimal' | 'parallax' | string
+  scrollAnimation?: 'parallax' | 'kenburns' | 'fade' | 'zoom-out' | 'none' | string
+  contentPosition?: 'center' | 'left' | 'right' | 'bottom-left' | 'bottom-right' | 'top-left' | 'top-right' | string
   _overrides?: Record<string, any> | null
 }) {
   // Merge overrides if present
@@ -133,6 +146,9 @@ export function HeroBlock({
   const finalButtonLink = overrideProps.buttonLink ?? buttonLink
   const finalAlignment = overrideProps.alignment ?? alignment
   const finalOverlay = overrideProps.overlay ?? overlay
+  const finalVariant = overrideProps.variant ?? variant
+  const finalScrollAnimation = overrideProps.scrollAnimation ?? scrollAnimation
+  const finalContentPosition = overrideProps.contentPosition ?? contentPosition
 
   const buttonStyleClasses: Record<string, string> = {
     primary: 'btn-primary',
@@ -142,13 +158,81 @@ export function HeroBlock({
   const hoverZoom = buttonAnimation === 'hover-zoom' ? 'transition-transform duration-300 hover:scale-105' : ''
   const isFullBleed = String(fullBleed) === 'true'
   const shouldOverlap = String(overlapHeader) !== 'false'
-  const sectionBase = `relative min-h-[50vh] md:min-h-[60vh] lg:min-h-[70vh] flex items-center justify-center text-white overflow-hidden ${animation === 'fade-in' ? 'animate-fadeIn' : animation === 'slide-up' ? 'animate-slideUp' : animation === 'zoom' ? 'animate-zoom' : ''}`
   
-  const section = (
+  // Variant-specific height classes
+  const heightClasses: Record<string, string> = {
+    fullscreen: 'min-h-screen',
+    split: 'min-h-[60vh] md:min-h-[70vh]',
+    minimal: 'min-h-[40vh] md:min-h-[50vh]',
+    parallax: 'min-h-[70vh] md:min-h-[80vh]'
+  }
+  
+  // Content position classes
+  const positionClasses: Record<string, string> = {
+    center: 'items-center justify-center',
+    left: 'items-center justify-start',
+    right: 'items-center justify-end',
+    'bottom-left': 'items-end justify-start pb-16',
+    'bottom-right': 'items-end justify-end pb-16',
+    'top-left': 'items-start justify-start pt-16',
+    'top-right': 'items-start justify-end pt-16'
+  }
+  
+  // Scroll animation classes
+  const scrollAnimClass = finalScrollAnimation === 'parallax' ? 'parallax-bg' : 
+                          finalScrollAnimation === 'kenburns' ? 'kenburns-bg' : ''
+  
+  const sectionBase = `relative ${heightClasses[String(finalVariant)] || heightClasses.fullscreen} flex ${positionClasses[String(finalContentPosition)] || positionClasses.center} text-white overflow-hidden ${animation === 'fade-in' ? 'animate-fadeIn' : animation === 'slide-up' ? 'animate-slideUp' : animation === 'zoom' ? 'animate-zoom' : ''}`
+  
+  // Split variant renders differently
+  const isSplit = String(finalVariant) === 'split'
+  
+  const section = isSplit ? (
+    // Split layout: image on one side, content on other
+    <section className={`${sectionBase} ${isFullBleed ? '' : 'rounded-lg'} relative`}>
+      <EditableChrome label="Hero" block="HeroBlock" anchorId="hero" />
+      <div className="grid md:grid-cols-2 gap-0 w-full h-full">
+        <div className="relative min-h-[40vh] md:min-h-full">
+          {finalBackgroundImage && (
+            <Image src={finalBackgroundImage} alt="" fill className={`object-cover ${scrollAnimClass}`} />
+          )}
+          <div
+            className="absolute inset-0 bg-black/40"
+            style={{ backgroundColor: `rgba(0,0,0,${Math.min(Math.max(Number(finalOverlay ?? 50), 0), 100) / 100})` }}
+          />
+        </div>
+        <div className="flex items-center justify-center p-8 md:p-12 bg-gradient-to-br from-amber-900/90 to-amber-950/90">
+          <div className={`max-w-xl w-full text-${finalAlignment}`}>
+            {finalTitle && <h1 className={`text-3xl md:text-4xl lg:text-5xl font-bold mb-3 ${titleColor}`} dangerouslySetInnerHTML={{ __html: finalTitle }} />}
+            {finalSubtitle && <p className={`text-base md:text-lg mb-6 opacity-90 ${subtitleColor}`} dangerouslySetInnerHTML={{ __html: finalSubtitle }} />}
+            <div className="flex flex-wrap gap-4 justify-center items-center">
+              {finalButtonText && (
+                <a
+                  href={finalButtonLink || '#'}
+                  className={`inline-block px-6 py-3 rounded-lg transition no-underline ${buttonStyleClasses[buttonStyle] || buttonStyleClasses.primary} ${hoverZoom}`}
+                >
+                  {finalButtonText}
+                </a>
+              )}
+              {secondaryButtonText && (
+                <a
+                  href={secondaryButtonLink || '#'}
+                  className={`inline-block px-6 py-3 rounded-lg transition no-underline ${buttonStyleClasses.outline} ${hoverZoom}`}
+                >
+                  {secondaryButtonText}
+                </a>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  ) : (
+    // Standard fullscreen/minimal/parallax layout
     <section className={`${sectionBase} ${isFullBleed ? '' : 'rounded-lg'} relative`}>
       <EditableChrome label="Hero" block="HeroBlock" anchorId="hero" />
       {finalBackgroundImage && (
-        <Image src={finalBackgroundImage} alt="" fill className="object-cover" />
+        <Image src={finalBackgroundImage} alt="" fill className={`object-cover ${scrollAnimClass}`} />
       )}
       <div
         className="absolute inset-0 bg-black/60"
@@ -224,13 +308,16 @@ export function TextBlock({ contentB64, alignment = 'left', size = 'md', animati
   )
 }
 
-export function ImageBlock({ url, alt = '', caption, width = 'full', link, animation = 'none', _overrides }: {
+export function ImageBlock({ url, alt = '', caption, width = 'full', link, animation = 'none', hoverEffect = 'none', rounded = 'lg', shadow = 'md', _overrides }: {
   url?: string
   alt?: string
   caption?: string
   width?: 'full' | 'large' | 'medium' | 'small'
   link?: string
   animation?: string
+  hoverEffect?: 'none' | 'zoom' | 'lift' | 'tilt' | string
+  rounded?: 'none' | 'sm' | 'md' | 'lg' | 'xl' | 'full' | string
+  shadow?: 'none' | 'sm' | 'md' | 'lg' | 'xl' | string
   _overrides?: Record<string, any> | null
 }) {
   const ov = _overrides || {}
@@ -240,6 +327,10 @@ export function ImageBlock({ url, alt = '', caption, width = 'full', link, anima
   const finalWidth = ov.width ?? width
   const finalLink = ov.link ?? link
   const finalAnimation = ov.animation ?? animation
+  const finalHoverEffect = ov.hoverEffect ?? hoverEffect
+  const finalRounded = ov.rounded ?? rounded
+  const finalShadow = ov.shadow ?? shadow
+  
   const widthClasses: Record<string, string> = {
     small: 'max-w-md',
     medium: 'max-w-2xl',
@@ -252,14 +343,41 @@ export function ImageBlock({ url, alt = '', caption, width = 'full', link, anima
     'hover-zoom': 'transition-transform duration-300 hover:scale-105',
     'fade-in': 'animate-fadeIn',
     'slide-up': 'animate-slideUp',
-    'zoom': 'animate-zoom'
+    'zoom': 'animate-zoom',
+    'slide-left': 'animate-slideInLeft',
+    'slide-right': 'animate-slideInRight',
+    'scale-in': 'animate-scaleIn'
+  }
+  
+  const hoverEffectClasses: Record<string, string> = {
+    none: '',
+    zoom: 'overflow-hidden transition-transform duration-500 hover:scale-110',
+    lift: 'hover-lift',
+    tilt: 'transition-transform duration-300 hover:rotate-2 hover:scale-105'
+  }
+  
+  const roundedClasses: Record<string, string> = {
+    none: 'rounded-none',
+    sm: 'rounded-sm',
+    md: 'rounded-md',
+    lg: 'rounded-lg',
+    xl: 'rounded-xl',
+    full: 'rounded-full'
+  }
+  
+  const shadowClasses: Record<string, string> = {
+    none: 'shadow-none',
+    sm: 'shadow-sm',
+    md: 'shadow-md',
+    lg: 'shadow-lg',
+    xl: 'shadow-xl'
   }
   
   const imageElement = (
     <div className={`mx-auto ${widthClasses[finalWidth || 'full']}`}>
       {finalUrl && (
-        <div className={`relative aspect-video overflow-hidden ${animationClasses[finalAnimation || 'none']}`}>
-          <Image src={finalUrl} alt={finalAlt} fill className="object-cover rounded-lg" />
+        <div className={`relative aspect-video overflow-hidden ${animationClasses[finalAnimation || 'none']} ${hoverEffectClasses[finalHoverEffect || 'none']} ${roundedClasses[finalRounded || 'lg']} ${shadowClasses[finalShadow || 'md']}`}>
+          <Image src={finalUrl} alt={finalAlt} fill className="object-cover" />
         </div>
       )}
       {finalCaption && <p className="text-sm text-gray-600 mt-2 text-center">{finalCaption}</p>}
@@ -1003,6 +1121,13 @@ export const MDXBuilderComponents = {
   PricingTableBlock,
   PricingCalculatorBlock,
   LeadSignupBlock,
+  // Phase 2: Enhanced Blocks
+  VideoHeroBlock,
+  BeforeAfterSliderBlock,
+  TimelineBlock,
+  MasonryGalleryBlock,
+  AnimatedCounterStatsBlock,
+  InteractiveMapBlock,
 }
 
 // Pricing Calculator wrapper for page builder
@@ -1047,3 +1172,338 @@ export function PricingCalculatorBlock({
 
 // Lead Signup CTA Block with A/B variant and lazy iframe
 // (LeadSignupBlock implementation moved to client component in ./blocks/LeadSignupBlockClient.tsx)
+
+// ========== PHASE 2: ENHANCED BLOCKS ==========
+
+// Video Hero Block - Background video with overlay
+export function VideoHeroBlock({
+  videoUrl,
+  videoType = 'direct',
+  posterImage,
+  overlay = '60',
+  title,
+  subtitle,
+  buttonText,
+  buttonLink,
+  secondaryButtonText,
+  secondaryButtonLink,
+  alignment = 'center',
+  titleColor = 'text-white',
+  subtitleColor = 'text-amber-50',
+  autoplay = 'true',
+  muted = 'true',
+  loop = 'true',
+  _overrides
+}: {
+  videoUrl?: string
+  videoType?: 'youtube' | 'vimeo' | 'direct' | string
+  posterImage?: string
+  overlay?: string | number
+  title?: string
+  subtitle?: string
+  buttonText?: string
+  buttonLink?: string
+  secondaryButtonText?: string
+  secondaryButtonLink?: string
+  alignment?: 'left' | 'center' | 'right' | string
+  titleColor?: string
+  subtitleColor?: string
+  autoplay?: string | boolean
+  muted?: string | boolean
+  loop?: string | boolean
+  _overrides?: Record<string, any> | null
+}) {
+  const ov = _overrides || {}
+  const finalVideoUrl = ov.videoUrl ?? videoUrl
+  const finalVideoType = ov.videoType ?? videoType
+  const finalPosterImage = ov.posterImage ?? posterImage
+  const finalOverlay = ov.overlay ?? overlay
+  const finalTitle = ov.title ?? title
+  const finalSubtitle = ov.subtitle ?? subtitle
+  const finalButtonText = ov.buttonText ?? buttonText
+  const finalButtonLink = ov.buttonLink ?? buttonLink
+  const finalSecondaryButtonText = ov.secondaryButtonText ?? secondaryButtonText
+  const finalSecondaryButtonLink = ov.secondaryButtonLink ?? secondaryButtonLink
+
+  if (!finalVideoUrl) return null
+
+  return (
+    <div className="py-0">
+      <VideoHeroClient
+        videoUrl={finalVideoUrl}
+        videoType={finalVideoType as any}
+        posterImage={finalPosterImage}
+        overlay={Number(finalOverlay)}
+        heading={finalTitle}
+        subheading={finalSubtitle}
+        ctaText={finalButtonText}
+        ctaLink={finalButtonLink}
+        secondaryCtaText={finalSecondaryButtonText}
+        secondaryCtaLink={finalSecondaryButtonLink}
+        alignment={alignment as any}
+        titleColor={titleColor}
+        subtitleColor={subtitleColor}
+        autoplay={String(autoplay) !== 'false'}
+        muted={String(muted) !== 'false'}
+        loop={String(loop) !== 'false'}
+      />
+    </div>
+  )
+}
+
+// Before/After Slider Block
+export function BeforeAfterSliderBlock({
+  beforeImage,
+  afterImage,
+  beforeLabel = 'Before',
+  afterLabel = 'After',
+  initialPosition = '50',
+  orientation = 'horizontal',
+  showLabels = 'true',
+  heading,
+  subheading,
+  _overrides
+}: {
+  beforeImage?: string
+  afterImage?: string
+  beforeLabel?: string
+  afterLabel?: string
+  initialPosition?: string | number
+  orientation?: 'horizontal' | 'vertical' | string
+  showLabels?: string | boolean
+  heading?: string
+  subheading?: string
+  _overrides?: Record<string, any> | null
+}) {
+  const ov = _overrides || {}
+  const finalBeforeImage = ov.beforeImage ?? beforeImage
+  const finalAfterImage = ov.afterImage ?? afterImage
+  const finalHeading = ov.heading ?? heading
+  const finalSubheading = ov.subheading ?? subheading
+
+  if (!finalBeforeImage || !finalAfterImage) return null
+
+  return (
+    <section className="py-16 md:py-20 px-6 md:px-8 bg-white">
+      <div className="max-w-5xl mx-auto">
+        {(finalHeading || finalSubheading) && (
+          <div className="text-center mb-12">
+            {finalHeading && <h2 className="text-3xl font-bold text-gray-900 mb-2">{finalHeading}</h2>}
+            {finalSubheading && <p className="text-lg text-gray-600">{finalSubheading}</p>}
+          </div>
+        )}
+        <BeforeAfterSliderClient
+          beforeImage={finalBeforeImage}
+          afterImage={finalAfterImage}
+          beforeLabel={beforeLabel}
+          afterLabel={afterLabel}
+          initialPosition={Number(initialPosition)}
+          orientation={orientation as any}
+          showLabels={String(showLabels) !== 'false'}
+        />
+      </div>
+    </section>
+  )
+}
+
+// Timeline Block
+export function TimelineBlock({
+  itemsB64,
+  heading,
+  subheading,
+  accentColor = '#b46e14',
+  style = 'default',
+  animation = 'fade-in',
+  _overrides
+}: {
+  itemsB64?: string
+  heading?: string
+  subheading?: string
+  accentColor?: string
+  style?: 'default' | 'modern' | 'minimal' | string
+  animation?: string
+  _overrides?: Record<string, any> | null
+}) {
+  const ov = _overrides || {}
+  const finalItemsB64 = ov.itemsB64 ?? itemsB64
+  const finalHeading = ov.heading ?? heading
+  const finalSubheading = ov.subheading ?? subheading
+
+  const json = finalItemsB64 ? Buffer.from(finalItemsB64, 'base64').toString('utf-8') : '[]'
+  let items: Array<{ date: string; title: string; description: string; image?: string; icon?: string }> = []
+  try { items = JSON.parse(json || '[]') } catch { items = [] }
+
+  const animClass = animation === 'fade-in' ? 'animate-fadeIn' : animation === 'slide-up' ? 'animate-slideUp' : animation === 'zoom' ? 'animate-zoom' : ''
+
+  return (
+    <section className={`py-16 md:py-20 px-6 md:px-8 bg-white ${animClass}`}>
+      <div className="max-w-6xl mx-auto">
+        {(finalHeading || finalSubheading) && (
+          <div className="text-center mb-16">
+            {finalHeading && <h2 className="text-3xl font-bold text-gray-900 mb-2">{finalHeading}</h2>}
+            {finalSubheading && <p className="text-lg text-gray-600">{finalSubheading}</p>}
+          </div>
+        )}
+        <TimelineClient items={items} accentColor={accentColor} style={style as any} />
+      </div>
+    </section>
+  )
+}
+
+// Masonry Gallery Block
+export function MasonryGalleryBlock({
+  imagesB64,
+  heading,
+  subheading,
+  columns = '3',
+  gap = '16',
+  animation = 'fade-in',
+  _overrides
+}: {
+  imagesB64?: string
+  heading?: string
+  subheading?: string
+  columns?: string | number
+  gap?: string | number
+  animation?: string
+  _overrides?: Record<string, any> | null
+}) {
+  const ov = _overrides || {}
+  const finalImagesB64 = ov.imagesB64 ?? imagesB64
+  const finalHeading = ov.heading ?? heading
+  const finalSubheading = ov.subheading ?? subheading
+
+  const json = finalImagesB64 ? Buffer.from(finalImagesB64, 'base64').toString('utf-8') : '[]'
+  let images: Array<{ url: string; alt: string; title?: string; category?: string; aspectRatio?: number }> = []
+  try { images = JSON.parse(json || '[]') } catch { images = [] }
+
+  const animClass = animation === 'fade-in' ? 'animate-fadeIn' : animation === 'slide-up' ? 'animate-slideUp' : animation === 'zoom' ? 'animate-zoom' : ''
+
+  return (
+    <section className={`py-16 md:py-20 px-6 md:px-8 bg-white ${animClass}`}>
+      <div className="max-w-7xl mx-auto">
+        {(finalHeading || finalSubheading) && (
+          <div className="text-center mb-12">
+            {finalHeading && <h2 className="text-3xl font-bold text-gray-900 mb-2">{finalHeading}</h2>}
+            {finalSubheading && <p className="text-lg text-gray-600">{finalSubheading}</p>}
+          </div>
+        )}
+        <MasonryGalleryClient
+          images={images}
+          columns={Math.min(Math.max(Number(columns), 2), 4) as any}
+          gap={Number(gap)}
+        />
+      </div>
+    </section>
+  )
+}
+
+// Animated Counter Stats Block
+export function AnimatedCounterStatsBlock({
+  statsB64,
+  heading,
+  subheading,
+  columns = '3',
+  style = 'default',
+  accentColor = '#b46e14',
+  animation = 'fade-in',
+  _overrides
+}: {
+  statsB64?: string
+  heading?: string
+  subheading?: string
+  columns?: string | number
+  style?: 'default' | 'cards' | 'minimal' | string
+  accentColor?: string
+  animation?: string
+  _overrides?: Record<string, any> | null
+}) {
+  const ov = _overrides || {}
+  const finalStatsB64 = ov.statsB64 ?? statsB64
+  const finalHeading = ov.heading ?? heading
+  const finalSubheading = ov.subheading ?? subheading
+
+  const json = finalStatsB64 ? Buffer.from(finalStatsB64, 'base64').toString('utf-8') : '[]'
+  let stats: Array<{ icon?: string; number: number; suffix?: string; prefix?: string; label: string; duration?: number }> = []
+  try { stats = JSON.parse(json || '[]') } catch { stats = [] }
+
+  const animClass = animation === 'fade-in' ? 'animate-fadeIn' : animation === 'slide-up' ? 'animate-slideUp' : animation === 'zoom' ? 'animate-zoom' : ''
+
+  return (
+    <section className={`py-16 md:py-20 px-6 md:px-8 bg-white ${animClass}`}>
+      <div className="max-w-7xl mx-auto">
+        {(finalHeading || finalSubheading) && (
+          <div className="text-center mb-12">
+            {finalHeading && <h2 className="text-3xl font-bold text-gray-900 mb-2">{finalHeading}</h2>}
+            {finalSubheading && <p className="text-lg text-gray-600">{finalSubheading}</p>}
+          </div>
+        )}
+        <AnimatedCounterStatsClient
+          stats={stats}
+          columns={Math.min(Math.max(Number(columns), 2), 4) as any}
+          style={style as any}
+          accentColor={accentColor}
+        />
+      </div>
+    </section>
+  )
+}
+
+// Interactive Map Block
+export function InteractiveMapBlock({
+  centerLat = '37.7749',
+  centerLng = '-122.4194',
+  zoom = '13',
+  markersB64,
+  height = '400px',
+  mapStyle = 'default',
+  heading,
+  subheading,
+  animation = 'fade-in',
+  _overrides
+}: {
+  centerLat?: string | number
+  centerLng?: string | number
+  zoom?: string | number
+  markersB64?: string
+  height?: string
+  mapStyle?: 'default' | 'silver' | 'dark' | 'retro' | string
+  heading?: string
+  subheading?: string
+  animation?: string
+  _overrides?: Record<string, any> | null
+}) {
+  const ov = _overrides || {}
+  const finalHeading = ov.heading ?? heading
+  const finalSubheading = ov.subheading ?? subheading
+  const finalMarkersB64 = ov.markersB64 ?? markersB64
+
+  const json = finalMarkersB64 ? Buffer.from(finalMarkersB64, 'base64').toString('utf-8') : '[]'
+  let markers: Array<{ lat: number; lng: number; title?: string; description?: string }> = []
+  try { markers = JSON.parse(json || '[]') } catch { markers = [] }
+
+  const animClass = animation === 'fade-in' ? 'animate-fadeIn' : animation === 'slide-up' ? 'animate-slideUp' : animation === 'zoom' ? 'animate-zoom' : ''
+  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
+
+  return (
+    <section className={`py-16 md:py-20 px-6 md:px-8 bg-white ${animClass}`}>
+      <div className="max-w-6xl mx-auto">
+        {(finalHeading || finalSubheading) && (
+          <div className="text-center mb-12">
+            {finalHeading && <h2 className="text-3xl font-bold text-gray-900 mb-2">{finalHeading}</h2>}
+            {finalSubheading && <p className="text-lg text-gray-600">{finalSubheading}</p>}
+          </div>
+        )}
+        <InteractiveMapClient
+          center={{ lat: Number(centerLat), lng: Number(centerLng) }}
+          zoom={Number(zoom)}
+          markers={markers}
+          height={height}
+          apiKey={apiKey}
+          style={mapStyle as any}
+        />
+      </div>
+    </section>
+  )
+}
+
