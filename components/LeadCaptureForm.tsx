@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import toast from 'react-hot-toast'
+import ThankYouWithSMS from './ThankYouWithSMS'
 
 const leadSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
@@ -20,6 +21,7 @@ type LeadFormData = z.infer<typeof leadSchema>
 
 export default function LeadCaptureForm() {
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [showThankYou, setShowThankYou] = useState(false)
 
   const {
     register,
@@ -46,6 +48,7 @@ export default function LeadCaptureForm() {
       }
 
       toast.success('Thank you! We\'ll be in touch soon.')
+      setShowThankYou(true)
       reset()
     } catch (error) {
       toast.error('Something went wrong. Please try again.')
@@ -53,6 +56,11 @@ export default function LeadCaptureForm() {
     } finally {
       setIsSubmitting(false)
     }
+  }
+
+  // Show thank you page with SMS signup after successful submission
+  if (showThankYou) {
+    return <ThankYouWithSMS />
   }
 
   return (

@@ -4,7 +4,6 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { Suspense } from 'react'
 import { generateSEOMetadata } from '@/lib/seo-helpers'
-import LeadSignupBlock from '@/components/LeadSignupBlock'
 
 export const metadata = generateSEOMetadata({
   title: 'Photography Blog - Tips & Insights from Studio37 Pinehurst, TX',
@@ -53,7 +52,7 @@ export default async function BlogPage() {
           </div>
         ) : (
           <div className="grid lg:grid-cols-4 gap-10">
-            <div className="lg:col-span-3 grid sm:grid-cols-2 xl:grid-cols-3 gap-8">
+            <div className="lg:col-span-4 grid sm:grid-cols-2 xl:grid-cols-3 gap-8">
               {posts.map((post: any) => (
                 <Link
                   key={post.id}
@@ -91,13 +90,6 @@ export default async function BlogPage() {
                 </Link>
               ))}
             </div>
-            <aside className="lg:col-span-1 space-y-6">
-              <div className="sticky top-24 space-y-6">
-                <Suspense fallback={<div className="animate-pulse bg-gray-100 h-64 rounded-lg" />}>
-                  <LeadSignupBlock variantStrategy="random" />
-                </Suspense>
-              </div>
-            </aside>
           </div>
         )}
       </div>

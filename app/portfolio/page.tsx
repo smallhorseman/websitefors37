@@ -5,7 +5,6 @@ import { MDXRemote } from 'next-mdx-remote/rsc'
 import rehypeRaw from 'rehype-raw'
 import rehypeHighlight from 'rehype-highlight'
 import { MDXBuilderComponents } from '@/components/BuilderRuntime'
-import LeadSignupBlock from '@/components/LeadSignupBlock'
 
 export const revalidate = 600 // 10 minutes
 
@@ -54,10 +53,6 @@ export default async function PortfolioPage() {
           },
         }}
       />
-      {/* Lead signup CTA (client component) */}
-      <div className="container mx-auto px-4 py-12">
-        <LeadSignupBlock variantStrategy="random" />
-      </div>
     </article>
   )
 }

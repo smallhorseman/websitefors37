@@ -5,7 +5,6 @@ import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { notFound } from 'next/navigation'
 import { Calendar, User, Tag, ArrowLeft } from 'lucide-react'
-import LeadSignupBlock from '@/components/LeadSignupBlock'
 import { MDXRemote } from 'next-mdx-remote/rsc'
 import rehypeHighlight from 'rehype-highlight'
 import rehypeRaw from 'rehype-raw'
@@ -146,8 +145,8 @@ export default async function BlogPostPage({ params }: { params: { slug: string 
       )}
 
       <div className="container mx-auto px-4 py-12">
-        <div className="grid lg:grid-cols-4 gap-10">
-          <div className="lg:col-span-3 max-w-3xl mx-auto w-full">
+        <div className="max-w-4xl mx-auto">
+          <div className="w-full">
           {post.excerpt && (
             <div className="text-xl text-gray-600 mb-8 italic border-l-4 border-primary-500 pl-4 py-2">
               {post.excerpt}
@@ -187,11 +186,6 @@ export default async function BlogPostPage({ params }: { params: { slug: string 
               </div>
             )}
           </div>
-          <aside className="lg:col-span-1 space-y-6">
-            <div className="sticky top-24 space-y-6">
-              <LeadSignupBlock variantStrategy="random" />
-            </div>
-          </aside>
         </div>
       </div>
     </div>
