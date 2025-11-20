@@ -94,15 +94,23 @@ export async function POST(req: Request) {
       );
     }
 
-    console.log("Initializing Gemini API with model: gemini-2.0-flash-exp");
+    const preferredModel =
+      process.env.GOOGLE_GENAI_MODEL ||
+      process.env.GEMINI_MODEL ||
+      process.env.AI_MODEL ||
+      "gemini-3.0-pro-preview";
+    console.log(`Initializing Gemini API with model: ${preferredModel}`);
     const genAI = new GoogleGenerativeAI(apiKey);
     
-    // Try multiple models in order of preference
+    // Try multiple models in order of preference (includes preview + stable fallbacks)
     const modelsToTry = [
+      preferredModel,
+      "gemini-3.0-pro-preview",
+      "gemini-3-pro-preview",
+      "gemini-2.5-pro",
       "gemini-2.0-flash-exp",
       "gemini-1.5-pro-latest",
-      "gemini-1.5-pro", 
-      "gemini-pro"
+      "gemini-1.5-flash",
     ];
     
     let model;

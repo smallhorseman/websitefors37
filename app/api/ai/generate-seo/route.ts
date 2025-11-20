@@ -34,7 +34,12 @@ export async function POST(request: NextRequest) {
     }
 
     const genAI = new GoogleGenerativeAI(apiKey)
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' })
+    const preferredModel =
+      process.env.GOOGLE_GENAI_MODEL ||
+      process.env.GEMINI_MODEL ||
+      process.env.AI_MODEL ||
+      'gemini-3.0-pro-preview'
+    const model = genAI.getGenerativeModel({ model: preferredModel })
 
     // Strip HTML tags and limit content length for the prompt
     const cleanContent = content.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 3000)

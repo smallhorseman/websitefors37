@@ -77,8 +77,13 @@ export async function POST(req: Request) {
     }
 
     const genAI = new GoogleGenerativeAI(apiKey);
+    const envModel =
+      process.env.GOOGLE_GENAI_MODEL ||
+      process.env.GEMINI_MODEL ||
+      process.env.AI_MODEL ||
+      "gemini-3.0-pro-preview";
     const model = genAI.getGenerativeModel({
-      model: preferredModel || "gemini-2.5-pro",
+      model: preferredModel || envModel,
     });
 
     const prompt = buildPrompt({ type, content, targetKeyword, maxLength });

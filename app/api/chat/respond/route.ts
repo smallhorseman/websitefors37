@@ -94,8 +94,13 @@ export async function POST(req: Request) {
     }
 
     const genAI = new GoogleGenerativeAI(apiKey);
+    const preferredModel =
+      process.env.GOOGLE_GENAI_MODEL ||
+      process.env.GEMINI_MODEL ||
+      process.env.AI_MODEL ||
+      "gemini-3.0-pro-preview";
     const model = genAI.getGenerativeModel({
-      model: "gemini-2.0-flash-exp",
+      model: preferredModel,
       generationConfig: {
         temperature: 0.8,
         topP: 0.95,

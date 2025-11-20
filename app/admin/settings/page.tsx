@@ -59,7 +59,7 @@ export default function SettingsPage() {
     google_analytics_id: "",
     logo_url: "",
     ai_enabled: false,
-    ai_model: "gemini-1.5-pro",
+  ai_model: "gemini-3.0-pro-preview",
     ai_key_ref: "",
     hero_min_height: "70vh",
     hero_title_color: "#ffffff",
@@ -459,7 +459,7 @@ export default function SettingsPage() {
                         onChange={(e) =>
                           setSettings({ ...settings, ai_model: e.target.value })
                         }
-                        placeholder="gemini-1.5-pro"
+                        placeholder="gemini-3.0-pro-preview"
                         className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
                       />
                     </div>

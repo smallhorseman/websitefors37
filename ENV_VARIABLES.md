@@ -41,6 +41,10 @@ GOOGLE_SITE_VERIFICATION=your-verification-code
 GEMINI_API_KEY=your-gemini-api-key-here
 # or
 GOOGLE_API_KEY=your-gemini-api-key-here
+
+# Optional: choose the default model used across all AI features
+# Recommended default: gemini-3.0-pro-preview (alias: gemini-3-pro-preview)
+GOOGLE_GENAI_MODEL=gemini-3.0-pro-preview
 ```
 
 ## Optional (Features)
@@ -88,6 +92,8 @@ SUPABASE_SERVICE_ROLE_KEY=eyJxxx...
 
 # AI Features (required for blog generator, chatbot, alt text)
 GEMINI_API_KEY=your-gemini-api-key-here
+# Optional: override default AI model (falls back automatically if unavailable)
+GOOGLE_GENAI_MODEL=gemini-3.0-pro-preview
 
 # Analytics (optional)
 NEXT_PUBLIC_GA_MEASUREMENT_ID=G-XXXXXXXXXX
