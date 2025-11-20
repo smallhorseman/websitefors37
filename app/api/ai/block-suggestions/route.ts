@@ -182,6 +182,6 @@ export async function GET() {
     status: 'ok',
     service: 'AI Block Suggestions',
     version: '1.0.0',
-    model: process.env.GOOGLE_GENAI_MODEL || 'gemini-3-pro'
+    model: process.env.GOOGLE_GENAI_MODEL || 'gemini-3-pro-preview'
   })
 }
