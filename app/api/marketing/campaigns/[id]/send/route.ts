@@ -1,10 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
-import { Resend } from "resend";
+// Dynamic import Resend only when sending to avoid build-time instantiation issues
 import { createLogger } from "@/lib/logger";
 
+export const dynamic = "force-dynamic"; // ensure route isn't statically analyzed for data collection
+export const prerender = false; // explicitly disable prerendering/page data collection
+export const fetchCache = "force-no-store"; // avoid caching in build phase
+
 const log = createLogger("api/marketing/campaigns/[id]/send");
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Lazy + dynamic instantiate Resend only when available to prevent build-time failures
+const getResend = async () => {
+  const key = process.env.RESEND_API_KEY;
+  if (!key) return null;
+  try {
+    const { Resend } = await import("resend");
+    return new Resend(key);
+  } catch (e) {
+    log.error("Resend init failed", undefined, e as any);
+    return null;
+  }
+};
 
 export async function POST(
   req: NextRequest,
@@ -80,6 +95,10 @@ export async function POST(
       try {
         if (type === "email") {
           // Send email
+          const resend = await getResend();
+          if (!resend) {
+            throw new Error("Email service not configured (missing RESEND_API_KEY)");
+          }
           const { data: sendResult, error: sendError } = await resend.emails.send({
             from: `${campaign.from_name || "Studio37"} <${campaign.from_email || "contact@studio37.cc"}>`,
             to: recipient.email,
@@ -126,7 +145,6 @@ export async function POST(
       sentCount,
       failedCount,
     });
-
     return NextResponse.json({
       success: true,
       campaign: {

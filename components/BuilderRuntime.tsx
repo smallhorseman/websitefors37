@@ -10,8 +10,10 @@ import NewsletterInlineClient from './blocks/NewsletterInlineClient'
 import PricingCalculator from './PricingCalculator'
 import EditableChrome from './editor/EditableChrome'
 import { getBlockOverride } from '@/lib/pageConfigs'
-// Split out client-only LeadSignupBlock to avoid using hooks in this server module
-export { default as LeadSignupBlock } from './blocks/LeadSignupBlockClient'
+// Import client-only LeadSignupBlock and create a local binding so MDXBuilderComponents can reference it safely.
+import LeadSignupBlockClient from './blocks/LeadSignupBlockClient'
+const LeadSignupBlock = LeadSignupBlockClient
+export { LeadSignupBlock }
 
 // Server components used by MDX to render VisualEditor output faithfully
 

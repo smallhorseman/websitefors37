@@ -7,7 +7,9 @@ import { renderEmailTemplate, hasReactEmailTemplate, renderHtmlTemplate } from "
 
 const log = createLogger("api/marketing/email/send");
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Lazy Resend instantiation moved inside POST handler to avoid build-time failure
+// when RESEND_API_KEY is not configured (e.g., preview builds).
+// Do NOT create the client at module scope.
 
 interface SendEmailRequest {
   to: string | string[];
@@ -34,7 +36,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Check if API key is configured
+    // Check if API key is configured (guard before creating client)
     if (!process.env.RESEND_API_KEY) {
       log.error("RESEND_API_KEY not configured");
       return NextResponse.json(
@@ -42,6 +44,9 @@ export async function POST(req: NextRequest) {
         { status: 503 }
       );
     }
+
+    // Safe to instantiate Resend only after confirming key exists
+    const resend = new Resend(process.env.RESEND_API_KEY);
 
     const body: SendEmailRequest = await req.json();
     const {
