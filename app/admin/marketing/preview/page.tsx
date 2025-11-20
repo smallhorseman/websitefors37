@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { createClient } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase'
 import { Eye, Monitor, Smartphone, Mail, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 
@@ -24,7 +24,6 @@ export default function EmailPreviewPage() {
     expiryDays: '30'
   })
   
-  const supabase = createClient()
 
   useEffect(() => {
     if (templateId) {
