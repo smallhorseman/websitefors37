@@ -146,15 +146,15 @@ const nextConfig = {
               "default-src 'self'",
               "base-uri 'self'",
               "form-action 'self'",
-              // Next.js may inject inline scripts/styles; allow inline but prefer self
-              "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com",
-              "style-src 'self' 'unsafe-inline'",
+              // Next.js requires unsafe-inline for React hydration; unsafe-eval only in dev
+              "script-src 'self' 'unsafe-inline' " + (process.env.NODE_ENV === 'development' ? "'unsafe-eval' " : "") + "https://www.googletagmanager.com https://www.google-analytics.com",
+              "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "img-src 'self' data: blob: https://res.cloudinary.com https://images.unsplash.com https://*.supabase.co",
-              "font-src 'self' data:",
-              "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://www.google-analytics.com https://region.supabase.co",
+              "font-src 'self' data: https://fonts.gstatic.com",
+              "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://www.google-analytics.com https://res.cloudinary.com",
               "frame-ancestors 'self'",
-              "frame-src 'self' https://app2.simpletexting.com",
-              "child-src 'self' https://app2.simpletexting.com",
+              "frame-src 'self' https://app.simpletexting.com https://app2.simpletexting.com",
+              "child-src 'self' https://app.simpletexting.com https://app2.simpletexting.com",
               "object-src 'none'",
               "upgrade-insecure-requests"
             ].join('; '),

@@ -152,24 +152,30 @@ export default function RootLayout({
         >
           Skip to content
         </a>
-        {/* Google Analytics 4 - Deferred to afterInteractive for better performance */}
+        {/* Google Analytics 4 - Deferred with delay to prioritize user content */}
         <Script
           id="ga4-src"
           strategy="lazyOnload"
+          onLoad={() => {
+            // Defer initialization by 2 seconds to reduce impact on load metrics
+            setTimeout(() => {
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){window.dataLayer.push(arguments);} 
+              gtag('js', new Date());
+              gtag('config', process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || 'G-5NTFJK2GH8', { 
+                anonymize_ip: true,
+                send_page_view: false // Prevent automatic page view
+              });
+              // Send initial page view after delay
+              gtag('event', 'page_view', {
+                page_path: window.location.pathname + window.location.search
+              });
+            }, 2000);
+          }}
           src={`https://www.googletagmanager.com/gtag/js?id=${
             process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || "G-5NTFJK2GH8"
           }`}
         />
-        <Script id="ga4-init" strategy="lazyOnload">
-          {`
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);} 
-            gtag('js', new Date());
-            gtag('config', '${
-              process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || "G-5NTFJK2GH8"
-            }', { anonymize_ip: true });
-          `}
-        </Script>
         <QueryProvider>
           <Suspense fallback={null}>
             <Analytics />
