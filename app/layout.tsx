@@ -10,7 +10,7 @@ import dynamic from "next/dynamic";
 import Navigation from "@/components/Navigation";
 import QueryProvider from "@/components/QueryProvider";
 import { businessInfo, generateLocalBusinessSchema } from "@/lib/seo-config";
-import Script from "next/script";
+import GoogleAnalyticsScript from "@/components/GoogleAnalyticsScript";
 import Analytics from "@/components/Analytics";
 import ClientErrorBoundary from "@/components/ClientErrorBoundary";
 import ToasterClient from "@/components/ToasterClient";
@@ -67,11 +67,6 @@ export const metadata = {
   alternates: {
     canonical: "/",
   },
-  viewport: {
-    width: 'device-width',
-    initialScale: 1,
-    maximumScale: 5,
-  },
   verification: {
     google: process.env.GOOGLE_SITE_VERIFICATION,
     other: {
@@ -89,6 +84,13 @@ export const metadata = {
     "geo.position": `${businessInfo.geo.latitude};${businessInfo.geo.longitude}`,
     ICBM: `${businessInfo.geo.latitude}, ${businessInfo.geo.longitude}`,
   },
+};
+
+// Next.js 14: Use the dedicated viewport export instead of metadata.viewport
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
 };
 
 export default function RootLayout({
@@ -152,30 +154,8 @@ export default function RootLayout({
         >
           Skip to content
         </a>
-        {/* Google Analytics 4 - Deferred with delay to prioritize user content */}
-        <Script
-          id="ga4-src"
-          strategy="lazyOnload"
-          onLoad={() => {
-            // Defer initialization by 2 seconds to reduce impact on load metrics
-            setTimeout(() => {
-              window.dataLayer = window.dataLayer || [];
-              function gtag(){window.dataLayer.push(arguments);} 
-              gtag('js', new Date());
-              gtag('config', process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || 'G-5NTFJK2GH8', { 
-                anonymize_ip: true,
-                send_page_view: false // Prevent automatic page view
-              });
-              // Send initial page view after delay
-              gtag('event', 'page_view', {
-                page_path: window.location.pathname + window.location.search
-              });
-            }, 2000);
-          }}
-          src={`https://www.googletagmanager.com/gtag/js?id=${
-            process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || "G-5NTFJK2GH8"
-          }`}
-        />
+        {/* Google Analytics 4 - Loaded via client component to avoid server → client function prop issues */}
+        <GoogleAnalyticsScript />
         <QueryProvider>
           <Suspense fallback={null}>
             <Analytics />
