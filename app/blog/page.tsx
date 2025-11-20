@@ -2,6 +2,7 @@
 import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
 import Image from 'next/image'
+import { Suspense } from 'react'
 import { generateSEOMetadata } from '@/lib/seo-helpers'
 import LeadSignupBlock from '@/components/LeadSignupBlock'
 
@@ -92,7 +93,9 @@ export default async function BlogPage() {
             </div>
             <aside className="lg:col-span-1 space-y-6">
               <div className="sticky top-24 space-y-6">
-                <LeadSignupBlock variantStrategy="random" />
+                <Suspense fallback={<div className="animate-pulse bg-gray-100 h-64 rounded-lg" />}>
+                  <LeadSignupBlock variantStrategy="random" />
+                </Suspense>
               </div>
             </aside>
           </div>
