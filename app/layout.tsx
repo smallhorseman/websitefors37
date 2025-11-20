@@ -24,7 +24,6 @@ import Analytics from "@/components/Analytics";
 import ClientErrorBoundary from "@/components/ClientErrorBoundary";
 import ToasterClient from "@/components/ToasterClient";
 import ChatBotMount from "@/components/ChatBotMount";
-import LeadSignupForm from "@/components/LeadSignupForm";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -264,10 +263,6 @@ export default function RootLayout({
           {/* Interaction-based ChatBot mount for performance */}
           <ClientErrorBoundary label="chatbot">
             <ChatBotMount />
-          </ClientErrorBoundary>
-          {/* Lead capture (SMS signup) - lazy iframe inside component */}
-          <ClientErrorBoundary label="lead-signup">
-            <LeadSignupForm />
           </ClientErrorBoundary>
           <ToasterClient />
         </QueryProvider>
