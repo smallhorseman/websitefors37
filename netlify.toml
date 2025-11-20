@@ -5,7 +5,8 @@
 [build.environment]
   NEXT_PUBLIC_SITE_URL = "https://studio37.cc"
   SECRETS_SCAN_SMART_DETECTION_ENABLED = "true"
-  NODE_VERSION = "18"
+  # Upgrade Node version to 20.x to align with supabase-js future support and remove deprecation warnings
+  NODE_VERSION = "20"
   # Install happens at the repo root. No workspace filtering so the root app builds with shared packages.
 
 [[plugins]]
