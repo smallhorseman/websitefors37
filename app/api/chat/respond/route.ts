@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+// Use unified AI client (includes model fallbacks & robust retry logic)
+import { generateText, AI_CONFIGS } from "@/lib/ai-client";
 import { supabase } from "@/lib/supabase";
 import { z } from "zod";
 import { getClientIp, rateLimit } from "@/lib/rateLimit";
@@ -84,30 +85,14 @@ export async function POST(req: Request) {
       // Use defaults if tables don't exist yet
     }
 
-    const apiKey = process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY;
-    if (!apiKey) {
+    // Early env validation (ai-client will also throw if missing)
+    if (!process.env.GOOGLE_API_KEY && !process.env.GEMINI_API_KEY) {
       log.error("Missing API key", { env: "GOOGLE_API_KEY or GEMINI_API_KEY" });
       return NextResponse.json(
         { error: "Missing GOOGLE_API_KEY" },
         { status: 503 }
       );
     }
-
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const preferredModel =
-      process.env.GOOGLE_GENAI_MODEL ||
-      process.env.GEMINI_MODEL ||
-      process.env.AI_MODEL ||
-      "gemini-3.0-pro-preview";
-    const model = genAI.getGenerativeModel({
-      model: preferredModel,
-      generationConfig: {
-        temperature: 0.8,
-        topP: 0.95,
-        topK: 40,
-        maxOutputTokens: 2048,
-      },
-    });
 
     // Build comprehensive prompt with custom training data
     const systemInstructions =
@@ -234,17 +219,21 @@ ${context ? `**Recent conversation:**\n${context}` : ""}
   - Blog: [read our blog](https://studio37.cc/blog)
 
 Respond now:`;
-    let result;
+    let response = "";
     try {
-      result = await model.generateContent(prompt);
-    } catch (aiError:any) {
+      // Use precise preset for chatbot; higher temperature is set locally to keep conversational feel
+      response = await generateText(prompt, {
+        config: { ...AI_CONFIGS.precise, temperature: 0.8, maxOutputTokens: 2048 },
+        // retries & fallbacks handled internally
+      });
+    } catch (aiError: any) {
       const msg = String(aiError?.message || aiError || "");
-      if (msg.includes("reported as leaked") || (aiError.status === 403 && msg.includes("Forbidden"))) {
-        return NextResponse.json({ error: "API key was reported as leaked. Rotate in Netlify and redeploy.", code: "API_KEY_LEAKED" }, { status: 403 });
+      if (msg.includes("API key configuration error") || msg.includes("reported as leaked")) {
+        return NextResponse.json({ error: "API key was reported as leaked or misconfigured. Rotate key and redeploy.", code: "API_KEY_LEAKED" }, { status: 403 });
       }
-      throw aiError;
+      log.error("AI generation failed", { error: msg });
+      return NextResponse.json({ error: "Chat response generation failed" }, { status: 500 });
     }
-    const response = result.response.text().trim();
 
   // Enhanced lead information detection
   const detectedInfo: any = {};

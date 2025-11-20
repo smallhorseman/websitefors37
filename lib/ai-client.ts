@@ -15,18 +15,20 @@ import { createLogger } from "./logger";
 
 const log = createLogger("lib/ai-client");
 
-// Resolve default model from env with safe fallbacks (prefers Gemini 3 Pro Preview)
+// Resolve default model from env with safe fallbacks (prefers stable Gemini 3 Pro)
 const ENV_MODEL =
   process.env.GOOGLE_GENAI_MODEL ||
   process.env.GEMINI_MODEL ||
   process.env.AI_MODEL ||
-  "gemini-3.0-pro-preview";
+  "gemini-3-pro";
 
 // Known good fallbacks in descending preference
 export const MODEL_FALLBACKS = [
   ENV_MODEL,
+  // Stable primary
+  "gemini-3-pro",
+  // Preview variants (minor versioned and alias forms)
   "gemini-3.0-pro-preview",
-  // Some environments may expose this alias without the minor version
   "gemini-3-pro-preview",
   // Prior generations
   "gemini-2.5-pro",
