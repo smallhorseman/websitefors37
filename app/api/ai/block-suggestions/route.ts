@@ -108,10 +108,28 @@ Return JSON array of ${maxSuggestions} suggestions in this format:
 Return ONLY valid JSON, no markdown or additional text.`
 
     // Generate suggestions with Gemini
-    const response = await generateText(prompt, {
-      temperature: 0.8, // Higher creativity for varied suggestions
-      maxOutputTokens: 2000
-    })
+    let response: string
+    try {
+      response = await generateText(prompt, {
+        temperature: 0.8, // Higher creativity for varied suggestions
+        maxOutputTokens: 2000
+      })
+      
+      if (!response || response.trim() === '') {
+        throw new Error('Empty response from AI')
+      }
+      
+      log.info('AI response received', { length: response.length })
+    } catch (aiError: any) {
+      log.error('AI generation failed', { error: aiError.message })
+      return NextResponse.json(
+        { 
+          error: 'AI service temporarily unavailable. Please try again.',
+          details: process.env.NODE_ENV === 'development' ? aiError.message : undefined
+        },
+        { status: 503 }
+      )
+    }
 
     // Parse AI response
     let suggestions: BlockSuggestion[]
@@ -120,11 +138,23 @@ Return ONLY valid JSON, no markdown or additional text.`
       const jsonMatch = response.match(/```json\n?([\s\S]*?)\n?```/) || 
                         response.match(/\[[\s\S]*\]/)
       const jsonStr = jsonMatch ? (jsonMatch[1] || jsonMatch[0]) : response
-      suggestions = JSON.parse(jsonStr)
-    } catch (parseError) {
-      log.error('Failed to parse AI response', { response, error: parseError })
+      
+      if (!jsonStr || jsonStr.trim() === '') {
+        throw new Error('No JSON found in AI response')
+      }
+      
+      log.info('Parsing JSON', { jsonLength: jsonStr.length })
+      suggestions = JSON.parse(jsonStr.trim())
+    } catch (parseError: any) {
+      log.error('Failed to parse AI response', { 
+        response: response.substring(0, 500), 
+        error: parseError.message 
+      })
       return NextResponse.json(
-        { error: 'AI response format error. Please try again.' },
+        { 
+          error: 'AI response format error. Please try again.',
+          details: process.env.NODE_ENV === 'development' ? parseError.message : undefined
+        },
         { status: 500 }
       )
     }

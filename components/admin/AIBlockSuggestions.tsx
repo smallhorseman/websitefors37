@@ -60,17 +60,41 @@ export default function AIBlockSuggestions({
         })
       })
 
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || 'Failed to fetch suggestions')
+      // Check if response has content
+      const contentType = response.headers.get('content-type')
+      if (!contentType || !contentType.includes('application/json')) {
+        throw new Error('Invalid response format from server')
       }
 
-      const data = await response.json()
-      setSuggestions(data.suggestions || [])
+      // Get response text first to check if empty
+      const responseText = await response.text()
+      if (!responseText || responseText.trim() === '') {
+        throw new Error('Empty response from server')
+      }
+
+      // Parse JSON
+      let data
+      try {
+        data = JSON.parse(responseText)
+      } catch (parseError) {
+        console.error('JSON parse error:', parseError)
+        console.error('Response text:', responseText)
+        throw new Error('Invalid JSON response from server')
+      }
+
+      if (!response.ok) {
+        throw new Error(data.error || data.details || 'Failed to fetch suggestions')
+      }
+
+      if (!data.suggestions || !Array.isArray(data.suggestions)) {
+        throw new Error('Invalid suggestions format received')
+      }
+
+      setSuggestions(data.suggestions)
       setIsOpen(true)
     } catch (err: any) {
       console.error('AI suggestions error:', err)
-      setError(err.message || 'Failed to generate suggestions')
+      setError(err.message || 'Failed to generate suggestions. Please try again.')
     } finally {
       setIsLoading(false)
     }
