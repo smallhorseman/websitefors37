@@ -17,6 +17,12 @@ import TimelineClient from './blocks/TimelineClient'
 import MasonryGalleryClient from './blocks/MasonryGalleryClient'
 import AnimatedCounterStatsClient from './blocks/AnimatedCounterStatsClient'
 import InteractiveMapClient from './blocks/InteractiveMapClient'
+// Phase 4: Mobile-First Controls - Responsive utilities
+import { 
+  getResponsiveVisibility, 
+  getResponsiveTextSize, 
+  getResponsiveAlignment 
+} from '@/lib/responsiveUtils'
 // Import client-only LeadSignupBlock and create a local binding so MDXBuilderComponents can reference it safely.
 import LeadSignupBlockClient from './blocks/LeadSignupBlockClient'
 const LeadSignupBlock = LeadSignupBlockClient
@@ -114,6 +120,9 @@ export function HeroBlock({
   variant = 'fullscreen',
   scrollAnimation = 'none',
   contentPosition = 'center',
+  mobileHidden = false,
+  mobileTextSize,
+  mobileAlignment,
   _overrides,
 }: {
   title?: string
@@ -135,6 +144,9 @@ export function HeroBlock({
   variant?: 'fullscreen' | 'split' | 'minimal' | 'parallax' | string
   scrollAnimation?: 'parallax' | 'kenburns' | 'fade' | 'zoom-out' | 'none' | string
   contentPosition?: 'center' | 'left' | 'right' | 'bottom-left' | 'bottom-right' | 'top-left' | 'top-right' | string
+  mobileHidden?: boolean | string
+  mobileTextSize?: 'sm' | 'md' | 'lg' | string
+  mobileAlignment?: 'left' | 'center' | 'right' | string
   _overrides?: Record<string, any> | null
 }) {
   // Merge overrides if present
@@ -182,7 +194,12 @@ export function HeroBlock({
   const scrollAnimClass = finalScrollAnimation === 'parallax' ? 'parallax-bg' : 
                           finalScrollAnimation === 'kenburns' ? 'kenburns-bg' : ''
   
-  const sectionBase = `relative ${heightClasses[String(finalVariant)] || heightClasses.fullscreen} flex ${positionClasses[String(finalContentPosition)] || positionClasses.center} text-white overflow-hidden ${animation === 'fade-in' ? 'animate-fadeIn' : animation === 'slide-up' ? 'animate-slideUp' : animation === 'zoom' ? 'animate-zoom' : ''}`
+  // Phase 4: Apply responsive utilities
+  const responsiveClasses = getResponsiveVisibility({ 
+    mobileHidden: String(mobileHidden) === 'true' 
+  })
+  
+  const sectionBase = `relative ${heightClasses[String(finalVariant)] || heightClasses.fullscreen} flex ${positionClasses[String(finalContentPosition)] || positionClasses.center} text-white overflow-hidden ${animation === 'fade-in' ? 'animate-fadeIn' : animation === 'slide-up' ? 'animate-slideUp' : animation === 'zoom' ? 'animate-zoom' : ''} ${responsiveClasses}`
   
   // Split variant renders differently
   const isSplit = String(finalVariant) === 'split'
@@ -202,9 +219,19 @@ export function HeroBlock({
           />
         </div>
         <div className="flex items-center justify-center p-8 md:p-12 bg-gradient-to-br from-amber-900/90 to-amber-950/90">
-          <div className={`max-w-xl w-full text-${finalAlignment}`}>
-            {finalTitle && <h1 className={`text-3xl md:text-4xl lg:text-5xl font-bold mb-3 ${titleColor}`} dangerouslySetInnerHTML={{ __html: finalTitle }} />}
-            {finalSubtitle && <p className={`text-base md:text-lg mb-6 opacity-90 ${subtitleColor}`} dangerouslySetInnerHTML={{ __html: finalSubtitle }} />}
+          <div className={`max-w-xl w-full text-${finalAlignment} ${mobileAlignment ? getResponsiveAlignment(String(finalAlignment), String(mobileAlignment)) : ''}`}>
+            {finalTitle && (
+              <h1 
+                className={`text-3xl md:text-4xl lg:text-5xl font-bold mb-3 ${titleColor} ${mobileTextSize ? getResponsiveTextSize('4xl', String(mobileTextSize)) : ''}`} 
+                dangerouslySetInnerHTML={{ __html: finalTitle }} 
+              />
+            )}
+            {finalSubtitle && (
+              <p 
+                className={`text-base md:text-lg mb-6 opacity-90 ${subtitleColor} ${mobileTextSize ? getResponsiveTextSize('lg', String(mobileTextSize)) : ''}`} 
+                dangerouslySetInnerHTML={{ __html: finalSubtitle }} 
+              />
+            )}
             <div className="flex flex-wrap gap-4 justify-center items-center">
               {finalButtonText && (
                 <a
@@ -238,9 +265,19 @@ export function HeroBlock({
         className="absolute inset-0 bg-black/60"
         style={{ backgroundColor: `rgba(0,0,0,${Math.min(Math.max(Number(finalOverlay ?? 50), 0), 100) / 100})` }}
       />
-      <div className={`relative z-10 max-w-4xl w-full px-6 text-${finalAlignment}`}>
-        {finalTitle && <h1 className={`text-4xl md:text-5xl lg:text-6xl font-bold mb-3 ${titleColor}`} dangerouslySetInnerHTML={{ __html: finalTitle }} />}
-        {finalSubtitle && <p className={`text-lg md:text-xl mb-6 opacity-90 ${subtitleColor}`} dangerouslySetInnerHTML={{ __html: finalSubtitle }} />}
+      <div className={`relative z-10 max-w-4xl w-full px-6 text-${finalAlignment} ${mobileAlignment ? getResponsiveAlignment(String(finalAlignment), String(mobileAlignment)) : ''}`}>
+        {finalTitle && (
+          <h1 
+            className={`text-4xl md:text-5xl lg:text-6xl font-bold mb-3 ${titleColor} ${mobileTextSize ? getResponsiveTextSize('5xl', String(mobileTextSize)) : ''}`} 
+            dangerouslySetInnerHTML={{ __html: finalTitle }} 
+          />
+        )}
+        {finalSubtitle && (
+          <p 
+            className={`text-lg md:text-xl mb-6 opacity-90 ${subtitleColor} ${mobileTextSize ? getResponsiveTextSize('xl', String(mobileTextSize)) : ''}`} 
+            dangerouslySetInnerHTML={{ __html: finalSubtitle }} 
+          />
+        )}
         <div className="flex flex-wrap gap-4 justify-center items-center">
           {finalButtonText && (
             <a
@@ -282,11 +319,14 @@ export function HeroBlock({
   )
 }
 
-export function TextBlock({ contentB64, alignment = 'left', size = 'md', animation = 'none', _overrides }: {
+export function TextBlock({ contentB64, alignment = 'left', size = 'md', animation = 'none', mobileHidden, mobileTextSize, mobileAlignment, _overrides }: {
   contentB64?: string
   alignment?: 'left' | 'center' | 'right'
   size?: 'sm' | 'md' | 'lg' | 'xl'
   animation?: string
+  mobileHidden?: boolean | string
+  mobileTextSize?: 'sm' | 'md' | 'lg' | string
+  mobileAlignment?: 'left' | 'center' | 'right' | string
   _overrides?: Record<string, any> | null
 }) {
   const sizeClasses: Record<string, string> = {
@@ -301,14 +341,22 @@ export function TextBlock({ contentB64, alignment = 'left', size = 'md', animati
   const finalSize = ov.size ?? size
   const finalAnimation = ov.animation ?? animation
   const content = finalContentB64 ? Buffer.from(finalContentB64, 'base64').toString('utf-8') : ''
+  
+  // Phase 4: Responsive utilities
+  const responsiveClasses = getResponsiveVisibility({ 
+    mobileHidden: String(mobileHidden) === 'true' 
+  })
+  const responsiveText = mobileTextSize ? getResponsiveTextSize(String(finalSize), String(mobileTextSize)) : sizeClasses[finalSize || 'md']
+  const responsiveAlign = mobileAlignment ? getResponsiveAlignment(String(finalAlignment), String(mobileAlignment)) : `text-${finalAlignment}`
+  
   return (
-    <div className={`py-12 md:py-16 px-6 md:px-8 bg-white ${sizeClasses[finalSize || 'md']} text-${finalAlignment} ${finalAnimation === 'fade-in' ? 'animate-fadeIn' : finalAnimation === 'slide-up' ? 'animate-slideUp' : finalAnimation === 'zoom' ? 'animate-zoom' : ''}`}>
+    <div className={`py-12 md:py-16 px-6 md:px-8 bg-white ${responsiveText} ${responsiveAlign} ${finalAnimation === 'fade-in' ? 'animate-fadeIn' : finalAnimation === 'slide-up' ? 'animate-slideUp' : finalAnimation === 'zoom' ? 'animate-zoom' : ''} ${responsiveClasses}`}>
       {content && <div className="max-w-4xl mx-auto" dangerouslySetInnerHTML={{ __html: content }} />}
     </div>
   )
 }
 
-export function ImageBlock({ url, alt = '', caption, width = 'full', link, animation = 'none', hoverEffect = 'none', rounded = 'lg', shadow = 'md', _overrides }: {
+export function ImageBlock({ url, alt = '', caption, width = 'full', link, animation = 'none', hoverEffect = 'none', rounded = 'lg', shadow = 'md', mobileHidden, _overrides }: {
   url?: string
   alt?: string
   caption?: string
@@ -318,6 +366,7 @@ export function ImageBlock({ url, alt = '', caption, width = 'full', link, anima
   hoverEffect?: 'none' | 'zoom' | 'lift' | 'tilt' | string
   rounded?: 'none' | 'sm' | 'md' | 'lg' | 'xl' | 'full' | string
   shadow?: 'none' | 'sm' | 'md' | 'lg' | 'xl' | string
+  mobileHidden?: boolean | string
   _overrides?: Record<string, any> | null
 }) {
   const ov = _overrides || {}
@@ -373,8 +422,13 @@ export function ImageBlock({ url, alt = '', caption, width = 'full', link, anima
     xl: 'shadow-xl'
   }
   
+  // Phase 4: Responsive utilities
+  const responsiveClasses = getResponsiveVisibility({ 
+    mobileHidden: String(mobileHidden) === 'true' 
+  })
+  
   const imageElement = (
-    <div className={`mx-auto ${widthClasses[finalWidth || 'full']}`}>
+    <div className={`mx-auto ${widthClasses[finalWidth || 'full']} ${responsiveClasses}`}>
       {finalUrl && (
         <div className={`relative aspect-video overflow-hidden ${animationClasses[finalAnimation || 'none']} ${hoverEffectClasses[finalHoverEffect || 'none']} ${roundedClasses[finalRounded || 'lg']} ${shadowClasses[finalShadow || 'md']}`}>
           <Image src={finalUrl} alt={finalAlt} fill className="object-cover" />
@@ -727,26 +781,32 @@ export function WidgetEmbedBlock({ htmlB64, scriptSrcsB64, provider = 'custom', 
 }
 
 // Services Grid - displays services with images and feature lists
-export function ServicesGridBlock({ servicesB64, heading, subheading, columns = '3', animation = 'fade-in' }: {
+export function ServicesGridBlock({ servicesB64, heading, subheading, columns = '3', animation = 'fade-in', mobileHidden, tabletColumns, mobileColumns }: {
   servicesB64?: string
   heading?: string
   subheading?: string
   columns?: string | number
   animation?: string
+  mobileHidden?: boolean | string
+  tabletColumns?: string
+  mobileColumns?: string
 }) {
   const json = servicesB64 ? Buffer.from(servicesB64, 'base64').toString('utf-8') : '[]'
   let services: Array<{ image: string; title: string; description: string; features: string[]; link?: string }> = []
   try { services = JSON.parse(json || '[]') } catch { services = [] }
 
-  const gridCols: Record<string, string> = {
-    '2': 'md:grid-cols-2',
-    '3': 'md:grid-cols-2 lg:grid-cols-3',
-    '4': 'md:grid-cols-2 lg:grid-cols-4'
-  }
   const animClass = animation === 'fade-in' ? 'animate-fadeIn' : animation === 'slide-up' ? 'animate-slideUp' : animation === 'zoom' ? 'animate-zoom' : ''
+  
+  // Phase 4: Responsive utilities
+  const responsiveClasses = getResponsiveVisibility({ 
+    mobileHidden: String(mobileHidden) === 'true' 
+  })
+  const gridClasses = mobileColumns || tabletColumns 
+    ? `grid ${mobileColumns ? `grid-cols-${mobileColumns}` : 'grid-cols-1'} ${tabletColumns ? `md:grid-cols-${tabletColumns}` : ''} lg:grid-cols-${columns}`
+    : `grid grid-cols-1 md:grid-cols-2 lg:grid-cols-${columns}`
 
   return (
-    <div className={`py-16 md:py-20 px-6 md:px-8 bg-white ${animClass}`}>
+    <div className={`py-16 md:py-20 px-6 md:px-8 bg-white ${animClass} ${responsiveClasses}`}>
       <div className="max-w-7xl mx-auto">
         {heading && (
           <div className="text-center mb-12">
@@ -754,7 +814,7 @@ export function ServicesGridBlock({ servicesB64, heading, subheading, columns = 
             {subheading && <p className="text-lg text-gray-600">{subheading}</p>}
           </div>
         )}
-        <div className={`grid grid-cols-1 ${gridCols[String(columns)] || 'md:grid-cols-3'} gap-8`}>
+        <div className={`${gridClasses} gap-8`}>
           {services.map((service, i) => {
             const CardContent = (
               <>
@@ -803,36 +863,42 @@ export function ServicesGridBlock({ servicesB64, heading, subheading, columns = 
 }
 
 // Stats Block - displays statistics with icons and numbers
-export function StatsBlock({ statsB64, heading, columns = '3', style = 'default', animation = 'fade-in' }: {
+export function StatsBlock({ statsB64, heading, columns = '3', style = 'default', animation = 'fade-in', mobileHidden, tabletColumns, mobileColumns }: {
   statsB64?: string
   heading?: string
   columns?: string | number
   style?: 'default' | 'cards' | 'minimal' | string
   animation?: string
+  mobileHidden?: boolean | string
+  tabletColumns?: string
+  mobileColumns?: string
 }) {
   const json = statsB64 ? Buffer.from(statsB64, 'base64').toString('utf-8') : '[]'
   let stats: Array<{ icon: string; number: string; label: string; suffix?: string }> = []
   try { stats = JSON.parse(json || '[]') } catch { stats = [] }
 
-  const gridCols: Record<string, string> = {
-    '2': 'md:grid-cols-2',
-    '3': 'md:grid-cols-3',
-    '4': 'md:grid-cols-2 lg:grid-cols-4'
-  }
   const styleClasses: Record<string, string> = {
     default: '',
     cards: 'bg-white rounded-lg shadow-md p-6',
     minimal: 'border-b border-gray-200 pb-4'
   }
   const animClass = animation === 'fade-in' ? 'animate-fadeIn' : animation === 'slide-up' ? 'animate-slideUp' : animation === 'zoom' ? 'animate-zoom' : ''
+  
+  // Phase 4: Responsive utilities
+  const responsiveClasses = getResponsiveVisibility({ 
+    mobileHidden: String(mobileHidden) === 'true' 
+  })
+  const gridClasses = mobileColumns || tabletColumns 
+    ? `grid ${mobileColumns ? `grid-cols-${mobileColumns}` : 'grid-cols-1'} ${tabletColumns ? `md:grid-cols-${tabletColumns}` : ''} lg:grid-cols-${columns}`
+    : `grid grid-cols-1 md:grid-cols-${columns}`
 
   return (
-    <div className={`py-16 md:py-20 px-6 md:px-8 bg-white ${animClass}`}>
+    <div className={`py-16 md:py-20 px-6 md:px-8 bg-white ${animClass} ${responsiveClasses}`}>
       <div className="max-w-7xl mx-auto">
         {heading && (
           <h2 className="text-3xl font-bold text-gray-900 text-center mb-12">{heading}</h2>
         )}
-        <div className={`grid grid-cols-1 ${gridCols[String(columns)] || 'md:grid-cols-3'} gap-8`}>
+        <div className={`${gridClasses} gap-8`}>
           {stats.map((stat, i) => (
             <div key={i} className={`text-center ${styleClasses[style] || ''}`}>
               {stat.icon && (
@@ -851,7 +917,7 @@ export function StatsBlock({ statsB64, heading, columns = '3', style = 'default'
 }
 
 // CTA Banner - full-width call-to-action with background and dual buttons
-export function CTABannerBlock({ heading, subheading, primaryButtonText, primaryButtonLink, secondaryButtonText, secondaryButtonLink, backgroundImage, backgroundColor = '#0f172a', overlay = '60', textColor = 'text-white', fullBleed = 'true', animation = 'fade-in' }: {
+export function CTABannerBlock({ heading, subheading, primaryButtonText, primaryButtonLink, secondaryButtonText, secondaryButtonLink, backgroundImage, backgroundColor = '#0f172a', overlay = '60', textColor = 'text-white', fullBleed = 'true', animation = 'fade-in', mobileHidden }: {
   heading?: string
   subheading?: string
   primaryButtonText?: string
@@ -864,13 +930,19 @@ export function CTABannerBlock({ heading, subheading, primaryButtonText, primary
   textColor?: string
   fullBleed?: string | boolean
   animation?: string
+  mobileHidden?: boolean | string
 }) {
   const overlayAlpha = Math.min(Math.max(Number(overlay || 60), 0), 100) / 100
   const animClass = animation === 'fade-in' ? 'animate-fadeIn' : animation === 'slide-up' ? 'animate-slideUp' : animation === 'zoom' ? 'animate-zoom' : ''
   const isFullBleed = String(fullBleed) === 'true'
+  
+  // Phase 4: Responsive utilities
+  const responsiveClasses = getResponsiveVisibility({ 
+    mobileHidden: String(mobileHidden) === 'true' 
+  })
 
   const content = (
-    <div className={`relative min-h-[300px] flex items-center justify-center overflow-hidden rounded-lg ${animClass}`}>
+    <div className={`relative min-h-[300px] flex items-center justify-center overflow-hidden rounded-lg ${animClass} ${responsiveClasses}`}>
       {backgroundImage && (
         <Image src={backgroundImage} alt="CTA Background" fill className="object-cover" />
       )}
@@ -1193,6 +1265,7 @@ export function VideoHeroBlock({
   autoplay = 'true',
   muted = 'true',
   loop = 'true',
+  mobileHidden,
   _overrides
 }: {
   videoUrl?: string
@@ -1211,6 +1284,7 @@ export function VideoHeroBlock({
   autoplay?: string | boolean
   muted?: string | boolean
   loop?: string | boolean
+  mobileHidden?: boolean | string
   _overrides?: Record<string, any> | null
 }) {
   const ov = _overrides || {}
@@ -1226,9 +1300,14 @@ export function VideoHeroBlock({
   const finalSecondaryButtonLink = ov.secondaryButtonLink ?? secondaryButtonLink
 
   if (!finalVideoUrl) return null
+  
+  // Phase 4: Responsive utilities
+  const responsiveClasses = getResponsiveVisibility({ 
+    mobileHidden: String(mobileHidden) === 'true' 
+  })
 
   return (
-    <div className="py-0">
+    <div className={`py-0 ${responsiveClasses}`}>
       <VideoHeroClient
         videoUrl={finalVideoUrl}
         videoType={finalVideoType as any}
@@ -1262,6 +1341,7 @@ export function BeforeAfterSliderBlock({
   showLabels = 'true',
   heading,
   subheading,
+  mobileHidden,
   _overrides
 }: {
   beforeImage?: string
@@ -1273,6 +1353,7 @@ export function BeforeAfterSliderBlock({
   showLabels?: string | boolean
   heading?: string
   subheading?: string
+  mobileHidden?: boolean | string
   _overrides?: Record<string, any> | null
 }) {
   const ov = _overrides || {}
@@ -1282,9 +1363,14 @@ export function BeforeAfterSliderBlock({
   const finalSubheading = ov.subheading ?? subheading
 
   if (!finalBeforeImage || !finalAfterImage) return null
+  
+  // Phase 4: Responsive utilities
+  const responsiveClasses = getResponsiveVisibility({ 
+    mobileHidden: String(mobileHidden) === 'true' 
+  })
 
   return (
-    <section className="py-16 md:py-20 px-6 md:px-8 bg-white">
+    <section className={`py-16 md:py-20 px-6 md:px-8 bg-white ${responsiveClasses}`}>
       <div className="max-w-5xl mx-auto">
         {(finalHeading || finalSubheading) && (
           <div className="text-center mb-12">
@@ -1314,6 +1400,7 @@ export function TimelineBlock({
   accentColor = '#b46e14',
   style = 'default',
   animation = 'fade-in',
+  mobileHidden,
   _overrides
 }: {
   itemsB64?: string
@@ -1322,6 +1409,7 @@ export function TimelineBlock({
   accentColor?: string
   style?: 'default' | 'modern' | 'minimal' | string
   animation?: string
+  mobileHidden?: boolean | string
   _overrides?: Record<string, any> | null
 }) {
   const ov = _overrides || {}
@@ -1334,9 +1422,14 @@ export function TimelineBlock({
   try { items = JSON.parse(json || '[]') } catch { items = [] }
 
   const animClass = animation === 'fade-in' ? 'animate-fadeIn' : animation === 'slide-up' ? 'animate-slideUp' : animation === 'zoom' ? 'animate-zoom' : ''
+  
+  // Phase 4: Responsive utilities
+  const responsiveClasses = getResponsiveVisibility({ 
+    mobileHidden: String(mobileHidden) === 'true' 
+  })
 
   return (
-    <section className={`py-16 md:py-20 px-6 md:px-8 bg-white ${animClass}`}>
+    <section className={`py-16 md:py-20 px-6 md:px-8 bg-white ${animClass} ${responsiveClasses}`}>
       <div className="max-w-6xl mx-auto">
         {(finalHeading || finalSubheading) && (
           <div className="text-center mb-16">
@@ -1358,6 +1451,8 @@ export function MasonryGalleryBlock({
   columns = '3',
   gap = '16',
   animation = 'fade-in',
+  mobileHidden,
+  mobileColumns,
   _overrides
 }: {
   imagesB64?: string
@@ -1366,6 +1461,8 @@ export function MasonryGalleryBlock({
   columns?: string | number
   gap?: string | number
   animation?: string
+  mobileHidden?: boolean | string
+  mobileColumns?: string
   _overrides?: Record<string, any> | null
 }) {
   const ov = _overrides || {}
@@ -1378,9 +1475,14 @@ export function MasonryGalleryBlock({
   try { images = JSON.parse(json || '[]') } catch { images = [] }
 
   const animClass = animation === 'fade-in' ? 'animate-fadeIn' : animation === 'slide-up' ? 'animate-slideUp' : animation === 'zoom' ? 'animate-zoom' : ''
+  
+  // Phase 4: Responsive utilities
+  const responsiveClasses = getResponsiveVisibility({ 
+    mobileHidden: String(mobileHidden) === 'true' 
+  })
 
   return (
-    <section className={`py-16 md:py-20 px-6 md:px-8 bg-white ${animClass}`}>
+    <section className={`py-16 md:py-20 px-6 md:px-8 bg-white ${animClass} ${responsiveClasses}`}>
       <div className="max-w-7xl mx-auto">
         {(finalHeading || finalSubheading) && (
           <div className="text-center mb-12">
@@ -1407,6 +1509,8 @@ export function AnimatedCounterStatsBlock({
   style = 'default',
   accentColor = '#b46e14',
   animation = 'fade-in',
+  mobileHidden,
+  mobileColumns,
   _overrides
 }: {
   statsB64?: string
@@ -1416,6 +1520,8 @@ export function AnimatedCounterStatsBlock({
   style?: 'default' | 'cards' | 'minimal' | string
   accentColor?: string
   animation?: string
+  mobileHidden?: boolean | string
+  mobileColumns?: string
   _overrides?: Record<string, any> | null
 }) {
   const ov = _overrides || {}
@@ -1428,9 +1534,14 @@ export function AnimatedCounterStatsBlock({
   try { stats = JSON.parse(json || '[]') } catch { stats = [] }
 
   const animClass = animation === 'fade-in' ? 'animate-fadeIn' : animation === 'slide-up' ? 'animate-slideUp' : animation === 'zoom' ? 'animate-zoom' : ''
+  
+  // Phase 4: Responsive utilities
+  const responsiveClasses = getResponsiveVisibility({ 
+    mobileHidden: String(mobileHidden) === 'true' 
+  })
 
   return (
-    <section className={`py-16 md:py-20 px-6 md:px-8 bg-white ${animClass}`}>
+    <section className={`py-16 md:py-20 px-6 md:px-8 bg-white ${animClass} ${responsiveClasses}`}>
       <div className="max-w-7xl mx-auto">
         {(finalHeading || finalSubheading) && (
           <div className="text-center mb-12">
@@ -1460,6 +1571,7 @@ export function InteractiveMapBlock({
   heading,
   subheading,
   animation = 'fade-in',
+  mobileHidden,
   _overrides
 }: {
   centerLat?: string | number
@@ -1471,6 +1583,7 @@ export function InteractiveMapBlock({
   heading?: string
   subheading?: string
   animation?: string
+  mobileHidden?: boolean | string
   _overrides?: Record<string, any> | null
 }) {
   const ov = _overrides || {}
@@ -1484,9 +1597,14 @@ export function InteractiveMapBlock({
 
   const animClass = animation === 'fade-in' ? 'animate-fadeIn' : animation === 'slide-up' ? 'animate-slideUp' : animation === 'zoom' ? 'animate-zoom' : ''
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
+  
+  // Phase 4: Responsive utilities
+  const responsiveClasses = getResponsiveVisibility({ 
+    mobileHidden: String(mobileHidden) === 'true' 
+  })
 
   return (
-    <section className={`py-16 md:py-20 px-6 md:px-8 bg-white ${animClass}`}>
+    <section className={`py-16 md:py-20 px-6 md:px-8 bg-white ${animClass} ${responsiveClasses}`}>
       <div className="max-w-6xl mx-auto">
         {(finalHeading || finalSubheading) && (
           <div className="text-center mb-12">
