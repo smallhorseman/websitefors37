@@ -98,13 +98,14 @@ export async function POST(req: Request) {
       process.env.GOOGLE_GENAI_MODEL ||
       process.env.GEMINI_MODEL ||
       process.env.AI_MODEL ||
-      "gemini-3.0-pro-preview";
+      "gemini-3-pro";
     console.log(`Initializing Gemini API with model: ${preferredModel}`);
     const genAI = new GoogleGenerativeAI(apiKey);
     
     // Try multiple models in order of preference (includes preview + stable fallbacks)
     const modelsToTry = [
       preferredModel,
+      "gemini-3-pro",
       "gemini-3.0-pro-preview",
       "gemini-3-pro-preview",
       "gemini-2.5-pro",
