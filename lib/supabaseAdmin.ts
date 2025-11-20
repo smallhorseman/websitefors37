@@ -1,3 +1,13 @@
+import { createClient } from '@supabase/supabase-js'
+
+// Service role client for server-side use ONLY (API routes under app/api/**)
+// Do NOT import this in client components.
+const url = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co'
+const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || 'service-role-placeholder'
+
+export const supabaseAdmin = createClient(url, serviceRoleKey, {
+  auth: { autoRefreshToken: false, persistSession: false },
+})
 import { createClient, SupabaseClient } from '@supabase/supabase-js'
 
 // Admin client with service role key for server-side operations

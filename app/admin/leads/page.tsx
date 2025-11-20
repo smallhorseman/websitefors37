@@ -10,6 +10,7 @@ export default function LeadsPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [filter, setFilter] = useState('all')
+  const [q, setQ] = useState('')
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null)
   const [showLeadModal, setShowLeadModal] = useState(false)
   const [showNotesModal, setShowNotesModal] = useState(false)
@@ -22,6 +23,31 @@ export default function LeadsPage() {
     subject: '',
     content: '',
     direction: 'outbound' as CommunicationLog['direction']
+  })
+  const [showCreateModal, setShowCreateModal] = useState(false)
+  const [creating, setCreating] = useState(false)
+  const [toast, setToast] = useState<string | null>(null)
+  const [createError, setCreateError] = useState<string | null>(null)
+
+  type NewLeadForm = {
+    name: string
+    email: string
+    phone?: string
+    service_interest: string
+    budget_range?: string
+    event_date?: string
+    message: string
+    source?: string
+  }
+  const [newLead, setNewLead] = useState<NewLeadForm>({
+    name: '',
+    email: '',
+    phone: '',
+    service_interest: '',
+    budget_range: '',
+    event_date: '',
+    message: '',
+    source: 'admin-manual',
   })
   
   // Pagination state
@@ -45,6 +71,16 @@ export default function LeadsPage() {
       if (filter !== 'all') {
         query = query.eq('status', filter)
       }
+      // Apply search filter
+      const trimmed = q.trim()
+      if (trimmed) {
+        // Search name, email, phone, message, notes
+        // Using ilike with or() across columns
+        const pattern = `%${trimmed}%`
+        query = query.or(
+          `name.ilike.${pattern},email.ilike.${pattern},phone.ilike.${pattern},message.ilike.${pattern},notes.ilike.${pattern}`
+        )
+      }
       
       // Apply pagination
       const from = (currentPage - 1) * itemsPerPage
@@ -62,14 +98,14 @@ export default function LeadsPage() {
       setTotalCount(count || 0)
       setPageCount(Math.ceil((count || 0) / itemsPerPage))
       
-      console.log('Fetched leads:', { data, count, filter })
+      console.log('Fetched leads:', { data, count, filter, q })
     } catch (error: any) {
       console.error('Error fetching leads:', error)
       setError(error.message || 'Failed to load leads')
     } finally {
       setLoading(false)
     }
-  }, [currentPage, filter])
+  }, [currentPage, filter, q])
 
   useEffect(() => {
     fetchLeads()
@@ -78,7 +114,65 @@ export default function LeadsPage() {
   // Reset to first page when filter changes
   useEffect(() => {
     setCurrentPage(1)
-  }, [filter])
+  }, [filter, q])
+
+  const handleCreateLead = async () => {
+    setCreateError(null)
+    // Basic client-side validation to match API schema
+    if (!newLead.name.trim() || newLead.name.trim().length < 2) {
+      setCreateError('Please provide a valid name (min 2 characters).')
+      return
+    }
+    if (!newLead.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newLead.email)) {
+      setCreateError('Please provide a valid email address.')
+      return
+    }
+    if (!newLead.service_interest.trim()) {
+      setCreateError('Please provide the service interest.')
+      return
+    }
+    if (!newLead.message.trim() || newLead.message.trim().length < 10) {
+      setCreateError('Please provide a short message (min 10 characters).')
+      return
+    }
+
+    setCreating(true)
+    try {
+      const res = await fetch('/api/leads', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: newLead.name.trim(),
+          email: newLead.email.trim(),
+          phone: newLead.phone?.trim() || undefined,
+          service_interest: newLead.service_interest.trim(),
+          budget_range: newLead.budget_range?.trim() || undefined,
+          event_date: newLead.event_date || undefined,
+          message: newLead.message.trim(),
+          source: newLead.source || 'admin-manual',
+        })
+      })
+
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}))
+        throw new Error(j.error || 'Failed to create lead')
+      }
+
+      // Refresh list, close modal, show toast
+      await fetchLeads()
+      setShowCreateModal(false)
+      setNewLead({
+        name: '', email: '', phone: '', service_interest: '', budget_range: '', event_date: '', message: '', source: 'admin-manual'
+      })
+      setToast('Lead created successfully')
+      setTimeout(() => setToast(null), 3000)
+    } catch (e: any) {
+      console.error('Create lead failed:', e)
+      setCreateError(e.message || 'Failed to create lead')
+    } finally {
+      setCreating(false)
+    }
+  }
 
   const updateLeadStatus = async (id: string, status: string) => {
     try {
@@ -272,7 +366,16 @@ export default function LeadsPage() {
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-xl font-semibold">Lead Management</h1>
-        <div className="flex space-x-2">
+        <div className="flex flex-col md:flex-row md:items-center gap-2 w-full md:w-auto md:gap-2">
+          <div className="relative w-full md:w-64">
+            <input
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder="Search name, email, phone..."
+              className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+              aria-label="Search leads"
+            />
+          </div>
           <select 
             value={filter} 
             onChange={(e) => setFilter(e.target.value)}
@@ -294,8 +397,22 @@ export default function LeadsPage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
             </svg>
           </button>
+          <button
+            onClick={() => { setShowCreateModal(true); setCreateError(null) }}
+            className="px-3 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 flex items-center gap-1"
+            title="Add new lead"
+          >
+            <Plus className="h-4 w-4" />
+            Add Lead
+          </button>
         </div>
       </div>
+
+      {toast && (
+        <div className="mb-4 rounded-lg border border-green-200 bg-green-50 px-4 py-2 text-green-800">
+          {toast}
+        </div>
+      )}
 
       {/* Stats Overview */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
@@ -707,7 +824,6 @@ export default function LeadsPage() {
                   <option value="phone">Phone Call</option>
                   <option value="sms">Text Message</option>
                   <option value="meeting">Meeting</option>
-                  <option value="other">Other</option>
                 </select>
               </div>
 
@@ -833,6 +949,129 @@ export default function LeadsPage() {
             >
               <ChevronRight className="h-4 w-4" />
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Create Lead Modal */}
+      {showCreateModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-semibold">Add New Lead</h3>
+              <button
+                onClick={() => setShowCreateModal(false)}
+                className="text-gray-400 hover:text-gray-500"
+                aria-label="Close create lead modal"
+                title="Close modal"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            {createError && (
+              <div className="mb-3 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
+                {createError}
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                <input
+                  type="text"
+                  value={newLead.name}
+                  onChange={(e) => setNewLead({ ...newLead, name: e.target.value })}
+                  className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                <input
+                  type="email"
+                  value={newLead.email}
+                  onChange={(e) => setNewLead({ ...newLead, email: e.target.value })}
+                  className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Phone (optional)</label>
+                <input
+                  type="tel"
+                  value={newLead.phone}
+                  onChange={(e) => setNewLead({ ...newLead, phone: e.target.value })}
+                  className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Service Interest</label>
+                <input
+                  type="text"
+                  value={newLead.service_interest}
+                  onChange={(e) => setNewLead({ ...newLead, service_interest: e.target.value })}
+                  className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  required
+                  placeholder="e.g., wedding, portrait, commercial"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Budget (optional)</label>
+                <input
+                  type="text"
+                  value={newLead.budget_range}
+                  onChange={(e) => setNewLead({ ...newLead, budget_range: e.target.value })}
+                  className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  placeholder="$2,000 - $4,000"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Event Date (optional)</label>
+                <input
+                  type="date"
+                  value={newLead.event_date}
+                  onChange={(e) => setNewLead({ ...newLead, event_date: e.target.value })}
+                  className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                />
+              </div>
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Message</label>
+                <textarea
+                  value={newLead.message}
+                  onChange={(e) => setNewLead({ ...newLead, message: e.target.value })}
+                  className="w-full h-32 px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  placeholder="Context or notes for this lead (min 10 characters)"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Source</label>
+                <input
+                  type="text"
+                  value={newLead.source}
+                  onChange={(e) => setNewLead({ ...newLead, source: e.target.value })}
+                  className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  placeholder="admin-manual"
+                />
+              </div>
+            </div>
+
+            <div className="mt-6 flex justify-end space-x-3">
+              <button
+                onClick={() => setShowCreateModal(false)}
+                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleCreateLead}
+                disabled={creating}
+                className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50"
+              >
+                {creating ? 'Creating...' : 'Create Lead'}
+              </button>
+            </div>
           </div>
         </div>
       )}
