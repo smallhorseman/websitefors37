@@ -23,6 +23,11 @@ import {
   getResponsiveTextSize, 
   getResponsiveAlignment 
 } from '@/lib/responsiveUtils'
+// Phase 7: Interactive Elements - New client components
+import FilterableGalleryClient from './blocks/FilterableGalleryClient'
+import TabbedContentClient from './blocks/TabbedContentClient'
+import AccordionClient from './blocks/AccordionClient'
+import ModalLightboxClient from './blocks/ModalLightboxClient'
 // Import client-only LeadSignupBlock and create a local binding so MDXBuilderComponents can reference it safely.
 import LeadSignupBlockClient from './blocks/LeadSignupBlockClient'
 const LeadSignupBlock = LeadSignupBlockClient
@@ -1200,6 +1205,10 @@ export const MDXBuilderComponents = {
   MasonryGalleryBlock,
   AnimatedCounterStatsBlock,
   InteractiveMapBlock,
+  // Phase 7: Interactive Elements
+  FilterableGalleryBlock,
+  TabbedContentBlock,
+  EnhancedAccordionBlock,
 }
 
 // Pricing Calculator wrapper for page builder
@@ -1619,6 +1628,191 @@ export function InteractiveMapBlock({
           height={height}
           apiKey={apiKey}
           style={mapStyle as any}
+        />
+      </div>
+    </section>
+  )
+}
+
+// ========== PHASE 7: INTERACTIVE ELEMENTS ==========
+
+// Filterable Gallery Block - Image gallery with category filtering
+export function FilterableGalleryBlock({
+  imagesB64,
+  columns = '3',
+  gap = '6',
+  showAllButton = 'true',
+  accentColor = '#b46e14',
+  heading,
+  subheading,
+  animate = 'true',
+  mobileHidden,
+  _overrides
+}: {
+  imagesB64?: string
+  columns?: string | number
+  gap?: string | number
+  showAllButton?: string | boolean
+  accentColor?: string
+  heading?: string
+  subheading?: string
+  animate?: string | boolean
+  mobileHidden?: boolean | string
+  _overrides?: Record<string, any> | null
+}) {
+  const ov = _overrides || {}
+  const finalHeading = ov.heading ?? heading
+  const finalSubheading = ov.subheading ?? subheading
+  const finalImagesB64 = ov.imagesB64 ?? imagesB64
+
+  // Decode images from base64
+  const json = finalImagesB64 ? Buffer.from(finalImagesB64, 'base64').toString('utf-8') : '[]'
+  let images: Array<{ url: string; title?: string; description?: string; category: string }> = []
+  try { images = JSON.parse(json || '[]') } catch { images = [] }
+
+  const responsiveClasses = getResponsiveVisibility({ 
+    mobileHidden: String(mobileHidden) === 'true' 
+  })
+
+  return (
+    <section className={`py-16 md:py-20 px-6 md:px-8 bg-gray-50 ${responsiveClasses}`}>
+      <div className="max-w-7xl mx-auto">
+        {(finalHeading || finalSubheading) && (
+          <div className="text-center mb-12">
+            {finalHeading && <h2 className="text-3xl font-bold text-gray-900 mb-2">{finalHeading}</h2>}
+            {finalSubheading && <p className="text-lg text-gray-600">{finalSubheading}</p>}
+          </div>
+        )}
+        <FilterableGalleryClient
+          images={images}
+          columns={Number(columns) as any}
+          gap={Number(gap)}
+          showAllButton={String(showAllButton) !== 'false'}
+          accentColor={accentColor}
+          animate={String(animate) !== 'false'}
+        />
+      </div>
+    </section>
+  )
+}
+
+// Tabbed Content Block - Horizontal tabs with content sections
+export function TabbedContentBlock({
+  tabsB64,
+  defaultTab,
+  accentColor = '#b46e14',
+  style = 'default',
+  alignment = 'left',
+  heading,
+  subheading,
+  mobileHidden,
+  _overrides
+}: {
+  tabsB64?: string
+  defaultTab?: string
+  accentColor?: string
+  style?: 'default' | 'pills' | 'underline' | string
+  alignment?: 'left' | 'center' | 'right' | string
+  heading?: string
+  subheading?: string
+  mobileHidden?: boolean | string
+  _overrides?: Record<string, any> | null
+}) {
+  const ov = _overrides || {}
+  const finalHeading = ov.heading ?? heading
+  const finalSubheading = ov.subheading ?? subheading
+  const finalTabsB64 = ov.tabsB64 ?? tabsB64
+
+  // Decode tabs from base64
+  const json = finalTabsB64 ? Buffer.from(finalTabsB64, 'base64').toString('utf-8') : '[]'
+  let tabs: Array<{ id: string; label: string; icon?: string; content: string }> = []
+  try { tabs = JSON.parse(json || '[]') } catch { tabs = [] }
+
+  const responsiveClasses = getResponsiveVisibility({ 
+    mobileHidden: String(mobileHidden) === 'true' 
+  })
+
+  return (
+    <section className={`py-16 md:py-20 px-6 md:px-8 bg-white ${responsiveClasses}`}>
+      <div className="max-w-5xl mx-auto">
+        {(finalHeading || finalSubheading) && (
+          <div className="text-center mb-12">
+            {finalHeading && <h2 className="text-3xl font-bold text-gray-900 mb-2">{finalHeading}</h2>}
+            {finalSubheading && <p className="text-lg text-gray-600">{finalSubheading}</p>}
+          </div>
+        )}
+        <TabbedContentClient
+          tabs={tabs}
+          defaultTab={defaultTab}
+          accentColor={accentColor}
+          style={style as any}
+          alignment={alignment as any}
+        />
+      </div>
+    </section>
+  )
+}
+
+// Enhanced Accordion Block - FAQ accordion with search and multiple open support
+export function EnhancedAccordionBlock({
+  itemsB64,
+  allowMultiple = 'false',
+  searchable = 'false',
+  accentColor = '#b46e14',
+  style = 'default',
+  defaultOpenB64,
+  heading,
+  subheading,
+  mobileHidden,
+  _overrides
+}: {
+  itemsB64?: string
+  allowMultiple?: string | boolean
+  searchable?: string | boolean
+  accentColor?: string
+  style?: 'default' | 'bordered' | 'minimal' | string
+  defaultOpenB64?: string
+  heading?: string
+  subheading?: string
+  mobileHidden?: boolean | string
+  _overrides?: Record<string, any> | null
+}) {
+  const ov = _overrides || {}
+  const finalHeading = ov.heading ?? heading
+  const finalSubheading = ov.subheading ?? subheading
+  const finalItemsB64 = ov.itemsB64 ?? itemsB64
+  const finalDefaultOpenB64 = ov.defaultOpenB64 ?? defaultOpenB64
+
+  // Decode items from base64
+  const json = finalItemsB64 ? Buffer.from(finalItemsB64, 'base64').toString('utf-8') : '[]'
+  let items: Array<{ id?: string; question: string; answer: string; icon?: string; category?: string }> = []
+  try { items = JSON.parse(json || '[]') } catch { items = [] }
+
+  // Decode defaultOpen array
+  const defaultOpenJson = finalDefaultOpenB64 ? Buffer.from(finalDefaultOpenB64, 'base64').toString('utf-8') : '[]'
+  let defaultOpen: string[] = []
+  try { defaultOpen = JSON.parse(defaultOpenJson || '[]') } catch { defaultOpen = [] }
+
+  const responsiveClasses = getResponsiveVisibility({ 
+    mobileHidden: String(mobileHidden) === 'true' 
+  })
+
+  return (
+    <section className={`py-16 md:py-20 px-6 md:px-8 bg-white ${responsiveClasses}`}>
+      <div className="max-w-4xl mx-auto">
+        {(finalHeading || finalSubheading) && (
+          <div className="text-center mb-12">
+            {finalHeading && <h2 className="text-3xl font-bold text-gray-900 mb-2">{finalHeading}</h2>}
+            {finalSubheading && <p className="text-lg text-gray-600">{finalSubheading}</p>}
+          </div>
+        )}
+        <AccordionClient
+          items={items}
+          allowMultiple={String(allowMultiple) !== 'false'}
+          searchable={String(searchable) !== 'false'}
+          accentColor={accentColor}
+          style={style as any}
+          defaultOpen={defaultOpen}
         />
       </div>
     </section>
