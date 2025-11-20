@@ -3,17 +3,8 @@ import "./globals.css";
 import { 
   Inter, 
   Playfair_Display,
-  Cormorant_Garamond,
-  Lora,
-  Crimson_Pro,
-  Libre_Baskerville,
-  Montserrat,
-  Raleway,
-  Nunito,
-  Work_Sans,
-  Cinzel,
-  Great_Vibes,
-  Bebas_Neue
+  Lora, // Secondary serif option
+  Montserrat // Secondary sans option
 } from "next/font/google";
 import dynamic from "next/dynamic";
 import Navigation from "@/components/Navigation";
@@ -37,101 +28,27 @@ const playfair = Playfair_Display({
   subsets: ["latin"],
   variable: "--font-playfair",
   display: "swap",
-  weight: ["400", "700"], // Only load essential weights
-  preload: true, // Critical font
-  fallback: ['georgia', 'serif'],
-});
-
-// Serif Fonts - use optional display for non-critical fonts
-const cormorant = Cormorant_Garamond({
-  subsets: ["latin"],
-  variable: "--font-cormorant",
-  weight: ["400", "600"], // Reduced from 5 weights to 2
-  display: "optional", // Don't block render
-  preload: false,
+  weight: ["400", "700"],
+  preload: true,
   fallback: ['georgia', 'serif'],
 });
 
 const lora = Lora({
   subsets: ["latin"],
   variable: "--font-lora",
-  display: "optional", // Don't block render
-  weight: ["400", "600"], // Limit weights
+  display: "optional",
+  weight: ["400", "600"],
+  preload: false,
   fallback: ['georgia', 'serif'],
 });
 
-const crimson = Crimson_Pro({
-  subsets: ["latin"],
-  variable: "--font-crimson",
-  display: "optional", // Don't block render
-  weight: ["400", "600"], // Limit weights
-  fallback: ['georgia', 'serif'],
-});
-
-const libreBaskerville = Libre_Baskerville({
-  subsets: ["latin"],
-  variable: "--font-libre",
-  weight: ["400", "700"],
-  display: "optional", // Don't block render
-  fallback: ['georgia', 'serif'],
-});
-
-// Sans-serif Fonts
 const montserrat = Montserrat({
   subsets: ["latin"],
   variable: "--font-montserrat",
-  display: "optional", // Don't block render
-  weight: ["400", "600"], // Limit weights
+  display: "optional",
+  weight: ["400", "600"],
+  preload: false,
   fallback: ['system-ui', 'arial'],
-});
-
-const raleway = Raleway({
-  subsets: ["latin"],
-  variable: "--font-raleway",
-  display: "optional", // Don't block render
-  weight: ["400", "600"], // Limit weights
-  fallback: ['system-ui', 'arial'],
-});
-
-const nunito = Nunito({
-  subsets: ["latin"],
-  variable: "--font-nunito",
-  display: "optional", // Don't block render
-  weight: ["400", "600"], // Limit weights
-  fallback: ['system-ui', 'arial'],
-});
-
-const workSans = Work_Sans({
-  subsets: ["latin"],
-  variable: "--font-worksans",
-  display: "optional", // Don't block render
-  weight: ["400", "600"], // Limit weights
-  fallback: ['system-ui', 'arial'],
-});
-
-// Display Fonts - load on demand
-const cinzel = Cinzel({
-  subsets: ["latin"],
-  variable: "--font-cinzel",
-  display: "optional", // Don't block render
-  weight: ["400", "600"], // Limit weights
-  fallback: ['georgia', 'serif'],
-});
-
-const greatVibes = Great_Vibes({
-  subsets: ["latin"],
-  variable: "--font-greatvibes",
-  weight: "400",
-  display: "optional", // Don't block render
-  fallback: ['cursive'],
-});
-
-const bebasNeue = Bebas_Neue({
-  subsets: ["latin"],
-  variable: "--font-bebas",
-  weight: "400",
-  display: "optional", // Don't block render
-  fallback: ['impact', 'sans-serif'],
 });
 
 export const metadata = {
@@ -202,10 +119,16 @@ export default function RootLayout({
           name="google-site-verification"
           content={process.env.GOOGLE_SITE_VERIFICATION || ""}
         />
-        {/* Fonts are self-hosted via next/font; remove external Google Fonts preconnect to shrink network dependency tree */}
+        {/* Resource Hints for Performance */}
+        {/* Fonts are self-hosted via next/font; Google Fonts used for delivery */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         {/* Preconnect to Cloudinary for faster image loading (LCP optimization) */}
         <link rel="preconnect" href="https://res.cloudinary.com" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="//images.unsplash.com" />
+        {/* Analytics & Third-party */}
+        <link rel="dns-prefetch" href="//www.googletagmanager.com" />
+        <link rel="dns-prefetch" href="//www.google-analytics.com" />
         {/* Preconnect to Supabase for faster API responses */}
         <link rel="dns-prefetch" href={`//${process.env.NEXT_PUBLIC_SUPABASE_URL?.replace('https://', '')}`} />
         {/* Preload LCP hero image for faster rendering */}
@@ -220,7 +143,7 @@ export default function RootLayout({
         {/* Explicit favicon for modern browsers */}
         <link rel="icon" href="/icon.svg" type="image/svg+xml" />
       </head>
-      <body className={`${inter.variable} ${playfair.variable} ${montserrat.variable} ${raleway.variable} ${nunito.variable} ${workSans.variable} font-sans`}>
+      <body className={`${inter.variable} ${playfair.variable} ${lora.variable} ${montserrat.variable} font-sans`}>
         {/* Load remaining decorative fonts as CSS variables only when needed */}
         {/* Accessibility: Skip to content link */}
         <a
